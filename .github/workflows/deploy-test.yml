@@ -199,8 +199,18 @@ jobs:
           echo "Updated service file:"
           grep -E "JAVA_HOME|ExecStart=" deployment/systemd/11of-backend.service
 
+          # Stop service if running to clear any cached config
+          echo "Stopping backend service..."
+          sudo systemctl stop 11of-backend.service || true
+
+          # Copy updated service file and reload
           sudo cp deployment/systemd/11of-backend.service /etc/systemd/system/
           sudo systemctl daemon-reload
+
+          # Verify the installed service file
+          echo "Installed service file in /etc/systemd/system/:"
+          sudo grep -E "JAVA_HOME|ExecStart=" /etc/systemd/system/11of-backend.service
+
           echo "✓ Systemd service files updated with Java path: $JAVA21_HOME"
 
       - name: Download backend artifact
