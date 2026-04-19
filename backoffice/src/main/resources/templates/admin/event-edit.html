@@ -1,0 +1,367 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content})}"
+>
+  <div th:fragment="content">
+    <div class="container-fluid">
+        <div class="card">
+          <form
+            th:action="${isNew ? '/admin/events/new' : '/admin/events/edit/' + event.id}"
+            method="post"
+            enctype="multipart/form-data"
+            id="eventForm"
+          >
+            <div class="card-body">
+              <!-- Basic Information -->
+              <h5 class="mb-3">Thông tin cơ bản</h5>
+
+              <div class="form-group">
+                <label>Tên sự kiện <span class="text-danger">*</span></label>
+                <input
+                  type="text"
+                  name="title"
+                  class="form-control"
+                  th:value="${event != null ? event.title : ''}"
+                  required
+                />
+              </div>
+
+              <!-- Status -->
+              <div class="form-group">
+                <label>Trạng thái <span class="text-danger">*</span></label>
+                <select name="status" class="form-control" required>
+                  <option
+                    value="PLAN"
+                    th:selected="${event != null and event.status.name() == 'PLAN'}"
+                  >
+                    Đang lên kế hoạch
+                  </option>
+                  <option
+                    value="OPEN_REGISTER"
+                    th:selected="${event != null and event.status.name() == 'OPEN_REGISTER'}"
+                  >
+                    Đang mở đăng ký
+                  </option>
+                  <option
+                    value="CLOSE_REGISTER"
+                    th:selected="${event != null and event.status.name() == 'CLOSE_REGISTER'}"
+                  >
+                    Đóng đăng ký
+                  </option>
+                  <option
+                    value="COMPLETE"
+                    th:selected="${event != null and event.status.name() == 'COMPLETE'}"
+                  >
+                    Hoàn thành
+                  </option>
+                  <option
+                    value="CANCELLED"
+                    th:selected="${event != null and event.status.name() == 'CANCELLED'}"
+                  >
+                    Hủy bỏ
+                  </option>
+                  <option
+                    value="DELETED"
+                    th:selected="${event != null and event.status.name() == 'DELETED'}"
+                  >
+                    Đã xóa
+                  </option>
+                </select>
+              </div>
+
+              <!-- Image Upload Section - 2 Columns Layout -->
+              <div class="row">
+                <!-- Left Column: Upload Controls -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Hình ảnh (URL)</label>
+                    <input
+                      type="text"
+                      name="picture"
+                      id="pictureUrl"
+                      class="form-control"
+                      th:value="${event != null ? event.picture : ''}"
+                      placeholder="https://..."
+                      readonly
+                    />
+                    <small class="form-text text-muted">URL ảnh sẽ được tạo tự động sau khi upload</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Upload Hình ảnh <span class="text-info">(Tỉ lệ 16:9, tối đa 20MB)</span></label>
+                    <div class="custom-file">
+                      <input
+                        type="file"
+                        name="pictureFile"
+                        class="custom-file-input"
+                        id="pictureFileInput"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                      />
+                      <label class="custom-file-label" for="pictureFileInput">Chọn file ảnh...</label>
+                    </div>
+                    <small class="form-text text-muted">
+                      Chấp nhận: JPG, PNG, WEBP. Ảnh sẽ được tự động nén để tối ưu băng thông.
+                    </small>
+                  </div>
+                </div>
+
+                <!-- Right Column: Image Preview -->
+                <div class="col-md-6">
+                  <!-- New Image Preview -->
+                  <div class="form-group" id="imagePreviewContainer" style="display: none;">
+                    <label>Xem trước</label>
+                    <div class="border rounded p-2 bg-light text-center">
+                      <img
+                        id="imagePreview"
+                        src=""
+                        alt="Preview"
+                        style="max-width: 100%; max-height: 200px; object-fit: contain;"
+                      />
+                      <div class="mt-2">
+                        <small id="imageInfo" class="text-muted"></small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Current Image Display -->
+                  <div class="form-group" th:if="${event != null and event.picture != null}" id="currentImageContainer">
+                    <label>Ảnh hiện tại</label>
+                    <div class="border rounded p-2 bg-light text-center">
+                      <img
+                        th:src="${event.picture}"
+                        alt="Current image"
+                        style="max-width: 100%; max-height: 300px; object-fit: contain;"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Mô tả ngắn</label>
+                <textarea
+                  name="shortContent"
+                  class="form-control"
+                  rows="2"
+                  th:text="${event != null ? event.shortContent : ''}"
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Nội dung chi tiết</label>
+                <textarea
+                  name="content"
+                  id="contentEditor"
+                  class="form-control tinymce"
+                  rows="10"
+                  th:text="${event != null ? event.content : ''}"
+                ></textarea>
+                <small class="form-text text-muted">
+                  Hỗ trợ định dạng văn bản: in đậm, in nghiêng, danh sách, liên kết, v.v.
+                </small>
+              </div>
+
+              <!-- Date and Time -->
+              <h5 class="mb-3 mt-4">Thời gian</h5>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label
+                      >Ngày bắt đầu <span class="text-danger">*</span></label
+                    >
+                    <input
+                      type="date"
+                      name="startDate"
+                      class="form-control"
+                      th:value="${event != null ? event.startDate : ''}"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Giờ bắt đầu</label>
+                    <input
+                      type="time"
+                      name="startTime"
+                      class="form-control"
+                      th:value="${event != null ? event.startTime : ''}"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label
+                      >Ngày kết thúc <span class="text-danger">*</span></label
+                    >
+                    <input
+                      type="date"
+                      name="endDate"
+                      class="form-control"
+                      th:value="${event != null ? event.endDate : ''}"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label>Giờ kết thúc</label>
+                    <input
+                      type="time"
+                      name="endTime"
+                      class="form-control"
+                      th:value="${event != null ? event.endTime : ''}"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Location -->
+              <h5 class="mb-3 mt-4">Địa điểm</h5>
+
+              <div class="form-group">
+                <label>Địa điểm</label>
+                <input
+                  type="text"
+                  name="location"
+                  class="form-control"
+                  th:value="${event != null ? event.location : ''}"
+                  placeholder="Ví dụ: Sân vận động Mỹ Đình"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Tỉnh/Thành phố</label>
+                <select name="provinceId" class="form-control">
+                  <option value="">-- Chọn tỉnh/thành phố --</option>
+                  <option
+                    th:each="province : ${provinces}"
+                    th:value="${province.id}"
+                    th:text="${province.name}"
+                    th:selected="${event != null and event.province != null and event.province.id == province.id}"
+                  ></option>
+                </select>
+              </div>
+
+              
+            </div>
+
+            <div class="card-footer">
+              <button type="submit" class="btn btn-primary">
+                <span th:text="${isNew ? 'Tạo sự kiện' : 'Lưu thay đổi'}"
+                  >Lưu</span
+                >
+              </button>
+              <a th:href="@{/admin/events}" class="btn btn-secondary">Hủy</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    // Image upload preview and validation
+    $(document).ready(function() {
+      // Bootstrap file input styling
+      bsCustomFileInput.init();
+
+      // Image preview and validation
+      const pictureFileInput = $('#pictureFileInput')[0];
+      const imagePreviewContainer = $('#imagePreviewContainer');
+      const imagePreview = $('#imagePreview')[0];
+      const imageInfo = $('#imageInfo');
+      const currentImageContainer = $('#currentImageContainer');
+
+      if (pictureFileInput) {
+        $(pictureFileInput).on('change', function(e) {
+          const file = e.target.files[0];
+
+          if (!file) {
+            imagePreviewContainer.hide();
+            return;
+          }
+
+          // Validate file type
+          const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+          if (!validTypes.includes(file.type)) {
+            alert('Chỉ chấp nhận file ảnh định dạng JPG, PNG, hoặc WEBP!');
+            e.target.value = '';
+            imagePreviewContainer.hide();
+            return;
+          }
+
+          // Validate file size (20MB)
+          const maxSize = 20 * 1024 * 1024;
+          if (file.size > maxSize) {
+            alert('Kích thước file không được vượt quá 20MB!');
+            e.target.value = '';
+            imagePreviewContainer.hide();
+            return;
+          }
+
+          // Preview image
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+              const aspectRatio = img.width / img.height;
+              const targetRatio = 16 / 9;
+              const tolerance = 0.1;
+
+              if (Math.abs(aspectRatio - targetRatio) > tolerance) {
+                const userConfirm = confirm(
+                  `Cảnh báo: Tỉ lệ ảnh hiện tại là ${img.width}x${img.height} (${aspectRatio.toFixed(2)}:1).\n\n` +
+                  `Tỉ lệ khuyến nghị là 16:9 (~1.78:1) để hiển thị tốt nhất.\n\n` +
+                  `Bạn có muốn tiếp tục với ảnh này không?`
+                );
+
+                if (!userConfirm) {
+                  pictureFileInput.value = '';
+                  imagePreviewContainer.hide();
+                  return;
+                }
+              }
+
+              imagePreview.src = event.target.result;
+              imageInfo.text(`${img.width} x ${img.height} pixels (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+              imagePreviewContainer.show();
+
+              if (currentImageContainer.length) {
+                currentImageContainer.hide();
+              }
+            };
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Form submission validation
+      $('#eventForm').on('submit', function(e) {
+        const file = pictureFileInput ? pictureFileInput.files[0] : null;
+
+        if (file) {
+          const maxSize = 20 * 1024 * 1024;
+          if (file.size > maxSize) {
+            e.preventDefault();
+            alert('Kích thước file không được vượt quá 20MB!');
+            return false;
+          }
+        }
+
+        // Show loading indicator
+        const submitBtn = $(this).find('button[type="submit"]');
+        if (submitBtn.length) {
+          submitBtn.prop('disabled', true);
+          submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+        }
+      });
+    });
+    </script>
+  </div>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout (${title}, ~{::content})}">
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+<div th:fragment="content">
+    <!-- Info boxes -->
+    <div class="row">
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3 th:text="${totalPlayers}">0</h3>
+                    <p>Cầu thủ</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <a th:href="@{/admin/players}" class="small-box-footer">
+                    Xem chi tiết <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3 th:text="${totalMatches}">0</h3>
+                    <p>Trận đấu</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-futbol"></i>
+                </div>
+                <a th:href="@{/admin/matches}" class="small-box-footer">
+                    Xem chi tiết <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3 th:text="${totalEvents}">0</h3>
+                    <p>Sự kiện</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <a th:href="@{/admin/events}" class="small-box-footer">
+                    Xem chi tiết <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3 th:text="${totalUsers}">0</h3>
+                    <p>Người dùng</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <a th:href="@{/admin/users}" class="small-box-footer">
+                    Xem chi tiết <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Trận đấu gần đây</h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Đội 1</th>
+                            <th>Tỷ số</th>
+                            <th>Đội 2</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>08/04/2024</td>
+                            <td>Team Alpha</td>
+                            <td>3 - 2</td>
+                            <td>Team Beta</td>
+                            <td><span class="badge badge-success">Hoàn thành</span></td>
+                        </tr>
+                        <tr>
+                            <td>07/04/2024</td>
+                            <td>Team Gamma</td>
+                            <td>1 - 1</td>
+                            <td>Team Delta</td>
+                            <td><span class="badge badge-success">Hoàn thành</span></td>
+                        </tr>
+                        <tr>
+                            <td>06/04/2024</td>
+                            <td>Team Alpha</td>
+                            <td>- : -</td>
+                            <td>Team Gamma</td>
+                            <td><span class="badge badge-warning">Sắp diễn ra</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sự kiện sắp diễn ra</h3>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="products-list product-list-in-card pl-2 pr-2">
+                        <li th:if="${#lists.isEmpty(upcomingEvents)}" class="item">
+                            <div class="product-info">
+                                <span class="product-description">Không có sự kiện sắp diễn ra</span>
+                            </div>
+                        </li>
+                        <li th:each="event : ${upcomingEvents}" class="item">
+                            <div class="product-img" th:if="${event.picture != null && !#strings.isEmpty(event.picture)}">
+                                <img th:src="${event.picture}" alt="Event Image" style="width: 50px; height: 50px; object-fit: cover;">
+                            </div>
+                            <div class="product-img" th:if="${event.picture == null || #strings.isEmpty(event.picture)}">
+                                <img src="https://via.placeholder.com/50x50?text=Event" alt="No Image" style="width: 50px; height: 50px; object-fit: cover;">
+                            </div>
+                            <div class="product-info">
+                                <a th:href="@{/admin/events/edit/{id}(id=${event.id})}" class="product-title">
+                                    <span th:text="${event.title}">Event Title</span>
+                                    <span class="badge float-right"
+                                          th:classappend="${event.status.name() == 'PLAN'} ? 'badge-secondary' :
+                                                         ${event.status.name() == 'OPEN_REGISTER'} ? 'badge-success' :
+                                                         ${event.status.name() == 'CLOSE_REGISTER'} ? 'badge-warning' : 'badge-info'"
+                                          th:text="${event.status.name() == 'PLAN'} ? 'Kế hoạch' :
+                                                   ${event.status.name() == 'OPEN_REGISTER'} ? 'Mở ĐK' :
+                                                   ${event.status.name() == 'CLOSE_REGISTER'} ? 'Đóng ĐK' : 'Khác'">
+                                        Status
+                                    </span>
+                                </a>
+                                <span class="product-description">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    <span th:text="${#temporals.format(event.startDate, 'dd/MM/yyyy')}">10/04/2024</span>
+                                    <span th:if="${event.startTime != null}"
+                                          th:text="${' - ' + #temporals.format(event.startTime, 'HH:mm')}"></span>
+                                    <br th:if="${event.location != null && !#strings.isEmpty(event.location)}" />
+                                    <i th:if="${event.location != null && !#strings.isEmpty(event.location)}" class="fas fa-map-marker-alt mr-1"></i>
+                                    <span th:if="${event.location != null && !#strings.isEmpty(event.location)}"
+                                          th:text="${event.location}">Location</span>
+                                    <span th:if="${event.location == null || #strings.isEmpty(event.location)}"
+                                          class="text-muted">Chưa xác định địa điểm</span>
+                                    <br th:if="${event.province != null}" />
+                                    <small th:if="${event.province != null}" class="text-muted">
+                                        <span th:text="${event.province.name}">Province</span>
+                                    </small>
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

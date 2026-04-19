@@ -1,0 +1,229 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content})}"
+>
+  <head>
+    <title>Chỉnh sửa cầu thủ</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Chỉnh sửa thông tin cầu thủ</h3>
+            </div>
+            <form th:action="@{/admin/players/edit/{id}(id=${player.id})}" method="post">
+              <div class="card-body">
+                <!-- User Information Section -->
+                <h5 class="mb-3">Thông tin cơ bản</h5>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="fullName">Họ và tên <span class="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="fullName"
+                        name="fullName"
+                        th:value="${user.fullName}"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="phone">Số điện thoại <span class="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="phone"
+                        name="phone"
+                        th:value="${user.phone}"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="email">Email</label>
+                      <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        name="email"
+                        th:value="${user.email}"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="avatar">Avatar URL</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="avatar"
+                        name="avatar"
+                        th:value="${user.avatar}"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="dob">Ngày sinh</label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="dob"
+                        name="dob"
+                        th:value="${user.dob}"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="gender">Giới tính</label>
+                      <select class="form-control" id="gender" name="gender">
+                        <option value="">Chọn giới tính</option>
+                        <option value="MALE" th:selected="${user.gender?.name() == 'MALE'}">Nam</option>
+                        <option value="FEMALE" th:selected="${user.gender?.name() == 'FEMALE'}">Nữ</option>
+                        <option value="OTHER" th:selected="${user.gender?.name() == 'OTHER'}">Khác</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="provinceId">Tỉnh/Thành phố</label>
+                      <select class="form-control" id="provinceId" name="provinceId">
+                        <option value="">Chọn tỉnh/thành phố</option>
+                        <option
+                          th:each="province : ${provinces}"
+                          th:value="${province.id}"
+                          th:text="${province.name}"
+                          th:selected="${user.address != null && user.address.province.id == province.id}"
+                        ></option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Player Information Section -->
+                <h5 class="mt-4 mb-3">Thông tin cầu thủ</h5>
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="height">Chiều cao (cm)</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="height"
+                        name="height"
+                        th:value="${player.height}"
+                        min="100"
+                        max="250"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="weight">Cân nặng (kg)</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="weight"
+                        name="weight"
+                        th:value="${player.weight}"
+                        min="30"
+                        max="150"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="preferredFoot">Chân thuận</label>
+                      <select class="form-control" id="preferredFoot" name="preferredFoot">
+                        <option value="">Chọn chân thuận</option>
+                        <option value="left" th:selected="${player.preferredFoot == 'left'}">Trái</option>
+                        <option value="right" th:selected="${player.preferredFoot == 'right'}">Phải</option>
+                        <option value="both" th:selected="${player.preferredFoot == 'both'}">Cả hai</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="positions">Vị trí thi đấu</label>
+                      <select
+                        class="form-control"
+                        id="positions"
+                        name="positions"
+                        multiple
+                        size="5"
+                        style="height: auto;"
+                      >
+                        <option value="striker" th:selected="${#strings.contains(player.positions, 'striker')}">Tiền đạo</option>
+                        <option value="midfielder" th:selected="${#strings.contains(player.positions, 'midfielder')}">Tiền vệ</option>
+                        <option value="centerback" th:selected="${#strings.contains(player.positions, 'centerback')}">Trung vệ</option>
+                        <option value="defender" th:selected="${#strings.contains(player.positions, 'defender')}">Hậu vệ</option>
+                        <option value="goalkeeper" th:selected="${#strings.contains(player.positions, 'goalkeeper')}">Thủ môn</option>
+                      </select>
+                      <small class="form-text text-muted">Giữ Ctrl/Cmd để chọn nhiều vị trí</small>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="level">Trình độ</label>
+                      <select class="form-control" id="level" name="level">
+                        <option value="">Chọn trình độ</option>
+                        <option value="CAU_THU_MOI" th:selected="${player.level?.name() == 'CAU_THU_MOI'}">Cầu thủ mới</option>
+                        <option value="NGHIEP_DU" th:selected="${player.level?.name() == 'NGHIEP_DU'}">Nghiệp dư</option>
+                        <option value="TUYEN_TRE" th:selected="${player.level?.name() == 'TUYEN_TRE'}">Tuyển trẻ</option>
+                        <option value="CHUYEN_NGHIEP" th:selected="${player.level?.name() == 'CHUYEN_NGHIEP'}">Chuyên nghiệp</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label for="bio">Tiểu sử</label>
+                      <textarea
+                        class="form-control"
+                        id="bio"
+                        name="bio"
+                        rows="4"
+                        th:text="${player.bio}"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Lưu thay đổi
+                </button>
+                <a th:href="@{/admin/players}" class="btn btn-secondary">
+                  <i class="fas fa-times"></i> Hủy
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

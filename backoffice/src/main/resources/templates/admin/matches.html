@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout (${title}, ~{::content})}">
+<head>
+    <title>Trận đấu - 11of Admin</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Danh sách trận đấu</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Tạo trận đấu mới
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Ngày giờ</th>
+                            <th>Đội 1</th>
+                            <th>Tỷ số</th>
+                            <th>Đội 2</th>
+                            <th>Địa điểm</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>08/04/2024 18:00</td>
+                            <td>Team Alpha</td>
+                            <td><strong>3 - 2</strong></td>
+                            <td>Team Beta</td>
+                            <td>Sân Mỹ Đình</td>
+                            <td><span class="badge badge-success">Hoàn thành</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info"><i class="fas fa-eye"></i></button>
+                                <button class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>07/04/2024 16:00</td>
+                            <td>Team Gamma</td>
+                            <td><strong>1 - 1</strong></td>
+                            <td>Team Delta</td>
+                            <td>Sân Thống Nhất</td>
+                            <td><span class="badge badge-success">Hoàn thành</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info"><i class="fas fa-eye"></i></button>
+                                <button class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>10/04/2024 19:00</td>
+                            <td>Team Alpha</td>
+                            <td><strong>- : -</strong></td>
+                            <td>Team Gamma</td>
+                            <td>Sân Hàng Đẫy</td>
+                            <td><span class="badge badge-warning">Sắp diễn ra</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info"><i class="fas fa-eye"></i></button>
+                                <button class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>12/04/2024 17:30</td>
+                            <td>Team Beta</td>
+                            <td><strong>- : -</strong></td>
+                            <td>Team Delta</td>
+                            <td>Sân Lạch Tray</td>
+                            <td><span class="badge badge-info">Đang diễn ra</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info"><i class="fas fa-eye"></i></button>
+                                <button class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer clearfix">
+                    <ul class="pagination pagination-sm m-0 float-right">
+                        <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

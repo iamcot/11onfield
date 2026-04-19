@@ -1,0 +1,289 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content})}"
+>
+  <head>
+    <title>Players</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Danh sách cầu thủ</h3>
+              <div class="card-tools">
+                <!-- <button type="button" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Thêm cầu thủ
+                        </button> -->
+              </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="card-body border-bottom">
+              <form method="get" th:action="@{/admin/players}" class="form-inline">
+                <div class="form-group mr-2 mb-2">
+                  <input
+                    type="text"
+                    name="search"
+                    th:value="${search}"
+                    class="form-control form-control-sm"
+                    placeholder="Tìm theo tên..."
+                    style="width: 200px;"
+                  />
+                </div>
+
+                <div class="form-group mr-2 mb-2">
+                  <select name="position" class="form-control form-control-sm" style="width: 150px;">
+                    <option value="">Tất cả vị trí</option>
+                    <option value="striker" th:selected="${position == 'striker'}">Tiền đạo</option>
+                    <option value="midfielder" th:selected="${position == 'midfielder'}">Tiền vệ</option>
+                    <option value="centerback" th:selected="${position == 'centerback'}">Trung vệ</option>
+                    <option value="defender" th:selected="${position == 'defender'}">Hậu vệ</option>
+                    <option value="goalkeeper" th:selected="${position == 'goalkeeper'}">Thủ môn</option>
+                  </select>
+                </div>
+
+                <div class="form-group mr-2 mb-2">
+                  <select name="provinceId" class="form-control form-control-sm" style="width: 180px;">
+                    <option value="">Tất cả tỉnh/TP</option>
+                    <option
+                      th:each="province : ${provinces}"
+                      th:value="${province.id}"
+                      th:text="${province.name}"
+                      th:selected="${provinceId != null && provinceId == province.id}"
+                    ></option>
+                  </select>
+                </div>
+
+                <div class="form-group mr-2 mb-2">
+                  <select name="level" class="form-control form-control-sm" style="width: 150px;">
+                    <option value="">Tất cả cấp độ</option>
+                    <option value="CAU_THU_MOI" th:selected="${level == 'CAU_THU_MOI'}">Cầu thủ mới</option>
+                    <option value="NGHIEP_DU" th:selected="${level == 'NGHIEP_DU'}">Nghiệp dư</option>
+                    <option value="TUYEN_TRE" th:selected="${level == 'TUYEN_TRE'}">Tuyển trẻ</option>
+                    <option value="CHUYEN_NGHIEP" th:selected="${level == 'CHUYEN_NGHIEP'}">Chuyên nghiệp</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-sm mr-2 mb-2">
+                  <i class="fas fa-search"></i> Tìm kiếm
+                </button>
+
+                <a th:href="@{/admin/players}" class="btn btn-secondary btn-sm mb-2">
+                  <i class="fas fa-undo"></i> Đặt lại
+                </a>
+              </form>
+            </div>
+
+            <div class="card-body">
+              <table class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Họ và tên</th>
+                    <th>Số điện thoại</th>
+                    <th>Vị trí</th>
+                    <th>Chiều cao</th>
+                    <th>Cân nặng</th>
+                    <th>Chân thuận</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:if="${#lists.isEmpty(players)}">
+                    <td colspan="9" class="text-center text-muted">
+                      <i class="fas fa-info-circle"></i> Chưa có cầu thủ nào
+                    </td>
+                  </tr>
+                  <tr th:each="player : ${players}">
+                    <td th:text="${player.id}">1</td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <img
+                          th:if="${player.user.avatar != null and !#strings.isEmpty(player.user.avatar)}"
+                          th:src="${player.user.avatar}"
+                          alt="Avatar"
+                          class="rounded-circle mr-2"
+                          style="width: 32px; height: 32px; object-fit: cover;"
+                        />
+                        <div
+                          th:if="${player.user.avatar == null or #strings.isEmpty(player.user.avatar)}"
+                          class="rounded-circle bg-secondary mr-2 d-flex align-items-center justify-content-center"
+                          style="width: 32px; height: 32px; min-width: 32px; border-radius: 50%;"
+                        >
+                          <span class="text-white font-weight-bold" style="font-size: 12px;" th:text="${#strings.substring(player.user.fullName, 0, 1)}">N</span>
+                        </div>
+                        <span th:text="${player.user.fullName}">Nguyễn Văn A</span>
+                      </div>
+                    </td>
+                    <td th:text="${player.user.phone}">0123456789</td>
+                    <td>
+                      <span th:if="${player.positions == null or #strings.isEmpty(player.positions)}" class="badge badge-secondary">N/A</span>
+                      <th:block th:if="${player.positions != null and !#strings.isEmpty(player.positions)}">
+                        <span
+                          th:each="position, iterStat : ${#strings.arraySplit(player.positions, ',')}"
+                          class="badge badge-info"
+                          th:classappend="${!iterStat.last ? 'mr-1' : ''}"
+                          th:text="${position}"
+                        >Tiền đạo</span>
+                      </th:block>
+                    </td>
+                    <td
+                      th:text="${player.height != null ? player.height + ' cm' : 'N/A'}"
+                    >
+                      175 cm
+                    </td>
+                    <td
+                      th:text="${player.weight != null ? player.weight + ' kg' : 'N/A'}"
+                    >
+                      70 kg
+                    </td>
+                    <td>
+                      <span th:if="${player.preferredFoot == 'left'}"
+                        >Trái</span
+                      >
+                      <span th:if="${player.preferredFoot == 'right'}"
+                        >Phải</span
+                      >
+                      <span th:if="${player.preferredFoot == 'both'}"
+                        >Cả hai</span
+                      >
+                      <span th:if="${player.preferredFoot == null}">N/A</span>
+                    </td>
+                    <td>
+                      <span
+                        th:if="${player.user.enabled}"
+                        class="badge badge-success"
+                      >
+                        Hoạt động
+                      </span>
+                      <span
+                        th:unless="${player.user.enabled}"
+                        class="badge badge-danger"
+                      >
+                        Vô hiệu hóa
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        class="btn btn-sm btn-info"
+                        th:attr="data-userid=${player.user.userid}"
+                        th:onclick="'viewPlayer(this.getAttribute(\'data-userid\'))'"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-warning"
+                        th:onclick="'editPlayer(' + ${player.id} + ')'"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-danger"
+                        th:onclick="'deletePlayer(' + ${player.id} + ')'"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card-footer clearfix">
+              <div class="float-left">
+                <span
+                  th:text="'Hiển thị ' + ${#lists.size(players)} + ' / ' + ${totalItems} + ' cầu thủ'"
+                >
+                  Hiển thị 10 / 25 cầu thủ
+                </span>
+              </div>
+              <ul
+                class="pagination pagination-sm m-0 float-right"
+                th:if="${totalPages > 1}"
+              >
+                <!-- Previous button -->
+                <li
+                  class="page-item"
+                  th:classappend="${currentPage == 0 ? 'disabled' : ''}"
+                >
+                  <a
+                    class="page-link"
+                    th:href="@{/admin/players(page=${currentPage - 1}, size=${pageSize}, search=${search}, position=${position}, provinceId=${provinceId}, level=${level})}"
+                    th:if="${currentPage > 0}"
+                  >
+                    &laquo;
+                  </a>
+                  <span class="page-link" th:if="${currentPage == 0}"
+                    >&laquo;</span
+                  >
+                </li>
+
+                <!-- Page numbers -->
+                <li
+                  class="page-item"
+                  th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                  th:if="${i >= currentPage - 2 && i <= currentPage + 2}"
+                  th:classappend="${i == currentPage ? 'active' : ''}"
+                >
+                  <a
+                    class="page-link"
+                    th:href="@{/admin/players(page=${i}, size=${pageSize}, search=${search}, position=${position}, provinceId=${provinceId}, level=${level})}"
+                    th:text="${i + 1}"
+                    >1</a
+                  >
+                </li>
+
+                <!-- Next button -->
+                <li
+                  class="page-item"
+                  th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}"
+                >
+                  <a
+                    class="page-link"
+                    th:href="@{/admin/players(page=${currentPage + 1}, size=${pageSize}, search=${search}, position=${position}, provinceId=${provinceId}, level=${level})}"
+                    th:if="${currentPage < totalPages - 1}"
+                  >
+                    &raquo;
+                  </a>
+                  <span
+                    class="page-link"
+                    th:if="${currentPage == totalPages - 1}"
+                    >&raquo;</span
+                  >
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script th:inline="javascript">
+        // Frontend URL from configuration
+        const FRONTEND_URL = /*[[${frontendUrl}]]*/ 'http://localhost:3000';
+
+        function viewPlayer(userid) {
+          const url = `${FRONTEND_URL}/profile/${userid}`;
+          window.open(url, '_blank');
+        }
+
+        function editPlayer(playerId) {
+          window.location.href = `/admin/players/edit/${playerId}`;
+        }
+
+        function deletePlayer(playerId) {
+          if (confirm('Bạn có chắc chắn muốn xóa cầu thủ này? (Đặt về trạng thái không hoạt động)')) {
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/players/delete/${playerId}`;
+            document.body.appendChild(form);
+            form.submit();
+          }
+        }
+      </script>
+    </div>
+  </body>
+</html>

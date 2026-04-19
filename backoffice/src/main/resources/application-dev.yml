@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/elevenof_db_dev?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+logging:
+  level:
+    com.elevenof.backoffice: DEBUG

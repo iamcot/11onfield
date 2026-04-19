@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout (${title}, ~{::content})}">
+<head>
+    <title>Tài khoản và phân quyền - 11of Admin</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Danh sách tài khoản</h3>
+                    <div class="card-tools">
+                        <!-- Toggle to show all users -->
+                        <div class="custom-control custom-switch d-inline-block mr-2">
+                            <input type="checkbox"
+                                   class="custom-control-input"
+                                   id="showAllUsersToggle"
+                                   th:checked="${showAllUsers}"
+                                   th:attr="data-page-size=${pageSize}"
+                                   onchange="toggleShowAllUsers(this)">
+                            <label class="custom-control-label" for="showAllUsersToggle">
+                                Hiển thị tất cả USER
+                            </label>
+                        </div>
+                        <script th:inline="javascript">
+                            function toggleShowAllUsers(checkbox) {
+                                var pageSize = checkbox.getAttribute('data-page-size');
+                                window.location.href = '/admin/users?showAllUsers=' + checkbox.checked + '&page=0&size=' + pageSize;
+                            }
+                        </script>
+                        <button type="button" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Thêm tài khoản
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Họ và tên</th>
+                            <th>Số điện thoại</th>
+                            <th>Email</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${#lists.isEmpty(users)}">
+                            <td colspan="8" class="text-center text-muted">
+                                <i class="fas fa-info-circle"></i> Chưa có tài khoản nào
+                            </td>
+                        </tr>
+                        <tr th:each="user : ${users}">
+                            <td th:text="${user.id}">1</td>
+                            <td th:text="${user.fullName}">Nguyễn Văn A</td>
+                            <td th:text="${user.phone}">0123456789</td>
+                            <td th:text="${user.email ?: 'N/A'}">email@example.com</td>
+                            <td>
+                                <span th:if="${user.role.name() == 'USER'}" class="badge badge-info">USER</span>
+                                <span th:if="${user.role.name() == 'PLAYER'}" class="badge badge-success">PLAYER</span>
+                                <span th:if="${user.role.name() == 'COACH'}" class="badge badge-primary">COACH</span>
+                                <span th:if="${user.role.name() == 'SCOUTER'}" class="badge badge-secondary">SCOUTER</span>
+                                <span th:if="${user.role.name() == 'EDITOR'}" class="badge badge-info">EDITOR</span>
+                                <span th:if="${user.role.name() == 'ADMIN'}" class="badge badge-warning">ADMIN</span>
+                                <span th:if="${user.role.name() == 'SUPER_USER'}" class="badge badge-danger">SUPER_USER</span>
+                            </td>
+                            <td>
+                                <span th:if="${user.enabled}" class="badge badge-success">Hoạt động</span>
+                                <span th:if="${!user.enabled}" class="badge badge-secondary">Đã khóa</span>
+                            </td>
+                            <td th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm')}">01/03/2024</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" th:onclick="'viewUser(' + ${user.id} + ')'">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning" th:onclick="'editUser(' + ${user.id} + ')'">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button th:if="${user.enabled}" class="btn btn-sm btn-danger" th:onclick="'lockUser(' + ${user.id} + ')'">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                                <button th:if="${!user.enabled}" class="btn btn-sm btn-success" th:onclick="'unlockUser(' + ${user.id} + ')'">
+                                    <i class="fas fa-unlock"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer clearfix">
+                    <div class="float-left">
+                        <span th:text="'Hiển thị ' + ${#lists.size(users)} + ' / ' + ${totalItems} + ' tài khoản'">
+                            Hiển thị 10 / 25 tài khoản
+                        </span>
+                    </div>
+                    <ul class="pagination pagination-sm m-0 float-right" th:if="${totalPages > 1}">
+                        <!-- Previous button -->
+                        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${currentPage - 1}, size=${pageSize}, showAllUsers=${showAllUsers})}"
+                               th:if="${currentPage > 0}">
+                                &laquo;
+                            </a>
+                            <span class="page-link" th:if="${currentPage == 0}">&laquo;</span>
+                        </li>
+
+                        <!-- Page numbers -->
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:if="${i >= currentPage - 2 && i <= currentPage + 2}"
+                            th:classappend="${i == currentPage ? 'active' : ''}">
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${i}, size=${pageSize}, showAllUsers=${showAllUsers})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+
+                        <!-- Next button -->
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${currentPage + 1}, size=${pageSize}, showAllUsers=${showAllUsers})}"
+                               th:if="${currentPage < totalPages - 1}">
+                                &raquo;
+                            </a>
+                            <span class="page-link" th:if="${currentPage == totalPages - 1}">&raquo;</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Roles Info Card -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Thông tin vai trò</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="info-box bg-info">
+                                <span class="info-box-icon"><i class="fas fa-user"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">USER</span>
+                                    <span class="info-box-number">Người dùng thông thường</span>
+                                    <span class="progress-description">Quyền xem và chỉnh sửa hồ sơ cá nhân</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-box bg-warning">
+                                <span class="info-box-icon"><i class="fas fa-user-shield"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">ADMIN</span>
+                                    <span class="info-box-number">Quản trị viên</span>
+                                    <span class="progress-description">Quản lý cầu thủ, trận đấu, sự kiện</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-box bg-danger">
+                                <span class="info-box-icon"><i class="fas fa-user-cog"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">SUPER_USER</span>
+                                    <span class="info-box-number">Quản trị cấp cao</span>
+                                    <span class="progress-description">Toàn quyền quản lý hệ thống</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

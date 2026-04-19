@@ -1,0 +1,41 @@
+/* Custom styles for 11of Admin */
+
+/* Brand customization */
+.brand-link {
+    background-color: #2563eb !important;
+    color: white !important;
+    border-bottom: 1px solid #1d4ed8;
+}
+
+.brand-link:hover {
+    background-color: #1d4ed8 !important;
+}
+
+/* Sidebar active menu item */
+.nav-sidebar .nav-link.active {
+    background-color: #2563eb !important;
+}
+
+/* Card header styling */
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+/* Small box hover effect */
+.small-box:hover {
+    transform: translateY(-5px);
+    transition: transform 0.3s ease;
+}
+
+/* Table actions buttons */
+.table .btn {
+    margin: 0 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .brand-text {
+        font-size: 1rem;
+    }
+}

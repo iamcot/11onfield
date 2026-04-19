@@ -1,0 +1,246 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  th:fragment="layout (title, content)"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="|${title} - 11of Admin|">11of Admin</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- AdminLTE -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css"
+    />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/admin/css/custom.css}" />
+  </head>
+  <body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+      <!-- Navbar -->
+      <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+        <!-- Left navbar links -->
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" data-widget="pushmenu" href="#" role="button"
+              ><i class="fas fa-bars"></i
+            ></a>
+          </li>
+        </ul>
+
+        <!-- Right navbar links -->
+        <ul class="navbar-nav ml-auto">
+          <!-- User Menu -->
+          <li class="nav-item dropdown">
+            <a class="nav-link" data-toggle="dropdown" href="#">
+              <i class="far fa-user"></i>
+              <span class="ml-2" sec:authentication="principal.username"
+                >Admin</span
+              >
+            </a>
+            <div class="dropdown-menu dropdown-menu-right">
+              <a href="#" class="dropdown-item">
+                <i class="fas fa-user mr-2"></i> Hồ sơ
+              </a>
+              <div class="dropdown-divider"></div>
+              <form
+                th:action="@{/admin/logout}"
+                method="post"
+                style="display: inline"
+              >
+                <button
+                  type="submit"
+                  class="dropdown-item"
+                  style="
+                    cursor: pointer;
+                    background: none;
+                    border: none;
+                    width: 100%;
+                    text-align: left;
+                  "
+                >
+                  <i class="fas fa-sign-out-alt mr-2"></i> Đăng xuất
+                </button>
+              </form>
+            </div>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Main Sidebar Container -->
+      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <!-- Brand Logo -->
+        <a th:href="@{/admin/dashboard}" class="brand-link">
+          <span class="brand-text font-weight-light"
+            ><strong>11of</strong> Admin</span
+          >
+        </a>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <!-- Sidebar Menu -->
+          <nav class="mt-2">
+            <ul
+              class="nav nav-pills nav-sidebar flex-column"
+              data-widget="treeview"
+              role="menu"
+              data-accordion="false"
+            >
+              <!-- Dashboard -->
+              <li class="nav-item">
+                <a
+                  th:href="@{/admin/dashboard}"
+                  th:classappend="${title == 'Tổng quan' ? 'active' : ''}"
+                  class="nav-link"
+                >
+                  <i class="nav-icon fas fa-tachometer-alt"></i>
+                  <p>Tổng quan</p>
+                </a>
+              </li>
+
+              <!-- Players -->
+              <li class="nav-item">
+                <a
+                  th:href="@{/admin/players}"
+                  th:classappend="${title == 'Cầu thủ' ? 'active' : ''}"
+                  class="nav-link"
+                >
+                  <i class="nav-icon fas fa-users"></i>
+                  <p>Cầu thủ</p>
+                </a>
+              </li>
+
+              <!-- Matches -->
+              <li class="nav-item">
+                <a
+                  th:href="@{/admin/matches}"
+                  th:classappend="${title == 'Trận đấu' ? 'active' : ''}"
+                  class="nav-link"
+                >
+                  <i class="nav-icon fas fa-futbol"></i>
+                  <p>Trận đấu</p>
+                </a>
+              </li>
+
+              <!-- Events -->
+              <li class="nav-item">
+                <a
+                  th:href="@{/admin/events}"
+                  th:classappend="${title == 'Sự kiện' ? 'active' : ''}"
+                  class="nav-link"
+                >
+                  <i class="nav-icon fas fa-calendar-alt"></i>
+                  <p>Sự kiện</p>
+                </a>
+              </li>
+
+              <!-- Users & ACL -->
+              <li class="nav-item">
+                <a
+                  th:href="@{/admin/users}"
+                  th:classappend="${title == 'Tài khoản và phân quyền' ? 'active' : ''}"
+                  class="nav-link"
+                >
+                  <i class="nav-icon fas fa-user-shield"></i>
+                  <p>Tài khoản và phân quyền</p>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Content Wrapper -->
+      <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+          <div class="container-fluid">
+            <div class="row mb-2">
+              <div class="col-sm-12">
+                <h1 class="m-0" th:text="${title}">Page Title</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+          <div class="container-fluid">
+            <!-- Flash Messages -->
+            <div
+              th:if="${successMessage}"
+              class="alert alert-success alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-check-circle"></i>
+              <span th:text="${successMessage}"></span>
+              <button
+                type="button"
+                class="close"
+                data-dismiss="alert"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div
+              th:if="${errorMessage}"
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-exclamation-circle"></i>
+              <span th:text="${errorMessage}"></span>
+              <button
+                type="button"
+                class="close"
+                data-dismiss="alert"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+
+            <th:block th:replace="${content}" />
+          </div>
+        </section>
+      </div>
+
+      <!-- Footer -->
+      <footer class="main-footer">
+        <strong>Copyright &copy; 2024 <a href="#">11of</a>.</strong>
+        All rights reserved.
+        <div class="float-right d-none d-sm-inline-block">
+          <b>Version</b> 1.0.0
+        </div>
+      </footer>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- BS Custom File Input -->
+    <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input@1.3.4/dist/bs-custom-file-input.min.js"></script>
+    <!-- TinyMCE -->
+    <script
+      src="https://cdn.tiny.cloud/1/eqzisks4v6u74j9qp4bui994k8q8u6xwy33j0yut4mn1ma71/tinymce/6/tinymce.min.js"
+      referrerpolicy="origin"
+    ></script>
+    <!-- AdminLTE App -->
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+    <!-- Custom JS -->
+    <script th:src="@{/admin/js/custom.js}"></script>
+  </body>
+</html>

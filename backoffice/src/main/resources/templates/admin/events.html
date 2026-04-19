@@ -1,0 +1,179 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout (${title}, ~{::content})}">
+<div th:fragment="content">
+        <div class="container-fluid">
+            <!-- Filter Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Tìm kiếm và lọc</h3>
+                </div>
+                <div class="card-body">
+                    <form method="get" th:action="@{/admin/events}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Tìm kiếm theo tên</label>
+                                    <input type="text" name="search" class="form-control"
+                                           th:value="${search}" placeholder="Nhập tên sự kiện...">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Trạng thái</label>
+                                    <select name="status" class="form-control">
+                                        <option value="">Tất cả</option>
+                                        <option value="PLAN" th:selected="${status == 'PLAN'}">Đang lên kế hoạch</option>
+                                        <option value="OPEN_REGISTER" th:selected="${status == 'OPEN_REGISTER'}">Đang mở đăng ký</option>
+                                        <option value="CLOSE_REGISTER" th:selected="${status == 'CLOSE_REGISTER'}">Đóng đăng ký</option>
+                                        <option value="COMPLETE" th:selected="${status == 'COMPLETE'}">Hoàn thành</option>
+                                        <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">Hủy bỏ</option>
+                                        <option value="DELETED" th:selected="${status == 'DELETED'}">Đã xóa</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Tỉnh/Thành phố</label>
+                                    <select name="provinceId" class="form-control">
+                                        <option value="">Tất cả</option>
+                                        <option th:each="province : ${provinces}"
+                                                th:value="${province.id}"
+                                                th:text="${province.name}"
+                                                th:selected="${provinceId != null and provinceId == province.id}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                                        <a th:href="@{/admin/events}" class="btn btn-secondary">Reset</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Events Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Danh sách sự kiện</h3>
+                    <div class="card-tools">
+                        <a th:href="@{/admin/events/new}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus"></i> Tạo sự kiện mới
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên sự kiện</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Địa điểm</th>
+                                <th>Tỉnh/Thành</th>
+                                <th>Số người tham gia</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(events)}">
+                                <td colspan="9" class="text-center">Không có sự kiện nào</td>
+                            </tr>
+                            <tr th:each="event : ${events}"
+                                th:classappend="${event.status.name() == 'DELETED' ? 'table-secondary' : ''}">
+                                <td th:text="${event.id}">1</td>
+                                <td>
+                                    <span th:text="${event.title}"
+                                          th:classappend="${event.status.name() == 'DELETED' ? 'text-muted text-decoration-line-through' : ''}">Event Name</span>
+                                </td>
+                                <td>
+                                    <span th:text="${#temporals.format(event.startDate, 'dd/MM/yyyy')}">01/01/2024</span>
+                                    <span th:if="${event.startTime != null}"
+                                          th:text="${' ' + #temporals.format(event.startTime, 'HH:mm')}"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${#temporals.format(event.endDate, 'dd/MM/yyyy')}">01/01/2024</span>
+                                    <span th:if="${event.endTime != null}"
+                                          th:text="${' ' + #temporals.format(event.endTime, 'HH:mm')}"></span>
+                                </td>
+                                <td th:text="${event.location}">Location</td>
+                                <td th:text="${event.province != null ? event.province.name : 'N/A'}">Province</td>
+                                <td th:text="${eventService.getParticipantCount(event.id)}">0</td>
+                                <td>
+                                    <span th:if="${event.status.name() == 'PLAN'}" class="badge badge-secondary">Đang lên kế hoạch</span>
+                                    <span th:if="${event.status.name() == 'OPEN_REGISTER'}" class="badge badge-success">Đang mở đăng ký</span>
+                                    <span th:if="${event.status.name() == 'CLOSE_REGISTER'}" class="badge badge-warning">Đóng đăng ký</span>
+                                    <span th:if="${event.status.name() == 'COMPLETE'}" class="badge badge-info">Hoàn thành</span>
+                                    <span th:if="${event.status.name() == 'CANCELLED'}" class="badge badge-danger">Hủy bỏ</span>
+                                    <span th:if="${event.status.name() == 'DELETED'}" class="badge badge-dark">Đã xóa</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning" th:onclick="'editEvent(' + ${event.id} + ')'">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" th:onclick="'deleteEvent(' + ${event.id} + ')'">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer clearfix">
+                    <div class="float-left">
+                        <span>Hiển thị <span th:text="${#lists.size(events)}">0</span> /
+                              <span th:text="${totalItems}">0</span> sự kiện</span>
+                    </div>
+                    <ul class="pagination pagination-sm m-0 float-right" th:if="${totalPages > 1}">
+                        <!-- Pagination controls -->
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/admin/events(page=${currentPage - 1}, size=${pageSize}, search=${search}, status=${status}, provinceId=${provinceId})}">
+                                «
+                            </a>
+                        </li>
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/admin/events(page=${i}, size=${pageSize}, search=${search}, status=${status}, provinceId=${provinceId})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/admin/events(page=${currentPage + 1}, size=${pageSize}, search=${search}, status=${status}, provinceId=${provinceId})}">
+                                »
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            function editEvent(id) {
+                window.location.href = '/admin/events/edit/' + id;
+            }
+
+            function deleteEvent(id) {
+                if (confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/admin/events/delete/' + id;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }
+        </script>
+    </div>
+</div>
+</html>

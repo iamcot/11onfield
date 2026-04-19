@@ -1,0 +1,341 @@
+package com.elevenof.backoffice.controller.admin;
+
+import com.elevenof.backoffice.model.Address;
+import com.elevenof.backoffice.model.Player;
+import com.elevenof.backoffice.model.Province;
+import com.elevenof.backoffice.model.User;
+import com.elevenof.backoffice.repository.AddressRepository;
+import com.elevenof.backoffice.repository.PlayerRepository;
+import com.elevenof.backoffice.repository.ProvinceRepository;
+import com.elevenof.backoffice.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * Admin Dashboard Controller
+ * Handles admin panel navigation and dashboard views
+ */
+@Controller
+@RequestMapping("/admin")
+@RequiredArgsConstructor
+public class AdminController {
+
+    private final PlayerRepository playerRepository;
+    private final UserRepository userRepository;
+    private final ProvinceRepository provinceRepository;
+    private final AddressRepository addressRepository;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
+    /**
+     * Admin dashboard homepage
+     */
+    @GetMapping({"/", "/dashboard"})
+    public String dashboard(Model model) {
+        // Count statistics from database
+        long totalPlayers = playerRepository.count();
+        long totalUsers = userRepository.count();
+
+        // For now, matches and events are 0 (will be implemented later)
+        long totalMatches = 0;
+        long totalEvents = 0;
+
+        model.addAttribute("title", "Tổng quan");
+        model.addAttribute("totalPlayers", totalPlayers);
+        model.addAttribute("totalMatches", totalMatches);
+        model.addAttribute("totalEvents", totalEvents);
+        model.addAttribute("totalUsers", totalUsers);
+
+        return "admin/dashboard";
+    }
+
+    /**
+     * Players management page
+     */
+    @GetMapping("/players")
+    public String players(
+            Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String position,
+            @RequestParam(required = false) Long provinceId,
+            @RequestParam(required = false) String level
+    ) {
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+
+            // Convert level string to enum - must be final for lambda
+            final Player.PlayerLevel playerLevel;
+            if (level != null && !level.isEmpty()) {
+                try {
+                    playerLevel = Player.PlayerLevel.valueOf(level);
+                } catch (IllegalArgumentException e) {
+                    playerLevel = null;
+                }
+            } else {
+                playerLevel = null;
+            }
+                    // Invalid level, ignore
+                }
+            }
+
+            // Apply filters
+            Page<Player> playerPage;
+            if ((search != null && !search.trim().isEmpty()) ||
+                (position != null && !position.trim().isEmpty()) ||
+                provinceId != null ||
+                playerLevel != null) {
+
+                // Use specification for filtering
+                org.springframework.data.jpa.domain.Specification<Player> spec =
+                    (root, query, cb) -> {
+                        List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+
+                        // Join with User
+                        jakarta.persistence.criteria.Join<Player, User> userJoin = root.join("user");
+
+                        // Search by name
+                        if (search != null && !search.trim().isEmpty()) {
+                            predicates.add(cb.like(
+                                cb.lower(userJoin.get("fullName")),
+                                "%" + search.toLowerCase() + "%"
+                            ));
+                        }
+
+                        // Filter by position
+                        if (position != null && !position.isEmpty()) {
+                            predicates.add(cb.like(
+                                root.get("positions"),
+                                "%" + position + "%"
+                            ));
+                        }
+
+                        // Filter by province
+                        if (provinceId != null) {
+                            jakarta.persistence.criteria.Join<User, Address> addressJoin =
+                                userJoin.join("address", jakarta.persistence.criteria.JoinType.LEFT);
+                            predicates.add(cb.equal(
+                                addressJoin.get("province").get("id"),
+                                provinceId
+                            ));
+                        }
+
+                        // Filter by level
+                        if (playerLevel != null) {
+                            predicates.add(cb.equal(root.get("level"), playerLevel));
+                        }
+
+                        return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+                    };
+
+                playerPage = playerRepository.findAll(spec, pageable);
+            } else {
+                playerPage = playerRepository.findAll(pageable);
+            }
+
+            // Load all provinces for filter dropdown
+            List<Province> provinces = provinceRepository.findAll();
+
+            model.addAttribute("title", "Cầu thủ");
+            model.addAttribute("players", playerPage.getContent());
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", playerPage.getTotalPages());
+            model.addAttribute("totalItems", playerPage.getTotalElements());
+            model.addAttribute("pageSize", size);
+            model.addAttribute("frontendUrl", frontendUrl);
+            model.addAttribute("provinces", provinces);
+
+            // Preserve filter params
+            model.addAttribute("search", search != null ? search : "");
+            model.addAttribute("position", position != null ? position : "");
+            model.addAttribute("provinceId", provinceId);
+            model.addAttribute("level", level != null ? level : "");
+
+            return "admin/players";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "Error loading players: " + e.getMessage());
+            return "error";
+        }
+    }
+
+    /**
+     * Matches management page
+     */
+    @GetMapping("/matches")
+    public String matches(Model model) {
+        model.addAttribute("title", "Trận đấu");
+        return "admin/matches";
+    }
+
+    /**
+     * Events management page
+     */
+    @GetMapping("/events")
+    public String events(Model model) {
+        model.addAttribute("title", "Sự kiện");
+        return "admin/events";
+    }
+
+    /**
+     * Users and ACL management page
+     */
+    @GetMapping("/users")
+    public String users(
+            Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "false") boolean showAllUsers
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<User> userPage;
+
+        if (showAllUsers) {
+            // Show all users including USER role
+            userPage = userRepository.findAll(pageable);
+        } else {
+            // Show only EDITOR, ADMIN, SUPER_USER
+            List<User.Role> adminRoles = Arrays.asList(
+                    User.Role.EDITOR,
+                    User.Role.ADMIN,
+                    User.Role.SUPER_USER
+            );
+            userPage = userRepository.findByRoleIn(adminRoles, pageable);
+        }
+
+        model.addAttribute("title", "Tài khoản và phân quyền");
+        model.addAttribute("users", userPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", userPage.getTotalPages());
+        model.addAttribute("totalItems", userPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+        model.addAttribute("showAllUsers", showAllUsers);
+
+        return "admin/users";
+    }
+
+    /**
+     * Show player edit form
+     */
+    @GetMapping("/players/edit/{id}")
+    public String editPlayer(@PathVariable Long id, Model model) {
+        Player player = playerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        List<Province> provinces = provinceRepository.findAll();
+
+        model.addAttribute("title", "Chỉnh sửa cầu thủ");
+        model.addAttribute("player", player);
+        model.addAttribute("user", player.getUser());
+        model.addAttribute("provinces", provinces);
+
+        return "admin/player-edit";
+    }
+
+    /**
+     * Save player updates
+     */
+    @PostMapping("/players/edit/{id}")
+    public String updatePlayer(
+            @PathVariable Long id,
+            @RequestParam String fullName,
+            @RequestParam String phone,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String avatar,
+            @RequestParam(required = false) String dob,
+            @RequestParam(required = false) String gender,
+            @RequestParam(required = false) Long provinceId,
+            @RequestParam(required = false) Integer height,
+            @RequestParam(required = false) Integer weight,
+            @RequestParam(required = false) String preferredFoot,
+            @RequestParam(required = false) List<String> positions,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String bio
+    ) {
+        // Fetch existing player and user
+        Player existingPlayer = playerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+        User existingUser = existingPlayer.getUser();
+
+        // Update user fields
+        existingUser.setFullName(fullName);
+        existingUser.setPhone(phone);
+        existingUser.setEmail(email);
+        existingUser.setAvatar(avatar);
+        if (dob != null && !dob.isEmpty()) {
+            existingUser.setDob(LocalDate.parse(dob));
+        }
+        if (gender != null && !gender.isEmpty()) {
+            existingUser.setGender(User.Gender.valueOf(gender));
+        }
+
+        // Update or create address (province only)
+        if (provinceId != null) {
+            Province province = provinceRepository.findById(provinceId)
+                    .orElseThrow(() -> new RuntimeException("Province not found"));
+
+            Address address = addressRepository.findByUserId(existingUser.getId())
+                    .orElse(Address.builder()
+                            .user(existingUser)
+                            .build());
+
+            address.setProvince(province);
+            // ward and address detail remain null by default
+
+            addressRepository.save(address);
+        }
+
+        // Update player fields
+        existingPlayer.setHeight(height);
+        existingPlayer.setWeight(weight);
+        existingPlayer.setPreferredFoot(preferredFoot);
+
+        // Convert List<String> positions to comma-separated string
+        if (positions != null && !positions.isEmpty()) {
+            existingPlayer.setPositions(String.join(",", positions));
+        } else {
+            existingPlayer.setPositions(null);
+        }
+
+        if (level != null && !level.isEmpty()) {
+            existingPlayer.setLevel(Player.PlayerLevel.valueOf(level));
+        }
+        existingPlayer.setBio(bio);
+
+        // Save
+        userRepository.save(existingUser);
+        playerRepository.save(existingPlayer);
+
+        return "redirect:/admin/players";
+    }
+
+    /**
+     * Soft delete player (set enabled = false)
+     */
+    @PostMapping("/players/delete/{id}")
+    public String deletePlayer(@PathVariable Long id) {
+        Player player = playerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        User user = player.getUser();
+        user.setEnabled(false);
+        userRepository.save(user);
+
+        return "redirect:/admin/players";
+    }
+}

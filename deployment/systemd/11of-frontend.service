@@ -1,0 +1,28 @@
+[Unit]
+Description=11of Frontend Service
+After=network.target 11of-backend.service
+Wants=11of-backend.service
+
+[Service]
+Type=simple
+User=11of-app
+Group=11of-app
+WorkingDirectory=/opt/11of/frontend/current
+Environment="NODE_ENV=production"
+Environment="PORT=8080"
+EnvironmentFile=/opt/11of/frontend/current/.env.production
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/opt/11of/frontend/logs/app.log
+StandardError=append:/opt/11of/frontend/logs/error.log
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/11of/frontend/logs
+
+[Install]
+WantedBy=multi-user.target
