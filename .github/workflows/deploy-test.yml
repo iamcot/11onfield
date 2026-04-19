@@ -29,8 +29,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          sparse-checkout-cone-mode: false
+
+      - name: Disable sparse checkout
+        run: git sparse-checkout disable
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -66,8 +67,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          sparse-checkout-cone-mode: false
+
+      - name: Disable sparse checkout
+        run: git sparse-checkout disable
 
       - name: Debug - List repository structure
         run: |
