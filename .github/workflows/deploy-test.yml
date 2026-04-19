@@ -25,9 +25,6 @@ jobs:
     runs-on: self-hosted
     environment: test.11onfield.com
     if: github.event.inputs.deploy_backend == 'true'
-    defaults:
-      run:
-        working-directory: ./backoffice
 
     steps:
       - name: Checkout code
@@ -38,9 +35,17 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'maven'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('backoffice/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Build with Maven
+        working-directory: ./backoffice
         run: mvn clean package -DskipTests -B -s .mvn/settings.xml
 
       - name: Upload backend artifact
@@ -55,9 +60,6 @@ jobs:
     runs-on: self-hosted
     environment: test.11onfield.com
     if: github.event.inputs.deploy_frontend == 'true'
-    defaults:
-      run:
-        working-directory: ./frontend-app
 
     steps:
       - name: Checkout code
@@ -77,13 +79,16 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
+        working-directory: ./frontend-app
         run: npm ci
 
       - name: Create production environment file
+        working-directory: ./frontend-app
         run: |
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env.production
 
       - name: Build application
+        working-directory: ./frontend-app
         run: npm run build
 
       - name: Upload frontend artifact
