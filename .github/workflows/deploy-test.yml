@@ -97,7 +97,29 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend-app
-        run: nice -n 19 npm ci --prefer-offline --no-audit
+        run: |
+          # Copy package files to shared location if they don't exist or have changed
+          if [ ! -f "${{ env.DEPLOY_PATH }}/frontend/package.json" ] || ! cmp -s package.json "${{ env.DEPLOY_PATH }}/frontend/package.json"; then
+            echo "Package files changed or first deployment, copying..."
+            sudo mkdir -p ${{ env.DEPLOY_PATH }}/frontend
+            sudo cp package.json ${{ env.DEPLOY_PATH }}/frontend/
+            sudo cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/
+            sudo cp .npmrc ${{ env.DEPLOY_PATH }}/frontend/ 2>/dev/null || true
+            sudo chown -R 11of-app:11of-app ${{ env.DEPLOY_PATH }}/frontend
+          fi
+
+          # Install to shared node_modules if it doesn't exist, otherwise just update
+          if [ ! -d "${{ env.DEPLOY_PATH }}/frontend/node_modules" ]; then
+            echo "First deployment: installing node_modules..."
+            cd ${{ env.DEPLOY_PATH }}/frontend
+            sudo -u 11of-app nice -n 19 npm ci --prefer-offline --no-audit
+          else
+            echo "Updating dependencies (faster than full install)..."
+            cd ${{ env.DEPLOY_PATH }}/frontend
+            sudo -u 11of-app nice -n 19 npm install --prefer-offline --no-audit
+          fi
+
+          echo "✓ Dependencies ready in shared location"
 
       - name: Create production environment file
         working-directory: frontend-app
