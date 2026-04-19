@@ -161,7 +161,7 @@ jobs:
           JAVA21_HOME=""
 
           # Try to find system-wide Java installations first
-          for java_home in /usr/lib/jvm/java-21-* /usr/lib/jvm/temurin-21-* /opt/java/openjdk-21*; do
+          for java_home in /opt/java/jdk-21 /usr/lib/jvm/java-21-* /usr/lib/jvm/temurin-21-* /opt/java/openjdk-21*; do
             if [ -d "$java_home" ] && [ -x "$java_home/bin/java" ]; then
               JAVA21_HOME="$java_home"
               break
@@ -171,9 +171,13 @@ jobs:
           # If not found, copy from JAVA_HOME to system location
           if [ -z "$JAVA21_HOME" ]; then
             echo "No system-wide Java 21 found. Installing from $JAVA_HOME..."
+            # Resolve symlinks to get the actual Java directory
+            REAL_JAVA_HOME=$(readlink -f "$JAVA_HOME")
+            echo "Resolved Java path: $REAL_JAVA_HOME"
+
             JAVA21_HOME="/opt/java/jdk-21"
             sudo mkdir -p /opt/java
-            sudo cp -r "$JAVA_HOME" "$JAVA21_HOME"
+            sudo cp -rL "$REAL_JAVA_HOME" "$JAVA21_HOME"
             sudo chmod -R 755 "$JAVA21_HOME"
             echo "✓ Java 21 installed to $JAVA21_HOME"
           fi
