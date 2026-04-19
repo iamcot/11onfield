@@ -164,7 +164,7 @@ jobs:
             /tmp/artifacts/backend/backoffice-0.0.1-SNAPSHOT.jar
 
       - name: Wait for backend startup
-        run: sleep 10
+        run: sleep 30
 
   deploy-frontend:
     name: Deploy Frontend
@@ -185,13 +185,6 @@ jobs:
         with:
           name: frontend-build
           path: /tmp/artifacts/frontend
-
-      - name: Update production dependencies if needed
-        run: |
-          cd ${{ env.DEPLOY_PATH }}/frontend
-          if [ ! -d "node_modules" ] || [ package.json -nt node_modules ]; then
-            sudo -u 11of-app npm ci --production --prefix .
-          fi
 
       - name: Create frontend environment file
         run: |
@@ -216,6 +209,26 @@ jobs:
     if: ${{ !cancelled() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
 
     steps:
+      - name: Check backend service status
+        if: needs.deploy-backend.result == 'success'
+        run: |
+          echo "Checking backend service status..."
+          sudo systemctl status 11of-backend.service --no-pager || true
+          echo "Backend logs (last 50 lines):"
+          sudo journalctl -u 11of-backend.service -n 50 --no-pager || true
+          echo "Checking if port 8081 is listening..."
+          sudo netstat -tlnp | grep 8081 || echo "Port 8081 not listening"
+
+      - name: Check frontend service status
+        if: needs.deploy-frontend.result == 'success'
+        run: |
+          echo "Checking frontend service status..."
+          sudo systemctl status 11of-frontend.service --no-pager || true
+          echo "Frontend logs (last 50 lines):"
+          sudo journalctl -u 11of-frontend.service -n 50 --no-pager || true
+          echo "Checking if port 8080 is listening..."
+          sudo netstat -tlnp | grep 8080 || echo "Port 8080 not listening"
+
       - name: Run comprehensive health check
         run: |
           bash ${{ env.DEPLOY_PATH }}/scripts/health-check.sh
