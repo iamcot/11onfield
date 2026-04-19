@@ -4,6 +4,8 @@ import { User, AuthResponse } from '@/types/auth';
 export const mockUsers = [
   {
     id: '1',
+    userid: 'user_001',
+    phone: '0123456789',
     email: 'player@11of.com',
     username: '0123456789',
     fullName: 'Nguyễn Văn A',
@@ -18,6 +20,8 @@ export const mockUsers = [
   },
   {
     id: '2',
+    userid: 'user_002',
+    phone: '0987654321',
     email: 'admin@11of.com',
     username: '0987654321',
     fullName: 'Trần Thị B',
@@ -28,6 +32,8 @@ export const mockUsers = [
   },
   {
     id: '3',
+    userid: 'user_003',
+    phone: '0111111111',
     email: 'user@11of.com',
     username: '0111111111',
     fullName: 'Lê Văn C',
@@ -67,8 +73,9 @@ export const mockLogin = (phone: string, password: string): AuthResponse => {
 export const mockRegister = (data: any): AuthResponse => {
   const newUser: User = {
     id: String(mockUsers.length + 1),
+    userid: `user_${String(mockUsers.length + 1).padStart(3, '0')}`,
+    phone: data.phone,
     email: data.email || '',
-    username: data.phone,
     fullName: data.fullName,
     role: 'USER',
     createdAt: new Date().toISOString(),

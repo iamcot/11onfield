@@ -7,6 +7,7 @@ export interface PlayerListItem {
   avatar: string | null;
   age: number | null;
   height: number | null;
+  weight: number | null;
   positions: string[];
   preferredFoot: string | null;
   level: PlayerLevel | null;
