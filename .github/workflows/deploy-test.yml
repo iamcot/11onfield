@@ -121,7 +121,9 @@ jobs:
 
           # Link shared node_modules to build directory
           echo "Linking node_modules to build directory..."
-          sudo rm -rf node_modules
+          if [ -e node_modules ]; then
+            sudo rm -rf node_modules
+          fi
           ln -s ${{ env.DEPLOY_PATH }}/frontend/node_modules node_modules
           echo "✓ Dependencies ready"
 
