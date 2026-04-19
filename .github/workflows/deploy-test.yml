@@ -108,17 +108,27 @@ jobs:
         working-directory: frontend-app
         run: npm run build
 
+      - name: Verify build output
+        working-directory: frontend-app
+        run: |
+          echo "Checking build output..."
+          ls -la
+          echo "Checking .next directory:"
+          ls -la .next/ || echo ".next directory not found!"
+          echo "Checking .next subdirectories:"
+          find .next -maxdepth 2 -type d 2>/dev/null || echo "Cannot traverse .next"
+
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: |
-            frontend-app/.next
+            frontend-app/.next/**/*
             frontend-app/package.json
             frontend-app/package-lock.json
             frontend-app/.npmrc
             frontend-app/next.config.js
-            frontend-app/public
+            frontend-app/public/**/*
           retention-days: 7
 
   deploy-backend:
@@ -132,8 +142,17 @@ jobs:
       - name: Checkout deployment scripts
         uses: actions/checkout@v4
         with:
-          sparse-checkout: deployment/scripts
+          sparse-checkout: |
+            deployment/scripts
+            deployment/systemd
           sparse-checkout-cone-mode: false
+
+      - name: Update systemd service files
+        run: |
+          echo "Updating systemd service files..."
+          sudo cp deployment/systemd/11of-backend.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+          echo "✓ Systemd service files updated"
 
       - name: Download backend artifact
         uses: actions/download-artifact@v4

@@ -10,7 +10,9 @@ Group=11of-app
 WorkingDirectory=/opt/11of/backend/current
 EnvironmentFile=/opt/11of/backend/current/.env
 Environment="SPRING_PROFILES_ACTIVE=prod"
-ExecStart=/usr/bin/java -jar \
+Environment="JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64"
+Environment="PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/usr/lib/jvm/java-21-openjdk-amd64/bin/java -jar \
     -Xms512m -Xmx1024m \
     -Dspring.profiles.active=prod \
     /opt/11of/backend/current/backoffice.jar
