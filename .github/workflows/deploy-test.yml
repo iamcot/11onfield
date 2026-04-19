@@ -119,7 +119,10 @@ jobs:
             sudo -u 11of-app nice -n 19 npm install --prefer-offline --no-audit
           fi
 
-          echo "✓ Dependencies ready in shared location"
+          # Symlink shared node_modules to build directory
+          echo "Linking node_modules to build directory..."
+          ln -sf ${{ env.DEPLOY_PATH }}/frontend/node_modules node_modules
+          echo "✓ Dependencies ready"
 
       - name: Create production environment file
         working-directory: frontend-app
