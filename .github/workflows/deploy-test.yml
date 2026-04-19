@@ -143,6 +143,7 @@ jobs:
 
       - name: Create backend environment file
         run: |
+          mkdir -p ${{ env.DEPLOY_PATH }}/backend
           sudo -u 11of-app tee ${{ env.DEPLOY_PATH }}/backend/.env > /dev/null << 'EOF'
           DB_USERNAME=${{ secrets.DB_USERNAME }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
@@ -157,6 +158,8 @@ jobs:
           SPRING_PROFILES_ACTIVE=prod
           EOF
           sudo chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env
+          echo "Environment file created. Checking content (masked):"
+          sudo ls -la ${{ env.DEPLOY_PATH }}/backend/.env
 
       - name: Deploy backend
         run: |
@@ -186,12 +189,26 @@ jobs:
           name: frontend-build
           path: /tmp/artifacts/frontend
 
+      - name: Restructure frontend artifacts
+        run: |
+          echo "Restructuring frontend artifacts..."
+          ls -la /tmp/artifacts/frontend/
+          if [ -d "/tmp/artifacts/frontend/frontend-app" ]; then
+            mv /tmp/artifacts/frontend/frontend-app/* /tmp/artifacts/frontend/
+            rm -rf /tmp/artifacts/frontend/frontend-app
+          fi
+          echo "Restructured artifacts:"
+          ls -la /tmp/artifacts/frontend/
+
       - name: Create frontend environment file
         run: |
+          mkdir -p ${{ env.DEPLOY_PATH }}/frontend
           sudo -u 11of-app tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null << 'EOF'
           NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
           EOF
           sudo chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production
+          echo "Environment file created. Checking:"
+          sudo ls -la ${{ env.DEPLOY_PATH }}/frontend/.env.production
 
       - name: Deploy frontend
         run: |
@@ -214,10 +231,14 @@ jobs:
         run: |
           echo "Checking backend service status..."
           sudo systemctl status 11of-backend.service --no-pager || true
-          echo "Backend logs (last 50 lines):"
-          sudo journalctl -u 11of-backend.service -n 50 --no-pager || true
+          echo "Backend logs (last 100 lines):"
+          sudo journalctl -u 11of-backend.service -n 100 --no-pager || true
+          echo "Application log file:"
+          sudo tail -n 100 ${{ env.DEPLOY_PATH }}/backend/logs/app.log 2>/dev/null || echo "Log file not found"
           echo "Checking if port 8081 is listening..."
           sudo netstat -tlnp | grep 8081 || echo "Port 8081 not listening"
+          echo "Checking backend current release:"
+          ls -la ${{ env.DEPLOY_PATH }}/backend/current/ || echo "Current release not found"
 
       - name: Check frontend service status
         if: needs.deploy-frontend.result == 'success'
