@@ -156,9 +156,25 @@ jobs:
       - name: Update systemd service files
         run: |
           echo "Updating systemd service files..."
+
+          # Find Java 21 installation
+          JAVA21_HOME=$(update-alternatives --query java | grep 'Value:' | grep 'java-21' | sed 's/Value: //' | sed 's|/bin/java||')
+          if [ -z "$JAVA21_HOME" ]; then
+            # Try alternative method
+            JAVA21_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+          fi
+
+          echo "Found Java at: $JAVA21_HOME"
+          $JAVA21_HOME/bin/java -version
+
+          # Update service file with correct Java path
+          sudo sed -i "s|Environment=\"JAVA_HOME=.*\"|Environment=\"JAVA_HOME=$JAVA21_HOME\"|" deployment/systemd/11of-backend.service
+          sudo sed -i "s|Environment=\"PATH=.*\"|Environment=\"PATH=$JAVA21_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"|" deployment/systemd/11of-backend.service
+          sudo sed -i "s|ExecStart=.*/bin/java|ExecStart=$JAVA21_HOME/bin/java|" deployment/systemd/11of-backend.service
+
           sudo cp deployment/systemd/11of-backend.service /etc/systemd/system/
           sudo systemctl daemon-reload
-          echo "✓ Systemd service files updated"
+          echo "✓ Systemd service files updated with Java path: $JAVA21_HOME"
 
       - name: Download backend artifact
         uses: actions/download-artifact@v4
@@ -205,8 +221,17 @@ jobs:
       - name: Checkout deployment scripts
         uses: actions/checkout@v4
         with:
-          sparse-checkout: deployment/scripts
+          sparse-checkout: |
+            deployment/scripts
+            deployment/systemd
           sparse-checkout-cone-mode: false
+
+      - name: Update systemd service files
+        run: |
+          echo "Updating systemd service files..."
+          sudo cp deployment/systemd/11of-frontend.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+          echo "✓ Frontend systemd service file updated"
 
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
