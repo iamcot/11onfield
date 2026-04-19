@@ -157,7 +157,7 @@ jobs:
         run: |
           echo "Updating systemd service files..."
 
-          # Find Java 21 installation (prefer system-wide installations)
+          # Find or install Java 21 to a system-wide location
           JAVA21_HOME=""
 
           # Try to find system-wide Java installations first
@@ -168,18 +168,27 @@ jobs:
             fi
           done
 
-          # If not found, use the action's installed Java
+          # If not found, copy from JAVA_HOME to system location
           if [ -z "$JAVA21_HOME" ]; then
-            JAVA21_HOME="$JAVA_HOME"
+            echo "No system-wide Java 21 found. Installing from $JAVA_HOME..."
+            JAVA21_HOME="/opt/java/jdk-21"
+            sudo mkdir -p /opt/java
+            sudo cp -r "$JAVA_HOME" "$JAVA21_HOME"
+            sudo chmod -R 755 "$JAVA21_HOME"
+            echo "✓ Java 21 installed to $JAVA21_HOME"
           fi
 
-          echo "Found Java at: $JAVA21_HOME"
+          echo "Using Java at: $JAVA21_HOME"
           $JAVA21_HOME/bin/java -version
 
           # Update service file with correct Java path
           sudo sed -i "s|Environment=\"JAVA_HOME=.*\"|Environment=\"JAVA_HOME=$JAVA21_HOME\"|" deployment/systemd/11of-backend.service
           sudo sed -i "s|Environment=\"PATH=.*\"|Environment=\"PATH=$JAVA21_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"|" deployment/systemd/11of-backend.service
           sudo sed -i "s|ExecStart=.*/bin/java|ExecStart=$JAVA21_HOME/bin/java|" deployment/systemd/11of-backend.service
+
+          # Show the updated service file
+          echo "Updated service file:"
+          grep -E "JAVA_HOME|ExecStart=" deployment/systemd/11of-backend.service
 
           sudo cp deployment/systemd/11of-backend.service /etc/systemd/system/
           sudo systemctl daemon-reload
