@@ -106,7 +106,12 @@ jobs:
 
       - name: Build application
         working-directory: frontend-app
-        run: npm run build
+        run: |
+          npm run build
+          if [ ! -d ".next" ]; then
+            echo "ERROR: .next directory was not created by the build!"
+            exit 1
+          fi
 
       - name: Verify build output
         working-directory: frontend-app
@@ -123,13 +128,14 @@ jobs:
         with:
           name: frontend-build
           path: |
-            frontend-app/.next/**/*
+            frontend-app/.next
             frontend-app/package.json
             frontend-app/package-lock.json
             frontend-app/.npmrc
             frontend-app/next.config.js
-            frontend-app/public/**/*
+            frontend-app/public
           retention-days: 7
+          include-hidden-files: true
 
   deploy-backend:
     name: Deploy Backend
