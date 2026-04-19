@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { eventService } from "@/services/event.service";
@@ -8,7 +8,7 @@ import { EventListItem, EventsFilters, getStatusDisplayName, getStatusBadgeColor
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 
-export default function EventsPage() {
+function EventsContent() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -350,5 +350,17 @@ export default function EventsPage() {
 
       <MobileNav onLogout={handleLogout} />
     </div>
+  );
+}
+
+export default function EventsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Đang tải...</p>
+      </div>
+    }>
+      <EventsContent />
+    </Suspense>
   );
 }

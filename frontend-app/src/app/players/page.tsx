@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { playerService } from "@/services/player.service";
@@ -8,7 +8,7 @@ import { PlayerListItem, PlayersFilters, getLevelDisplayName, getPositionDisplay
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 
-export default function PlayersPage() {
+function PlayersContent() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -482,5 +482,17 @@ export default function PlayersPage() {
 
       <MobileNav onLogout={handleLogout} />
     </div>
+  );
+}
+
+export default function PlayersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Đang tải...</p>
+      </div>
+    }>
+      <PlayersContent />
+    </Suspense>
   );
 }
