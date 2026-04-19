@@ -1,12 +1,14 @@
 package com.elevenof.backoffice.config;
 
-import com.elevenof.backoffice.model.User;
-import com.elevenof.backoffice.service.AuthenticationService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.elevenof.backoffice.model.User;
+import com.elevenof.backoffice.service.AuthenticationService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class DatabaseInitializer {
                 // Create default admin user
                 User admin = User.builder()
                         .phone("admin")
+                        .userid("admin00000000000")
                         .fullName("Administrator")
                         .email("admin@11of.com")
                         .password("123456") // Will be encoded by the service
