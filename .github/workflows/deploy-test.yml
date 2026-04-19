@@ -177,6 +177,13 @@ jobs:
 
             JAVA21_HOME="/opt/java/jdk-21"
             sudo mkdir -p /opt/java
+
+            # Remove existing installation if any
+            if [ -e "$JAVA21_HOME" ]; then
+              echo "Removing existing installation at $JAVA21_HOME..."
+              sudo rm -rf "$JAVA21_HOME"
+            fi
+
             sudo cp -rL "$REAL_JAVA_HOME" "$JAVA21_HOME"
             sudo chmod -R 755 "$JAVA21_HOME"
             echo "✓ Java 21 installed to $JAVA21_HOME"
