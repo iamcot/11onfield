@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          clean: true
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -45,7 +47,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build with Maven
-        working-directory: ./backoffice
+        working-directory: backoffice
         run: mvn clean package -DskipTests -B -s .mvn/settings.xml
 
       - name: Upload backend artifact
@@ -64,6 +66,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - name: Debug - List repository structure
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Repository contents:"
+          ls -la
+          echo "Checking for frontend-app:"
+          ls -la frontend-app/ || echo "frontend-app directory not found!"
+          echo "Git status:"
+          git status || echo "Not a git repository"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -79,16 +94,16 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        working-directory: ./frontend-app
+        working-directory: frontend-app
         run: npm ci
 
       - name: Create production environment file
-        working-directory: ./frontend-app
+        working-directory: frontend-app
         run: |
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env.production
 
       - name: Build application
-        working-directory: ./frontend-app
+        working-directory: frontend-app
         run: npm run build
 
       - name: Upload frontend artifact
