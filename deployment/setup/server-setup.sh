@@ -41,12 +41,6 @@ echo "11of-app ALL=(ALL) NOPASSWD: /bin/systemctl is-active 11of-frontend.servic
 sudo chmod 0440 /etc/sudoers.d/11of-deploy
 echo "✓ Configured sudo permissions"
 
-# Install production node_modules for frontend
-echo "Installing frontend production dependencies..."
-cd /opt/11of/frontend
-sudo -u 11of-app npm ci --production --prefix .
-echo "✓ Installed node_modules"
-
 echo ""
 echo "✓ Server setup complete!"
 echo ""
@@ -55,4 +49,4 @@ echo "1. Create .env file at /opt/11of/backend/.env with production secrets"
 echo "2. Create .env.production file at /opt/11of/frontend/.env.production"
 echo "3. Set up your GitHub Actions self-hosted runner"
 echo "4. Configure GitHub repository secrets"
-echo "5. Trigger manual deployment via GitHub Actions"
+echo "5. Trigger manual deployment via GitHub Actions (first deployment will install node_modules)"

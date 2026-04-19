@@ -85,6 +85,7 @@ jobs:
           path: |
             frontend-app/.next
             frontend-app/package.json
+            frontend-app/package-lock.json
             frontend-app/next.config.js
             frontend-app/public
           retention-days: 7

@@ -17,7 +17,18 @@ cp "${ARTIFACT_PATH}"/package.json "${RELEASE_PATH}/"
 cp "${ARTIFACT_PATH}"/next.config.js "${RELEASE_PATH}/"
 cp -r "${ARTIFACT_PATH}"/public "${RELEASE_PATH}/" 2>/dev/null || true
 
-# Link to shared node_modules (saves space)
+# Handle node_modules installation
+if [ ! -d "${DEPLOY_PATH}/node_modules" ]; then
+    echo "First deployment: installing production node_modules..."
+    # Copy package.json and package-lock.json to shared location
+    cp "${ARTIFACT_PATH}"/package.json "${DEPLOY_PATH}/"
+    cp "${ARTIFACT_PATH}"/package-lock.json "${DEPLOY_PATH}/" 2>/dev/null || true
+    cd "${DEPLOY_PATH}"
+    npm ci --production
+    echo "✓ Installed node_modules"
+fi
+
+# Link to shared node_modules (saves disk space across releases)
 ln -s "${DEPLOY_PATH}/node_modules" "${RELEASE_PATH}/node_modules"
 
 # Copy environment file

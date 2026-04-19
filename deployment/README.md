@@ -68,7 +68,8 @@ This script will:
 - Set up directory structure at `/opt/11of`
 - Install systemd services
 - Configure sudo permissions
-- Install frontend production dependencies
+
+**Note:** Frontend node_modules will be installed during the first deployment, not during setup.
 
 ### 3. Configure Environment Variables
 
