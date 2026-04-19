@@ -157,11 +157,20 @@ jobs:
         run: |
           echo "Updating systemd service files..."
 
-          # Find Java 21 installation
-          JAVA21_HOME=$(update-alternatives --query java | grep 'Value:' | grep 'java-21' | sed 's/Value: //' | sed 's|/bin/java||')
+          # Find Java 21 installation (prefer system-wide installations)
+          JAVA21_HOME=""
+
+          # Try to find system-wide Java installations first
+          for java_home in /usr/lib/jvm/java-21-* /usr/lib/jvm/temurin-21-* /opt/java/openjdk-21*; do
+            if [ -d "$java_home" ] && [ -x "$java_home/bin/java" ]; then
+              JAVA21_HOME="$java_home"
+              break
+            fi
+          done
+
+          # If not found, use the action's installed Java
           if [ -z "$JAVA21_HOME" ]; then
-            # Try alternative method
-            JAVA21_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+            JAVA21_HOME="$JAVA_HOME"
           fi
 
           echo "Found Java at: $JAVA21_HOME"
