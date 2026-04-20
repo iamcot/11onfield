@@ -88,11 +88,10 @@ jobs:
           # Copy package files to shared location if they don't exist or have changed
           if [ ! -f "${{ env.DEPLOY_PATH }}/frontend/package.json" ] || ! cmp -s package.json "${{ env.DEPLOY_PATH }}/frontend/package.json"; then
             echo "Package files changed or first deployment, copying..."
-            sudo mkdir -p ${{ env.DEPLOY_PATH }}/frontend
-            sudo cp package.json ${{ env.DEPLOY_PATH }}/frontend/
-            sudo cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/
-            sudo cp .npmrc ${{ env.DEPLOY_PATH }}/frontend/ 2>/dev/null || true
-            sudo chown -R 11of-app:11of-app ${{ env.DEPLOY_PATH }}/frontend
+            sudo -u 11of-app mkdir -p ${{ env.DEPLOY_PATH }}/frontend
+            sudo -u 11of-app cp package.json ${{ env.DEPLOY_PATH }}/frontend/
+            sudo -u 11of-app cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/
+            sudo -u 11of-app cp .npmrc ${{ env.DEPLOY_PATH }}/frontend/ 2>/dev/null || true
           fi
 
           # Install to shared node_modules if it doesn't exist, otherwise just update
@@ -215,7 +214,7 @@ jobs:
 
       - name: Create backend environment file
         run: |
-          mkdir -p ${{ env.DEPLOY_PATH }}/backend
+          sudo -u 11of-app mkdir -p ${{ env.DEPLOY_PATH }}/backend
           sudo -u 11of-app tee ${{ env.DEPLOY_PATH }}/backend/.env > /dev/null << 'EOF'
           DB_USERNAME=${{ secrets.DB_USERNAME }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
@@ -229,7 +228,7 @@ jobs:
           FRONTEND_URL=${{ secrets.FRONTEND_URL }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
-          sudo chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env
+          sudo -u 11of-app chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env
           echo "✓ Environment file created"
 
       - name: Deploy backend
@@ -278,11 +277,11 @@ jobs:
 
       - name: Create frontend environment file
         run: |
-          mkdir -p ${{ env.DEPLOY_PATH }}/frontend
+          sudo -u 11of-app mkdir -p ${{ env.DEPLOY_PATH }}/frontend
           sudo -u 11of-app tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null << 'EOF'
           NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
           EOF
-          sudo chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production
+          sudo -u 11of-app chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production
           echo "✓ Environment file created"
 
       - name: Deploy frontend
