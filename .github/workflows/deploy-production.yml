@@ -92,14 +92,14 @@ jobs:
           # Copy package files to shared location for deployment
           if [ ! -f "${{ env.DEPLOY_PATH }}/frontend/package.json" ] || ! cmp -s package.json "${{ env.DEPLOY_PATH }}/frontend/package.json"; then
             echo "Updating shared deployment dependencies..."
-            mkdir -p ${{ env.DEPLOY_PATH }}/frontend
-            cp package.json ${{ env.DEPLOY_PATH }}/frontend/
-            cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/
-            cp .npmrc ${{ env.DEPLOY_PATH }}/frontend/ 2>/dev/null || true
+            sg 11of-deploy -c "mkdir -p ${{ env.DEPLOY_PATH }}/frontend"
+            sg 11of-deploy -c "cp package.json ${{ env.DEPLOY_PATH }}/frontend/"
+            sg 11of-deploy -c "cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/"
+            sg 11of-deploy -c "cp .npmrc ${{ env.DEPLOY_PATH }}/frontend/" 2>/dev/null || true
 
             # Install/update shared node_modules for deployment
             cd ${{ env.DEPLOY_PATH }}/frontend
-            nice -n 19 npm ci --prefer-offline --no-audit
+            sg 11of-deploy -c "nice -n 19 npm ci --prefer-offline --no-audit"
           fi
 
           echo "✓ Dependencies ready"
@@ -207,8 +207,8 @@ jobs:
 
       - name: Create backend environment file
         run: |
-          mkdir -p ${{ env.DEPLOY_PATH }}/backend
-          tee ${{ env.DEPLOY_PATH }}/backend/.env > /dev/null << 'EOF'
+          sg 11of-deploy -c "mkdir -p ${{ env.DEPLOY_PATH }}/backend"
+          sg 11of-deploy -c "tee ${{ env.DEPLOY_PATH }}/backend/.env > /dev/null" << 'EOF'
           DB_USERNAME=${{ secrets.DB_USERNAME }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           JWT_ISSUER_URI=${{ secrets.JWT_ISSUER_URI }}
@@ -221,7 +221,7 @@ jobs:
           FRONTEND_URL=${{ secrets.FRONTEND_URL }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
-          chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env
+          sg 11of-deploy -c "chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env" || true
           echo "✓ Environment file created"
 
       - name: Deploy backend
@@ -270,11 +270,11 @@ jobs:
 
       - name: Create frontend environment file
         run: |
-          mkdir -p ${{ env.DEPLOY_PATH }}/frontend
-          tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null << 'EOF'
+          sg 11of-deploy -c "mkdir -p ${{ env.DEPLOY_PATH }}/frontend"
+          sg 11of-deploy -c "tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null" << 'EOF'
           NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
           EOF
-          chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production
+          sg 11of-deploy -c "chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production" || true
           echo "✓ Environment file created"
 
       - name: Deploy frontend
