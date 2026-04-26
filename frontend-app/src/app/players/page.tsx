@@ -321,6 +321,12 @@ function PlayersContent() {
                   )
                 }
                 className="flex-shrink-0 px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
+                style={{
+                  colorScheme: 'light',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  WebkitTextFillColor: '#374151'
+                }}
               >
                 <option value="">Vị trí</option>
                 <option value="striker">Tiền đạo</option>

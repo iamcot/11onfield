@@ -18,16 +18,137 @@
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 255, 255, 255;
+  color-scheme: light only;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-rgb: 0, 0, 0;
+    --foreground-rgb: 0, 0, 0;
+    --background-rgb: 255, 255, 255;
+    color-scheme: light only;
   }
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
+}
+
+/* Global fix for all form elements - force light mode */
+input,
+select,
+textarea {
+  color-scheme: light !important;
+  background-color: white !important;
+  color: #1f2937 !important;
+  min-height: 2.5rem;
+}
+
+/* Safari iOS specific fix - highest specificity */
+html body input,
+html body select,
+html body textarea {
+  color-scheme: light !important;
+  background-color: white !important;
+  color: #374151 !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+
+html body select {
+  height: 2.5rem !important;
+  box-sizing: border-box !important;
+  padding: 0.5rem 0.75rem !important;
+  -webkit-appearance: menulist !important;
+  appearance: menulist !important;
+  line-height: normal !important;
+  vertical-align: middle !important;
+}
+
+html body input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+  height: 2.5rem !important;
+  box-sizing: border-box !important;
+  padding: 0.5rem 0.75rem !important;
+  line-height: normal !important;
+}
+
+html body textarea {
+  min-height: 5rem !important;
+  box-sizing: border-box !important;
+  padding: 0.5rem 0.75rem !important;
+  line-height: normal !important;
+}
+
+/* Fix iOS Safari dark mode issues with form elements */
+@supports (-webkit-touch-callout: none) {
+  /* Target iOS Safari - Force light mode for ALL form elements */
+  input,
+  select,
+  textarea {
+    background-color: white !important;
+    color: #374151 !important;
+    -webkit-text-fill-color: #374151 !important;
+    box-sizing: border-box !important;
+    line-height: normal !important;
+  }
+
+  /* Standard padding for all form elements */
+  input:not([type="date"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  /* Explicit heights */
+  input:not([type="date"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select {
+    height: 2.5rem !important;
+  }
+
+  textarea {
+    min-height: 5rem !important;
+  }
+
+  /* Keep native select dropdown arrow */
+  select {
+    -webkit-appearance: menulist !important;
+    appearance: menulist !important;
+  }
+
+  /* Fix date input */
+  input[type="date"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    height: 2.5rem !important;
+    box-sizing: border-box !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  /* Fix date input calendar icon */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0) !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Placeholder text */
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #9ca3af !important;
+  }
+
+  /* Dropdown options */
+  select option {
+    background-color: white !important;
+    color: #374151 !important;
+  }
+
+  /* Focused state */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    background-color: white !important;
+    color: #374151 !important;
+    -webkit-text-fill-color: #374151 !important;
+  }
 }
