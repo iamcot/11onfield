@@ -81,7 +81,8 @@
               <table class="table table-bordered table-hover">
                 <thead>
                   <tr>
-                    <th>ID</th>
+                    <th style="width: 50px;">ID</th>
+                    <th style="width: 90px; text-align: center;">Chỉ số</th>
                     <th>Họ và tên</th>
                     <th>Số điện thoại</th>
                     <th>Vị trí</th>
@@ -94,12 +95,20 @@
                 </thead>
                 <tbody>
                   <tr th:if="${#lists.isEmpty(players)}">
-                    <td colspan="9" class="text-center text-muted">
+                    <td colspan="10" class="text-center text-muted">
                       <i class="fas fa-info-circle"></i> Chưa có cầu thủ nào
                     </td>
                   </tr>
                   <tr th:each="player : ${players}">
                     <td th:text="${player.id}">1</td>
+                    <td style="text-align: center; vertical-align: middle;">
+                      <div th:replace="~{fragments/hexagon-chart :: hexagon-chart(
+                        ${player.id},
+                        ${player.user.fullName},
+                        ${hexagonAttributes},
+                        ${playerAttributesMap.get(player.id)}
+                      )}"></div>
+                    </td>
                     <td>
                       <div class="d-flex align-items-center">
                         <img
@@ -174,6 +183,13 @@
                         th:onclick="'viewPlayer(this.getAttribute(\'data-userid\'))'"
                       >
                         <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        class="btn btn-sm btn-primary"
+                        th:onclick="'manageAttributes(' + ${player.id} + ')'"
+                        title="Quản lý chỉ số"
+                      >
+                        <i class="fas fa-chart-line"></i>
                       </button>
                       <button
                         class="btn btn-sm btn-warning"
@@ -260,25 +276,32 @@
         </div>
       </div>
 
+      <!-- Hexagon Modal -->
+      <div th:replace="~{fragments/hexagon-chart :: hexagon-modal}"></div>
+
       <script th:inline="javascript">
         // Frontend URL from configuration
-        const FRONTEND_URL = /*[[${frontendUrl}]]*/ 'http://localhost:3000';
+        var FRONTEND_URL = /*[[${frontendUrl}]]*/ 'http://localhost:3000';
 
         function viewPlayer(userid) {
-          const url = `${FRONTEND_URL}/profile/${userid}`;
+          var url = FRONTEND_URL + '/profile/' + userid;
           window.open(url, '_blank');
         }
 
         function editPlayer(playerId) {
-          window.location.href = `/admin/players/edit/${playerId}`;
+          window.location.href = '/admin/players/edit/' + playerId;
+        }
+
+        function manageAttributes(playerId) {
+          window.location.href = '/admin/players/' + playerId + '/attributes';
         }
 
         function deletePlayer(playerId) {
           if (confirm('Bạn có chắc chắn muốn xóa cầu thủ này? (Đặt về trạng thái không hoạt động)')) {
             // Create form and submit
-            const form = document.createElement('form');
+            var form = document.createElement('form');
             form.method = 'POST';
-            form.action = `/admin/players/delete/${playerId}`;
+            form.action = '/admin/players/delete/' + playerId;
             document.body.appendChild(form);
             form.submit();
           }

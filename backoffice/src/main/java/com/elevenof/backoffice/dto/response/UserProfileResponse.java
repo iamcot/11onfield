@@ -29,6 +29,7 @@ public class UserProfileResponse {
     private String preferredFoot;
     private String level;
     private String bio;
+    private List<PlayerAttributeDTO> attributes;
 
     // Follow counts
     private Long followersCount;

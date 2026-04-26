@@ -11,6 +11,15 @@ export interface PlayerProfile {
   updatedAt: string;
 }
 
+export interface PlayerAttribute {
+  attributeKey: string;
+  attributeName: string;
+  attributeValue: number;
+  attributeGroup?: string;
+  isHexagon?: boolean;
+  isGoalKeeper?: boolean;
+}
+
 export interface UserProfile {
   id: number;
   phone: string;
@@ -38,6 +47,7 @@ export interface UserProfile {
   preferredFoot?: string;
   level?: string;
   bio?: string;
+  attributes?: PlayerAttribute[];
   followersCount?: number;
   followingCount?: number;
 }

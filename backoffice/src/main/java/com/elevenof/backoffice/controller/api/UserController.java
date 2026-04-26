@@ -2,6 +2,7 @@ package com.elevenof.backoffice.controller.api;
 
 import com.elevenof.backoffice.dto.request.UpdateProfileRequest;
 import com.elevenof.backoffice.dto.response.AddressResponse;
+import com.elevenof.backoffice.dto.response.PlayerAttributeDTO;
 import com.elevenof.backoffice.dto.response.PlayerListDTO;
 import com.elevenof.backoffice.dto.response.PlayerProfileResponse;
 import com.elevenof.backoffice.dto.response.ProvinceResponse;
@@ -11,10 +12,12 @@ import com.elevenof.backoffice.dto.response.UserResponse;
 import com.elevenof.backoffice.exception.FileUploadException;
 import com.elevenof.backoffice.exception.ResourceNotFoundException;
 import com.elevenof.backoffice.model.Player;
+import com.elevenof.backoffice.model.PlayerAttribute;
 import com.elevenof.backoffice.model.User;
 import com.elevenof.backoffice.repository.UserRepository;
 import com.elevenof.backoffice.service.AddressService;
 import com.elevenof.backoffice.service.FollowService;
+import com.elevenof.backoffice.service.PlayerAttributeService;
 import com.elevenof.backoffice.service.PlayerService;
 import com.elevenof.backoffice.service.S3Service;
 import com.elevenof.backoffice.specification.PlayerSpecification;
@@ -39,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -51,6 +55,7 @@ public class UserController {
     private final AddressService addressService;
     private final S3Service s3Service;
     private final FollowService followService;
+    private final PlayerAttributeService playerAttributeService;
 
     /**
      * Helper method to get User from userid (String) in JWT token
@@ -150,6 +155,20 @@ public class UserController {
                     .preferredFoot(player.getPreferredFoot())
                     .level(player.getLevel() != null ? player.getLevel().name() : null)
                     .bio(player.getBio());
+
+                // Load player attributes with attribute type information
+                List<PlayerAttribute> attributes = playerAttributeService.getPlayerAttributes(player.getId());
+                List<PlayerAttributeDTO> attributeDTOs = attributes.stream()
+                    .map(attr -> PlayerAttributeDTO.builder()
+                        .attributeKey(attr.getAttributeType().getAttributeKey())
+                        .attributeName(attr.getAttributeType().getAttributeName())
+                        .attributeValue(attr.getAttributeValue())
+                        .attributeGroup(attr.getAttributeType().getAttributeGroup())
+                        .isHexagon(attr.getAttributeType().getIsHexagon())
+                        .isGoalKeeper(attr.getAttributeType().getIsGoalKeeper())
+                        .build())
+                    .collect(Collectors.toList());
+                responseBuilder.attributes(attributeDTOs);
             });
         }
 
@@ -356,6 +375,19 @@ public class UserController {
             // Calculate real follower count
             long followerCount = followService.getFollowersCount(user.getId());
 
+            // Load player attributes with attribute type information
+            List<PlayerAttribute> attributes = playerAttributeService.getPlayerAttributes(player.getId());
+            List<PlayerAttributeDTO> attributeDTOs = attributes.stream()
+                .map(attr -> PlayerAttributeDTO.builder()
+                    .attributeKey(attr.getAttributeType().getAttributeKey())
+                    .attributeName(attr.getAttributeType().getAttributeName())
+                    .attributeValue(attr.getAttributeValue())
+                    .attributeGroup(attr.getAttributeType().getAttributeGroup())
+                    .isHexagon(attr.getAttributeType().getIsHexagon())
+                    .isGoalKeeper(attr.getAttributeType().getIsGoalKeeper())
+                    .build())
+                .collect(Collectors.toList());
+
             return PlayerListDTO.builder()
                 .id(user.getId())
                 .userid(user.getUserid())
@@ -370,6 +402,7 @@ public class UserController {
                 .provinceName(provinceName)
                 .academyId(player.getAcademyId())
                 .followerCount((int) followerCount)
+                .attributes(attributeDTOs)
                 .build();
         });
 

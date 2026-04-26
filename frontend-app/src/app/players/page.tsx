@@ -5,6 +5,7 @@ import RightNavigator from "@/components/layout/RightNavigator";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
+import HexagonChart from "@/components/HexagonChart";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { playerService } from "@/services/player.service";
@@ -524,6 +525,9 @@ function PlayersContent() {
                     <thead className="bg-gray-50 border-b">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Chỉ số
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Avatar
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -559,6 +563,17 @@ function PlayersContent() {
                           onClick={() => handleRowClick(player.userid)}
                           className="hover:bg-gray-50 cursor-pointer transition"
                         >
+                          <td className="px-4 py-3">
+                            {player.attributes && player.attributes.length > 0 ? (
+                              <HexagonChart
+                                attributes={player.attributes}
+                                size={60}
+                                showLabels={false}
+                              />
+                            ) : (
+                              <div className="w-[60px] h-[60px]" />
+                            )}
+                          </td>
                           <td className="px-4 py-3">
                             {player.avatar ? (
                               <img
@@ -631,58 +646,74 @@ function PlayersContent() {
                         onClick={() => handleRowClick(player.userid)}
                         className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition"
                       >
-                        {/* Player Image - Full Width */}
-                        {player.avatar ? (
-                          <img
-                            src={player.avatar}
-                            alt={player.fullName}
-                            className="w-full h-48 object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-48 bg-gradient-to-br from-green-200 to-green-400 flex items-center justify-center">
-                            <span className="text-5xl font-bold text-white">
-                              {player.fullName?.charAt(0) || "?"}
-                            </span>
-                          </div>
-                        )}
+                        {/* Player Image - Full Width with Level Badge */}
+                        <div className="relative">
+                          {player.avatar ? (
+                            <img
+                              src={player.avatar}
+                              alt={player.fullName}
+                              className="w-full h-48 object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-48 bg-gradient-to-br from-green-200 to-green-400 flex items-center justify-center">
+                              <span className="text-5xl font-bold text-white">
+                                {player.fullName?.charAt(0) || "?"}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Level Badge - Above Avatar */}
+                          {player.level && (
+                            <div className="absolute top-2 left-2">
+                              <span className="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded-md shadow-sm">
+                                {getLevelDisplayName(player.level)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
 
                         {/* Player Info */}
                         <div className="p-4">
                           <h3 className="font-semibold text-gray-900 mb-2 truncate">
                             {player.fullName}
                           </h3>
-                          <p className="text-sm text-gray-500 mb-3">
-                            {player.age ? `${player.age} tuổi` : "N/A"}
+
+                          {/* Age, Height, Weight - One line without labels */}
+                          <p className="text-sm text-gray-600 mb-2">
+                            {player.age ? `${player.age} tuổi` : "N/A"} • {player.height ? `${player.height}cm` : "N/A"} • {player.weight ? `${player.weight}kg` : "N/A"}
                           </p>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Chiều cao:</span>
-                              <span className="font-medium text-gray-900">
-                                {player.height ? `${player.height}cm` : "N/A"}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Cân nặng:</span>
-                              <span className="font-medium text-gray-900">
-                                {player.weight ? `${player.weight}kg` : "N/A"}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Vị trí:</span>
-                              <span className="font-medium text-gray-900 truncate ml-2">
-                                {player.positions.length > 0
-                                  ? player.positions
-                                      .map(getPositionDisplayName)
-                                      .join(", ")
-                                  : "N/A"}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Cấp độ:</span>
-                              <span className="font-medium text-gray-900">
-                                {player.level ? getLevelDisplayName(player.level) : "N/A"}
-                              </span>
-                            </div>
+
+                          {/* Positions */}
+                          <div className="flex gap-1 flex-wrap mb-3">
+                            {player.positions.length > 0 ? (
+                              player.positions.map((pos) => (
+                                <span
+                                  key={pos}
+                                  className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                                >
+                                  {getPositionDisplayName(pos)}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-gray-400">N/A</span>
+                            )}
+                          </div>
+
+                          {/* Hexagon Chart */}
+                          <div className="mt-3 flex flex-col items-center">
+                            {player.attributes && player.attributes.length > 0 ? (
+                              <HexagonChart
+                                attributes={player.attributes}
+                                size={140}
+                                showLabels={true}
+                                showValues={false}
+                                labelFontSize={9}
+                              />
+                            ) : (
+                              <div className="w-[140px] h-[140px] flex items-center justify-center">
+                                <p className="text-xs text-gray-400">N/A</p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -702,27 +733,42 @@ function PlayersContent() {
                           onClick={() => handleRowClick(player.userid)}
                           className="p-4 hover:bg-gray-50 cursor-pointer transition"
                         >
-                          <div className="flex items-center gap-3 mb-3">
-                            {player.avatar ? (
-                              <img
-                                src={player.avatar}
-                                alt={player.fullName}
-                                className="w-12 h-12 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-12 h-12 rounded-full bg-green-200 flex items-center justify-center text-lg font-bold text-green-600">
-                                {player.fullName?.charAt(0) || "?"}
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              {player.avatar ? (
+                                <img
+                                  src={player.avatar}
+                                  alt={player.fullName}
+                                  className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-green-200 flex items-center justify-center text-lg font-bold text-green-600 flex-shrink-0">
+                                  {player.fullName?.charAt(0) || "?"}
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-gray-900 truncate">
+                                  {player.fullName}
+                                </h3>
+                                <p className="text-sm text-gray-500">
+                                  {player.age ? `${player.age} tuổi` : "N/A"} •{" "}
+                                  {player.height ? `${player.height} cm` : "N/A"} •{" "}
+                                  {player.weight ? `${player.weight} kg` : "N/A"}
+                                </p>
                               </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-gray-900 truncate">
-                                {player.fullName}
-                              </h3>
-                              <p className="text-sm text-gray-500">
-                                {player.age ? `${player.age} tuổi` : "N/A"} •{" "}
-                                {player.height ? `${player.height} cm` : "N/A"} •{" "}
-                                {player.weight ? `${player.weight} kg` : "N/A"}
-                              </p>
+                            </div>
+
+                            {/* Hexagon in top right corner */}
+                            <div className="flex-shrink-0">
+                              {player.attributes && player.attributes.length > 0 ? (
+                                <HexagonChart
+                                  attributes={player.attributes}
+                                  size={50}
+                                  showLabels={false}
+                                />
+                              ) : (
+                                <div className="w-[50px] h-[50px]" />
+                              )}
                             </div>
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-sm">
@@ -765,7 +811,7 @@ function PlayersContent() {
                       ))}
                     </div>
                   ) : (
-                    /* Card View - 2 columns Grid */
+                    /* Card View - 2 columns Grid - Same as desktop design */
                     <div className="grid grid-cols-2 gap-3">
                       {players.map((player) => (
                         <div
@@ -773,52 +819,74 @@ function PlayersContent() {
                           onClick={() => handleRowClick(player.userid)}
                           className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition"
                         >
-                          {/* Player Image - Full Width */}
-                          {player.avatar ? (
-                            <img
-                              src={player.avatar}
-                              alt={player.fullName}
-                              className="w-full h-40 object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-40 bg-gradient-to-br from-green-200 to-green-400 flex items-center justify-center">
-                              <span className="text-4xl font-bold text-white">
-                                {player.fullName?.charAt(0) || "?"}
-                              </span>
-                            </div>
-                          )}
+                          {/* Player Image - Full Width with Level Badge */}
+                          <div className="relative">
+                            {player.avatar ? (
+                              <img
+                                src={player.avatar}
+                                alt={player.fullName}
+                                className="w-full h-40 object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-40 bg-gradient-to-br from-green-200 to-green-400 flex items-center justify-center">
+                                <span className="text-4xl font-bold text-white">
+                                  {player.fullName?.charAt(0) || "?"}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Level Badge - Above Avatar */}
+                            {player.level && (
+                              <div className="absolute top-2 left-2">
+                                <span className="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded-md shadow-sm">
+                                  {getLevelDisplayName(player.level)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
 
                           {/* Player Info */}
                           <div className="p-3">
                             <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate">
                               {player.fullName}
                             </h3>
-                            <p className="text-xs text-gray-500 mb-2">
-                              {player.age ? `${player.age} tuổi` : "N/A"}
+
+                            {/* Age, Height, Weight - One line without labels */}
+                            <p className="text-xs text-gray-600 mb-2">
+                              {player.age ? `${player.age} tuổi` : "N/A"} • {player.height ? `${player.height}cm` : "N/A"} • {player.weight ? `${player.weight}kg` : "N/A"}
                             </p>
-                            <div className="space-y-1 text-xs">
-                              <div className="flex justify-between">
-                                <span className="text-gray-500">Chiều cao:</span>
-                                <span className="font-medium text-gray-900">
-                                  {player.height ? `${player.height}cm` : "N/A"}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-500">Cân nặng:</span>
-                                <span className="font-medium text-gray-900">
-                                  {player.weight ? `${player.weight}kg` : "N/A"}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-500">Vị trí:</span>
-                                <span className="font-medium text-gray-900 truncate ml-1">
-                                  {player.positions.length > 0
-                                    ? player.positions
-                                        .map(getPositionDisplayName)
-                                        .join(", ")
-                                    : "N/A"}
-                                </span>
-                              </div>
+
+                            {/* Positions */}
+                            <div className="flex gap-1 flex-wrap mb-2">
+                              {player.positions.length > 0 ? (
+                                player.positions.map((pos) => (
+                                  <span
+                                    key={pos}
+                                    className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                                  >
+                                    {getPositionDisplayName(pos)}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-400">N/A</span>
+                              )}
+                            </div>
+
+                            {/* Hexagon Chart */}
+                            <div className="mt-2 flex flex-col items-center">
+                              {player.attributes && player.attributes.length > 0 ? (
+                                <HexagonChart
+                                  attributes={player.attributes}
+                                  size={120}
+                                  showLabels={true}
+                                  showValues={false}
+                                  labelFontSize={8}
+                                />
+                              ) : (
+                                <div className="w-[120px] h-[120px] flex items-center justify-center">
+                                  <p className="text-xs text-gray-400">N/A</p>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

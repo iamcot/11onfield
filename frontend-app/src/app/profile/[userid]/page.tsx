@@ -6,6 +6,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
 import EventCard from "@/components/profile/EventCard";
+import HexagonChart from "@/components/HexagonChart";
 import { appConfig } from "@/config/app.config";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
@@ -42,6 +43,9 @@ export default function UserProfilePage() {
   const searchParams = useSearchParams();
   const userid = params.userid as string;
   const fromPlayers = searchParams.get("from") === "players";
+  const fromFollowers = searchParams.get("from") === "followers";
+  const fromFollowing = searchParams.get("from") === "following";
+  const showBackButton = fromPlayers || fromFollowers || fromFollowing;
 
   const [profileUser, setProfileUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -138,6 +142,7 @@ export default function UserProfilePage() {
   const handleShowFollowers = async () => {
     if (sidebarView === "followers") {
       setSidebarView("default");
+      setShowRightNav(false);
       return;
     }
 
@@ -145,6 +150,9 @@ export default function UserProfilePage() {
       const followers = await followService.getFollowers(userid);
       setFollowersList(followers);
       setSidebarView("followers");
+
+      // Open right nav on mobile
+      setShowRightNav(true);
     } catch (error) {
       console.error("Failed to fetch followers:", error);
     }
@@ -153,6 +161,7 @@ export default function UserProfilePage() {
   const handleShowFollowing = async () => {
     if (sidebarView === "following") {
       setSidebarView("default");
+      setShowRightNav(false);
       return;
     }
 
@@ -160,6 +169,9 @@ export default function UserProfilePage() {
       const following = await followService.getFollowingPlayers(userid);
       setFollowingPlayers(following);
       setSidebarView("following");
+
+      // Open right nav on mobile
+      setShowRightNav(true);
     } catch (error) {
       console.error("Failed to fetch following:", error);
     }
@@ -167,6 +179,7 @@ export default function UserProfilePage() {
 
   const handleCloseSidebar = () => {
     setSidebarView("default");
+    setShowRightNav(false);
   };
 
   const handleOpenEditModal = async () => {
@@ -300,6 +313,7 @@ export default function UserProfilePage() {
         preferredFoot: apiUser.preferredFoot,
         level: apiUser.level,
         bio: apiUser.bio,
+        attributes: apiUser.attributes || [],
       };
       setProfileUser(transformedUser);
 
@@ -409,6 +423,7 @@ export default function UserProfilePage() {
               preferredFoot: apiUser.preferredFoot,
               level: apiUser.level,
               bio: apiUser.bio,
+              attributes: apiUser.attributes || [],
               followersCount: apiUser.followersCount || 0,
               followingCount: apiUser.followingCount || 0,
             };
@@ -556,13 +571,6 @@ export default function UserProfilePage() {
     yellowCards: 0,
   };
 
-  const mockSkills = {
-    speed: 50,
-    dribbling: 50,
-    stamina: 50,
-    shooting: 50,
-  };
-
   return (
     <div className="min-h-screen bg-white flex flex-col md:flex-row">
       {/* Left Sidebar - Navigation - Hidden on mobile */}
@@ -571,8 +579,68 @@ export default function UserProfilePage() {
       <TopBar onMenuToggle={() => setShowRightNav(!showRightNav)} />
       <RightNavigator
         isOpen={showRightNav}
-        onClose={() => setShowRightNav(false)}
-      />
+        onClose={() => {
+          setShowRightNav(false);
+          setSidebarView("default");
+        }}
+        scrollOnOpen={sidebarView === "followers" || sidebarView === "following"}
+      >
+        {(sidebarView === "followers" || sidebarView === "following") && (
+          <div>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-500 to-green-300 p-4">
+              <h2 className="text-white text-lg font-semibold">
+                {sidebarView === "followers" ? "Người theo dõi" : "Đang theo dõi"}
+              </h2>
+            </div>
+
+            {/* List */}
+            <div className="p-4">
+              {(sidebarView === "followers" ? followersList : followingPlayers).length === 0 ? (
+                <p className="text-center text-gray-500 py-8">
+                  {sidebarView === "followers" ? "Chưa có người theo dõi" : "Chưa theo dõi ai"}
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {(sidebarView === "followers" ? followersList : followingPlayers).map((user) => (
+                    <Link
+                      key={user.userid}
+                      href={`/profile/${user.userid}?from=${sidebarView}`}
+                      onClick={() => {
+                        setShowRightNav(false);
+                        setSidebarView("default");
+                      }}
+                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition"
+                    >
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.fullName}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-green-200 flex items-center justify-center">
+                          <span className="text-green-600 font-bold">
+                            {user.fullName.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">
+                          {user.fullName}
+                        </p>
+                        <p className="text-sm text-gray-500 capitalize">
+                          {user.role.toLowerCase()}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </RightNavigator>
 
       {/* Top User Card - Desktop Only */}
       <TopUserCard />
@@ -604,8 +672,8 @@ export default function UserProfilePage() {
 
           {/* Avatar Section */}
           <div className="max-w-6xl mx-auto px-4 pt-2 relative z-10">
-            {/* Back Button - Show only if coming from players page */}
-            {fromPlayers && (
+            {/* Back Button - Show when coming from players/followers/following */}
+            {showBackButton && (
               <button
                 onClick={() => router.back()}
                 className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
@@ -1096,14 +1164,21 @@ export default function UserProfilePage() {
                   </div>
                 </div>
 
-                {/* Skills */}
+                {/* Skills - Hexagon Chart */}
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Kỹ năng</h3>
-                  <div className="space-y-3">
-                    <SkillBar label="Tốc độ" value={mockSkills.speed} />
-                    <SkillBar label="Lừa bóng" value={mockSkills.dribbling} />
-                    <SkillBar label="Thể lực" value={mockSkills.stamina} />
-                    <SkillBar label="Sút bóng" value={mockSkills.shooting} />
+                  <div className="flex justify-center">
+                    {profileUser?.attributes && profileUser.attributes.length > 0 ? (
+                      <HexagonChart
+                        attributes={profileUser.attributes}
+                        size={300}
+                        showLabels={true}
+                      />
+                    ) : (
+                      <div className="text-center py-8 text-gray-400">
+                        <p>Chưa có dữ liệu chỉ số</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1666,23 +1741,6 @@ function StatRow({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between">
       <span className="text-sm text-gray-600">{label}</span>
       <span className="text-sm font-medium text-gray-900">{value}</span>
-    </div>
-  );
-}
-
-function SkillBar({ label, value }: { label: string; value: number }) {
-  return (
-    <div>
-      <div className="flex justify-between mb-1">
-        <span className="text-sm text-gray-700">{label}</span>
-        <span className="text-sm font-medium text-gray-900">{value}</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div
-          className="bg-green-600 h-2 rounded-full"
-          style={{ width: `${value}%` }}
-        ></div>
-      </div>
     </div>
   );
 }

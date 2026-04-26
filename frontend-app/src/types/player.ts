@@ -1,5 +1,14 @@
 export type PlayerLevel = "CAU_THU_MOI" | "NGHIEP_DU" | "TUYEN_TRE" | "CHUYEN_NGHIEP";
 
+export interface PlayerAttribute {
+  attributeKey: string;
+  attributeName: string;
+  attributeValue: number;
+  attributeGroup?: string;
+  isHexagon?: boolean;
+  isGoalKeeper?: boolean;
+}
+
 export interface PlayerListItem {
   id: number;
   userid: string;
@@ -14,6 +23,7 @@ export interface PlayerListItem {
   provinceName: string | null;
   academyId: number | null;
   followerCount: number;
+  attributes?: PlayerAttribute[];
 }
 
 export interface PlayersFilters {

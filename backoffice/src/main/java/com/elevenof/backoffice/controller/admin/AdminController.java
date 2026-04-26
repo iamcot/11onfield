@@ -50,6 +50,8 @@ public class AdminController {
     private final EventRepository eventRepository;
     private final EventService eventService;
     private final S3Service s3Service;
+    private final com.elevenof.backoffice.service.PlayerAttributeTypeService playerAttributeTypeService;
+    private final com.elevenof.backoffice.service.PlayerAttributeService playerAttributeService;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -167,6 +169,17 @@ public class AdminController {
             // Load all provinces for filter dropdown
             List<Province> provinces = provinceRepository.findAll();
 
+            // Load hexagon attribute types
+            List<com.elevenof.backoffice.model.PlayerAttributeType> hexagonAttributes =
+                playerAttributeTypeService.getHexagonAttributeTypes();
+
+            // Load attributes for all players in current page
+            Map<Long, Map<String, Integer>> playerAttributesMap = new java.util.HashMap<>();
+            for (Player player : playerPage.getContent()) {
+                Map<String, Integer> attrs = playerAttributeService.getPlayerAttributesAsMap(player.getId());
+                playerAttributesMap.put(player.getId(), attrs);
+            }
+
             model.addAttribute("title", "Cầu thủ");
             model.addAttribute("players", playerPage.getContent());
             model.addAttribute("currentPage", page);
@@ -175,6 +188,8 @@ public class AdminController {
             model.addAttribute("pageSize", size);
             model.addAttribute("frontendUrl", frontendUrl);
             model.addAttribute("provinces", provinces);
+            model.addAttribute("hexagonAttributes", hexagonAttributes);
+            model.addAttribute("playerAttributesMap", playerAttributesMap);
 
             // Preserve filter params
             model.addAttribute("search", search != null ? search : "");
@@ -575,6 +590,153 @@ public class AdminController {
             return Map.of("location", imageUrl);
         } catch (IOException e) {
             return Map.of("error", "Failed to upload image: " + e.getMessage());
+        }
+    }
+
+    // ==================== PLAYER ATTRIBUTE TYPES MANAGEMENT ====================
+
+    @GetMapping("/attribute-types")
+    public String attributeTypes(
+            Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
+        Page<com.elevenof.backoffice.model.PlayerAttributeType> attributeTypePage =
+            playerAttributeTypeService.getAllAttributeTypes(pageable);
+
+        model.addAttribute("title", "Quản lý loại chỉ số");
+        model.addAttribute("attributeTypes", attributeTypePage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", attributeTypePage.getTotalPages());
+        model.addAttribute("totalItems", attributeTypePage.getTotalElements());
+        model.addAttribute("pageSize", size);
+
+        return "admin/attribute-types";
+    }
+
+    @GetMapping("/attribute-types/new")
+    public String newAttributeType(Model model) {
+        model.addAttribute("title", "Tạo loại chỉ số mới");
+        model.addAttribute("attributeType", null);
+        model.addAttribute("isNew", true);
+
+        return "admin/attribute-type-edit";
+    }
+
+    @GetMapping("/attribute-types/edit/{id}")
+    public String editAttributeType(@PathVariable Long id, Model model) {
+        com.elevenof.backoffice.model.PlayerAttributeType attributeType =
+            playerAttributeTypeService.getAttributeTypeById(id);
+
+        model.addAttribute("title", "Chỉnh sửa loại chỉ số");
+        model.addAttribute("attributeType", attributeType);
+        model.addAttribute("isNew", false);
+
+        return "admin/attribute-type-edit";
+    }
+
+    @PostMapping("/attribute-types/save")
+    public String saveAttributeType(
+            @RequestParam(required = false) Long id,
+            @RequestParam String attributeKey,
+            @RequestParam String attributeName,
+            @RequestParam(defaultValue = "false") Boolean isHexagon,
+            @RequestParam(defaultValue = "false") Boolean isGoalKeeper,
+            @RequestParam(required = false) String attributeGroup,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            com.elevenof.backoffice.model.PlayerAttributeType attributeType =
+                com.elevenof.backoffice.model.PlayerAttributeType.builder()
+                    .attributeKey(attributeKey)
+                    .attributeName(attributeName)
+                    .isHexagon(isHexagon)
+                    .isGoalKeeper(isGoalKeeper)
+                    .attributeGroup(attributeGroup)
+                    .build();
+
+            if (id != null) {
+                // Update existing
+                playerAttributeTypeService.updateAttributeType(id, attributeType, "admin");
+                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật loại chỉ số thành công!");
+            } else {
+                // Create new
+                playerAttributeTypeService.createAttributeType(attributeType, "admin");
+                redirectAttributes.addFlashAttribute("successMessage", "Tạo loại chỉ số mới thành công!");
+            }
+
+            return "redirect:/admin/attribute-types";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            return id != null ?
+                "redirect:/admin/attribute-types/edit/" + id :
+                "redirect:/admin/attribute-types/new";
+        }
+    }
+
+    @PostMapping("/attribute-types/delete/{id}")
+    public String deleteAttributeType(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            playerAttributeTypeService.deleteAttributeType(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Xóa loại chỉ số thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/admin/attribute-types";
+    }
+
+    // ==================== PLAYER ATTRIBUTES MANAGEMENT ====================
+
+    @GetMapping("/players/{playerId}/attributes")
+    public String managePlayerAttributes(@PathVariable Long playerId, Model model) {
+        Player player = playerRepository.findById(playerId)
+            .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        List<com.elevenof.backoffice.model.PlayerAttributeType> allAttributeTypes =
+            playerAttributeTypeService.getAllAttributeTypes();
+
+        List<com.elevenof.backoffice.model.PlayerAttribute> playerAttributes =
+            playerAttributeService.getPlayerAttributes(playerId);
+
+        // Create a map of attribute type ID to current value
+        Map<Long, Integer> attributeValues = new java.util.HashMap<>();
+        playerAttributes.forEach(attr ->
+            attributeValues.put(attr.getAttributeType().getId(), attr.getAttributeValue())
+        );
+
+        model.addAttribute("title", "Quản lý chỉ số cầu thủ");
+        model.addAttribute("player", player);
+        model.addAttribute("allAttributeTypes", allAttributeTypes);
+        model.addAttribute("attributeValues", attributeValues);
+
+        return "admin/player-attributes";
+    }
+
+    @PostMapping("/players/{playerId}/attributes/save")
+    public String savePlayerAttributes(
+            @PathVariable Long playerId,
+            @RequestParam Map<String, String> allParams,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            // Filter params that start with "attr_"
+            Map<Long, Integer> attributeValues = new java.util.HashMap<>();
+            allParams.forEach((key, value) -> {
+                if (key.startsWith("attr_") && value != null && !value.isEmpty()) {
+                    Long attributeTypeId = Long.parseLong(key.substring(5));
+                    Integer attrValue = Integer.parseInt(value);
+                    attributeValues.put(attributeTypeId, attrValue);
+                }
+            });
+
+            playerAttributeService.bulkUpdatePlayerAttributes(playerId, attributeValues, "admin");
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật chỉ số cầu thủ thành công!");
+
+            return "redirect:/admin/players/" + playerId + "/attributes";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            return "redirect:/admin/players/" + playerId + "/attributes";
         }
     }
 }
