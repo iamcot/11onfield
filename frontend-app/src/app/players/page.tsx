@@ -6,6 +6,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
 import HexagonChart from "@/components/HexagonChart";
+import PlayerCard from "@/components/PlayerCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { playerService } from "@/services/player.service";
@@ -644,78 +645,16 @@ function PlayersContent() {
                       <div
                         key={player.id}
                         onClick={() => handleRowClick(player.userid)}
-                        className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition"
+                        className="cursor-pointer hover:scale-105 transition-transform"
                       >
-                        {/* Player Image - Full Width with Level Badge */}
-                        <div className="relative">
-                          {player.avatar ? (
-                            <img
-                              src={player.avatar}
-                              alt={player.fullName}
-                              className="w-full h-48 object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-48 bg-gradient-to-br from-green-200 to-green-400 flex items-center justify-center">
-                              <span className="text-5xl font-bold text-white">
-                                {player.fullName?.charAt(0) || "?"}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Level Badge - Above Avatar */}
-                          {player.level && (
-                            <div className="absolute top-2 left-2">
-                              <span className="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded-md shadow-sm">
-                                {getLevelDisplayName(player.level)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Player Info */}
-                        <div className="p-4">
-                          <h3 className="font-semibold text-gray-900 mb-2 truncate">
-                            {player.fullName}
-                          </h3>
-
-                          {/* Age, Height, Weight - One line without labels */}
-                          <p className="text-sm text-gray-600 mb-2">
-                            {player.age ? `${player.age} tuổi` : "N/A"} • {player.height ? `${player.height}cm` : "N/A"} • {player.weight ? `${player.weight}kg` : "N/A"}
-                          </p>
-
-                          {/* Positions */}
-                          <div className="flex gap-1 flex-wrap mb-3">
-                            {player.positions.length > 0 ? (
-                              player.positions.map((pos) => (
-                                <span
-                                  key={pos}
-                                  className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                                >
-                                  {getPositionDisplayName(pos)}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-xs text-gray-400">N/A</span>
-                            )}
-                          </div>
-
-                          {/* Hexagon Chart */}
-                          <div className="mt-3 flex flex-col items-center">
-                            {player.attributes && player.attributes.length > 0 ? (
-                              <HexagonChart
-                                attributes={player.attributes}
-                                size={140}
-                                showLabels={true}
-                                showValues={false}
-                                labelFontSize={9}
-                              />
-                            ) : (
-                              <div className="w-[140px] h-[140px] flex items-center justify-center">
-                                <p className="text-xs text-gray-400">N/A</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        <PlayerCard
+                          avatar={player.avatar}
+                          fullName={player.fullName}
+                          positions={player.positions}
+                          preferredFoot={player.preferredFoot}
+                          attributes={player.attributes}
+                          className="w-full"
+                        />
                       </div>
                     ))}
                   </div>
@@ -817,78 +756,16 @@ function PlayersContent() {
                         <div
                           key={player.id}
                           onClick={() => handleRowClick(player.userid)}
-                          className="bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:shadow-lg transition"
+                          className="cursor-pointer hover:scale-105 transition-transform"
                         >
-                          {/* Player Image - Full Width with Level Badge */}
-                          <div className="relative">
-                            {player.avatar ? (
-                              <img
-                                src={player.avatar}
-                                alt={player.fullName}
-                                className="w-full h-40 object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-40 bg-gradient-to-br from-green-200 to-green-400 flex items-center justify-center">
-                                <span className="text-4xl font-bold text-white">
-                                  {player.fullName?.charAt(0) || "?"}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Level Badge - Above Avatar */}
-                            {player.level && (
-                              <div className="absolute top-2 left-2">
-                                <span className="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded-md shadow-sm">
-                                  {getLevelDisplayName(player.level)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Player Info */}
-                          <div className="p-3">
-                            <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate">
-                              {player.fullName}
-                            </h3>
-
-                            {/* Age, Height, Weight - One line without labels */}
-                            <p className="text-xs text-gray-600 mb-2">
-                              {player.age ? `${player.age} tuổi` : "N/A"} • {player.height ? `${player.height}cm` : "N/A"} • {player.weight ? `${player.weight}kg` : "N/A"}
-                            </p>
-
-                            {/* Positions */}
-                            <div className="flex gap-1 flex-wrap mb-2">
-                              {player.positions.length > 0 ? (
-                                player.positions.map((pos) => (
-                                  <span
-                                    key={pos}
-                                    className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                                  >
-                                    {getPositionDisplayName(pos)}
-                                  </span>
-                                ))
-                              ) : (
-                                <span className="text-xs text-gray-400">N/A</span>
-                              )}
-                            </div>
-
-                            {/* Hexagon Chart */}
-                            <div className="mt-2 flex flex-col items-center">
-                              {player.attributes && player.attributes.length > 0 ? (
-                                <HexagonChart
-                                  attributes={player.attributes}
-                                  size={120}
-                                  showLabels={true}
-                                  showValues={false}
-                                  labelFontSize={8}
-                                />
-                              ) : (
-                                <div className="w-[120px] h-[120px] flex items-center justify-center">
-                                  <p className="text-xs text-gray-400">N/A</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                          <PlayerCard
+                            avatar={player.avatar}
+                            fullName={player.fullName}
+                            positions={player.positions}
+                            preferredFoot={player.preferredFoot}
+                            attributes={player.attributes}
+                            className="w-full"
+                          />
                         </div>
                       ))}
                     </div>
