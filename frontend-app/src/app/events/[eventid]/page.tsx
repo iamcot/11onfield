@@ -162,7 +162,7 @@ export default function EventDetailPage() {
             </div>
           </div>
         </main>
-        <MobileNav onLogout={handleLogout} />
+        <MobileNav backgroundImage="/images/ground.jpg" />
       </div>
     );
   }
@@ -306,7 +306,7 @@ export default function EventDetailPage() {
         </div>
       </main>
 
-      <MobileNav onLogout={handleLogout} />
+      <MobileNav backgroundImage="/images/ground.jpg" />
     </div>
   );
 }
