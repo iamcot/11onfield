@@ -1,10 +1,14 @@
 "use client";
 
-import { EditIcon } from "@/components/icons/nav-icons";
 import MobileNav from "@/components/layout/MobileNav";
+import RightNavigator from "@/components/layout/RightNavigator";
 import Sidebar from "@/components/layout/Sidebar";
+import TopBar from "@/components/layout/TopBar";
+import TopUserCard from "@/components/layout/TopUserCard";
+import EventCard from "@/components/profile/EventCard";
 import { appConfig } from "@/config/app.config";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 import {
   compressImage,
   formatFileSize,
@@ -12,12 +16,11 @@ import {
   isValidImageSize,
 } from "@/lib/image-utils";
 import { getMockUserByPhone } from "@/mocks/user.mock";
+import { eventService } from "@/services/event.service";
 import { followService } from "@/services/follow.service";
 import { userService } from "@/services/user.service";
-import { eventService } from "@/services/event.service";
-import { UserListItem } from "@/types/user";
 import { EventListItem } from "@/types/event";
-import EventCard from "@/components/profile/EventCard";
+import { UserListItem } from "@/types/user";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -30,6 +33,7 @@ export default function UserProfilePage() {
     isLoading: authLoading,
     logout,
   } = useAuth();
+  const { isCollapsed } = useSidebar();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -74,6 +78,7 @@ export default function UserProfilePage() {
   // Recent activities (events) state
   const [recentEvents, setRecentEvents] = useState<EventListItem[]>([]);
   const [recentEventsLoading, setRecentEventsLoading] = useState(false);
+  const [showRightNav, setShowRightNav] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -412,7 +417,7 @@ export default function UserProfilePage() {
           const response = await eventService.getUserJoinedEvents(
             userid,
             eventsPage,
-            10
+            10,
           );
           console.log("[Profile] Events response:", response);
           setEvents(response.data);
@@ -437,7 +442,7 @@ export default function UserProfilePage() {
           const response = await eventService.getUserJoinedEvents(
             userid,
             0,
-            3 // Get only 3 most recent events
+            3, // Get only 3 most recent events
           );
           setRecentEvents(response.data);
         } catch (err) {
@@ -516,156 +521,188 @@ export default function UserProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-white flex flex-col md:flex-row">
       {/* Left Sidebar - Navigation - Hidden on mobile */}
       <Sidebar onLogout={handleLogout} />
 
+      <TopBar onMenuToggle={() => setShowRightNav(!showRightNav)} />
+      <RightNavigator
+        isOpen={showRightNav}
+        onClose={() => setShowRightNav(false)}
+      />
+
+      {/* Top User Card - Desktop Only */}
+      <TopUserCard />
+
       {/* Center Content */}
-      <main className="flex-1 overflow-auto pb-16 md:pb-0">
-        {/* Banner */}
-        <div className="h-48 relative z-0">
-          <Image
-            src="/images/banner_1.jpg"
-            alt="Profile Banner"
-            fill
-            className="object-cover object-bottom"
-            priority
-          />
+      <main className="flex-1 overflow-auto pb-0 pt-16 md:pb-0 md:pt-16 relative">
+        {/* Background image at bottom */}
+        <div className={`fixed bottom-0 left-0 right-0 h-48 pointer-events-none z-0 transition-all duration-300 ${isCollapsed ? 'md:left-16' : 'md:left-64'}`}>
+          <div
+            className="absolute inset-0 bg-cover bg-bottom"
+            style={{ backgroundImage: `url(/images/ground.jpg)` }}
+          >
+            {/* Gradient overlay fade to white at top */}
+            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/50 to-white"></div>
+          </div>
         </div>
 
-        {/* Avatar Section */}
-        <div className="max-w-6xl mx-auto px-4 pt-6 relative z-10">
-          {/* Back Button - Show only if coming from players page */}
-          {fromPlayers && (
-            <button
-              onClick={() => router.back()}
-              className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        <div className="relative z-10">
+          {/* Banner */}
+          {/* <div className="h-48 relative z-0">
+            <Image
+              src="/images/banner_1.jpg"
+              alt="Profile Banner"
+              fill
+              className="object-cover object-bottom"
+              priority
+            />
+          </div> */}
+
+          {/* Avatar Section */}
+          <div className="max-w-6xl mx-auto px-4 pt-2 relative z-10">
+            {/* Back Button - Show only if coming from players page */}
+            {fromPlayers && (
+              <button
+                onClick={() => router.back()}
+                className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              <span>Quay lại</span>
-            </button>
-          )}
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                <span>Quay lại</span>
+              </button>
+            )}
 
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <div className="flex items-start gap-4 md:gap-6">
-              {/* Avatar */}
-              {profileUser.avatar ? (
-                <img
-                  src={profileUser.avatar}
-                  alt="Avatar"
-                  className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
-                />
-              ) : (
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-green-200 flex items-center justify-center text-3xl md:text-4xl font-bold text-green-600 flex-shrink-0">
-                  {profileUser.fullName?.charAt(0) ||
-                    profileUser.username.charAt(0)}
-                </div>
-              )}
-
-              {/* Name and Positions */}
-              <div className="flex-1 min-w-0">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2 truncate">
-                  <span className="truncate">
-                    {profileUser.fullName || profileUser.username}
-                  </span>
-                  {profileUser.gender && (
-                    <span className="text-lg md:text-xl flex-shrink-0">
-                      {profileUser.gender === "MALE" && "♂️"}
-                      {profileUser.gender === "FEMALE" && "♀️"}
-                      {profileUser.gender === "OTHER" && "⚧️"}
-                    </span>
-                  )}
-                </h2>
-                {profileUser.isPlayer && profileUser.positions && (
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    {profileUser.positions.map((position: string) => (
-                      <span
-                        key={position}
-                        className="px-2 md:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                      >
-                        {position === "striker" && "Tiền đạo"}
-                        {position === "midfielder" && "Tiền vệ"}
-                        {position === "centerback" && "Trung vệ"}
-                        {position === "defender" && "Hậu vệ"}
-                        {position === "goalkeeper" && "Thủ môn"}
-                      </span>
-                    ))}
+            <div className="bg-white rounded-lg shadow p-3 mb-6">
+              <div className="flex items-start gap-4 md:gap-6">
+                {/* Avatar */}
+                {profileUser.avatar ? (
+                  <img
+                    src={profileUser.avatar}
+                    alt="Avatar"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-green-200 flex items-center justify-center text-3xl md:text-4xl font-bold text-green-600 flex-shrink-0">
+                    {profileUser.fullName?.charAt(0) ||
+                      profileUser.username.charAt(0)}
                   </div>
                 )}
 
-                {/* Follow Stats */}
-                {profileUser.followersCount !== undefined &&
-                  profileUser.followingCount !== undefined &&
-                  isOwnProfile && (
-                    <div className="mt-2 text-sm text-gray-600">
-                      <button
-                        onClick={handleShowFollowing}
-                        className="hover:text-green-600 transition"
-                      >
+                {/* Name and Positions */}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <span className={!isOwnProfile ? "" : "truncate"}>
+                      {profileUser.fullName || profileUser.username}
+                    </span>
+                    {profileUser.gender && (
+                      <span className="text-lg md:text-xl flex-shrink-0">
+                        {profileUser.gender === "MALE" && "♂️"}
+                        {profileUser.gender === "FEMALE" && "♀️"}
+                        {profileUser.gender === "OTHER" && "⚧️"}
+                      </span>
+                    )}
+                  </h2>
+                  {profileUser.isPlayer && profileUser.positions && (
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      {profileUser.positions.map((position: string) => (
+                        <span
+                          key={position}
+                          className="px-2 md:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                        >
+                          {position === "striker" && "Tiền đạo"}
+                          {position === "midfielder" && "Tiền vệ"}
+                          {position === "centerback" && "Trung vệ"}
+                          {position === "defender" && "Hậu vệ"}
+                          {position === "goalkeeper" && "Thủ môn"}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Follow Stats */}
+                  {profileUser.followersCount !== undefined &&
+                    profileUser.followingCount !== undefined &&
+                    isOwnProfile && (
+                      <div className="mt-2 text-sm text-gray-600">
+                        <button
+                          onClick={handleShowFollowing}
+                          className="hover:text-green-600 transition"
+                        >
+                          <span className="font-medium">
+                            {profileUser.followingCount}
+                          </span>{" "}
+                          đang theo dõi
+                        </button>
+                        {" · "}
+                        <button
+                          onClick={handleShowFollowers}
+                          className="hover:text-green-600 transition"
+                        >
+                          <span className="font-medium">
+                            {profileUser.followersCount}
+                          </span>{" "}
+                          người theo dõi
+                        </button>
+                      </div>
+                    )}
+                  {/* Non-clickable stats for other profiles */}
+                  {profileUser.followersCount !== undefined &&
+                    profileUser.followingCount !== undefined &&
+                    !isOwnProfile && (
+                      <div className="mt-2 text-sm text-gray-600">
                         <span className="font-medium">
                           {profileUser.followingCount}
                         </span>{" "}
                         đang theo dõi
-                      </button>
-                      {" · "}
-                      <button
-                        onClick={handleShowFollowers}
-                        className="hover:text-green-600 transition"
-                      >
+                        {" · "}
                         <span className="font-medium">
                           {profileUser.followersCount}
                         </span>{" "}
                         người theo dõi
-                      </button>
-                    </div>
-                  )}
-                {/* Non-clickable stats for other profiles */}
-                {profileUser.followersCount !== undefined &&
-                  profileUser.followingCount !== undefined &&
-                  !isOwnProfile && (
-                    <div className="mt-2 text-sm text-gray-600">
-                      <span className="font-medium">
-                        {profileUser.followingCount}
-                      </span>{" "}
-                      đang theo dõi
-                      {" · "}
-                      <span className="font-medium">
-                        {profileUser.followersCount}
-                      </span>{" "}
-                      người theo dõi
-                    </div>
-                  )}
+                      </div>
+                    )}
+                </div>
+
+                {/* Action Buttons - Only show for other profiles on desktop */}
+                {!isOwnProfile && (
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={followLoading}
+                    className={`hidden md:flex px-4 py-2 rounded-lg transition items-center gap-2 text-base flex-shrink-0 ${
+                      isFollowing
+                        ? "bg-green-100 text-green-700 hover:bg-green-200"
+                        : "bg-green-600 text-white hover:bg-green-700"
+                    } ${followLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {followLoading
+                      ? "..."
+                      : isFollowing
+                        ? "Đang theo dõi"
+                        : "Theo dõi"}
+                  </button>
+                )}
               </div>
 
-              {/* Action Buttons */}
-              {isOwnProfile ? (
-                <button
-                  onClick={handleOpenEditModal}
-                  className="px-3 py-2 md:px-4 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm md:text-base flex-shrink-0"
-                >
-                  <EditIcon className="w-4 h-4 md:w-5 md:h-5" />
-                  <span className="hidden sm:inline">Sửa hồ sơ</span>
-                  <span className="sm:hidden">Sửa</span>
-                </button>
-              ) : (
+              {/* Action Button on mobile - separate row */}
+              {!isOwnProfile && (
                 <button
                   onClick={handleFollowToggle}
                   disabled={followLoading}
-                  className={`px-3 py-2 md:px-4 md:py-2 rounded-lg transition flex items-center gap-2 text-sm md:text-base flex-shrink-0 ${
+                  className={`md:hidden w-full mt-3 px-3 py-1.5 rounded-lg transition flex items-center justify-center gap-2 text-sm font-medium ${
                     isFollowing
-                      ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      ? "bg-green-100 text-green-700 hover:bg-green-200"
                       : "bg-green-600 text-white hover:bg-green-700"
                   } ${followLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
@@ -677,265 +714,282 @@ export default function UserProfilePage() {
                 </button>
               )}
             </div>
-          </div>
 
-          {/* Tab Bar */}
-          <div className="bg-white rounded-lg shadow mb-6">
-            <div className="flex border-b">
-              <button
-                onClick={() => setActiveTab("profile")}
-                className={`px-6 py-3 font-medium ${
-                  activeTab === "profile"
-                    ? "text-green-600 border-b-2 border-green-600"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Trang cá nhân
-              </button>
-              <button
-                onClick={() => setActiveTab("matches")}
-                disabled
-                className={`px-6 py-3 font-medium cursor-not-allowed opacity-50 ${
-                  activeTab === "matches"
-                    ? "text-green-600 border-b-2 border-green-600"
-                    : "text-gray-500"
-                }`}
-              >
-                Trận đấu <span className="ml-1 text-sm">(0)</span>
-              </button>
-              <button
-                onClick={() => setActiveTab("events")}
-                className={`px-6 py-3 font-medium ${
-                  activeTab === "events"
-                    ? "text-green-600 border-b-2 border-green-600"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Sự kiện
-              </button>
-            </div>
+            {/* Tab Bar */}
+            <div className="bg-white rounded-lg shadow mb-6">
+              <div className="flex border-b">
+                <button
+                  onClick={() => setActiveTab("profile")}
+                  className={`px-3 md:px-6 py-2 md:py-3 font-medium text-sm md:text-base ${
+                    activeTab === "profile"
+                      ? "text-green-600 border-b-2 border-green-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Trang cá nhân
+                </button>
+                <button
+                  onClick={() => setActiveTab("matches")}
+                  disabled
+                  className={`px-3 md:px-6 py-2 md:py-3 font-medium text-sm md:text-base cursor-not-allowed opacity-50 ${
+                    activeTab === "matches"
+                      ? "text-green-600 border-b-2 border-green-600"
+                      : "text-gray-500"
+                  }`}
+                >
+                  Trận đấu <span className="ml-1 text-xs md:text-sm">(0)</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab("events")}
+                  className={`px-3 md:px-6 py-2 md:py-3 font-medium text-sm md:text-base ${
+                    activeTab === "events"
+                      ? "text-green-600 border-b-2 border-green-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Sự kiện
+                </button>
+              </div>
 
-            {/* Tab Content */}
-            <div className="p-4 md:p-6">
-              {activeTab === "profile" && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-                  {/* Left: User Info */}
-                  <div className="lg:col-span-1">
-                    <h3 className="text-lg font-semibold mb-4">
-                      Thông tin cá nhân
-                    </h3>
-                    <div className="space-y-3">
-                      <InfoRow
-                        label="Họ và tên"
-                        value={profileUser.fullName || "N/A"}
-                      />
-                      {isOwnProfile && (
+              {/* Tab Content */}
+              <div className="p-4 md:p-6">
+                {activeTab === "profile" && (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                    {/* Left: User Info */}
+                    <div className="lg:col-span-1">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Thông tin cá nhân
+                      </h3>
+                      <div className="space-y-3">
                         <InfoRow
-                          label="Số điện thoại"
-                          value={profileUser.username}
+                          label="Họ và tên"
+                          value={profileUser.fullName || "N/A"}
                         />
-                      )}
-                      {profileUser.email && (
-                        <InfoRow label="Email" value={profileUser.email} />
-                      )}
-                      {profileUser.dob && (
-                        <InfoRow
-                          label="Ngày sinh"
-                          value={new Date(profileUser.dob).toLocaleDateString(
-                            "vi-VN",
-                            {
+                        {isOwnProfile && (
+                          <InfoRow
+                            label="Số điện thoại"
+                            value={profileUser.username}
+                          />
+                        )}
+                        {profileUser.email && (
+                          <InfoRow label="Email" value={profileUser.email} />
+                        )}
+                        {profileUser.dob && (
+                          <InfoRow
+                            label="Ngày sinh"
+                            value={new Date(profileUser.dob).toLocaleDateString(
+                              "vi-VN",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              },
+                            )}
+                          />
+                        )}
+                        {profileUser.province && (
+                          <InfoRow
+                            label="Địa chỉ"
+                            value={profileUser.province}
+                          />
+                        )}
+                        {profileUser.createdAt && (
+                          <InfoRow
+                            label="Thành viên từ"
+                            value={new Date(
+                              profileUser.createdAt,
+                            ).toLocaleDateString("vi-VN", {
                               year: "numeric",
                               month: "long",
                               day: "numeric",
-                            },
-                          )}
-                        />
-                      )}
-                      {profileUser.province && (
-                        <InfoRow label="Địa chỉ" value={profileUser.province} />
-                      )}
-                      {profileUser.createdAt && (
-                        <InfoRow
-                          label="Thành viên từ"
-                          value={new Date(
-                            profileUser.createdAt,
-                          ).toLocaleDateString("vi-VN", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        />
-                      )}
-                      {profileUser.isPlayer && profileUser.bio && (
-                        <div className="">
-                          <p className="text-sm text-gray-600 mb-2">Tiểu sử</p>
-                          <p className="text-sm font-medium text-gray-900 leading-relaxed whitespace-pre-wrap">
-                            {profileUser.bio}
-                          </p>
+                            })}
+                          />
+                        )}
+                        {profileUser.isPlayer && profileUser.bio && (
+                          <div className="">
+                            <p className="text-sm text-gray-600 mb-2">
+                              Tiểu sử
+                            </p>
+                            <p className="text-sm font-medium text-gray-900 leading-relaxed whitespace-pre-wrap">
+                              {profileUser.bio}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Recent Events */}
+                    <div className="lg:col-span-2">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Hoạt động gần đây
+                      </h3>
+                      {recentEventsLoading ? (
+                        <div className="text-center py-8 text-gray-500">
+                          Đang tải...
+                        </div>
+                      ) : recentEvents.length > 0 ? (
+                        <div className="space-y-4">
+                          {recentEvents.map((event) => (
+                            <div
+                              key={event.id}
+                              className="bg-white rounded-lg shadow overflow-hidden"
+                            >
+                              {/* Header */}
+                              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                                <p className="text-sm text-gray-700">
+                                  <span className="font-semibold">
+                                    {profileUser.fullName ||
+                                      profileUser.username}
+                                  </span>{" "}
+                                  đã tham gia sự kiện
+                                </p>
+                              </div>
+
+                              {/* Event Card */}
+                              <Link
+                                href={`/events/${event.id}`}
+                                className="block hover:bg-gray-50 transition"
+                              >
+                                {event.picture && (
+                                  <div className="relative w-full h-48">
+                                    <Image
+                                      src={event.picture}
+                                      alt={event.title}
+                                      fill
+                                      className="object-cover"
+                                    />
+                                  </div>
+                                )}
+                                <div className="p-4">
+                                  <h4 className="font-semibold text-gray-900 text-lg mb-2">
+                                    {event.title}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                    {event.shortContent || "Tham gia sự kiện"}
+                                  </p>
+                                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <svg
+                                      className="w-4 h-4"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                      />
+                                    </svg>
+                                    <span>
+                                      {new Date(
+                                        event.startDate,
+                                      ).toLocaleDateString("vi-VN")}
+                                    </span>
+                                    {event.location && (
+                                      <>
+                                        <span>•</span>
+                                        <svg
+                                          className="w-4 h-4"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                          />
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                          />
+                                        </svg>
+                                        <span className="truncate">
+                                          {event.location}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </Link>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          Chưa tham gia sự kiện nào
                         </div>
                       )}
                     </div>
                   </div>
+                )}
 
-                  {/* Right: Recent Events */}
-                  <div className="lg:col-span-2">
-                    <h3 className="text-lg font-semibold mb-4">
-                      Hoạt động gần đây
-                    </h3>
-                    {recentEventsLoading ? (
+                {activeTab === "matches" && (
+                  <div className="text-center py-8 text-gray-500">
+                    Danh sách trận đấu sẽ được hiển thị ở đây
+                  </div>
+                )}
+
+                {activeTab === "events" && (
+                  <div className="space-y-4">
+                    {eventsLoading ? (
                       <div className="text-center py-8 text-gray-500">
                         Đang tải...
                       </div>
-                    ) : recentEvents.length > 0 ? (
-                      <div className="space-y-4">
-                        {recentEvents.map((event) => (
-                          <div key={event.id} className="bg-white rounded-lg shadow overflow-hidden">
-                            {/* Header */}
-                            <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                              <p className="text-sm text-gray-700">
-                                <span className="font-semibold">{profileUser.fullName || profileUser.username}</span>
-                                {" "}đã tham gia sự kiện
-                              </p>
-                            </div>
-
-                            {/* Event Card */}
-                            <Link
-                              href={`/events/${event.id}`}
-                              className="block hover:bg-gray-50 transition"
-                            >
-                              {event.picture && (
-                                <div className="relative w-full h-48">
-                                  <Image
-                                    src={event.picture}
-                                    alt={event.title}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                </div>
-                              )}
-                              <div className="p-4">
-                                <h4 className="font-semibold text-gray-900 text-lg mb-2">
-                                  {event.title}
-                                </h4>
-                                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                                  {event.shortContent || "Tham gia sự kiện"}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-gray-500">
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                  </svg>
-                                  <span>
-                                    {new Date(event.startDate).toLocaleDateString("vi-VN")}
-                                  </span>
-                                  {event.location && (
-                                    <>
-                                      <span>•</span>
-                                      <svg
-                                        className="w-4 h-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                        />
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                        />
-                                      </svg>
-                                      <span className="truncate">{event.location}</span>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            </Link>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
+                    ) : events.length === 0 ? (
                       <div className="text-center py-8 text-gray-500">
                         Chưa tham gia sự kiện nào
                       </div>
+                    ) : (
+                      <>
+                        {events.map((event) => (
+                          <EventCard
+                            key={event.id}
+                            event={event}
+                            userName={profileUser.fullName}
+                            showJoinButton={!isOwnProfile}
+                            onJoinClick={() => handleJoinEvent(event.id)}
+                            isJoining={joiningEventId === event.id}
+                          />
+                        ))}
+
+                        {/* Pagination */}
+                        {eventsTotalPages > 1 && (
+                          <div className="flex justify-center gap-2 mt-6">
+                            <button
+                              onClick={() =>
+                                setEventsPage((prev) => Math.max(0, prev - 1))
+                              }
+                              disabled={eventsPage === 0}
+                              className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                            >
+                              Trước
+                            </button>
+                            <span className="px-4 py-2 text-gray-700">
+                              Trang {eventsPage + 1} / {eventsTotalPages}
+                            </span>
+                            <button
+                              onClick={() =>
+                                setEventsPage((prev) =>
+                                  Math.min(eventsTotalPages - 1, prev + 1),
+                                )
+                              }
+                              disabled={eventsPage >= eventsTotalPages - 1}
+                              className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                            >
+                              Sau
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
-                </div>
-              )}
-
-              {activeTab === "matches" && (
-                <div className="text-center py-8 text-gray-500">
-                  Danh sách trận đấu sẽ được hiển thị ở đây
-                </div>
-              )}
-
-              {activeTab === "events" && (
-                <div className="space-y-4">
-                  {eventsLoading ? (
-                    <div className="text-center py-8 text-gray-500">
-                      Đang tải...
-                    </div>
-                  ) : events.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      Chưa tham gia sự kiện nào
-                    </div>
-                  ) : (
-                    <>
-                      {events.map((event) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          userName={profileUser.fullName}
-                          showJoinButton={!isOwnProfile}
-                          onJoinClick={() => handleJoinEvent(event.id)}
-                          isJoining={joiningEventId === event.id}
-                        />
-                      ))}
-
-                      {/* Pagination */}
-                      {eventsTotalPages > 1 && (
-                        <div className="flex justify-center gap-2 mt-6">
-                          <button
-                            onClick={() => setEventsPage((prev) => Math.max(0, prev - 1))}
-                            disabled={eventsPage === 0}
-                            className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                          >
-                            Trước
-                          </button>
-                          <span className="px-4 py-2 text-gray-700">
-                            Trang {eventsPage + 1} / {eventsTotalPages}
-                          </span>
-                          <button
-                            onClick={() =>
-                              setEventsPage((prev) =>
-                                Math.min(eventsTotalPages - 1, prev + 1)
-                              )
-                            }
-                            disabled={eventsPage >= eventsTotalPages - 1}
-                            className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                          >
-                            Sau
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -943,8 +997,8 @@ export default function UserProfilePage() {
 
       {/* Right Sidebar - Player Stats - Full width on mobile, sidebar on desktop */}
       {profileUser.isPlayer && (
-        <aside className="w-full md:w-80 bg-white shadow-lg overflow-auto order-3 md:order-none">
-          <div className="p-4 md:p-6 space-y-4 md:space-y-6 pb-20 md:pb-6">
+        <aside className="md:w-80 mx-4 md:mx-0 mb-32 md:mb-0 md:pt-16 bg-white shadow-lg overflow-auto order-3 md:order-none relative z-10">
+          <div className="p-4 md:p-6 space-y-4 md:space-y-6 md:pb-24">
             {/* Header with close button when showing followers/following */}
             {sidebarView !== "default" && (
               <div className="flex items-center justify-between mb-4">
@@ -1107,8 +1161,8 @@ export default function UserProfilePage() {
 
       {/* Right Sidebar - Following Players List - Only for non-player profiles */}
       {!profileUser.isPlayer && (
-        <aside className="w-full md:w-80 bg-white shadow-lg overflow-auto order-3 md:order-none">
-          <div className="p-4 md:p-6 pb-20 md:pb-6">
+        <aside className="md:w-80 mx-4 md:mx-0 mb-32 md:mb-0 md:pt-16 bg-white shadow-lg overflow-auto order-3 md:order-none relative z-10">
+          <div className="p-4 md:p-6">
             {/* Header with close button when showing followers/following */}
             {sidebarView !== "default" && (
               <div className="flex items-center justify-between mb-4">
@@ -1548,7 +1602,7 @@ export default function UserProfilePage() {
       )}
 
       {/* Mobile Bottom Navigation - Only visible on mobile */}
-      <MobileNav onLogout={handleLogout} />
+      <MobileNav backgroundImage="/images/ground.jpg" />
     </div>
   );
 }
