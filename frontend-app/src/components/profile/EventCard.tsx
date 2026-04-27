@@ -157,7 +157,7 @@ export default function EventCard({
                 onJoinClick?.();
               }}
               disabled={isJoining}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              className="w-full btn-primary disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
             >
               {isJoining ? "Đang tham gia..." : "Tham gia cùng"}
             </button>

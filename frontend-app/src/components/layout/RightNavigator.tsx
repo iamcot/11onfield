@@ -57,11 +57,11 @@ export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen
         {/* Close button inside the drawer */}
         <button
           onClick={onClose}
-          className="absolute right-2 top-2 bg-white text-gray-600 hover:text-gray-800 rounded-full p-2 shadow-md border border-gray-200 transition z-10"
+          className="absolute right-2 top-2 bg-white text-gray-600 hover:text-gray-800 rounded-full p-1.5 shadow-md border border-gray-200 transition z-10"
           aria-label="Close menu"
         >
           <svg
-            className="w-5 h-5"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -81,7 +81,7 @@ export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen
           ) : (
             <>
               {/* Header */}
-              <div className="bg-gradient-to-r from-orange-500 to-orange-300 p-4">
+              <div className="bg-gradient-to-r from-green-900 via-green-800 to-green-950 p-4">
 
                 {/* User Info */}
                 <div className="mt-4 flex items-center gap-3">

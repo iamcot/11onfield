@@ -156,18 +156,8 @@ public class UserController {
                     .level(player.getLevel() != null ? player.getLevel().name() : null)
                     .bio(player.getBio());
 
-                // Load player attributes with attribute type information
-                List<PlayerAttribute> attributes = playerAttributeService.getPlayerAttributes(player.getId());
-                List<PlayerAttributeDTO> attributeDTOs = attributes.stream()
-                    .map(attr -> PlayerAttributeDTO.builder()
-                        .attributeKey(attr.getAttributeType().getAttributeKey())
-                        .attributeName(attr.getAttributeType().getAttributeName())
-                        .attributeValue(attr.getAttributeValue())
-                        .attributeGroup(attr.getAttributeType().getAttributeGroup())
-                        .isHexagon(attr.getAttributeType().getIsHexagon())
-                        .isGoalKeeper(attr.getAttributeType().getIsGoalKeeper())
-                        .build())
-                    .collect(Collectors.toList());
+                // Load player attributes with left join (always 6 hexagon attributes)
+                List<PlayerAttributeDTO> attributeDTOs = playerAttributeService.getHexagonAttributesWithValues(player.getId());
                 responseBuilder.attributes(attributeDTOs);
             });
         }
@@ -375,18 +365,8 @@ public class UserController {
             // Calculate real follower count
             long followerCount = followService.getFollowersCount(user.getId());
 
-            // Load player attributes with attribute type information
-            List<PlayerAttribute> attributes = playerAttributeService.getPlayerAttributes(player.getId());
-            List<PlayerAttributeDTO> attributeDTOs = attributes.stream()
-                .map(attr -> PlayerAttributeDTO.builder()
-                    .attributeKey(attr.getAttributeType().getAttributeKey())
-                    .attributeName(attr.getAttributeType().getAttributeName())
-                    .attributeValue(attr.getAttributeValue())
-                    .attributeGroup(attr.getAttributeType().getAttributeGroup())
-                    .isHexagon(attr.getAttributeType().getIsHexagon())
-                    .isGoalKeeper(attr.getAttributeType().getIsGoalKeeper())
-                    .build())
-                .collect(Collectors.toList());
+            // Load player attributes with left join (always 6 hexagon attributes)
+            List<PlayerAttributeDTO> attributeDTOs = playerAttributeService.getHexagonAttributesWithValues(player.getId());
 
             return PlayerListDTO.builder()
                 .id(user.getId())

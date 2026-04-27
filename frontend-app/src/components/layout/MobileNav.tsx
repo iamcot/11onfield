@@ -24,11 +24,11 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
             className="absolute inset-0 bg-cover bg-bottom"
             style={{ backgroundImage: `url(${backgroundImage})` }}
           >
-            {/* Overlay for better text visibility */}
-            <div className="absolute inset-0 bg-black/30"></div>
+            {/* Primary color overlay for theme consistency */}
+            <div className="absolute inset-0 bg-gradient-to-br from-green-900/70 via-green-800/70 to-green-950/70"></div>
           </div>
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-green-700"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-green-900 via-green-800 to-green-950"></div>
         )}
       </div>
 
@@ -38,36 +38,36 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
           href="/"
           className={`flex flex-col items-center justify-center flex-1 transition ${
             pathname === "/" || pathname.startsWith("/profile")
-              ? "text-white font-semibold drop-shadow-lg"
+              ? "text-white font-semibold"
               : "text-white/80 hover:text-white"
           }`}
         >
           <HomeIcon className="w-6 h-6 drop-shadow-md" />
-          <span className="text-xs mt-1">Hồ sơ</span>
+          <span className="text-xs mt-1 px-2 py-0.5 bg-black/30 rounded backdrop-blur-sm">Hồ sơ</span>
         </Link>
 
         <Link
           href="/players"
           className={`flex flex-col items-center justify-center flex-1 transition ${
             pathname === "/players"
-              ? "text-white font-semibold drop-shadow-lg"
+              ? "text-white font-semibold"
               : "text-white/80 hover:text-white"
           }`}
         >
           <PlayerIcon className="w-6 h-6 drop-shadow-md" />
-          <span className="text-xs mt-1">Cầu thủ</span>
+          <span className="text-xs mt-1 px-2 py-0.5 bg-black/30 rounded backdrop-blur-sm">Cầu thủ</span>
         </Link>
 
         <Link
           href="/events"
           className={`flex flex-col items-center justify-center flex-1 transition ${
             pathname === "/events" || pathname.startsWith("/events/")
-              ? "text-white font-semibold drop-shadow-lg"
+              ? "text-white font-semibold"
               : "text-white/80 hover:text-white"
           }`}
         >
           <EventIcon className="w-6 h-6 drop-shadow-md" />
-          <span className="text-xs mt-1">Sự kiện</span>
+          <span className="text-xs mt-1 px-2 py-0.5 bg-black/30 rounded backdrop-blur-sm">Sự kiện</span>
         </Link>
       </div>
     </nav>

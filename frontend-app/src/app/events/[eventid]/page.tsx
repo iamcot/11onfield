@@ -155,7 +155,7 @@ export default function EventDetailPage() {
               <p className="text-red-600">{error || "Không tìm thấy sự kiện"}</p>
               <button
                 onClick={() => router.push("/events")}
-                className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                className="mt-4 px-4 py-2 btn-primary text-white rounded-md transition"
               >
                 Quay lại danh sách
               </button>
@@ -285,7 +285,7 @@ export default function EventDetailPage() {
               <div className="mb-6">
                 <button
                   onClick={() => router.push("/auth/login")}
-                  className="w-full md:w-auto px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                  className="w-full md:w-auto px-6 py-3 btn-primary text-white rounded-md transition"
                 >
                   Đăng nhập để tham gia
                 </button>

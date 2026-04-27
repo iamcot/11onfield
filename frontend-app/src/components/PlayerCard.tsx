@@ -73,7 +73,7 @@ export default function PlayerCard({
       className={`relative w-64 bg-gradient-to-br from-green-900 via-green-800 to-green-950 rounded-xl overflow-hidden shadow-2xl border-2 border-green-700 ${className}`}
     >
       {/* Top Row: Avatar as Background with Overall Score & Position */}
-      <div className="relative h-28 md:h-36 overflow-hidden">
+      <div className="relative h-32 md:h-40 overflow-hidden">
         {/* Avatar Background - offset to the right by 1/4 width */}
         {avatar ? (
           <div className="absolute top-0 bottom-0 left-1/4 right-0">
@@ -120,7 +120,11 @@ export default function PlayerCard({
           {preferredFoot && (
             <div className="flex items-center justify-center">
               <div className="text-lg font-bold leading-none text-green-200">
-                {preferredFoot === "left" ? "L" : preferredFoot === "right" ? "R" : "LR"}
+                {preferredFoot === "left"
+                  ? "L"
+                  : preferredFoot === "right"
+                    ? "R"
+                    : "LR"}
               </div>
             </div>
           )}
@@ -138,20 +142,22 @@ export default function PlayerCard({
       <div className="px-4 py-3 bg-green-950/30">
         <div className="grid grid-cols-2 gap-x-2 md:gap-x-4 gap-y-2">
           {displayAttrs.map((attr) => {
-            // Extract first word and uppercase
-            const shortLabel = attr.attributeName.split(" ")[0].toUpperCase();
+            // Use attribute key uppercased
+            const label = attr.attributeKey
+              ? attr.attributeKey.toUpperCase()
+              : "N/A";
             // Check if this is a placeholder
             const isPlaceholder = attr.attributeValue === -1;
             return (
               <div
                 key={attr.attributeKey}
-                className={`flex items-center justify-between ${isPlaceholder ? "opacity-0" : ""}`}
+                className={`flex items-center justify-center gap-1 h-5 md:h-6 ${isPlaceholder ? "opacity-0" : ""}`}
               >
-                <span className="text-green-200 text-[9px] md:text-xs font-medium truncate pr-1 md:pr-2">
-                  {shortLabel}
-                </span>
-                <span className="text-green-400 font-bold text-xs md:text-sm flex-shrink-0">
+                <span className="text-green-400 font-bold text-sm md:text-base text-right w-7 md:w-8 font-mono">
                   {isPlaceholder ? "N/A" : attr.attributeValue}
+                </span>
+                <span className="text-green-200 text-sm md:text-sm font-medium text-left font-mono">
+                  {label}
                 </span>
               </div>
             );
