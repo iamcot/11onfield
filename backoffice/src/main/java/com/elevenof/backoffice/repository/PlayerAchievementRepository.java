@@ -2,6 +2,9 @@ package com.elevenof.backoffice.repository;
 
 import com.elevenof.backoffice.model.PlayerAchievement;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,5 +14,7 @@ public interface PlayerAchievementRepository extends JpaRepository<PlayerAchieve
 
     List<PlayerAchievement> findByPlayerIdOrderByCreatedAtDesc(Long playerId);
 
-    void deleteByPlayerId(Long playerId);
+    @Modifying
+    @Query("DELETE FROM PlayerAchievement pa WHERE pa.player.id = :playerId")
+    void deleteByPlayerId(@Param("playerId") Long playerId);
 }

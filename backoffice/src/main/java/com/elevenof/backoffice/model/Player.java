@@ -75,6 +75,9 @@ public class Player {
     @Column(name = "personal_id", length = 20)
     private String personalId;  // CCCD/Identity card number
 
+    @Column(length = 500)
+    private String address;  // Permanent address
+
     @Column(length = 200)
     private String school;  // Current school
 

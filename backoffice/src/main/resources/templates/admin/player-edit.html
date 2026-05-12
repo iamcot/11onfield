@@ -175,7 +175,6 @@
                       >
                         <option value="striker" th:selected="${#strings.contains(player.positions, 'striker')}">Tiền đạo</option>
                         <option value="midfielder" th:selected="${#strings.contains(player.positions, 'midfielder')}">Tiền vệ</option>
-                        <option value="centerback" th:selected="${#strings.contains(player.positions, 'centerback')}">Trung vệ</option>
                         <option value="defender" th:selected="${#strings.contains(player.positions, 'defender')}">Hậu vệ</option>
                         <option value="goalkeeper" th:selected="${#strings.contains(player.positions, 'goalkeeper')}">Thủ môn</option>
                       </select>
@@ -196,6 +195,78 @@
                   </div>
                 </div>
 
+                <!-- New Extended Information -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="personalId">Số CCCD</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="personalId"
+                        name="personalId"
+                        th:value="${player.personalId}"
+                        maxlength="20"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="address">Địa chỉ thường trú</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="address"
+                        name="address"
+                        th:value="${player.address}"
+                        maxlength="500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="school">Trường đang học</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="school"
+                        name="school"
+                        th:value="${player.school}"
+                        maxlength="200"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="academy">Học viện đang tập</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="academy"
+                        name="academy"
+                        th:value="${player.academy}"
+                        maxlength="200"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="club">Đội bóng đang thi đấu</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="club"
+                        name="club"
+                        th:value="${player.club}"
+                        maxlength="200"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div class="row">
                   <div class="col-12">
                     <div class="form-group">
@@ -207,6 +278,180 @@
                         rows="4"
                         th:text="${player.bio}"
                       ></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Achievements Section -->
+                <h5 class="mt-4 mb-3">Thành tích</h5>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Thành tích cá nhân</label>
+                      <div id="individualAchievements">
+                        <div th:each="achievement, iterStat : ${player.achievements}"
+                             th:if="${achievement.type.name() == 'INDIVIDUAL'}"
+                             class="mb-2">
+                          <div class="row">
+                            <div class="col-8">
+                              <input
+                                type="text"
+                                class="form-control"
+                                th:name="|individualAchievements[${iterStat.index}].title|"
+                                th:value="${achievement.title}"
+                                placeholder="Tiêu đề thành tích"
+                              />
+                            </div>
+                            <div class="col-3">
+                              <input
+                                type="date"
+                                class="form-control"
+                                th:name="|individualAchievements[${iterStat.index}].date|"
+                                th:value="${achievement.achievementDate}"
+                              />
+                            </div>
+                            <div class="col-1">
+                              <button type="button" class="btn btn-danger btn-remove-achievement">
+                                <i class="fas fa-times"></i>
+                              </button>
+                            </div>
+                          </div>
+                          <input
+                            type="hidden"
+                            th:name="|individualAchievements[${iterStat.index}].id|"
+                            th:value="${achievement.id}"
+                          />
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-success mt-2" id="addIndividualBtn">
+                        <i class="fas fa-plus"></i> Thêm thành tích cá nhân
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Thành tích tập thể</label>
+                      <div id="teamAchievements">
+                        <div th:each="achievement, iterStat : ${player.achievements}"
+                             th:if="${achievement.type.name() == 'TEAM'}"
+                             class="mb-2">
+                          <div class="row">
+                            <div class="col-8">
+                              <input
+                                type="text"
+                                class="form-control"
+                                th:name="|teamAchievements[${iterStat.index}].title|"
+                                th:value="${achievement.title}"
+                                placeholder="Tiêu đề thành tích"
+                              />
+                            </div>
+                            <div class="col-3">
+                              <input
+                                type="date"
+                                class="form-control"
+                                th:name="|teamAchievements[${iterStat.index}].date|"
+                                th:value="${achievement.achievementDate}"
+                              />
+                            </div>
+                            <div class="col-1">
+                              <button type="button" class="btn btn-danger btn-remove-achievement">
+                                <i class="fas fa-times"></i>
+                              </button>
+                            </div>
+                            <input
+                              type="hidden"
+                              th:name="|teamAchievements[${iterStat.index}].id|"
+                              th:value="${achievement.id}"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-success mt-2" id="addTeamBtn">
+                        <i class="fas fa-plus"></i> Thêm thành tích tập thể
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Highlights Section -->
+                <h5 class="mt-4 mb-3">Video Highlights</h5>
+                <div class="row">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label>Video highlights</label>
+                      <div id="highlights">
+                        <div th:each="highlight, iterStat : ${player.highlights}" class="mb-2">
+                          <div class="row">
+                            <div class="col-8">
+                              <input
+                                type="url"
+                                class="form-control"
+                                th:name="|highlights[${iterStat.index}].url|"
+                                th:value="${highlight.url}"
+                                placeholder="URL video (YouTube, Facebook, Vimeo...)"
+                              />
+                            </div>
+                            <div class="col-3">
+                              <input
+                                type="date"
+                                class="form-control"
+                                th:name="|highlights[${iterStat.index}].date|"
+                                th:value="${highlight.highlightDate}"
+                              />
+                            </div>
+                            <div class="col-1">
+                              <button type="button" class="btn btn-danger btn-remove-highlight">
+                                <i class="fas fa-times"></i>
+                              </button>
+                            </div>
+                            <input
+                              type="hidden"
+                              th:name="|highlights[${iterStat.index}].id|"
+                              th:value="${highlight.id}"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-success mt-2" id="addHighlightBtn">
+                        <i class="fas fa-plus"></i> Thêm video highlight
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Social Media Section -->
+                <h5 class="mt-4 mb-3">Mạng xã hội</h5>
+                <div class="row">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label>Liên kết mạng xã hội</label>
+                      <div id="socials">
+                        <div th:each="social, iterStat : ${player.socials}" class="mb-2">
+                          <div class="input-group">
+                            <input
+                              type="url"
+                              class="form-control"
+                              th:name="|socials[${iterStat.index}].url|"
+                              th:value="${social.url}"
+                              placeholder="URL profile (Facebook, Instagram, TikTok...)"
+                            />
+                            <input
+                              type="hidden"
+                              th:name="|socials[${iterStat.index}].id|"
+                              th:value="${social.id}"
+                            />
+                            <div class="input-group-append">
+                              <button type="button" class="btn btn-danger btn-remove-social">
+                                <i class="fas fa-times"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-success mt-2" id="addSocialBtn">
+                        <i class="fas fa-plus"></i> Thêm mạng xã hội
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -224,6 +469,109 @@
           </div>
         </div>
       </div>
+
+      <script>
+        console.log('Script tag loaded');
+
+        window.addEventListener('load', function() {
+          console.log('Window loaded, jQuery available:', typeof jQuery !== 'undefined');
+
+          if (typeof jQuery === 'undefined') {
+            console.error('jQuery is not loaded!');
+            return;
+          }
+
+          var $ = jQuery;
+          var individualAchievementIndex = $('#individualAchievements .mb-2').length;
+          var teamAchievementIndex = $('#teamAchievements .mb-2').length;
+          var highlightIndex = $('#highlights .mb-2').length;
+          var socialIndex = $('#socials .mb-2').length;
+
+          console.log('Initialized counters:', {
+            individualAchievementIndex: individualAchievementIndex,
+            teamAchievementIndex: teamAchievementIndex,
+            highlightIndex: highlightIndex,
+            socialIndex: socialIndex
+          });
+
+          $('#addIndividualBtn').on('click', function() {
+            console.log('Adding individual achievement, index:', individualAchievementIndex);
+            $('#individualAchievements').append(
+              '<div class="mb-2">' +
+                '<div class="row">' +
+                  '<div class="col-8">' +
+                    '<input type="text" class="form-control" name="individualAchievements[' + individualAchievementIndex + '].title" placeholder="Tiêu đề thành tích" />' +
+                  '</div>' +
+                  '<div class="col-3">' +
+                    '<input type="date" class="form-control" name="individualAchievements[' + individualAchievementIndex + '].date" />' +
+                  '</div>' +
+                  '<div class="col-1">' +
+                    '<button type="button" class="btn btn-danger btn-remove-achievement"><i class="fas fa-times"></i></button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>'
+            );
+            individualAchievementIndex++;
+          });
+
+          $('#addTeamBtn').on('click', function() {
+            console.log('Adding team achievement, index:', teamAchievementIndex);
+            $('#teamAchievements').append(
+              '<div class="mb-2">' +
+                '<div class="row">' +
+                  '<div class="col-8">' +
+                    '<input type="text" class="form-control" name="teamAchievements[' + teamAchievementIndex + '].title" placeholder="Tiêu đề thành tích" />' +
+                  '</div>' +
+                  '<div class="col-3">' +
+                    '<input type="date" class="form-control" name="teamAchievements[' + teamAchievementIndex + '].date" />' +
+                  '</div>' +
+                  '<div class="col-1">' +
+                    '<button type="button" class="btn btn-danger btn-remove-achievement"><i class="fas fa-times"></i></button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>'
+            );
+            teamAchievementIndex++;
+          });
+
+          $('#addHighlightBtn').on('click', function() {
+            console.log('Adding highlight, index:', highlightIndex);
+            $('#highlights').append(
+              '<div class="mb-2">' +
+                '<div class="row">' +
+                  '<div class="col-8">' +
+                    '<input type="url" class="form-control" name="highlights[' + highlightIndex + '].url" placeholder="URL video (YouTube, Facebook, Vimeo...)" />' +
+                  '</div>' +
+                  '<div class="col-3">' +
+                    '<input type="date" class="form-control" name="highlights[' + highlightIndex + '].date" />' +
+                  '</div>' +
+                  '<div class="col-1">' +
+                    '<button type="button" class="btn btn-danger btn-remove-highlight"><i class="fas fa-times"></i></button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>'
+            );
+            highlightIndex++;
+          });
+
+          $('#addSocialBtn').on('click', function() {
+            console.log('Adding social, index:', socialIndex);
+            $('#socials').append(
+              '<div class="mb-2">' +
+                '<div class="input-group">' +
+                  '<input type="url" class="form-control" name="socials[' + socialIndex + '].url" placeholder="URL profile (Facebook, Instagram, TikTok...)" />' +
+                  '<div class="input-group-append">' +
+                    '<button type="button" class="btn btn-danger btn-remove-social"><i class="fas fa-times"></i></button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>'
+            );
+            socialIndex++;
+          });
+
+          $(document).on('click', '.btn-remove-achievement, .btn-remove-highlight, .btn-remove-social', function() {
+            $(this).closest('.mb-2').remove();
+          });
+        });
+      </script>
     </div>
-  </body>
-</html>

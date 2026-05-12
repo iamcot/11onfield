@@ -7,12 +7,16 @@ import com.elevenof.backoffice.model.Province;
 import com.elevenof.backoffice.model.User;
 import com.elevenof.backoffice.repository.AddressRepository;
 import com.elevenof.backoffice.repository.EventRepository;
+import com.elevenof.backoffice.repository.PlayerAchievementRepository;
+import com.elevenof.backoffice.repository.PlayerHighlightRepository;
 import com.elevenof.backoffice.repository.PlayerRepository;
+import com.elevenof.backoffice.repository.PlayerSocialRepository;
 import com.elevenof.backoffice.repository.ProvinceRepository;
 import com.elevenof.backoffice.repository.UserRepository;
 import com.elevenof.backoffice.service.EventService;
 import com.elevenof.backoffice.service.S3Service;
 import com.elevenof.backoffice.specification.EventSpecification;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -52,6 +56,9 @@ public class AdminController {
     private final S3Service s3Service;
     private final com.elevenof.backoffice.service.PlayerAttributeTypeService playerAttributeTypeService;
     private final com.elevenof.backoffice.service.PlayerAttributeService playerAttributeService;
+    private final PlayerAchievementRepository playerAchievementRepository;
+    private final PlayerHighlightRepository playerHighlightRepository;
+    private final PlayerSocialRepository playerSocialRepository;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -256,6 +263,11 @@ public class AdminController {
 
         List<Province> provinces = provinceRepository.findAll();
 
+        // If player.address is null, populate it from user.address.address
+        if (player.getAddress() == null && player.getUser().getAddress() != null) {
+            player.setAddress(player.getUser().getAddress().getAddress());
+        }
+
         model.addAttribute("title", "Chỉnh sửa cầu thủ");
         model.addAttribute("player", player);
         model.addAttribute("user", player.getUser());
@@ -268,75 +280,234 @@ public class AdminController {
      * Save player updates
      */
     @PostMapping("/players/edit/{id}")
+    @org.springframework.transaction.annotation.Transactional
     public String updatePlayer(
             @PathVariable Long id,
-            @RequestParam String fullName,
-            @RequestParam String phone,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String avatar,
-            @RequestParam(required = false) String dob,
-            @RequestParam(required = false) String gender,
-            @RequestParam(required = false) Long provinceId,
-            @RequestParam(required = false) Integer height,
-            @RequestParam(required = false) Integer weight,
-            @RequestParam(required = false) String preferredFoot,
-            @RequestParam(required = false) List<String> positions,
-            @RequestParam(required = false) String level,
-            @RequestParam(required = false) String bio
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes
     ) {
-        // Fetch existing player and user
-        Player existingPlayer = playerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Player not found"));
-        User existingUser = existingPlayer.getUser();
+        try {
+            // Extract form parameters
+            String fullName = request.getParameter("fullName");
+            String phone = request.getParameter("phone");
+            String email = request.getParameter("email");
+            String avatar = request.getParameter("avatar");
+            String dob = request.getParameter("dob");
+            String gender = request.getParameter("gender");
+            String provinceIdStr = request.getParameter("provinceId");
+            String heightStr = request.getParameter("height");
+            String weightStr = request.getParameter("weight");
+            String preferredFoot = request.getParameter("preferredFoot");
+            String[] positions = request.getParameterValues("positions");
+            String level = request.getParameter("level");
+            String bio = request.getParameter("bio");
+            String personalId = request.getParameter("personalId");
+            String address = request.getParameter("address");
+            String school = request.getParameter("school");
+            String academy = request.getParameter("academy");
+            String club = request.getParameter("club");
 
-        // Update user fields
-        existingUser.setFullName(fullName);
-        existingUser.setPhone(phone);
-        existingUser.setEmail(email);
-        existingUser.setAvatar(avatar);
-        if (dob != null && !dob.isEmpty()) {
-            existingUser.setDob(LocalDate.parse(dob));
+            // Parse collections from request parameters
+            Map<String, String> individualAchievementsTitles = new java.util.HashMap<>();
+            Map<String, String> individualAchievementsDates = new java.util.HashMap<>();
+            Map<String, String> teamAchievementsTitles = new java.util.HashMap<>();
+            Map<String, String> teamAchievementsDates = new java.util.HashMap<>();
+            Map<String, String> highlightsUrls = new java.util.HashMap<>();
+            Map<String, String> highlightsDates = new java.util.HashMap<>();
+            Map<String, String> socials = new java.util.HashMap<>();
+
+            request.getParameterMap().forEach((key, values) -> {
+                if (key.startsWith("individualAchievements[") && key.endsWith(".title") && values.length > 0) {
+                    individualAchievementsTitles.put(key.replace(".title", ""), values[0]);
+                } else if (key.startsWith("individualAchievements[") && key.endsWith(".date") && values.length > 0) {
+                    individualAchievementsDates.put(key.replace(".date", ""), values[0]);
+                } else if (key.startsWith("teamAchievements[") && key.endsWith(".title") && values.length > 0) {
+                    teamAchievementsTitles.put(key.replace(".title", ""), values[0]);
+                } else if (key.startsWith("teamAchievements[") && key.endsWith(".date") && values.length > 0) {
+                    teamAchievementsDates.put(key.replace(".date", ""), values[0]);
+                } else if (key.startsWith("highlights[") && key.endsWith(".url") && values.length > 0) {
+                    highlightsUrls.put(key.replace(".url", ""), values[0]);
+                } else if (key.startsWith("highlights[") && key.endsWith(".date") && values.length > 0) {
+                    highlightsDates.put(key.replace(".date", ""), values[0]);
+                } else if (key.startsWith("socials[") && key.endsWith(".url") && values.length > 0) {
+                    socials.put(key, values[0]);
+                }
+            });
+
+            System.out.println("=== PARSED COLLECTIONS ===");
+            System.out.println("individualAchievementsTitles: " + individualAchievementsTitles);
+            System.out.println("individualAchievementsDates: " + individualAchievementsDates);
+            System.out.println("teamAchievementsTitles: " + teamAchievementsTitles);
+            System.out.println("teamAchievementsDates: " + teamAchievementsDates);
+            System.out.println("highlightsUrls: " + highlightsUrls);
+            System.out.println("highlightsDates: " + highlightsDates);
+            System.out.println("socials: " + socials);
+
+            Long provinceId = (provinceIdStr != null && !provinceIdStr.isEmpty()) ? Long.parseLong(provinceIdStr) : null;
+            Integer height = (heightStr != null && !heightStr.isEmpty()) ? Integer.parseInt(heightStr) : null;
+            Integer weight = (weightStr != null && !weightStr.isEmpty()) ? Integer.parseInt(weightStr) : null;
+            // Fetch existing player and user
+            Player existingPlayer = playerRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Player not found"));
+            User existingUser = existingPlayer.getUser();
+
+            // Update user fields
+            existingUser.setFullName(fullName);
+            existingUser.setPhone(phone);
+            existingUser.setEmail(email);
+            existingUser.setAvatar(avatar);
+            if (dob != null && !dob.isEmpty()) {
+                existingUser.setDob(LocalDate.parse(dob));
+            }
+            if (gender != null && !gender.isEmpty()) {
+                existingUser.setGender(User.Gender.valueOf(gender));
+            }
+
+            // Update or create address (province only)
+            if (provinceId != null) {
+                Province province = provinceRepository.findById(provinceId)
+                        .orElseThrow(() -> new RuntimeException("Province not found"));
+
+                Address userAddress = addressRepository.findByUserId(existingUser.getId())
+                        .orElse(Address.builder()
+                                .user(existingUser)
+                                .build());
+
+                userAddress.setProvince(province);
+                addressRepository.save(userAddress);
+            }
+
+            // Update player basic fields
+            existingPlayer.setHeight(height);
+            existingPlayer.setWeight(weight);
+            existingPlayer.setPreferredFoot(preferredFoot);
+
+            // Convert List<String> positions to comma-separated string
+            if (positions != null && positions.length > 0) {
+                existingPlayer.setPositions(String.join(",", positions));
+            } else {
+                existingPlayer.setPositions(null);
+            }
+
+            if (level != null && !level.isEmpty()) {
+                existingPlayer.setLevel(Player.PlayerLevel.valueOf(level));
+            }
+            existingPlayer.setBio(bio);
+
+            // Update new extended fields
+            existingPlayer.setPersonalId(personalId);
+            existingPlayer.setAddress(address);
+            existingPlayer.setSchool(school);
+            existingPlayer.setAcademy(academy);
+            existingPlayer.setClub(club);
+
+            // Update achievements - delete from DB first, then recreate
+            playerAchievementRepository.deleteByPlayerId(id);
+
+            if (individualAchievementsTitles != null) {
+                individualAchievementsTitles.forEach((baseKey, title) -> {
+                    if (title != null && !title.trim().isEmpty()) {
+                        String dateStr = individualAchievementsDates.get(baseKey);
+                        LocalDate achievementDate = null;
+                        if (dateStr != null && !dateStr.trim().isEmpty()) {
+                            try {
+                                achievementDate = LocalDate.parse(dateStr);
+                            } catch (Exception e) {
+                                achievementDate = null;
+                            }
+                        }
+
+                        com.elevenof.backoffice.model.PlayerAchievement achievement =
+                                com.elevenof.backoffice.model.PlayerAchievement.builder()
+                                        .player(existingPlayer)
+                                        .type(com.elevenof.backoffice.model.PlayerAchievement.AchievementType.INDIVIDUAL)
+                                        .title(title.trim())
+                                        .achievementDate(achievementDate)
+                                        .build();
+                        playerAchievementRepository.save(achievement);
+                    }
+                });
+            }
+            if (teamAchievementsTitles != null) {
+                teamAchievementsTitles.forEach((baseKey, title) -> {
+                    if (title != null && !title.trim().isEmpty()) {
+                        String dateStr = teamAchievementsDates.get(baseKey);
+                        LocalDate achievementDate = null;
+                        if (dateStr != null && !dateStr.trim().isEmpty()) {
+                            try {
+                                achievementDate = LocalDate.parse(dateStr);
+                            } catch (Exception e) {
+                                achievementDate = null;
+                            }
+                        }
+
+                        com.elevenof.backoffice.model.PlayerAchievement achievement =
+                                com.elevenof.backoffice.model.PlayerAchievement.builder()
+                                        .player(existingPlayer)
+                                        .type(com.elevenof.backoffice.model.PlayerAchievement.AchievementType.TEAM)
+                                        .title(title.trim())
+                                        .achievementDate(achievementDate)
+                                        .build();
+                        playerAchievementRepository.save(achievement);
+                    }
+                });
+            }
+
+            // Update highlights - delete from DB first, then recreate
+            playerHighlightRepository.deleteByPlayerId(id);
+
+            if (highlightsUrls != null) {
+                highlightsUrls.forEach((baseKey, url) -> {
+                    if (url != null && !url.trim().isEmpty()) {
+                        String dateStr = highlightsDates.get(baseKey);
+                        LocalDate highlightDate = null;
+                        if (dateStr != null && !dateStr.trim().isEmpty()) {
+                            try {
+                                highlightDate = LocalDate.parse(dateStr);
+                            } catch (Exception e) {
+                                highlightDate = null;
+                            }
+                        }
+
+                        com.elevenof.backoffice.model.PlayerHighlight highlight =
+                                com.elevenof.backoffice.model.PlayerHighlight.builder()
+                                        .player(existingPlayer)
+                                        .url(url.trim())
+                                        .platform(com.elevenof.backoffice.util.PlatformDetector.detectPlatform(url))
+                                        .highlightDate(highlightDate)
+                                        .build();
+                        playerHighlightRepository.save(highlight);
+                    }
+                });
+            }
+
+            // Update socials - delete from DB first, then recreate
+            playerSocialRepository.deleteByPlayerId(id);
+
+            if (socials != null) {
+                socials.forEach((key, url) -> {
+                    if (url != null && !url.trim().isEmpty()) {
+                        com.elevenof.backoffice.model.PlayerSocial social =
+                                com.elevenof.backoffice.model.PlayerSocial.builder()
+                                        .player(existingPlayer)
+                                        .url(url.trim())
+                                        .platform(com.elevenof.backoffice.util.PlatformDetector.detectPlatform(url))
+                                        .build();
+                        playerSocialRepository.save(social);
+                    }
+                });
+            }
+
+            // Save
+            userRepository.save(existingUser);
+            playerRepository.save(existingPlayer);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin cầu thủ thành công!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("ERROR updating player: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật: " + e.getMessage());
         }
-        if (gender != null && !gender.isEmpty()) {
-            existingUser.setGender(User.Gender.valueOf(gender));
-        }
-
-        // Update or create address (province only)
-        if (provinceId != null) {
-            Province province = provinceRepository.findById(provinceId)
-                    .orElseThrow(() -> new RuntimeException("Province not found"));
-
-            Address address = addressRepository.findByUserId(existingUser.getId())
-                    .orElse(Address.builder()
-                            .user(existingUser)
-                            .build());
-
-            address.setProvince(province);
-            // ward and address detail remain null by default
-
-            addressRepository.save(address);
-        }
-
-        // Update player fields
-        existingPlayer.setHeight(height);
-        existingPlayer.setWeight(weight);
-        existingPlayer.setPreferredFoot(preferredFoot);
-
-        // Convert List<String> positions to comma-separated string
-        if (positions != null && !positions.isEmpty()) {
-            existingPlayer.setPositions(String.join(",", positions));
-        } else {
-            existingPlayer.setPositions(null);
-        }
-
-        if (level != null && !level.isEmpty()) {
-            existingPlayer.setLevel(Player.PlayerLevel.valueOf(level));
-        }
-        existingPlayer.setBio(bio);
-
-        // Save
-        userRepository.save(existingUser);
-        playerRepository.save(existingPlayer);
 
         return "redirect:/admin/players";
     }

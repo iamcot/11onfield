@@ -1,6 +1,6 @@
--- Drop the global UNIQUE constraint on url
-ALTER TABLE player_socials DROP INDEX UK_chsn19vou9t76me8a07o702rb;
+-- Remove global UNIQUE constraint on url
+ALTER TABLE player_socials DROP INDEX url;
 
--- Add composite UNIQUE constraint on player_id + url
--- This allows same URL for different players, but prevents duplicate URLs per player
-ALTER TABLE player_socials ADD UNIQUE KEY unique_player_url (player_id, url);
+-- Add composite UNIQUE constraint on (player_id, url) instead
+-- This allows same URL for different players but not duplicates for same player
+ALTER TABLE player_socials ADD CONSTRAINT unique_player_url UNIQUE (player_id, url);
