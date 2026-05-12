@@ -3,10 +3,29 @@ set -e
 
 echo "Setting up 11of deployment environment..."
 
-# Create dedicated application user
+# Get the current user (who will run the GitHub Actions runner)
+RUNNER_USER="${SUDO_USER:-$USER}"
+echo "Runner user detected: $RUNNER_USER"
+
+# Create dedicated deployment group
+if ! getent group 11of-deploy &>/dev/null; then
+    sudo groupadd 11of-deploy
+    echo "✓ Created 11of-deploy group"
+fi
+
+# Create dedicated application user and add to deployment group
 if ! id "11of-app" &>/dev/null; then
-    sudo useradd -r -s /bin/bash -m -d /opt/11of 11of-app
+    sudo useradd -r -s /bin/bash -m -d /opt/11of -G 11of-deploy 11of-app
     echo "✓ Created 11of-app user"
+else
+    # Add existing user to deployment group
+    sudo usermod -a -G 11of-deploy 11of-app
+fi
+
+# Add runner user to deployment group
+if ! groups "$RUNNER_USER" | grep -q 11of-deploy; then
+    sudo usermod -a -G 11of-deploy "$RUNNER_USER"
+    echo "✓ Added $RUNNER_USER to 11of-deploy group"
 fi
 
 # Create directory structure
@@ -14,14 +33,17 @@ sudo mkdir -p /opt/11of/{backend,frontend}/{releases,logs}
 sudo mkdir -p /opt/11of/scripts
 echo "✓ Created directory structure"
 
-# Set ownership
-sudo chown -R 11of-app:11of-app /opt/11of
-echo "✓ Set directory ownership"
+# Set ownership and permissions for shared access
+sudo chown -R 11of-app:11of-deploy /opt/11of
+sudo chmod -R 775 /opt/11of
+# Ensure new files inherit group ownership
+sudo chmod g+s /opt/11of /opt/11of/backend /opt/11of/frontend
+echo "✓ Set directory ownership and permissions for shared access"
 
 # Copy deployment scripts
 sudo cp deployment/scripts/*.sh /opt/11of/scripts/
 sudo chmod +x /opt/11of/scripts/*.sh
-sudo chown 11of-app:11of-app /opt/11of/scripts/*.sh
+sudo chown 11of-app:11of-deploy /opt/11of/scripts/*.sh
 echo "✓ Copied deployment scripts"
 
 # Install systemd service files
@@ -42,11 +64,15 @@ sudo chmod 0440 /etc/sudoers.d/11of-deploy
 echo "✓ Configured sudo permissions"
 
 echo ""
-echo "✓ Server setup complete!"
+echo "✅ Server setup complete!"
+echo ""
+echo "⚠️  IMPORTANT: $RUNNER_USER must log out and log back in for group changes to take effect!"
 echo ""
 echo "Next steps:"
-echo "1. Create .env file at /opt/11of/backend/.env with production secrets"
-echo "2. Create .env.production file at /opt/11of/frontend/.env.production"
-echo "3. Set up your GitHub Actions self-hosted runner"
-echo "4. Configure GitHub repository secrets"
-echo "5. Trigger manual deployment via GitHub Actions (first deployment will install node_modules)"
+echo "1. Log out and log back in (or run: newgrp 11of-deploy)"
+echo "2. Verify group membership: groups"
+echo "3. Create .env file at /opt/11of/backend/.env with production secrets"
+echo "4. Create .env.production file at /opt/11of/frontend/.env.production"
+echo "5. Set up your GitHub Actions self-hosted runner"
+echo "6. Configure GitHub repository secrets"
+echo "7. Trigger manual deployment via GitHub Actions"

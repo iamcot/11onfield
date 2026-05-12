@@ -92,13 +92,14 @@ jobs:
           # Copy package files to shared location for deployment
           if [ ! -f "${{ env.DEPLOY_PATH }}/frontend/package.json" ] || ! cmp -s package.json "${{ env.DEPLOY_PATH }}/frontend/package.json"; then
             echo "Updating shared deployment dependencies..."
-            sudo -u 11of-app mkdir -p ${{ env.DEPLOY_PATH }}/frontend
-            sudo -u 11of-app cp package.json ${{ env.DEPLOY_PATH }}/frontend/
-            sudo -u 11of-app cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/
-            sudo -u 11of-app cp .npmrc ${{ env.DEPLOY_PATH }}/frontend/ 2>/dev/null || true
+            mkdir -p ${{ env.DEPLOY_PATH }}/frontend
+            cp package.json ${{ env.DEPLOY_PATH }}/frontend/
+            cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/
+            cp .npmrc ${{ env.DEPLOY_PATH }}/frontend/ 2>/dev/null || true
 
             # Install/update shared node_modules for deployment
-            sudo -u 11of-app bash -c "cd ${{ env.DEPLOY_PATH }}/frontend && nice -n 19 npm ci --prefer-offline --no-audit"
+            cd ${{ env.DEPLOY_PATH }}/frontend
+            nice -n 19 npm ci --prefer-offline --no-audit
           fi
 
           echo "✓ Dependencies ready"
@@ -206,8 +207,8 @@ jobs:
 
       - name: Create backend environment file
         run: |
-          sudo -u 11of-app mkdir -p ${{ env.DEPLOY_PATH }}/backend
-          sudo -u 11of-app tee ${{ env.DEPLOY_PATH }}/backend/.env > /dev/null << 'EOF'
+          mkdir -p ${{ env.DEPLOY_PATH }}/backend
+          tee ${{ env.DEPLOY_PATH }}/backend/.env > /dev/null << 'EOF'
           DB_USERNAME=${{ secrets.DB_USERNAME }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           JWT_ISSUER_URI=${{ secrets.JWT_ISSUER_URI }}
@@ -220,12 +221,12 @@ jobs:
           FRONTEND_URL=${{ secrets.FRONTEND_URL }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
-          sudo -u 11of-app chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env
+          chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env
           echo "✓ Environment file created"
 
       - name: Deploy backend
         run: |
-          sudo -u 11of-app bash ${{ env.DEPLOY_PATH }}/scripts/deploy-backend.sh \
+          bash ${{ env.DEPLOY_PATH }}/scripts/deploy-backend.sh \
             /tmp/artifacts/backend/backoffice-0.0.1-SNAPSHOT.jar
 
       - name: Wait for backend startup
@@ -269,16 +270,16 @@ jobs:
 
       - name: Create frontend environment file
         run: |
-          sudo -u 11of-app mkdir -p ${{ env.DEPLOY_PATH }}/frontend
-          sudo -u 11of-app tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null << 'EOF'
+          mkdir -p ${{ env.DEPLOY_PATH }}/frontend
+          tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null << 'EOF'
           NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
           EOF
-          sudo -u 11of-app chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production
+          chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production
           echo "✓ Environment file created"
 
       - name: Deploy frontend
         run: |
-          sudo -u 11of-app bash ${{ env.DEPLOY_PATH }}/scripts/deploy-frontend.sh \
+          bash ${{ env.DEPLOY_PATH }}/scripts/deploy-frontend.sh \
             /tmp/artifacts/frontend
 
       - name: Wait for frontend startup
@@ -329,13 +330,13 @@ jobs:
       - name: Rollback backend
         if: needs.deploy-backend.result == 'failure' || needs.health-check.result == 'failure'
         run: |
-          sudo -u 11of-app bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh backend
+          bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh backend
         continue-on-error: true
 
       - name: Rollback frontend
         if: needs.deploy-frontend.result == 'failure' || needs.health-check.result == 'failure'
         run: |
-          sudo -u 11of-app bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh frontend
+          bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh frontend
         continue-on-error: true
 
       - name: Notify deployment failure
