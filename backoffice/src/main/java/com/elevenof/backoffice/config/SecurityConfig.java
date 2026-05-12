@@ -46,6 +46,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/provinces").permitAll()
                 .requestMatchers("/api/users/players").permitAll() // Allow anonymous access to players list
                 .requestMatchers("/api/users/{userid}").permitAll() // Allow anonymous access to user profiles
+                .requestMatchers("/api/users/{userid}/feeds").permitAll() // Allow anonymous access to user feeds
                 .requestMatchers("/api/users/{userid}/following").permitAll() // Allow anonymous access to following list
                 .requestMatchers("/api/users/{userid}/followers").permitAll() // Allow anonymous access to followers list
                 .requestMatchers("/api/events").permitAll() // Allow anonymous access to events list

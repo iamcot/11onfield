@@ -2,6 +2,7 @@ package com.elevenof.backoffice.controller.api;
 
 import com.elevenof.backoffice.dto.request.UpdateProfileRequest;
 import com.elevenof.backoffice.dto.response.AddressResponse;
+import com.elevenof.backoffice.dto.response.FeedItemDTO;
 import com.elevenof.backoffice.dto.response.PlayerAttributeDTO;
 import com.elevenof.backoffice.dto.response.PlayerListDTO;
 import com.elevenof.backoffice.dto.response.PlayerProfileResponse;
@@ -20,6 +21,7 @@ import com.elevenof.backoffice.model.User;
 import com.elevenof.backoffice.repository.UserRepository;
 import com.elevenof.backoffice.service.AddressService;
 import com.elevenof.backoffice.service.BackgroundRemovalService;
+import com.elevenof.backoffice.service.FeedService;
 import com.elevenof.backoffice.service.FollowService;
 import com.elevenof.backoffice.service.PlayerAttributeService;
 import com.elevenof.backoffice.service.PlayerService;
@@ -67,6 +69,7 @@ public class UserController {
     private final FollowService followService;
     private final PlayerAttributeService playerAttributeService;
     private final BackgroundRemovalService backgroundRemovalService;
+    private final FeedService feedService;
     private final jakarta.persistence.EntityManager entityManager;
     private final com.elevenof.backoffice.repository.AddressRepository addressRepository;
 
@@ -729,6 +732,14 @@ public class UserController {
             .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{userid}/feeds")
+    public ResponseEntity<List<FeedItemDTO>> getUserFeeds(
+            @PathVariable String userid
+    ) {
+        List<FeedItemDTO> feeds = feedService.getUserFeeds(userid);
+        return ResponseEntity.ok(feeds);
     }
 }
 
