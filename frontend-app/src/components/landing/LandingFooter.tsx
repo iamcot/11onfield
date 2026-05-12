@@ -68,7 +68,7 @@ export default function LandingFooter() {
                     </a>
                   ) : (
                     <button
-                      onClick={() => scrollToSection(link.id)}
+                      onClick={() => scrollToSection(link.id!)}
                       className="text-green-100 hover:text-white flex items-center gap-2 transition-colors"
                     >
                       <span style={{ color: "rgb(207, 159, 61)" }}>
