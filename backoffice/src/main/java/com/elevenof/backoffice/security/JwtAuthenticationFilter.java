@@ -30,7 +30,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
         // Skip JWT filter for admin paths - they use session-based authentication
-        return path.startsWith("/admin");
+        boolean shouldSkip = path.startsWith("/admin");
+        if (shouldSkip) {
+            log.debug("Skipping JWT filter for admin path: {}", path);
+        }
+        return shouldSkip;
     }
 
     @Override
