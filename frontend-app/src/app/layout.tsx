@@ -4,7 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { EditProfileProvider } from '@/contexts/EditProfileContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
-import EditProfileModal from '@/components/modals/EditProfileModal';
+import EditProfileHandler from '@/components/profile/EditProfileHandler';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,7 +25,7 @@ export default function RootLayout({
           <SidebarProvider>
             <EditProfileProvider>
               {children}
-              <EditProfileModal />
+              <EditProfileHandler />
             </EditProfileProvider>
           </SidebarProvider>
         </AuthProvider>

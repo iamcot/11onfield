@@ -1,23 +1,36 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback } from "react";
 
 interface EditProfileContextType {
   isOpen: boolean;
   openEditProfile: () => void;
   closeEditProfile: () => void;
+  setOpenCallback: (callback: (() => void) | null) => void;
 }
 
 const EditProfileContext = createContext<EditProfileContextType | undefined>(undefined);
 
 export function EditProfileProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [openCallback, setOpenCallbackState] = useState<(() => void) | null>(null);
 
-  const openEditProfile = () => setIsOpen(true);
+  const openEditProfile = useCallback(() => {
+    if (openCallback) {
+      openCallback();
+    } else {
+      setIsOpen(true);
+    }
+  }, [openCallback]);
+
   const closeEditProfile = () => setIsOpen(false);
 
+  const setOpenCallback = (callback: (() => void) | null) => {
+    setOpenCallbackState(() => callback);
+  };
+
   return (
-    <EditProfileContext.Provider value={{ isOpen, openEditProfile, closeEditProfile }}>
+    <EditProfileContext.Provider value={{ isOpen, openEditProfile, closeEditProfile, setOpenCallback }}>
       {children}
     </EditProfileContext.Provider>
   );

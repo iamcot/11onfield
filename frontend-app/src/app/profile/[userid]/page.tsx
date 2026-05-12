@@ -8,6 +8,7 @@ import TopUserCard from "@/components/layout/TopUserCard";
 import EventCard from "@/components/profile/EventCard";
 import { appConfig } from "@/config/app.config";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEditProfile } from "@/contexts/EditProfileContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import {
   compressImage,
@@ -18,13 +19,14 @@ import {
 import { getMockUserByPhone } from "@/mocks/user.mock";
 import { eventService } from "@/services/event.service";
 import { followService } from "@/services/follow.service";
+import { provinceService } from "@/services/province.service";
 import { userService } from "@/services/user.service";
 import { EventListItem } from "@/types/event";
 import { UserListItem } from "@/types/user";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function UserProfilePage() {
   const {
@@ -34,6 +36,7 @@ export default function UserProfilePage() {
     logout,
   } = useAuth();
   const { isCollapsed } = useSidebar();
+  const { closeEditProfile, setOpenCallback } = useEditProfile();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -167,33 +170,61 @@ export default function UserProfilePage() {
   };
 
   const handleOpenEditModal = async () => {
+    // Use currentUser if profileUser is not available (e.g., when opening from other pages)
+    const userToEdit = profileUser || currentUser;
+
+    if (!userToEdit) {
+      console.error("No user data available");
+      return;
+    }
+
     // Load provinces
     try {
-      const response = await fetch("http://localhost:8080/api/provinces");
-      const provinceData = await response.json();
+      const provinceData = await provinceService.getAllProvinces();
       setProvinces(provinceData);
     } catch (error) {
       console.error("Error loading provinces:", error);
+      setProvinces([]);
     }
 
     // Initialize form data with current profile data
-    setEditFormData({
-      fullName: profileUser.fullName || "",
-      email: profileUser.email || "",
-      dob: profileUser.dob || "",
-      gender: profileUser.gender || "",
-      provinceId: profileUser.provinceId || "",
+    const formData = {
+      fullName: userToEdit.fullName || "",
+      email: userToEdit.email || "",
+      dob: userToEdit.dob || "",
+      gender: userToEdit.gender || "",
+      provinceId: userToEdit.provinceId ? String(userToEdit.provinceId) : "",
       // Player-specific fields
-      ...(profileUser.isPlayer && {
-        height: profileUser.height || "",
-        weight: profileUser.weight || "",
-        preferredFoot: profileUser.preferredFoot || "",
-        positions: profileUser.positions || [],
-        level: profileUser.level || "",
-        bio: profileUser.bio || "",
+      ...(userToEdit.isPlayer && {
+        height: userToEdit.height ? String(userToEdit.height) : "",
+        weight: userToEdit.weight ? String(userToEdit.weight) : "",
+        preferredFoot: userToEdit.preferredFoot || "",
+        positions: userToEdit.positions || [],
+        level: userToEdit.level || "",
+        bio: userToEdit.bio || "",
       }),
+    };
+
+    // Set form data and open modal
+    await new Promise(resolve => {
+      setEditFormData(formData);
+      resolve(undefined);
     });
+
     setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    closeEditProfile();
+    // Clear avatar selection
+    if (selectedAvatarFile) {
+      setSelectedAvatarFile(null);
+    }
+    if (avatarPreviewUrl) {
+      URL.revokeObjectURL(avatarPreviewUrl);
+      setAvatarPreviewUrl(null);
+    }
   };
 
   const handleEditFormChange = (
@@ -279,7 +310,10 @@ export default function UserProfilePage() {
       }
       setAvatarPreviewUrl(null);
 
-      setShowEditModal(false);
+      // Show success notification
+      alert("Cập nhật thông tin thành công!");
+
+      handleCloseEditModal();
     } catch (err: any) {
       console.error("Error updating profile:", err);
       alert(err.message || "Cập nhật thất bại");
@@ -326,6 +360,15 @@ export default function UserProfilePage() {
     }
     setAvatarPreviewUrl(null);
   };
+
+  // Register callback for edit profile from context
+  useEffect(() => {
+    const isOwn = currentUser?.userid === profileUser?.userid;
+    if (profileUser && isOwn) {
+      setOpenCallback(handleOpenEditModal);
+    }
+    return () => setOpenCallback(null);
+  }, [profileUser, currentUser]);
 
   useEffect(() => {
     if (!authLoading && userid) {
@@ -739,7 +782,8 @@ export default function UserProfilePage() {
                 >
                   Trận đấu <span className="ml-1 text-xs md:text-sm">(0)</span>
                 </button>
-                <button
+                {/* Temporarily hidden */}
+                {/* <button
                   onClick={() => setActiveTab("events")}
                   className={`px-3 md:px-6 py-2 md:py-3 font-medium text-sm md:text-base ${
                     activeTab === "events"
@@ -748,7 +792,7 @@ export default function UserProfilePage() {
                   }`}
                 >
                   Sự kiện
-                </button>
+                </button> */}
               </div>
 
               {/* Tab Content */}
@@ -1296,16 +1340,16 @@ export default function UserProfilePage() {
       )}
 
       {/* Edit Profile Modal */}
-      {showEditModal && (
+      {showEditModal && editFormData.fullName && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" key={editFormData.fullName}>
             {/* Modal Header */}
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">
                 Chỉnh sửa hồ sơ
               </h3>
               <button
-                onClick={() => setShowEditModal(false)}
+                onClick={handleCloseEditModal}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
               >
                 ×
@@ -1583,7 +1627,7 @@ export default function UserProfilePage() {
             {/* Modal Footer */}
             <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
               <button
-                onClick={() => setShowEditModal(false)}
+                onClick={handleCloseEditModal}
                 disabled={isSaving}
                 className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
               >
