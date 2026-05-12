@@ -22,7 +22,7 @@ env:
 jobs:
   build-backend:
     name: Build Backend
-    runs-on: self-hosted
+    runs-on: [self-hosted, production]
     if: github.event.inputs.deploy_backend == 'true'
 
     steps:
@@ -59,7 +59,7 @@ jobs:
 
   build-frontend:
     name: Build Frontend
-    runs-on: self-hosted
+    runs-on: [self-hosted, production]
     if: github.event.inputs.deploy_frontend == 'true'
 
     steps:
@@ -144,7 +144,7 @@ jobs:
 
   deploy-backend:
     name: Deploy Backend
-    runs-on: self-hosted
+    runs-on: [self-hosted, production]
     needs: build-backend
     if: ${{ !cancelled() && needs.build-backend.result == 'success' }}
 
@@ -244,7 +244,7 @@ jobs:
 
   deploy-frontend:
     name: Deploy Frontend
-    runs-on: self-hosted
+    runs-on: [self-hosted, production]
     needs: [build-frontend, deploy-backend]
     if: ${{ !cancelled() && needs.build-frontend.result == 'success' }}
 
@@ -297,7 +297,7 @@ jobs:
 
   health-check:
     name: Health Check
-    runs-on: self-hosted
+    runs-on: [self-hosted, production]
     needs: [deploy-backend, deploy-frontend]
     if: ${{ !cancelled() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
 
@@ -332,7 +332,7 @@ jobs:
 
   rollback:
     name: Rollback on Failure
-    runs-on: self-hosted
+    runs-on: [self-hosted, production]
     needs: [deploy-backend, deploy-frontend, health-check]
     if: failure()
 
