@@ -1,6 +1,6 @@
 export default function RecruitmentInfoSection() {
   return (
-    <section id="recruitment-info" className="relative -mt-16 px-4 mb-8">
+    <section id="recruitment-info" className="relative -mt-8 md:-mt-12 px-4 mb-8">
       <div className="w-[90%] max-w-6xl mx-auto bg-green-700 rounded-2xl shadow-xl overflow-hidden">
         <div className="grid grid-cols-3 gap-0">
           {/* Column 1: Đối tượng */}
