@@ -102,4 +102,27 @@ export const userService = {
       },
     });
   },
+
+  async updateAvatar(file: File): Promise<void> {
+    const token = storage.getToken();
+
+    if (!token) {
+      throw new Error('No access token available');
+    }
+
+    // Create FormData
+    const formData = new FormData();
+    formData.append('file', file); // Backend expects 'file' not 'avatar'
+
+    return apiClient.postMultipart<void>('/users/me/avatar', formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  async getProvinces(): Promise<Array<{ id: number; name: string }>> {
+    // This can be called without authentication
+    return apiClient.get<Array<{ id: number; name: string }>>('/provinces');
+  },
 };
