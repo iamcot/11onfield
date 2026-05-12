@@ -58,9 +58,9 @@ export default function WhyChooseSection() {
               {/* Body */}
               <p className="p-3 text-gray-700 text-sm">{reason.description}</p>
 
-              {/* Yellow divider line (not on last item) */}
+              {/* Gold divider line (not on last item) */}
               {index < reasons.length - 1 && (
-                <div className="hidden lg:block absolute top-5 bottom-5 -right-4 w-0.5 bg-yellow-400"></div>
+                <div className="hidden lg:block absolute top-5 bottom-5 -right-4 w-0.5 bg-gold-400"></div>
               )}
             </div>
           ))}

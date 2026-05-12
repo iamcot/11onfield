@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 interface TopBarProps {
@@ -21,20 +22,22 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
 
   return (
     <header className="md:hidden fixed top-0 left-0 right-0 z-50 h-20">
-      <div className="relative bg-gradient-to-r from-orange-600 to-orange-400 h-16 pb-2">
+      <div className="relative bg-gradient-to-r from-gold-500 to-gold-300 h-16 pb-2">
         <div className="flex items-center justify-between h-full px-4">
           {/* Left spacer for centering */}
           <div className="w-20"></div>
 
           {/* Center Logo */}
           <div className="flex-1 flex justify-center">
-            <Image
-              src="/images/green_11onfield.png"
-              alt="11of Logo"
-              width={120}
-              height={50}
-              className="object-contain"
-            />
+            <Link href="/">
+              <Image
+                src="/images/logo-color-full.png"
+                alt="11of Logo"
+                width={120}
+                height={50}
+                className="object-contain cursor-pointer"
+              />
+            </Link>
           </div>
 
           {/* Right Icons Container */}
@@ -75,14 +78,14 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
                 />
               ) : user?.fullName ? (
                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border-2 border-white">
-                  <span className="text-orange-500 font-semibold text-sm">
+                  <span className="text-gold-600 font-semibold text-sm">
                     {user.fullName.charAt(0).toUpperCase()}
                   </span>
                 </div>
               ) : (
                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border-2 border-white">
                   <svg
-                    className="w-5 h-5 text-orange-500"
+                    className="w-5 h-5 text-gold-600"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >

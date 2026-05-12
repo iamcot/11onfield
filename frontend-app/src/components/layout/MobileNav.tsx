@@ -1,6 +1,7 @@
 "use client";
 
 import { EventIcon, HomeIcon, PlayerIcon } from "@/components/icons/nav-icons";
+import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -10,6 +11,7 @@ interface MobileNavProps {
 
 export default function MobileNav({ backgroundImage }: MobileNavProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 shadow-lg z-40 overflow-hidden">
@@ -35,7 +37,7 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
       {/* Navigation items */}
       <div className="relative flex justify-around items-center h-16 pt-3">
         <Link
-          href="/"
+          href={user?.userid ? `/profile/${user.userid}` : "/"}
           className={`flex flex-col items-center justify-center flex-1 transition ${
             pathname === "/" || pathname.startsWith("/profile")
               ? "text-white font-semibold"

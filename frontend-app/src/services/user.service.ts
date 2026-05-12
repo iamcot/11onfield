@@ -20,6 +20,27 @@ export interface PlayerAttribute {
   isGoalKeeper?: boolean;
 }
 
+export interface Achievement {
+  id: number;
+  title: string;
+  description?: string;
+  date?: string;
+}
+
+export interface Highlight {
+  id: number;
+  url: string;
+  platform?: string;
+  title?: string;
+  date?: string;
+}
+
+export interface Social {
+  id: number;
+  url: string;
+  platform?: string;
+}
+
 export interface UserProfile {
   id: number;
   phone: string;
@@ -50,6 +71,19 @@ export interface UserProfile {
   attributes?: PlayerAttribute[];
   followersCount?: number;
   followingCount?: number;
+
+  // New extended player fields
+  personalId?: string;
+  residentialAddress?: string;
+  school?: string;
+  academy?: string;
+  club?: string;
+
+  // New collections
+  individualAchievements?: Achievement[];
+  teamAchievements?: Achievement[];
+  highlights?: Highlight[];
+  socials?: Social[];
 }
 
 export const userService = {

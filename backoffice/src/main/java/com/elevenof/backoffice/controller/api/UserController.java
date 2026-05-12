@@ -12,7 +12,10 @@ import com.elevenof.backoffice.dto.response.UserResponse;
 import com.elevenof.backoffice.exception.FileUploadException;
 import com.elevenof.backoffice.exception.ResourceNotFoundException;
 import com.elevenof.backoffice.model.Player;
+import com.elevenof.backoffice.model.PlayerAchievement;
 import com.elevenof.backoffice.model.PlayerAttribute;
+import com.elevenof.backoffice.model.PlayerHighlight;
+import com.elevenof.backoffice.model.PlayerSocial;
 import com.elevenof.backoffice.model.User;
 import com.elevenof.backoffice.repository.UserRepository;
 import com.elevenof.backoffice.service.AddressService;
@@ -22,6 +25,7 @@ import com.elevenof.backoffice.service.PlayerAttributeService;
 import com.elevenof.backoffice.service.PlayerService;
 import com.elevenof.backoffice.service.S3Service;
 import com.elevenof.backoffice.specification.PlayerSpecification;
+import com.elevenof.backoffice.util.PlatformDetector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -41,6 +45,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +67,8 @@ public class UserController {
     private final FollowService followService;
     private final PlayerAttributeService playerAttributeService;
     private final BackgroundRemovalService backgroundRemovalService;
+    private final jakarta.persistence.EntityManager entityManager;
+    private final com.elevenof.backoffice.repository.AddressRepository addressRepository;
 
     /**
      * Helper method to get User from userid (String) in JWT token
@@ -159,11 +167,61 @@ public class UserController {
                     .weight(player.getWeight())
                     .preferredFoot(player.getPreferredFoot())
                     .level(player.getLevel() != null ? player.getLevel().name() : null)
-                    .bio(player.getBio());
+                    .bio(player.getBio())
+                    .personalId(player.getPersonalId())
+                    .residentialAddress(user.getAddress() != null ? user.getAddress().getAddress() : null)
+                    .school(player.getSchool())
+                    .academy(player.getAcademy())
+                    .club(player.getClub());
 
                 // Load player attributes with left join (always 6 hexagon attributes)
                 List<PlayerAttributeDTO> attributeDTOs = playerAttributeService.getHexagonAttributesWithValues(player.getId());
                 responseBuilder.attributes(attributeDTOs);
+
+                // Load achievements
+                List<UserProfileResponse.AchievementDTO> individualAchs = player.getAchievements().stream()
+                    .filter(a -> a.getType() == PlayerAchievement.AchievementType.INDIVIDUAL)
+                    .map(a -> UserProfileResponse.AchievementDTO.builder()
+                        .id(a.getId())
+                        .title(a.getTitle())
+                        .description(a.getDescription())
+                        .date(a.getAchievementDate())
+                        .build())
+                    .toList();
+                responseBuilder.individualAchievements(individualAchs);
+
+                List<UserProfileResponse.AchievementDTO> teamAchs = player.getAchievements().stream()
+                    .filter(a -> a.getType() == PlayerAchievement.AchievementType.TEAM)
+                    .map(a -> UserProfileResponse.AchievementDTO.builder()
+                        .id(a.getId())
+                        .title(a.getTitle())
+                        .description(a.getDescription())
+                        .date(a.getAchievementDate())
+                        .build())
+                    .toList();
+                responseBuilder.teamAchievements(teamAchs);
+
+                // Load highlights
+                List<UserProfileResponse.HighlightDTO> highlights = player.getHighlights().stream()
+                    .map(h -> UserProfileResponse.HighlightDTO.builder()
+                        .id(h.getId())
+                        .url(h.getUrl())
+                        .platform(h.getPlatform())
+                        .title(h.getTitle())
+                        .date(h.getHighlightDate())
+                        .build())
+                    .toList();
+                responseBuilder.highlights(highlights);
+
+                // Load socials
+                List<UserProfileResponse.SocialDTO> socials = player.getSocials().stream()
+                    .map(s -> UserProfileResponse.SocialDTO.builder()
+                        .id(s.getId())
+                        .url(s.getUrl())
+                        .platform(s.getPlatform())
+                        .build())
+                    .toList();
+                responseBuilder.socials(socials);
             });
         }
 
@@ -177,11 +235,25 @@ public class UserController {
     }
 
     @PutMapping("/me")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<Void> updateProfile(
             Authentication authentication,
             @RequestBody UpdateProfileRequest request
     ) {
         User user = getUserFromAuthentication(authentication);
+
+        System.out.println("=== UPDATE PROFILE REQUEST ===");
+        System.out.println("User: " + user.getUserid());
+        System.out.println("Personal ID: " + request.getPersonalId());
+        System.out.println("School: " + request.getSchool());
+        System.out.println("Academy: " + request.getAcademy());
+        System.out.println("Club: " + request.getClub());
+        System.out.println("Address: " + request.getAddress());
+        System.out.println("Individual Achievements: " + (request.getIndividualAchievements() != null ? request.getIndividualAchievements().size() : "null"));
+        System.out.println("Team Achievements: " + (request.getTeamAchievements() != null ? request.getTeamAchievements().size() : "null"));
+        System.out.println("Highlights: " + (request.getHighlights() != null ? request.getHighlights().size() : "null"));
+        System.out.println("Socials: " + (request.getSocials() != null ? request.getSocials().size() : "null"));
+        System.out.println("===============================");
 
         // Update user fields
         if (request.getFullName() != null) {
@@ -205,37 +277,144 @@ public class UserController {
         }
         userRepository.save(user);
 
-        // Update address if province is provided
+        // Update address if province is provided OR if residentialAddress is provided
         if (request.getProvinceId() != null) {
             addressService.updateOrCreateAddress(user, request.getProvinceId());
+        }
+
+        // Update residential address in user's address
+        if (request.getResidentialAddress() != null) {
+            if (user.getAddress() != null) {
+                user.getAddress().setAddress(request.getResidentialAddress());
+                addressRepository.save(user.getAddress());
+            } else {
+                // If user doesn't have an address record yet, skip
+                System.out.println("Warning: Residential address provided but user has no address record. Skipping.");
+            }
         }
 
         // If user is a PLAYER, update player profile
         if (user.getRole() == User.Role.PLAYER) {
             Optional<Player> playerOpt = playerService.getPlayerProfile(user.getId());
+            Player player;
+
             if (playerOpt.isPresent()) {
-                Player player = playerOpt.get();
+                player = playerOpt.get();
+            } else {
+                // Create new player profile if it doesn't exist
+                player = Player.builder()
+                    .user(user)
+                    .achievements(new ArrayList<>())
+                    .highlights(new ArrayList<>())
+                    .socials(new ArrayList<>())
+                    .build();
+            }
 
-                if (request.getPositions() != null) {
-                    player.setPositions(String.join(",", request.getPositions()));
-                }
-                if (request.getHeight() != null) {
-                    player.setHeight(request.getHeight());
-                }
-                if (request.getWeight() != null) {
-                    player.setWeight(request.getWeight());
-                }
-                if (request.getPreferredFoot() != null) {
-                    player.setPreferredFoot(request.getPreferredFoot());
-                }
-                if (request.getLevel() != null) {
-                    player.setLevel(request.getLevel());
-                }
-                if (request.getBio() != null) {
-                    player.setBio(request.getBio());
-                }
+            if (request.getPositions() != null) {
+                player.setPositions(String.join(",", request.getPositions()));
+            }
+            if (request.getHeight() != null) {
+                player.setHeight(request.getHeight());
+            }
+            if (request.getWeight() != null) {
+                player.setWeight(request.getWeight());
+            }
+            if (request.getPreferredFoot() != null) {
+                player.setPreferredFoot(request.getPreferredFoot());
+            }
+            if (request.getLevel() != null) {
+                player.setLevel(request.getLevel());
+            }
+            if (request.getBio() != null) {
+                player.setBio(request.getBio());
+            }
 
+            // Update new extended fields
+            if (request.getPersonalId() != null) {
+                player.setPersonalId(request.getPersonalId());
+            }
+            if (request.getSchool() != null) {
+                player.setSchool(request.getSchool());
+            }
+            if (request.getAcademy() != null) {
+                player.setAcademy(request.getAcademy());
+            }
+            if (request.getClub() != null) {
+                player.setClub(request.getClub());
+            }
+
+            // Update achievements - clear and recreate
+            if (request.getIndividualAchievements() != null) {
+                player.getAchievements().removeIf(a -> a.getType() == PlayerAchievement.AchievementType.INDIVIDUAL);
+                entityManager.flush(); // Flush delete before insert
+                for (UpdateProfileRequest.AchievementRequest achReq : request.getIndividualAchievements()) {
+                    if (achReq.getTitle() != null && !achReq.getTitle().trim().isEmpty()) {
+                        PlayerAchievement ach = PlayerAchievement.builder()
+                            .player(player)
+                            .type(PlayerAchievement.AchievementType.INDIVIDUAL)
+                            .title(achReq.getTitle())
+                            .description(achReq.getDescription())
+                            .achievementDate(achReq.getDate())
+                            .build();
+                        player.getAchievements().add(ach);
+                    }
+                }
+            }
+
+            if (request.getTeamAchievements() != null) {
+                player.getAchievements().removeIf(a -> a.getType() == PlayerAchievement.AchievementType.TEAM);
+                entityManager.flush(); // Flush delete before insert
+                for (UpdateProfileRequest.AchievementRequest achReq : request.getTeamAchievements()) {
+                    if (achReq.getTitle() != null && !achReq.getTitle().trim().isEmpty()) {
+                        PlayerAchievement ach = PlayerAchievement.builder()
+                            .player(player)
+                            .type(PlayerAchievement.AchievementType.TEAM)
+                            .title(achReq.getTitle())
+                            .description(achReq.getDescription())
+                            .achievementDate(achReq.getDate())
+                            .build();
+                        player.getAchievements().add(ach);
+                    }
+                }
+            }
+
+            // Update highlights - clear and recreate
+            if (request.getHighlights() != null) {
+                player.getHighlights().clear();
+                entityManager.flush(); // Flush delete before insert
+                for (UpdateProfileRequest.HighlightRequest highlightReq : request.getHighlights()) {
+                    if (highlightReq.getUrl() != null && !highlightReq.getUrl().trim().isEmpty()) {
+                        PlayerHighlight highlight = PlayerHighlight.builder()
+                            .player(player)
+                            .url(highlightReq.getUrl())
+                            .platform(PlatformDetector.detectPlatform(highlightReq.getUrl()))
+                            .highlightDate(highlightReq.getDate())
+                            .build();
+                        player.getHighlights().add(highlight);
+                    }
+                }
+            }
+
+            // Update socials - clear and recreate
+            if (request.getSocials() != null) {
+                player.getSocials().clear();
+                entityManager.flush(); // Flush delete before insert
+                for (String url : request.getSocials()) {
+                    if (url != null && !url.trim().isEmpty()) {
+                        PlayerSocial social = PlayerSocial.builder()
+                            .player(player)
+                            .url(url)
+                            .platform(PlatformDetector.detectPlatform(url))
+                            .build();
+                        player.getSocials().add(social);
+                    }
+                }
+            }
+
+            if (playerOpt.isPresent()) {
                 playerService.updatePlayerProfile(player);
+            } else {
+                playerService.createPlayerProfile(user.getId(), player);
             }
         }
 

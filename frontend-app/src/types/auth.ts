@@ -26,7 +26,7 @@ export interface RegisterData {
   phone: string;
   password: string;
   role: 'USER' | 'PLAYER' | 'COACH' | 'SCOUTER';
-  provinceId: number;
+  provinceId?: number;
   email?: string;
   playerProfile?: {
     positions?: string[];

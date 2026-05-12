@@ -33,4 +33,42 @@ public class UpdateProfileRequest {
     private String preferredFoot;
     private Player.PlayerLevel level;
     private String bio;
+
+    // New extended player fields
+    private String personalId;  // CCCD/Identity card number
+    private String residentialAddress;  // Player's residential address (full address)
+    private String school;  // Current school
+    private String academy;  // Football academy
+    private String club;  // Current football club
+
+    // New collections
+    private List<AchievementRequest> individualAchievements;
+    private List<AchievementRequest> teamAchievements;
+    private List<HighlightRequest> highlights;  // Changed to HighlightRequest to include date
+    private List<String> socials;  // Social media URLs
+
+    /**
+     * Nested DTO for achievement data
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AchievementRequest {
+        private String title;
+        private String description;
+        private LocalDate date;  // Achievement date
+    }
+
+    /**
+     * Nested DTO for highlight data
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HighlightRequest {
+        private String url;
+        private LocalDate date;  // Highlight date
+    }
 }

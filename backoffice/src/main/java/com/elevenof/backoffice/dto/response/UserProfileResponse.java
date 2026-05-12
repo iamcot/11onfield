@@ -31,7 +31,56 @@ public class UserProfileResponse {
     private String bio;
     private List<PlayerAttributeDTO> attributes;
 
+    // New extended player fields
+    private String personalId;
+    private String residentialAddress;  // Player's full residential address (renamed to avoid conflict)
+    private String school;
+    private String academy;
+    private String club;
+
+    // New collections
+    private List<AchievementDTO> individualAchievements;
+    private List<AchievementDTO> teamAchievements;
+    private List<HighlightDTO> highlights;
+    private List<SocialDTO> socials;
+
     // Follow counts
     private Long followersCount;
     private Long followingCount;
+
+    /**
+     * Nested DTO for achievement response
+     */
+    @Data
+    @Builder
+    public static class AchievementDTO {
+        private Long id;
+        private String title;
+        private String description;
+        private LocalDate date;
+    }
+
+    /**
+     * Nested DTO for highlight response
+     */
+    @Data
+    @Builder
+    public static class HighlightDTO {
+        private Long id;
+        private String url;
+        private String platform;
+        private String title;
+        private LocalDate date;
+    }
+
+    /**
+     * Nested DTO for social media response
+     */
+    @Data
+    @Builder
+    public static class SocialDTO {
+        private Long id;
+        private String url;
+        private String platform;
+    }
 }

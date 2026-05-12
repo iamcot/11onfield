@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -7,6 +8,7 @@ import { useEffect, useState } from "react";
 export default function StickyNav() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -67,23 +69,48 @@ export default function StickyNav() {
               </button>
             ))}
 
+            {/* Players list link */}
             <Link
-              href="/auth/login"
+              href="/players"
               className="text-base font-medium text-gray-700 hover:text-green-700 transition-colors"
             >
-              Đăng nhập
+              Danh sách cầu thủ
             </Link>
 
-            <Link
-              href="/auth/register"
-              className={`px-4 py-2 rounded-md text-base font-semibold transition-colors ${
-                isScrolled
-                  ? "bg-green-700 text-white hover:bg-green-800"
-                  : "bg-white text-green-700 hover:bg-green-50"
-              }`}
-            >
-              Đăng ký
-            </Link>
+            {isAuthenticated && user ? (
+              /* Logged in - Show Profile link */
+              <Link
+                href={`/profile/${user.userid}`}
+                className={`px-4 py-2 rounded-md text-base font-semibold transition-colors ${
+                  isScrolled
+                    ? "bg-green-700 text-white hover:bg-green-800"
+                    : "bg-white text-green-700 hover:bg-green-50"
+                }`}
+              >
+                Hồ sơ
+              </Link>
+            ) : (
+              /* Not logged in - Show Login/Register */
+              <>
+                <Link
+                  href="/auth/login"
+                  className="text-base font-medium text-gray-700 hover:text-green-700 transition-colors"
+                >
+                  Đăng nhập
+                </Link>
+
+                <Link
+                  href="/auth/register"
+                  className={`px-4 py-2 rounded-md text-base font-semibold transition-colors ${
+                    isScrolled
+                      ? "bg-green-700 text-white hover:bg-green-800"
+                      : "bg-white text-green-700 hover:bg-green-50"
+                  }`}
+                >
+                  Đăng ký
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Contact boxes (hide on mobile) */}
@@ -177,18 +204,40 @@ export default function StickyNav() {
                 {link.label}
               </button>
             ))}
+
+            {/* Players list link */}
             <Link
-              href="/auth/login"
+              href="/players"
               className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
             >
-              Đăng nhập
+              Danh sách cầu thủ
             </Link>
-            <Link
-              href="/auth/register"
-              className="block w-full text-center px-4 py-2 bg-green-700 text-white hover:bg-green-800 rounded-md"
-            >
-              Đăng ký
-            </Link>
+
+            {isAuthenticated && user ? (
+              /* Logged in - Show Profile link */
+              <Link
+                href={`/profile/${user.userid}`}
+                className="block w-full text-center px-4 py-2 bg-green-700 text-white hover:bg-green-800 rounded-md"
+              >
+                Hồ sơ
+              </Link>
+            ) : (
+              /* Not logged in - Show Login/Register */
+              <>
+                <Link
+                  href="/auth/login"
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="block w-full text-center px-4 py-2 bg-green-700 text-white hover:bg-green-800 rounded-md"
+                >
+                  Đăng ký
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

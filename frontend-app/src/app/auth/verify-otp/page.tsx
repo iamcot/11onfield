@@ -144,9 +144,9 @@ function VerifyOtpContent() {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden lg:block min-h-screen">
-        {/* Left column - Hero Image - Fixed */}
-        <div className="fixed inset-y-0 left-0 w-1/2 flex items-center bg-transparent">
+      <div className="hidden lg:grid lg:grid-cols-[auto_1fr] min-h-screen">
+        {/* Left column - Hero Image - Sticky */}
+        <div className="sticky top-0 h-screen flex items-center justify-center">
           {/* Background image */}
           <img
             src="/images/banner_register.jpg"
@@ -155,8 +155,8 @@ function VerifyOtpContent() {
           />
         </div>
 
-        {/* Right column - Form */}
-        <div className="ml-[50%] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 overflow-y-auto bg-white min-h-screen">
+        {/* Right column - Form - Scrollable */}
+        <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white min-h-screen">
           <div className="max-w-md w-full space-y-8">
             <div>
               <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

@@ -49,8 +49,8 @@ public class PlayerSpecification {
                 ));
             }
 
-            // Join to Player entity
-            Join<User, Player> playerJoin = root.join("player", JoinType.LEFT);
+            // Join to Player entity - INNER JOIN to ensure player profile exists
+            Join<User, Player> playerJoin = root.join("player", JoinType.INNER);
 
             // Filter by positions (contains any)
             if (positions != null && !positions.isEmpty()) {

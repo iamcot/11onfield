@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Player Profile Entity
@@ -68,6 +70,35 @@ public class Player {
 
     @Column(columnDefinition = "TEXT")
     private String bio;
+
+    // New extended fields
+    @Column(name = "personal_id", length = 20)
+    private String personalId;  // CCCD/Identity card number
+
+    @Column(length = 200)
+    private String school;  // Current school
+
+    @Column(length = 200)
+    private String academy;  // Football academy
+
+    @Column(length = 200)
+    private String club;  // Current football club
+
+    // OneToMany relationships for collections
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @org.hibernate.annotations.Fetch(org.hibernate.annotations.FetchMode.SUBSELECT)
+    @Builder.Default
+    private List<PlayerAchievement> achievements = new ArrayList<>();
+
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @org.hibernate.annotations.Fetch(org.hibernate.annotations.FetchMode.SUBSELECT)
+    @Builder.Default
+    private List<PlayerHighlight> highlights = new ArrayList<>();
+
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @org.hibernate.annotations.Fetch(org.hibernate.annotations.FetchMode.SUBSELECT)
+    @Builder.Default
+    private List<PlayerSocial> socials = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

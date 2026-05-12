@@ -5,7 +5,6 @@ import {
   ChevronRightIcon,
   EventIcon,
   HomeIcon,
-  LogoutIcon,
   PlayerIcon,
 } from "@/components/icons/nav-icons";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +12,6 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
 
 interface NavItemProps {
   icon: React.ComponentType<{ className?: string }>;
@@ -23,7 +21,13 @@ interface NavItemProps {
   isActive: boolean;
 }
 
-function NavItem({ icon: Icon, label, href, collapsed, isActive }: NavItemProps) {
+function NavItem({
+  icon: Icon,
+  label,
+  href,
+  collapsed,
+  isActive,
+}: NavItemProps) {
   return (
     <Link
       href={href}
@@ -48,7 +52,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
 
   const handleAuthAction = () => {
     if (isAuthenticated) {
@@ -70,26 +74,30 @@ export default function Sidebar({ onLogout }: SidebarProps) {
       <aside
         className={`${
           isCollapsed ? "w-16" : "w-64"
-        } hidden md:flex bg-white shadow-lg transition-all duration-300 flex-col relative`}
+        } hidden md:flex bg-white shadow-lg transition-all duration-300 flex-col sticky top-0 h-screen`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-center border-b px-2">
+        <Link href="/" className="h-16 flex items-center justify-center border-b px-2">
           <Image
-            src={isCollapsed ? "/images/green_11.png" : "/images/green_11onfield.png"}
+            src={
+              isCollapsed
+                ? "/images/logo-color-small.png"
+                : "/images/logo-color-full.png"
+            }
             alt="11of Logo"
-            width={isCollapsed ? 40 : 150}
-            height={isCollapsed ? 40 : 40}
-            className="object-contain"
+            width={isCollapsed ? 32 : 150}
+            height={isCollapsed ? 32 : 40}
+            className="object-contain cursor-pointer"
             priority
           />
-        </div>
+        </Link>
 
         {/* Navigation Items */}
         <nav className="flex-1 py-4">
           <NavItem
             icon={HomeIcon}
             label="Hồ sơ"
-            href="/"
+            href={user?.userid ? `/profile/${user.userid}` : "/"}
             collapsed={isCollapsed}
             isActive={pathname === "/" || pathname.startsWith("/profile")}
           />
@@ -117,7 +125,11 @@ export default function Sidebar({ onLogout }: SidebarProps) {
           isCollapsed ? "w-16" : "w-64"
         }`}
       >
-        {isCollapsed ? <ChevronRightIcon className="w-5 h-5" /> : <ChevronLeftIcon className="w-5 h-5" />}
+        {isCollapsed ? (
+          <ChevronRightIcon className="w-5 h-5" />
+        ) : (
+          <ChevronLeftIcon className="w-5 h-5" />
+        )}
       </button>
     </>
   );

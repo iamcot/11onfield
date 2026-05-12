@@ -26,7 +26,6 @@ public class RegisterRequest {
     @Email(message = "Email không hợp lệ")
     private String email;
 
-    @NotNull(message = "Tỉnh/Thành phố không được để trống")
     private Long provinceId;
 
     // Only for PLAYER role

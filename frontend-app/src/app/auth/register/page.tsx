@@ -3,11 +3,10 @@
 import { Toggle } from "@/components/ui/Toggle";
 import { registerConfig } from "@/config/register.config";
 import { useAuth } from "@/contexts/AuthContext";
-import { Province, provinceService } from "@/services/province.service";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -27,7 +26,6 @@ export default function RegisterPage() {
     email: "",
   });
 
-  const [provinces, setProvinces] = useState<Province[]>([]);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -35,19 +33,6 @@ export default function RegisterPage() {
 
   const { register } = useAuth();
   const router = useRouter();
-
-  // Load provinces on mount
-  useEffect(() => {
-    const loadProvinces = async () => {
-      try {
-        const data = await provinceService.getAllProvinces();
-        setProvinces(data);
-      } catch (err) {
-        console.error("Error loading provinces:", err);
-      }
-    };
-    loadProvinces();
-  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -132,17 +117,6 @@ export default function RegisterPage() {
         phone: formData.phone,
         password: formData.password,
         role: formData.role as "USER" | "PLAYER" | "COACH" | "SCOUTER",
-        provinceId: parseInt(formData.provinceId),
-        email:
-          formData.role === "PLAYER" ? formData.email || undefined : undefined,
-        ...(formData.role === "PLAYER" && {
-          playerProfile: {
-            positions: formData.positions,
-            height: formData.height,
-            weight: formData.weight,
-            preferredFoot: formData.preferredFoot,
-          },
-        }),
       };
 
       await register(registrationData);
@@ -302,36 +276,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Province Selection */}
-              <div>
-                <label
-                  htmlFor="provinceId"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Tỉnh/Thành phố *
-                </label>
-                <select
-                  id="provinceId"
-                  name="provinceId"
-                  required
-                  value={formData.provinceId}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                >
-                  <option value="">-- Chọn tỉnh/thành phố --</option>
-                  {provinces.map((province) => (
-                    <option key={province.id} value={province.id}>
-                      {province.name}
-                    </option>
-                  ))}
-                </select>
-                {fieldErrors.provinceId && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {fieldErrors.provinceId}
-                  </p>
-                )}
-              </div>
-
               {/* Toggle */}
               <div className="pt-4">
                 <Toggle
@@ -343,12 +287,12 @@ export default function RegisterPage() {
                     })
                   }
                   label="Bạn là tuyển thủ"
-                  description="Bật để điền thông tin tuyển thủ của bạn"
+                  description="Bạn sẽ được yêu cầu bổ sung các thông tin đăng ký sau khi tạo tài khoản thành công"
                 />
               </div>
 
-              {/* Section 2 - Conditionally visible */}
-              {formData.role === "PLAYER" && (
+              {/* Section 2 - Hidden - Will be filled after registration */}
+              {false && formData.role === "PLAYER" && (
                 <div className="space-y-4 pt-6 mt-6 border-t border-gray-200">
                   <h3 className="text-lg font-medium text-gray-900">
                     Thông tin tuyển thủ
@@ -557,9 +501,9 @@ export default function RegisterPage() {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden lg:block min-h-screen">
-        {/* Left column - Hero Image - Fixed */}
-        <div className="fixed inset-y-0 left-0 w-1/2 flex items-center bg-transparent">
+      <div className="hidden lg:grid lg:grid-cols-[auto_1fr] min-h-screen">
+        {/* Left column - Hero Image - Sticky */}
+        <div className="sticky top-0 h-screen flex items-center justify-center">
           {/* Background image */}
           <img
             src="/images/banner_register.jpg"
@@ -568,8 +512,8 @@ export default function RegisterPage() {
           />
         </div>
 
-        {/* Right column - Form */}
-        <div className="ml-[50%] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 overflow-y-auto bg-white min-h-screen">
+        {/* Right column - Form - Scrollable */}
+        <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white min-h-screen">
           <div className="max-w-md w-full space-y-8">
             <div>
               <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -696,36 +640,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Province Selection */}
-              <div>
-                <label
-                  htmlFor="provinceId"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Tỉnh/Thành phố *
-                </label>
-                <select
-                  id="provinceId"
-                  name="provinceId"
-                  required
-                  value={formData.provinceId}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                >
-                  <option value="">-- Chọn tỉnh/thành phố --</option>
-                  {provinces.map((province) => (
-                    <option key={province.id} value={province.id}>
-                      {province.name}
-                    </option>
-                  ))}
-                </select>
-                {fieldErrors.provinceId && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {fieldErrors.provinceId}
-                  </p>
-                )}
-              </div>
-
               {/* Toggle */}
               <div className="pt-4">
                 <Toggle
@@ -737,12 +651,12 @@ export default function RegisterPage() {
                     })
                   }
                   label="Bạn là tuyển thủ"
-                  description="Bật để điền thông tin tuyển thủ của bạn"
+                  description="Bạn sẽ được yêu cầu bổ sung các thông tin đăng ký sau khi tạo tài khoản thành công"
                 />
               </div>
 
-              {/* Section 2 - Conditionally visible */}
-              {formData.role === "PLAYER" && (
+              {/* Section 2 - Hidden - Will be filled after registration */}
+              {false && formData.role === "PLAYER" && (
                 <div className="space-y-4 pt-6 mt-6 border-t border-gray-200">
                   <h3 className="text-lg font-medium text-gray-900">
                     Thông tin tuyển thủ
