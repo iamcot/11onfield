@@ -1,0 +1,356 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: 'Deploy backend'
+        required: true
+        default: true
+        type: boolean
+      deploy_frontend:
+        description: 'Deploy frontend'
+        required: true
+        default: true
+        type: boolean
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '22.x'
+  DEPLOY_PATH: '/opt/11of'
+
+jobs:
+  build-backend:
+    name: Build Backend
+    runs-on: self-hosted
+    if: github.event.inputs.deploy_backend == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Disable sparse checkout
+        run: git sparse-checkout disable
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('backoffice/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build with Maven
+        working-directory: backoffice
+        run: mvn clean package -DskipTests -B -s .mvn/settings.xml
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backoffice/target/backoffice-0.0.1-SNAPSHOT.jar
+          retention-days: 7
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: self-hosted
+    if: github.event.inputs.deploy_frontend == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Disable sparse checkout
+        run: git sparse-checkout disable
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend-app/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        working-directory: frontend-app
+        run: |
+          # Copy package files to shared location if they don't exist or have changed
+          if [ ! -f "${{ env.DEPLOY_PATH }}/frontend/package.json" ] || ! cmp -s package.json "${{ env.DEPLOY_PATH }}/frontend/package.json"; then
+            echo "Package files changed or first deployment, copying..."
+            sudo mkdir -p ${{ env.DEPLOY_PATH }}/frontend
+            sudo cp package.json ${{ env.DEPLOY_PATH }}/frontend/
+            sudo cp package-lock.json ${{ env.DEPLOY_PATH }}/frontend/
+            sudo cp .npmrc ${{ env.DEPLOY_PATH }}/frontend/ 2>/dev/null || true
+            sudo chown -R 11of-app:11of-app ${{ env.DEPLOY_PATH }}/frontend
+          fi
+
+          # Install to shared node_modules if it doesn't exist, otherwise just update
+          if [ ! -d "${{ env.DEPLOY_PATH }}/frontend/node_modules" ]; then
+            echo "First deployment: installing node_modules..."
+            cd ${{ env.DEPLOY_PATH }}/frontend
+            sudo -u 11of-app nice -n 19 npm ci --prefer-offline --no-audit
+          else
+            echo "Updating dependencies (faster than full install)..."
+            cd ${{ env.DEPLOY_PATH }}/frontend
+            sudo -u 11of-app nice -n 19 npm install --prefer-offline --no-audit
+          fi
+
+          # Link shared node_modules to build directory
+          echo "Linking node_modules to build directory..."
+          if [ -e node_modules ]; then
+            sudo rm -rf node_modules
+          fi
+          ln -s ${{ env.DEPLOY_PATH }}/frontend/node_modules node_modules
+          echo "✓ Dependencies ready"
+
+      - name: Create production environment file
+        working-directory: frontend-app
+        run: |
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env.production
+
+      - name: Build application
+        working-directory: frontend-app
+        run: |
+          npm run build
+          if [ ! -d ".next" ]; then
+            echo "ERROR: .next directory was not created by the build!"
+            exit 1
+          fi
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: |
+            frontend-app/.next
+            frontend-app/package.json
+            frontend-app/package-lock.json
+            frontend-app/.npmrc
+            frontend-app/next.config.js
+            frontend-app/public
+          retention-days: 7
+          include-hidden-files: true
+
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: self-hosted
+    needs: build-backend
+    if: ${{ !cancelled() && needs.build-backend.result == 'success' }}
+
+    steps:
+      - name: Checkout deployment scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            deployment/scripts
+            deployment/systemd
+          sparse-checkout-cone-mode: false
+
+      - name: Update systemd service files
+        run: |
+          echo "Updating systemd service files..."
+
+          # Find or install Java 21 to a system-wide location
+          JAVA21_HOME=""
+
+          # Try to find system-wide Java installations first
+          for java_home in /opt/java/jdk-21 /usr/lib/jvm/java-21-* /usr/lib/jvm/temurin-21-* /opt/java/openjdk-21*; do
+            if [ -d "$java_home" ] && [ -x "$java_home/bin/java" ]; then
+              JAVA21_HOME="$java_home"
+              break
+            fi
+          done
+
+          # If not found, copy from JAVA_HOME to system location
+          if [ -z "$JAVA21_HOME" ]; then
+            echo "No system-wide Java 21 found. Installing from $JAVA_HOME..."
+            # Resolve symlinks to get the actual Java directory
+            REAL_JAVA_HOME=$(readlink -f "$JAVA_HOME")
+            echo "Resolved Java path: $REAL_JAVA_HOME"
+
+            JAVA21_HOME="/opt/java/jdk-21"
+
+            # Force remove existing installation (use -f to ignore non-existent files)
+            echo "Cleaning up any existing installation..."
+            sudo rm -rf "$JAVA21_HOME"
+
+            sudo mkdir -p /opt/java
+            sudo cp -rL "$REAL_JAVA_HOME" "$JAVA21_HOME"
+            sudo chmod -R 755 "$JAVA21_HOME"
+            echo "✓ Java 21 installed to $JAVA21_HOME"
+          fi
+
+          echo "Using Java at: $JAVA21_HOME"
+          $JAVA21_HOME/bin/java -version
+
+          # Update service file with correct Java path
+          sudo sed -i "s|Environment=\"JAVA_HOME=.*\"|Environment=\"JAVA_HOME=$JAVA21_HOME\"|" deployment/systemd/11of-backend.service
+          sudo sed -i "s|Environment=\"PATH=.*\"|Environment=\"PATH=$JAVA21_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"|" deployment/systemd/11of-backend.service
+          sudo sed -i "s|ExecStart=.*/bin/java|ExecStart=$JAVA21_HOME/bin/java|" deployment/systemd/11of-backend.service
+
+          # Stop service if running to clear any cached config
+          echo "Stopping backend service..."
+          sudo systemctl stop 11of-backend.service || true
+
+          # Copy updated service file and reload
+          sudo cp deployment/systemd/11of-backend.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+
+          echo "✓ Systemd service files updated with Java path: $JAVA21_HOME"
+
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: /tmp/artifacts/backend
+
+      - name: Create backend environment file
+        run: |
+          mkdir -p ${{ env.DEPLOY_PATH }}/backend
+          sudo -u 11of-app tee ${{ env.DEPLOY_PATH }}/backend/.env > /dev/null << 'EOF'
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          JWT_ISSUER_URI=${{ secrets.JWT_ISSUER_URI }}
+          JWT_JWK_SET_URI=${{ secrets.JWT_JWK_SET_URI }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION=${{ secrets.AWS_REGION }}
+          AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          SPRING_PROFILES_ACTIVE=prod
+          EOF
+          sudo chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env
+          echo "✓ Environment file created"
+
+      - name: Deploy backend
+        run: |
+          sudo -u 11of-app bash ${{ env.DEPLOY_PATH }}/scripts/deploy-backend.sh \
+            /tmp/artifacts/backend/backoffice-0.0.1-SNAPSHOT.jar
+
+      - name: Wait for backend startup
+        run: sleep 30
+
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: self-hosted
+    needs: [build-frontend, deploy-backend]
+    if: ${{ !cancelled() && needs.build-frontend.result == 'success' }}
+
+    steps:
+      - name: Checkout deployment scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            deployment/scripts
+            deployment/systemd
+          sparse-checkout-cone-mode: false
+
+      - name: Update systemd service files
+        run: |
+          echo "Updating systemd service files..."
+          sudo cp deployment/systemd/11of-frontend.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+          echo "✓ Frontend systemd service file updated"
+
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: /tmp/artifacts/frontend
+
+      - name: Restructure frontend artifacts
+        run: |
+          echo "Restructuring frontend artifacts..."
+          if [ -d "/tmp/artifacts/frontend/frontend-app" ]; then
+            mv /tmp/artifacts/frontend/frontend-app/* /tmp/artifacts/frontend/
+            rm -rf /tmp/artifacts/frontend/frontend-app
+          fi
+
+      - name: Create frontend environment file
+        run: |
+          mkdir -p ${{ env.DEPLOY_PATH }}/frontend
+          sudo -u 11of-app tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null << 'EOF'
+          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          EOF
+          sudo chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production
+          echo "✓ Environment file created"
+
+      - name: Deploy frontend
+        run: |
+          sudo -u 11of-app bash ${{ env.DEPLOY_PATH }}/scripts/deploy-frontend.sh \
+            /tmp/artifacts/frontend
+
+      - name: Wait for frontend startup
+        run: sleep 10
+
+  health-check:
+    name: Health Check
+    runs-on: self-hosted
+    needs: [deploy-backend, deploy-frontend]
+    if: ${{ !cancelled() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
+
+    steps:
+      - name: Check backend service status
+        if: needs.deploy-backend.result == 'success'
+        run: |
+          echo "Checking backend service status..."
+          sudo systemctl status 11of-backend.service --no-pager || true
+          echo "Checking if port 8081 is listening..."
+          sudo netstat -tlnp | grep 8081 || echo "Port 8081 not listening"
+
+      - name: Check frontend service status
+        if: needs.deploy-frontend.result == 'success'
+        run: |
+          echo "Checking frontend service status..."
+          sudo systemctl status 11of-frontend.service --no-pager || true
+          echo "Checking if port 8080 is listening..."
+          sudo netstat -tlnp | grep 8080 || echo "Port 8080 not listening"
+
+      - name: Run comprehensive health check
+        run: |
+          bash ${{ env.DEPLOY_PATH }}/scripts/health-check.sh
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Production deployment completed successfully!"
+          echo "Backend: http://11onfield.com:8081"
+          echo "Frontend: http://11onfield.com:8080"
+          echo "Deployed commit: ${{ github.sha }}"
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: self-hosted
+    needs: [deploy-backend, deploy-frontend, health-check]
+    if: failure()
+
+    steps:
+      - name: Rollback backend
+        if: needs.deploy-backend.result == 'failure' || needs.health-check.result == 'failure'
+        run: |
+          sudo -u 11of-app bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh backend
+        continue-on-error: true
+
+      - name: Rollback frontend
+        if: needs.deploy-frontend.result == 'failure' || needs.health-check.result == 'failure'
+        run: |
+          sudo -u 11of-app bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh frontend
+        continue-on-error: true
+
+      - name: Notify deployment failure
+        run: |
+          echo "❌ Production deployment failed and rolled back to previous version"
+          echo "Failed commit: ${{ github.sha }}"
+          exit 1
