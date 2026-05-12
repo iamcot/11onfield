@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import StickyNav from "./StickyNav";
 
 export default function HeroSection() {
@@ -17,15 +17,18 @@ export default function HeroSection() {
         <div className="text-center text-white max-w-4xl mx-auto w-full">
           {/* Banner Text Image */}
           <div className="mb-6 md:mb-12 w-full flex justify-center md:max-h-[calc(75vh-260px)]">
-            <div className="flex flex-col items-center gap-3 w-full max-w-[240px] md:max-w-[200px] mr-12 md:mr-32 h-full">
-              <div className="w-full h-auto max-h-full relative" style={{ aspectRatio: '503/761' }}>
+            <div className="flex flex-col items-center gap-3 w-full max-w-[200px] md:max-w-[200px] mr-12 md:mr-32 h-full">
+              <div
+                className="w-full h-auto max-h-full relative"
+                style={{ aspectRatio: "503/761" }}
+              >
                 <Image
                   src="/images/banner-text.png"
                   alt="11 ON FIELD - Chương trình tuyển chọn cầu thủ trẻ"
                   fill
                   className="object-contain"
                   priority
-                  sizes="(max-width: 768px) 240px, 200px"
+                  sizes="(max-width: 768px) 200px, 200px"
                 />
               </div>
               <Link href="/auth/register" className="w-full">
