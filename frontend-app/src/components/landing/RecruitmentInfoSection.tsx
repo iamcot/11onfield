@@ -36,7 +36,7 @@ export default function RecruitmentInfoSection() {
 
             {/* Text */}
             <div className="md:ml-4 text-center md:text-left">
-              <p className="text-[10px] md:text-sm uppercase font-semibold">
+              <p className="text-[12px] md:text-sm uppercase font-semibold">
                 Thời gian
               </p>
               <p className="text-xs md:text-lg font-bold">Nhận hồ sơ</p>
@@ -58,7 +58,7 @@ export default function RecruitmentInfoSection() {
 
             {/* Text */}
             <div className="md:ml-4 text-center md:text-left">
-              <p className="text-[10px] md:text-sm uppercase font-semibold">
+              <p className="text-[12px] md:text-sm uppercase font-semibold">
                 Tuyển sinh
               </p>
               <p className="text-xs md:text-lg font-bold">Trên toàn quốc</p>

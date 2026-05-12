@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import StickyNav from "./StickyNav";
 
 export default function HeroSection() {
@@ -15,18 +16,23 @@ export default function HeroSection() {
       <div className="relative h-full flex items-center justify-center px-4 pt-4 md:pt-0">
         <div className="text-center text-white max-w-4xl mx-auto w-full">
           {/* Banner Text Image */}
-          <div className="mb-6 md:mb-12 w-full flex justify-center">
-            <div className="flex flex-col items-center gap-3 w-full max-w-[180px] md:max-w-[240px] mr-12 md:mr-32">
-              <img
-                src="/images/banner-text.png"
-                alt="11 ON FIELD - Chương trình tuyển chọn cầu thủ trẻ"
-                className="w-full h-auto object-contain"
-              />
-              <Link href="/auth/register">
+          <div className="mb-6 md:mb-12 w-full flex justify-center max-h-[calc(75vh-200px)]">
+            <div className="flex flex-col items-center gap-3 w-full max-w-[180px] md:max-w-[240px] mr-12 md:mr-32 h-full">
+              <div className="w-full h-auto max-h-full relative" style={{ aspectRatio: '503/761' }}>
+                <Image
+                  src="/images/banner-text.png"
+                  alt="11 ON FIELD - Chương trình tuyển chọn cầu thủ trẻ"
+                  fill
+                  className="object-contain"
+                  priority
+                  sizes="(max-width: 768px) 180px, 240px"
+                />
+              </div>
+              <Link href="/auth/register" className="w-[85%] md:w-full">
                 <img
                   src="/images/btn-register.png"
                   alt="Đăng ký ngay"
-                  className="w-[85%] md:w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                  className="w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
                 />
               </Link>
             </div>
