@@ -1,0 +1,124 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content})}"
+>
+  <head>
+    <title>Player Attribute Types</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Quản lý loại chỉ số cầu thủ</h3>
+              <div class="card-tools">
+                <a th:href="@{/admin/attribute-types/new}" class="btn btn-primary btn-sm">
+                  <i class="fas fa-plus"></i> Thêm loại chỉ số
+                </a>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <table class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th style="width: 60px;">ID</th>
+                    <th>Key</th>
+                    <th>Tên hiển thị</th>
+                    <th style="width: 100px;">Hexagon</th>
+                    <th style="width: 100px;">Thủ môn</th>
+                    <th>Nhóm</th>
+                    <th style="width: 180px;">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:if="${#lists.isEmpty(attributeTypes)}">
+                    <td colspan="7" class="text-center text-muted">
+                      <i class="fas fa-info-circle"></i> Chưa có loại chỉ số nào
+                    </td>
+                  </tr>
+
+                  <tr th:each="type : ${attributeTypes}">
+                    <td th:text="${type.id}"></td>
+                    <td><code th:text="${type.attributeKey}"></code></td>
+                    <td th:text="${type.attributeName}"></td>
+                    <td class="text-center">
+                      <span th:if="${type.isHexagon}" class="badge badge-success">
+                        <i class="fas fa-check"></i>
+                      </span>
+                      <span th:unless="${type.isHexagon}" class="badge badge-secondary">
+                        <i class="fas fa-times"></i>
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <span th:if="${type.isGoalKeeper}" class="badge badge-info">
+                        <i class="fas fa-check"></i>
+                      </span>
+                      <span th:unless="${type.isGoalKeeper}" class="badge badge-secondary">
+                        <i class="fas fa-times"></i>
+                      </span>
+                    </td>
+                    <td>
+                      <span th:if="${type.attributeGroup}" class="badge badge-primary" th:text="${type.attributeGroup}"></span>
+                      <span th:unless="${type.attributeGroup}" class="text-muted">-</span>
+                    </td>
+                    <td>
+                      <a
+                        th:href="@{/admin/attribute-types/edit/{id}(id=${type.id})}"
+                        class="btn btn-sm btn-info"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <form
+                        th:action="@{/admin/attribute-types/delete/{id}(id=${type.id})}"
+                        method="post"
+                        style="display: inline;"
+                        onsubmit="return confirm('Bạn có chắc chắn muốn xóa loại chỉ số này?');"
+                      >
+                        <button type="submit" class="btn btn-sm btn-danger">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="card-footer clearfix" th:if="${totalPages > 1}">
+              <ul class="pagination pagination-sm m-0 float-right">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                  <a class="page-link" th:href="@{/admin/attribute-types(page=${currentPage - 1}, size=${pageSize})}">
+                    <i class="fas fa-angle-left"></i>
+                  </a>
+                </li>
+
+                <li
+                  th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                  th:if="${i >= currentPage - 2 && i <= currentPage + 2}"
+                  class="page-item"
+                  th:classappend="${i == currentPage} ? 'active'"
+                >
+                  <a class="page-link" th:href="@{/admin/attribute-types(page=${i}, size=${pageSize})}" th:text="${i + 1}"></a>
+                </li>
+
+                <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                  <a class="page-link" th:href="@{/admin/attribute-types(page=${currentPage + 1}, size=${pageSize})}">
+                    <i class="fas fa-angle-right"></i>
+                  </a>
+                </li>
+              </ul>
+
+              <p class="text-muted m-0" style="padding-top: 5px;">
+                Hiển thị <strong th:text="${#lists.size(attributeTypes)}"></strong> / <strong th:text="${totalItems}"></strong> loại chỉ số
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

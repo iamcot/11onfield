@@ -30,4 +30,5 @@ public class PlayerListDTO {
     private String provinceName;
     private Long academyId; // For future use
     private Integer followerCount; // Always 0 for now (Phase 4)
+    private List<PlayerAttributeDTO> attributes;
 }

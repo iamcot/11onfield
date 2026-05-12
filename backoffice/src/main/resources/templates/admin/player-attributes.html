@@ -1,0 +1,245 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content})}"
+>
+  <head>
+    <title>Manage Player Attributes</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <style>
+        .content .attributes-grid {
+          display: grid !important;
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 20px !important;
+          margin-top: 20px !important;
+        }
+
+        @media (max-width: 1200px) {
+          .content .attributes-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .content .attributes-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        .content .attribute-card {
+          border: 1px solid #dee2e6 !important;
+          border-radius: 8px !important;
+          padding: 15px !important;
+          background: #fff !important;
+          transition: box-shadow 0.2s !important;
+        }
+
+        .content .attribute-card:hover {
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+        }
+
+        .content .attribute-header {
+          display: flex !important;
+          justify-content: space-between !important;
+          align-items: flex-start !important;
+          margin-bottom: 12px !important;
+        }
+
+        .content .attribute-title {
+          flex: 1 !important;
+        }
+
+        .content .attribute-name {
+          font-weight: 600 !important;
+          font-size: 1rem !important;
+          color: #333 !important;
+          margin-bottom: 3px !important;
+        }
+
+        .content .attribute-key {
+          font-size: 0.8rem !important;
+          color: #6c757d !important;
+          font-family: monospace !important;
+        }
+
+        .content .attribute-badges {
+          display: flex !important;
+          gap: 5px !important;
+          flex-wrap: wrap !important;
+        }
+
+        .content .attribute-input-section {
+          margin-top: 15px !important;
+        }
+
+        .content .input-group-custom {
+          display: flex !important;
+          align-items: center !important;
+          gap: 10px !important;
+        }
+
+        .content .range-container {
+          flex: 1 !important;
+          position: relative !important;
+        }
+
+        .content .custom-range {
+          width: 100% !important;
+        }
+
+        .content .number-input {
+          width: 70px !important;
+          text-align: center !important;
+        }
+
+        .content .attribute-value-display {
+          text-align: center !important;
+          margin-top: 8px !important;
+          font-size: 1.5rem !important;
+          font-weight: bold !important;
+          color: #007bff !important;
+        }
+      </style>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                Quản lý chỉ số - <span th:text="${player.user.fullName}"></span>
+              </h3>
+              <div class="card-tools">
+                <a th:href="@{/admin/players}" class="btn btn-secondary btn-sm">
+                  <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+              </div>
+            </div>
+
+            <form th:action="@{/admin/players/{id}/attributes/save(id=${player.id})}" method="post">
+              <div class="card-body">
+                <div class="mb-3">
+                  <p class="text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    Nhập giá trị từ 0-100 cho mỗi chỉ số. Để trống nếu chỉ số chưa được đánh giá.
+                  </p>
+                </div>
+
+                <div th:if="${#lists.isEmpty(allAttributeTypes)}" class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  Chưa có loại chỉ số nào được định nghĩa. Vui lòng tạo loại chỉ số trước.
+                  <a th:href="@{/admin/attribute-types/new}" class="alert-link">Tạo loại chỉ số mới</a>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(allAttributeTypes)}">
+                  <div class="attributes-grid">
+                    <div th:each="attrType : ${allAttributeTypes}" class="attribute-card">
+                      <div class="attribute-header">
+                        <div class="attribute-title">
+                          <div class="attribute-name" th:text="${attrType.attributeName}"></div>
+                          <div class="attribute-key">
+                            <code th:text="${attrType.attributeKey}"></code>
+                          </div>
+                        </div>
+                        <div class="attribute-badges">
+                          <span th:if="${attrType.attributeGroup}" class="badge badge-secondary badge-sm" th:text="${attrType.attributeGroup}"></span>
+                          <span th:if="${attrType.isHexagon}" class="badge badge-success badge-sm" title="Hiển thị trên hexagon">
+                            <i class="fas fa-chart-line"></i>
+                          </span>
+                          <span th:if="${attrType.isGoalKeeper}" class="badge badge-info badge-sm" title="Dành cho thủ môn">
+                            <i class="fas fa-hands"></i>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="attribute-input-section">
+                        <div class="input-group-custom">
+                          <div class="range-container">
+                            <input
+                              type="range"
+                              class="custom-range"
+                              th:id="'range_' + ${attrType.id}"
+                              th:value="${attributeValues.get(attrType.id) != null ? attributeValues.get(attrType.id) : 0}"
+                              min="0"
+                              max="100"
+                              step="1"
+                              oninput="syncFromRange(this)"
+                            />
+                          </div>
+                          <input
+                            type="number"
+                            class="form-control form-control-sm number-input"
+                            th:name="'attr_' + ${attrType.id}"
+                            th:id="'input_' + ${attrType.id}"
+                            th:value="${attributeValues.get(attrType.id) != null ? attributeValues.get(attrType.id) : 0}"
+                            min="0"
+                            max="100"
+                            oninput="syncFromInput(this)"
+                            placeholder="0"
+                          />
+                        </div>
+                        <div class="attribute-value-display" th:id="'display_' + ${attrType.id}" th:text="${attributeValues.get(attrType.id) != null ? attributeValues.get(attrType.id) : 0}">0</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary" th:disabled="${#lists.isEmpty(allAttributeTypes)}">
+                  <i class="fas fa-save"></i> Lưu chỉ số
+                </button>
+                <a th:href="@{/admin/players}" class="btn btn-secondary">
+                  <i class="fas fa-times"></i> Hủy
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        function syncFromRange(rangeInput) {
+          const id = rangeInput.id.replace('range_', '');
+          const numberInput = document.getElementById('input_' + id);
+          const displayValue = document.getElementById('display_' + id);
+
+          if (numberInput) {
+            numberInput.value = rangeInput.value;
+          }
+          if (displayValue) {
+            displayValue.textContent = rangeInput.value;
+          }
+        }
+
+        function syncFromInput(numberInput) {
+          const id = numberInput.id.replace('input_', '');
+          const rangeInput = document.getElementById('range_' + id);
+          const displayValue = document.getElementById('display_' + id);
+
+          // Validate and clamp value
+          let value = parseInt(numberInput.value);
+          if (isNaN(value)) value = 0;
+          if (value < 0) value = 0;
+          if (value > 100) value = 100;
+
+          numberInput.value = value;
+
+          if (rangeInput) {
+            rangeInput.value = value;
+          }
+          if (displayValue) {
+            displayValue.textContent = value;
+          }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+          const ranges = document.querySelectorAll('input[type="range"]');
+          ranges.forEach(range => syncFromRange(range));
+        });
+      </script>
+    </div>
+  </body>
+</html>
