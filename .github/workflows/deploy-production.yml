@@ -98,9 +98,13 @@ jobs:
           if [ ! -d "${{ env.DEPLOY_PATH }}/frontend/node_modules" ]; then
             echo "First deployment: installing node_modules..."
             sudo -u 11of-app bash -c "cd ${{ env.DEPLOY_PATH }}/frontend && nice -n 19 npm ci --prefer-offline --no-audit"
+            # Make node_modules readable and executable by all users for builds
+            sudo chmod -R a+rX ${{ env.DEPLOY_PATH }}/frontend/node_modules
           else
             echo "Updating dependencies (faster than full install)..."
             sudo -u 11of-app bash -c "cd ${{ env.DEPLOY_PATH }}/frontend && nice -n 19 npm install --prefer-offline --no-audit"
+            # Make node_modules readable and executable by all users for builds
+            sudo chmod -R a+rX ${{ env.DEPLOY_PATH }}/frontend/node_modules
           fi
 
           # Link shared node_modules to build directory
