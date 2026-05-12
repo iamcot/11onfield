@@ -16,13 +16,13 @@
 
   /* Global green background */
   .bg-global-green {
-    background-color: rgb(4 18 15 / 0.3); /* green-950/30 */
+    background-color: rgb(12 44 31 / 0.3); /* green-700/30 */
   }
 
   /* Primary button gradient */
   .btn-primary {
-    background: linear-gradient(to right, rgb(20 83 45), rgb(22 101 52), rgb(4 18 15));
-    /* from-green-900 via-green-800 to-green-950 */
+    background: linear-gradient(to right, rgb(8 29 20), rgb(10 36 25), rgb(12 44 31));
+    /* Darker shades to primary green-700 rgb(12, 44, 31) */
   }
 
   .btn-primary:hover {
@@ -47,6 +47,16 @@
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Offset for sticky header when scrolling to sections */
+section {
+  scroll-margin-top: 80px;
 }
 
 /* Global fix for all form elements - force light mode */

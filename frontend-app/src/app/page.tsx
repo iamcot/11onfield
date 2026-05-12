@@ -1,29 +1,21 @@
-'use client';
+import HeroSection from '@/components/landing/HeroSection';
+import RecruitmentInfoSection from '@/components/landing/RecruitmentInfoSection';
+import WhyChooseSection from '@/components/landing/WhyChooseSection';
+import SelectionProcessSection from '@/components/landing/SelectionProcessSection';
+import TrainingProgramSection from '@/components/landing/TrainingProgramSection';
+import CTABanner from '@/components/landing/CTABanner';
+import LandingFooter from '@/components/landing/LandingFooter';
 
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-
-export default function Home() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        router.push('/profile');
-      } else {
-        router.push('/auth/login');
-      }
-    }
-  }, [isAuthenticated, isLoading, router]);
-
+export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">11of</h1>
-        <p className="text-gray-600">Loading...</p>
-      </div>
-    </main>
+    <div className="min-h-screen bg-white font-[family-name:var(--font-roboto-condensed)]">
+      <HeroSection />
+      <RecruitmentInfoSection />
+      <WhyChooseSection />
+      <SelectionProcessSection />
+      <TrainingProgramSection />
+      <CTABanner />
+      <LandingFooter />
+    </div>
   );
 }

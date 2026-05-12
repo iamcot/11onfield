@@ -1,26 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import { authService } from '@/services/auth.service';
+import { authService } from "@/services/auth.service";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
 
     // Validate phone
     if (!/^0\d{9}$/.test(phone)) {
-      setError('Số điện thoại không hợp lệ (phải có 10 chữ số, bắt đầu bằng 0)');
+      setError(
+        "Số điện thoại không hợp lệ (phải có 10 chữ số, bắt đầu bằng 0)",
+      );
       return;
     }
 
@@ -28,20 +30,20 @@ export default function ForgotPasswordPage() {
 
     try {
       await authService.forgotPassword(phone);
-      setMessage('Mã OTP đã được gửi đến số điện thoại của bạn');
+      setMessage("Mã OTP đã được gửi đến số điện thoại của bạn");
       // Redirect to verify OTP page after 2 seconds
       setTimeout(() => {
         router.push(`/auth/verify-otp?phone=${phone}`);
       }, 2000);
     } catch (err: any) {
-      setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      setError(err.message || "Có lỗi xảy ra. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Mobile Layout */}
       <div className="lg:hidden min-h-screen flex flex-col">
         {/* Top section - Logo */}
@@ -49,7 +51,7 @@ export default function ForgotPasswordPage() {
           <div className="flex items-center justify-center">
             <div className="text-center px-8">
               <Image
-                src="/images/green_11onfield.png"
+                src="/images/banner_register.jpg"
                 alt="11of Logo"
                 width={250}
                 height={60}
@@ -87,7 +89,10 @@ export default function ForgotPasswordPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Số điện thoại *
                   </label>
                   <input
@@ -110,12 +115,15 @@ export default function ForgotPasswordPage() {
                   disabled={isLoading}
                   className="group relative w-full flex justify-center py-2 px-4 btn-primary text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Đang gửi...' : 'Gửi mã OTP'}
+                  {isLoading ? "Đang gửi..." : "Gửi mã OTP"}
                 </button>
               </div>
 
               <div className="text-center">
-                <Link href="/auth/login" className="font-medium text-green-700 hover:text-green-800 text-sm">
+                <Link
+                  href="/auth/login"
+                  className="font-medium text-green-700 hover:text-green-800 text-sm"
+                >
                   Quay lại đăng nhập
                 </Link>
               </div>
@@ -125,31 +133,19 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden lg:grid grid-cols-2 min-h-screen">
-        {/* Left column - Hero Image */}
-        <div className="relative overflow-hidden">
+      <div className="hidden lg:block min-h-screen">
+        {/* Left column - Hero Image - Fixed */}
+        <div className="fixed inset-y-0 left-0 w-1/2 flex items-center bg-transparent">
           {/* Background image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url(/images/ground.jpg)" }}
-          ></div>
-
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white text-center px-8 relative z-10">
-              <Image
-                src="/images/green_11onfield.png"
-                alt="11of Logo"
-                width={250}
-                height={60}
-                className="mx-auto"
-                priority
-              />
-            </div>
-          </div>
+          <img
+            src="/images/banner_register.jpg"
+            alt="Forgot Password Banner"
+            className="h-full w-auto object-contain"
+          />
         </div>
 
         {/* Right column - Form */}
-        <div className="relative flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white">
+        <div className="ml-[50%] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 overflow-y-auto bg-white min-h-screen">
           <div className="max-w-md w-full space-y-8">
             <div>
               <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -175,7 +171,10 @@ export default function ForgotPasswordPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Số điện thoại *
                   </label>
                   <input
@@ -198,12 +197,15 @@ export default function ForgotPasswordPage() {
                   disabled={isLoading}
                   className="group relative w-full flex justify-center py-2 px-4 btn-primary text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Đang gửi...' : 'Gửi mã OTP'}
+                  {isLoading ? "Đang gửi..." : "Gửi mã OTP"}
                 </button>
               </div>
 
               <div className="text-center">
-                <Link href="/auth/login" className="font-medium text-green-700 hover:text-green-800 text-sm">
+                <Link
+                  href="/auth/login"
+                  className="font-medium text-green-700 hover:text-green-800 text-sm"
+                >
                   Quay lại đăng nhập
                 </Link>
               </div>

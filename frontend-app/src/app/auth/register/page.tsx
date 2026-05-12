@@ -155,7 +155,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Mobile Layout */}
       <div className="lg:hidden min-h-screen flex flex-col">
         {/* Top section - Logo */}
@@ -559,25 +559,13 @@ export default function RegisterPage() {
       {/* Desktop Layout */}
       <div className="hidden lg:block min-h-screen">
         {/* Left column - Hero Image - Fixed */}
-        <div className="fixed inset-y-0 left-0 w-1/2 overflow-hidden">
+        <div className="fixed inset-y-0 left-0 w-1/2 flex items-center bg-transparent">
           {/* Background image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url(/images/ground.jpg)" }}
-          ></div>
-
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white text-center px-8 relative z-10">
-              <Image
-                src="/images/green_11onfield.png"
-                alt="11of Logo"
-                width={250}
-                height={60}
-                className="mx-auto"
-                priority
-              />
-            </div>
-          </div>
+          <img
+            src="/images/banner_register.jpg"
+            alt="Register Banner"
+            className="h-full w-auto object-contain"
+          />
         </div>
 
         {/* Right column - Form */}

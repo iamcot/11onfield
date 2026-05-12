@@ -34,7 +34,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Mobile Layout */}
       <div className="lg:hidden min-h-screen flex flex-col">
         {/* Top section - Logo */}
@@ -42,7 +42,7 @@ export default function LoginPage() {
           <div className="flex items-center justify-center">
             <div className="text-center px-8">
               <Image
-                src="/images/green_11onfield.png"
+                src="/images/banner_register.jpg"
                 alt="11of Logo"
                 width={250}
                 height={60}
@@ -153,31 +153,19 @@ export default function LoginPage() {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden lg:grid grid-cols-2 min-h-screen">
-        {/* Left column - Hero Image */}
-        <div className="relative overflow-hidden">
+      <div className="hidden lg:block min-h-screen">
+        {/* Left column - Hero Image - Fixed */}
+        <div className="fixed inset-y-0 left-0 w-1/2 flex items-center bg-transparent">
           {/* Background image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url(/images/ground.jpg)" }}
-          ></div>
-
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white text-center px-8 relative z-10">
-              <Image
-                src="/images/green_11onfield.png"
-                alt="11of Logo"
-                width={250}
-                height={60}
-                className="mx-auto"
-                priority
-              />
-            </div>
-          </div>
+          <img
+            src="/images/banner_register.jpg"
+            alt="Login Banner"
+            className="h-full w-auto object-contain"
+          />
         </div>
 
         {/* Right column - Form */}
-        <div className="relative flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white">
+        <div className="ml-[50%] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 overflow-y-auto bg-white min-h-screen">
           <div className="max-w-md w-full space-y-8">
             <div>
               <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

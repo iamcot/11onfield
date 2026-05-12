@@ -1,33 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import { authService } from '@/services/auth.service';
+import { authService } from "@/services/auth.service";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 function VerifyOtpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const phone = searchParams.get('phone');
+  const phone = searchParams.get("phone");
 
-  const [otpCode, setOtpCode] = useState('');
-  const [error, setError] = useState('');
+  const [otpCode, setOtpCode] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!phone) {
-      router.push('/auth/forgot-password');
+      router.push("/auth/forgot-password");
     }
   }, [phone, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     // Validate OTP
     if (!/^\d{6}$/.test(otpCode)) {
-      setError('Mã OTP phải gồm 6 chữ số');
+      setError("Mã OTP phải gồm 6 chữ số");
       return;
     }
 
@@ -38,14 +38,14 @@ function VerifyOtpContent() {
       // Redirect to reset password page with token
       router.push(`/auth/reset-password/${result.token}`);
     } catch (err: any) {
-      setError(err.message || 'Mã OTP không đúng hoặc đã hết hạn');
+      setError(err.message || "Mã OTP không đúng hoặc đã hết hạn");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Mobile Layout */}
       <div className="lg:hidden min-h-screen flex flex-col">
         {/* Top section - Logo */}
@@ -53,7 +53,7 @@ function VerifyOtpContent() {
           <div className="flex items-center justify-center">
             <div className="text-center px-8">
               <Image
-                src="/images/green_11onfield.png"
+                src="/images/banner_register.jpg"
                 alt="11of Logo"
                 width={250}
                 height={60}
@@ -84,7 +84,10 @@ function VerifyOtpContent() {
               )}
 
               <div>
-                <label htmlFor="otpCode" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="otpCode"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Mã OTP (6 chữ số) *
                 </label>
                 <input
@@ -94,7 +97,9 @@ function VerifyOtpContent() {
                   required
                   maxLength={6}
                   value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  onChange={(e) =>
+                    setOtpCode(e.target.value.replace(/\D/g, ""))
+                  }
                   className="mt-1 w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm text-center text-2xl tracking-widest"
                   placeholder="000000"
                   autoComplete="off"
@@ -107,12 +112,15 @@ function VerifyOtpContent() {
                   disabled={isLoading}
                   className="w-full flex justify-center py-2 px-4 btn-primary text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Đang xác minh...' : 'Xác minh'}
+                  {isLoading ? "Đang xác minh..." : "Xác minh"}
                 </button>
               </div>
 
               <div className="text-center">
-                <Link href="/auth/forgot-password" className="text-sm text-green-700 hover:text-green-800">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm text-green-700 hover:text-green-800"
+                >
                   Gửi lại mã OTP
                 </Link>
               </div>
@@ -136,31 +144,19 @@ function VerifyOtpContent() {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden lg:grid grid-cols-2 min-h-screen">
-        {/* Left column - Hero Image */}
-        <div className="relative overflow-hidden">
+      <div className="hidden lg:block min-h-screen">
+        {/* Left column - Hero Image - Fixed */}
+        <div className="fixed inset-y-0 left-0 w-1/2 flex items-center bg-transparent">
           {/* Background image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url(/images/ground.jpg)" }}
-          ></div>
-
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white text-center px-8 relative z-10">
-              <Image
-                src="/images/green_11onfield.png"
-                alt="11of Logo"
-                width={250}
-                height={60}
-                className="mx-auto"
-                priority
-              />
-            </div>
-          </div>
+          <img
+            src="/images/banner_register.jpg"
+            alt="Verify OTP Banner"
+            className="h-full w-auto object-contain"
+          />
         </div>
 
         {/* Right column - Form */}
-        <div className="relative flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white overflow-y-auto">
+        <div className="ml-[50%] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 overflow-y-auto bg-white min-h-screen">
           <div className="max-w-md w-full space-y-8">
             <div>
               <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -179,7 +175,10 @@ function VerifyOtpContent() {
               )}
 
               <div>
-                <label htmlFor="otpCode" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="otpCode"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Mã OTP (6 chữ số) *
                 </label>
                 <input
@@ -189,7 +188,9 @@ function VerifyOtpContent() {
                   required
                   maxLength={6}
                   value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  onChange={(e) =>
+                    setOtpCode(e.target.value.replace(/\D/g, ""))
+                  }
                   className="mt-1 w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm text-center text-2xl tracking-widest"
                   placeholder="000000"
                   autoComplete="off"
@@ -202,12 +203,15 @@ function VerifyOtpContent() {
                   disabled={isLoading}
                   className="w-full flex justify-center py-2 px-4 btn-primary text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Đang xác minh...' : 'Xác minh'}
+                  {isLoading ? "Đang xác minh..." : "Xác minh"}
                 </button>
               </div>
 
               <div className="text-center">
-                <Link href="/auth/forgot-password" className="text-sm text-green-700 hover:text-green-800">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm text-green-700 hover:text-green-800"
+                >
                   Gửi lại mã OTP
                 </Link>
               </div>
@@ -235,14 +239,16 @@ function VerifyOtpContent() {
 
 export default function VerifyOtpPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Đang tải...</p>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Đang tải...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <VerifyOtpContent />
     </Suspense>
   );

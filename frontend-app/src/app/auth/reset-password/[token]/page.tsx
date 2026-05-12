@@ -1,32 +1,32 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import Image from 'next/image';
-import { authService } from '@/services/auth.service';
+import { authService } from "@/services/auth.service";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const params = useParams();
   const token = params.token as string;
 
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     // Validate password
     if (newPassword.length < 8) {
-      setError('Mật khẩu phải có ít nhất 8 ký tự');
+      setError("Mật khẩu phải có ít nhất 8 ký tự");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
+      setError("Mật khẩu xác nhận không khớp");
       return;
     }
 
@@ -34,17 +34,17 @@ export default function ResetPasswordPage() {
 
     try {
       await authService.resetPassword(token, newPassword);
-      alert('Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.');
-      router.push('/auth/login');
+      alert("Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.");
+      router.push("/auth/login");
     } catch (err: any) {
-      setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      setError(err.message || "Có lỗi xảy ra. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Mobile Layout */}
       <div className="lg:hidden min-h-screen flex flex-col">
         {/* Top section - Logo */}
@@ -52,7 +52,7 @@ export default function ResetPasswordPage() {
           <div className="flex items-center justify-center">
             <div className="text-center px-8">
               <Image
-                src="/images/green_11onfield.png"
+                src="/images/banner_register.jpg"
                 alt="11of Logo"
                 width={250}
                 height={60}
@@ -83,7 +83,10 @@ export default function ResetPasswordPage() {
               )}
 
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Mật khẩu mới *
                 </label>
                 <input
@@ -100,7 +103,10 @@ export default function ResetPasswordPage() {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Xác nhận mật khẩu *
                 </label>
                 <input
@@ -122,7 +128,7 @@ export default function ResetPasswordPage() {
                   disabled={isLoading}
                   className="w-full flex justify-center py-2 px-4 btn-primary text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
+                  {isLoading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
                 </button>
               </div>
             </form>
@@ -131,31 +137,19 @@ export default function ResetPasswordPage() {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden lg:grid grid-cols-2 min-h-screen">
-        {/* Left column - Hero Image */}
-        <div className="relative overflow-hidden">
+      <div className="hidden lg:block min-h-screen">
+        {/* Left column - Hero Image - Fixed */}
+        <div className="fixed inset-y-0 left-0 w-1/2 flex items-center bg-transparent">
           {/* Background image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url(/images/ground.jpg)" }}
-          ></div>
-
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white text-center px-8 relative z-10">
-              <Image
-                src="/images/green_11onfield.png"
-                alt="11of Logo"
-                width={250}
-                height={60}
-                className="mx-auto"
-                priority
-              />
-            </div>
-          </div>
+          <img
+            src="/images/banner_register.jpg"
+            alt="Reset Password Banner"
+            className="h-full w-auto object-contain"
+          />
         </div>
 
         {/* Right column - Form */}
-        <div className="relative flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white">
+        <div className="ml-[50%] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 overflow-y-auto bg-white min-h-screen">
           <div className="max-w-md w-full space-y-8">
             <div>
               <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -174,7 +168,10 @@ export default function ResetPasswordPage() {
               )}
 
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Mật khẩu mới *
                 </label>
                 <input
@@ -191,7 +188,10 @@ export default function ResetPasswordPage() {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Xác nhận mật khẩu *
                 </label>
                 <input
@@ -213,7 +213,7 @@ export default function ResetPasswordPage() {
                   disabled={isLoading}
                   className="w-full flex justify-center py-2 px-4 btn-primary text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
+                  {isLoading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
                 </button>
               </div>
             </form>

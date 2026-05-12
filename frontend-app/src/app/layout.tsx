@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Roboto_Condensed } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { EditProfileProvider } from '@/contexts/EditProfileContext';
@@ -8,6 +8,11 @@ import EditProfileHandler from '@/components/profile/EditProfileHandler';
 import SafariLightModeWrapper from '@/components/forms/SafariLightModeWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
+const robotoCondensed = Roboto_Condensed({
+  subsets: ['latin'],
+  weight: ['300', '400', '700'],
+  variable: '--font-roboto-condensed',
+});
 
 export const metadata: Metadata = {
   title: '11of - Frontend App',
@@ -24,7 +29,7 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="light only" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} ${robotoCondensed.variable}`}>
         <AuthProvider>
           <SidebarProvider>
             <EditProfileProvider>
