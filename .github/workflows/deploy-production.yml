@@ -145,6 +145,7 @@ jobs:
           sparse-checkout: |
             deployment/scripts
             deployment/systemd
+            backoffice/scripts
           sparse-checkout-cone-mode: false
 
       - name: Update systemd service files
@@ -249,6 +250,7 @@ jobs:
           sparse-checkout: |
             deployment/scripts
             deployment/systemd
+            backoffice/scripts
           sparse-checkout-cone-mode: false
 
       - name: Update systemd service files

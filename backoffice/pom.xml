@@ -189,6 +189,13 @@
                     </excludes>
                 </configuration>
             </plugin>
+
+            <!-- Exec Maven Plugin for running utilities -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+            </plugin>
         </plugins>
     </build>
 </project>
