@@ -34,13 +34,35 @@ fi
 echo -e "${YELLOW}🔄 Resetting password for user: ${PHONE}${NC}"
 echo ""
 
-# Check if we're in the backoffice directory
+# Get script directory and navigate to backoffice root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "${SCRIPT_DIR}/.."
+
+# Verify we're in the correct directory
 if [ ! -f "pom.xml" ]; then
-    echo -e "${RED}❌ Error: This script must be run from the backoffice directory${NC}"
+    echo -e "${RED}❌ Error: Cannot find pom.xml in parent directory${NC}"
     echo "Current directory: $(pwd)"
-    echo "Please cd to: /path/to/11of/backoffice"
+    echo "Expected: /path/to/11of/backoffice"
     exit 1
 fi
+
+# Load environment variables from .env file
+# Try production location first, then local
+if [ -f "/opt/11of/backend/.env" ]; then
+    echo -e "${GREEN}🔐 Loading environment from /opt/11of/backend/.env${NC}"
+    set -a  # auto-export all variables
+    source /opt/11of/backend/.env
+    set +a
+elif [ -f ".env" ]; then
+    echo -e "${GREEN}🔐 Loading environment from .env${NC}"
+    set -a
+    source .env
+    set +a
+else
+    echo -e "${YELLOW}⚠️  No .env file found - using defaults from application.yml${NC}"
+fi
+echo ""
+
 
 # Compile the utility first if needed
 if [ ! -f "target/classes/com/elevenof/backoffice/util/SimplePasswordReset.class" ]; then
