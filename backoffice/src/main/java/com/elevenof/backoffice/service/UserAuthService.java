@@ -155,4 +155,21 @@ public class UserAuthService {
                 .createdAt(user.getCreatedAt())
                 .build();
     }
+
+    public void changePassword(String userid, String currentPassword, String newPassword) {
+        // Find user by userid
+        User user = userRepository.findByUserid(userid)
+                .orElseThrow(() -> new InvalidCredentialsException("Không tìm thấy người dùng"));
+
+        // Validate current password
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new InvalidCredentialsException("Mật khẩu hiện tại không đúng");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        log.info("Password changed for user: {}", user.getUserid());
+    }
 }

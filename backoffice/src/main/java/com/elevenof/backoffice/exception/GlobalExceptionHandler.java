@@ -49,12 +49,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        log.error("Access denied: {}", ex.getMessage(), ex);
         ErrorResponse error = ErrorResponse.builder()
             .status(HttpStatus.FORBIDDEN.value())
             .message("Bạn không có quyền truy cập tài nguyên này")
             .timestamp(LocalDateTime.now())
             .build();
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            org.springframework.security.core.AuthenticationException ex) {
+        log.error("Authentication failed: {}", ex.getMessage(), ex);
+        ErrorResponse error = ErrorResponse.builder()
+            .status(HttpStatus.UNAUTHORIZED.value())
+            .message("Xác thực thất bại. Vui lòng đăng nhập lại.")
+            .timestamp(LocalDateTime.now())
+            .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -75,6 +88,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FileUploadException.class)
     public ResponseEntity<ErrorResponse> handleFileUpload(FileUploadException ex) {
+        ErrorResponse error = ErrorResponse.builder()
+            .status(HttpStatus.BAD_REQUEST.value())
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build();
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        log.warn("Illegal argument: {}", ex.getMessage());
         ErrorResponse error = ErrorResponse.builder()
             .status(HttpStatus.BAD_REQUEST.value())
             .message(ex.getMessage())

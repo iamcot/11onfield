@@ -1,6 +1,7 @@
 "use client";
 
 import { EventIcon, HomeIcon, PlayerIcon } from "@/components/icons/nav-icons";
+import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
 import Image from "next/image";
@@ -14,6 +15,7 @@ export default function TopUserCard() {
   const router = useRouter();
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -23,6 +25,11 @@ export default function TopUserCard() {
   const handleEditProfile = () => {
     setShowUserMenu(false);
     openEditProfile();
+  };
+
+  const handleChangePassword = () => {
+    setShowUserMenu(false);
+    setShowChangePasswordModal(true);
   };
 
   // Navigation items
@@ -215,6 +222,26 @@ export default function TopUserCard() {
                         <span>Sửa thông tin</span>
                       </button>
 
+                      <button
+                        onClick={handleChangePassword}
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
+                      >
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                          />
+                        </svg>
+                        <span>Đổi mật khẩu</span>
+                      </button>
+
                       <div className="border-t border-gray-200 my-1"></div>
                     </>
                   )}
@@ -272,6 +299,12 @@ export default function TopUserCard() {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+      />
     </div>
   );
 }
