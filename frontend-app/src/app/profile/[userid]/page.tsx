@@ -1,19 +1,19 @@
 "use client";
 
 import HexagonChart from "@/components/HexagonChart";
+import LandingFooter from "@/components/landing/LandingFooter";
 import MobileNav from "@/components/layout/MobileNav";
 import RightNavigator from "@/components/layout/RightNavigator";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
+import EditProfileHandler from "@/components/profile/EditProfileHandler";
 import EventCard from "@/components/profile/EventCard";
 import FeedList from "@/components/profile/FeedList";
-import EditProfileHandler from "@/components/profile/EditProfileHandler";
 import { appConfig } from "@/config/app.config";
 import { profileCompletionConfig } from "@/config/profile-completion.config";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
-import { useSidebar } from "@/contexts/SidebarContext";
 import { getMockUserByPhone } from "@/mocks/user.mock";
 import { eventService } from "@/services/event.service";
 import { feedService } from "@/services/feed.service";
@@ -22,7 +22,6 @@ import { userService } from "@/services/user.service";
 import { EventListItem } from "@/types/event";
 import { FeedItem } from "@/types/feed";
 import { UserListItem } from "@/types/user";
-import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -36,8 +35,7 @@ export default function UserProfilePage() {
     shouldCheckProfileCompletion,
     setProfileCompletionChecked,
   } = useAuth();
-  const { isCollapsed } = useSidebar();
-  const { closeEditProfile, setOpenCallback, openEditProfile } = useEditProfile();
+  const { openEditProfile } = useEditProfile();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -167,11 +165,6 @@ export default function UserProfilePage() {
     }
   };
 
-  const handleCloseSidebar = () => {
-    setSidebarView("default");
-    setShowRightNav(false);
-  };
-
   useEffect(() => {
     if (!authLoading && userid) {
       // Fetch user by userid
@@ -243,11 +236,12 @@ export default function UserProfilePage() {
       profileUser &&
       (shouldCheckProfileCompletion || userid === currentUser?.userid)
     ) {
-      console.log('[Profile Check] Checking profile completion...');
-      const isIncomplete = profileCompletionConfig.isPlayerProfileIncomplete(profileUser);
+      console.log("[Profile Check] Checking profile completion...");
+      const isIncomplete =
+        profileCompletionConfig.isPlayerProfileIncomplete(profileUser);
 
       if (isIncomplete) {
-        console.log('[Profile Check] Profile incomplete, opening edit modal');
+        console.log("[Profile Check] Profile incomplete, opening edit modal");
         // Small delay to ensure the page is rendered before opening modal
         setTimeout(() => {
           openEditProfile();
@@ -259,7 +253,15 @@ export default function UserProfilePage() {
         setProfileCompletionChecked();
       }
     }
-  }, [isOwnProfile, profileUser, shouldCheckProfileCompletion, currentUser, userid, openEditProfile, setProfileCompletionChecked]);
+  }, [
+    isOwnProfile,
+    profileUser,
+    shouldCheckProfileCompletion,
+    currentUser,
+    userid,
+    openEditProfile,
+    setProfileCompletionChecked,
+  ]);
 
   // Fetch follow status when viewing other's profile
   useEffect(() => {
@@ -280,6 +282,9 @@ export default function UserProfilePage() {
         .catch(console.error);
     }
   }, [profileUser, userid]);
+
+  // Note: Right navigation for non-players is now integrated into the page grid layout
+  // No need to auto-show RightNavigator component as it's always visible in desktop view
 
   // Fetch joined events when events tab is active
   useEffect(() => {
@@ -385,10 +390,13 @@ export default function UserProfilePage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col md:flex-row">
-      {/* Left Sidebar - Navigation - Hidden on mobile */}
+      {/* Left Sidebar - Hidden on desktop now */}
       <Sidebar onLogout={handleLogout} />
 
+      {/* Mobile Top Bar */}
       <TopBar onMenuToggle={() => setShowRightNav(!showRightNav)} />
+
+      {/* Mobile Right Navigator */}
       <RightNavigator
         isOpen={showRightNav}
         onClose={() => {
@@ -468,23 +476,8 @@ export default function UserProfilePage() {
       <TopUserCard />
 
       {/* Center Content */}
-      <main className="flex-1 overflow-auto pb-0 pt-16 md:pb-0 md:pt-16 relative">
-        {/* Background image at bottom */}
-        <div
-          className={`fixed bottom-0 left-0 right-0 h-48 pointer-events-none z-0 transition-all duration-300 ${isCollapsed ? "md:left-16" : "md:left-64"}`}
-        >
-          <div
-            className="absolute inset-0 bg-cover bg-bottom"
-            style={{ backgroundImage: `url(/images/ground.jpg)` }}
-          >
-            {/* Primary color overlay - dark at bottom, fade to transparent at top */}
-            <div className="absolute inset-0 bg-gradient-to-t from-green-900/60 via-green-900/20 to-transparent"></div>
-            {/* White fade overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/30 to-white"></div>
-          </div>
-        </div>
-
-        <div className="relative z-10">
+      <main className="flex-1 overflow-auto pb-16 pt-20 md:pb-0 md:pt-16 relative">
+        <div className="max-w-7xl mx-auto px-4 py-6 relative z-10">
           {/* Banner */}
           {/* <div className="h-48 relative z-0">
             <Image
@@ -497,7 +490,7 @@ export default function UserProfilePage() {
           </div> */}
 
           {/* Avatar Section */}
-          <div className="max-w-6xl mx-auto px-4 pt-2 relative z-10">
+          <div className="pt-2 relative z-10">
             {/* Back Button - Show when coming from players/followers/following */}
             {showBackButton && (
               <button
@@ -679,638 +672,617 @@ export default function UserProfilePage() {
               </div>
             </div>
 
-            <div className="">
-              {/* Tab Content */}
-              <div className="">
-                {activeTab === "profile" && (
-                  <div className="mb-4 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-                    {/* Left: User Info */}
-                    <div className="lg:col-span-1">
-                      <div className="bg-white mb-4 p-4 md:p-6 rounded-lg shadow ">
-                        <h3 className="text-lg font-semibold mb-4">
-                          Thông tin cá nhân
-                        </h3>
-                        <div className="space-y-3">
-                          {(() => {
-                            const infoItems: Array<{
-                              key: string;
-                              label: string;
-                              value?: string;
-                              component?: JSX.Element;
-                            }> = [];
+            {/* Tab Content */}
+            {activeTab === "profile" && (
+              <div className="mb-4 mt-4 grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-12">
+                {/* Left: User Info - Narrower */}
+                <div className="lg:col-span-3">
+                  <div className="bg-white mb-4 p-4 md:p-6 rounded-lg shadow ">
+                    <h3 className="text-lg font-semibold mb-4">
+                      Thông tin cá nhân
+                    </h3>
+                    <div className="space-y-3">
+                      {/* Phone */}
+                      {isOwnProfile && (
+                        <div className="flex items-center gap-3 py-2">
+                          <svg
+                            className="w-5 h-5 text-gray-600 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.5}
+                              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                            />
+                          </svg>
+                          <span className="text-sm text-gray-900">
+                            {profileUser.username}
+                          </span>
+                        </div>
+                      )}
 
-                            // Always show full name
-                            infoItems.push({
-                              key: "fullname",
-                              label: "Họ và tên",
-                              value: profileUser.fullName || "N/A",
-                            });
+                      {/* Email */}
+                      {profileUser.email && (
+                        <div className="flex items-center gap-3 py-2">
+                          <svg
+                            className="w-5 h-5 text-gray-600 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.5}
+                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
+                          </svg>
+                          <span className="text-sm text-gray-900">
+                            {profileUser.email}
+                          </span>
+                        </div>
+                      )}
 
-                            // Show phone if own profile
-                            if (isOwnProfile) {
-                              infoItems.push({
-                                key: "phone",
-                                label: "Số điện thoại",
-                                value: profileUser.username,
-                              });
-                            }
+                      {/* Date of Birth */}
+                      {profileUser.dob && (
+                        <div className="flex items-center gap-3 py-2">
+                          <svg
+                            className="w-5 h-5 text-gray-600 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.5}
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                          <span className="text-sm text-gray-900">
+                            {new Date(profileUser.dob).toLocaleDateString(
+                              "vi-VN",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              },
+                            )}
+                          </span>
+                        </div>
+                      )}
 
-                            // Show email if exists
-                            if (profileUser.email) {
-                              infoItems.push({
-                                key: "email",
-                                label: "Email",
-                                value: profileUser.email,
-                              });
-                            }
+                      {/* Province */}
+                      {profileUser.province && (
+                        <div className="flex items-center gap-3 py-2">
+                          <svg
+                            className="w-5 h-5 text-gray-600 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.5}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.5}
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                          <span className="text-sm text-gray-900">
+                            {profileUser.province}
+                          </span>
+                        </div>
+                      )}
 
-                            // Show DOB if exists
-                            if (profileUser.dob) {
-                              infoItems.push({
-                                key: "dob",
-                                label: "Ngày sinh",
-                                value: new Date(profileUser.dob).toLocaleDateString("vi-VN", {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                }),
-                              });
-                            }
+                      {/* Member Since */}
+                      {profileUser.createdAt && (
+                        <div className="flex items-center gap-3 py-2">
+                          <svg
+                            className="w-5 h-5 text-gray-600 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2.5}
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <span className="text-sm text-gray-900">
+                            Thành viên từ{" "}
+                            {new Date(profileUser.createdAt).toLocaleDateString(
+                              "vi-VN",
+                              {
+                                year: "numeric",
+                                month: "long",
+                              },
+                            )}
+                          </span>
+                        </div>
+                      )}
 
-                            // Show province if exists
-                            if (profileUser.province) {
-                              infoItems.push({
-                                key: "province",
-                                label: "Địa chỉ",
-                                value: profileUser.province,
-                              });
-                            }
-
-                            // Show created date if exists
-                            if (profileUser.createdAt) {
-                              infoItems.push({
-                                key: "created",
-                                label: "Thành viên từ",
-                                value: new Date(profileUser.createdAt).toLocaleDateString("vi-VN", {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                }),
-                              });
-                            }
-
-                            // Show socials if player and has socials
-                            if (profileUser.isPlayer && profileUser.socials && profileUser.socials.length > 0) {
-                              infoItems.push({
-                                key: "socials",
-                                label: "Mạng xã hội",
-                                component: (
-                                  <div className="flex gap-3">
-                                    {profileUser.socials.map(
-                                      (social: any, index: number) => {
-                                        const platform =
-                                          social.platform?.toLowerCase();
-                                        const getSocialIcon = () => {
-                                          switch (platform) {
-                                            case "facebook":
-                                              return (
-                                                <svg
-                                                  className="w-5 h-5 text-[#1877F2]"
-                                                  fill="currentColor"
-                                                  viewBox="0 0 24 24"
-                                                >
-                                                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                                                </svg>
-                                              );
-                                            case "instagram":
-                                              return (
-                                                <svg
-                                                  className="w-5 h-5 text-[#E4405F]"
-                                                  fill="currentColor"
-                                                  viewBox="0 0 24 24"
-                                                >
-                                                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                                                </svg>
-                                              );
-                                            case "tiktok":
-                                              return (
-                                                <svg
-                                                  className="w-5 h-5"
-                                                  fill="currentColor"
-                                                  viewBox="0 0 24 24"
-                                                >
-                                                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" />
-                                                </svg>
-                                              );
-                                            case "youtube":
-                                              return (
-                                                <svg
-                                                  className="w-5 h-5 text-[#FF0000]"
-                                                  fill="currentColor"
-                                                  viewBox="0 0 24 24"
-                                                >
-                                                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                                                </svg>
-                                              );
-                                            case "twitter":
-                                            case "x":
-                                              return (
-                                                <svg
-                                                  className="w-5 h-5"
-                                                  fill="currentColor"
-                                                  viewBox="0 0 24 24"
-                                                >
-                                                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                                                </svg>
-                                              );
-                                            default:
-                                              return (
-                                                <svg
-                                                  className="w-5 h-5 text-gray-600"
-                                                  fill="none"
-                                                  stroke="currentColor"
-                                                  viewBox="0 0 24 24"
-                                                >
-                                                  <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                                                  />
-                                                </svg>
-                                              );
-                                          }
-                                        };
+                      {/* Social Media */}
+                      {profileUser.isPlayer &&
+                        profileUser.socials &&
+                        profileUser.socials.length > 0 && (
+                          <div className="flex items-center gap-3 py-2">
+                            <svg
+                              className="w-5 h-5 text-gray-600 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.5}
+                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                              />
+                            </svg>
+                            <div className="flex gap-3">
+                              {profileUser.socials.map(
+                                (social: any, index: number) => {
+                                  const platform =
+                                    social.platform?.toLowerCase();
+                                  const getSocialIcon = () => {
+                                    switch (platform) {
+                                      case "facebook":
                                         return (
-                                          <a
-                                            key={index}
-                                            href={social.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="hover:opacity-70 transition"
-                                            title={platform}
+                                          <svg
+                                            className="w-5 h-5 text-[#1877F2]"
+                                            fill="currentColor"
+                                            viewBox="0 0 24 24"
                                           >
-                                            {getSocialIcon()}
-                                          </a>
+                                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                          </svg>
                                         );
-                                      },
-                                    )}
-                                  </div>
-                                ),
-                              });
-                            }
+                                      case "instagram":
+                                        return (
+                                          <svg
+                                            className="w-5 h-5 text-[#E4405F]"
+                                            fill="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                          </svg>
+                                        );
+                                      case "tiktok":
+                                        return (
+                                          <svg
+                                            className="w-5 h-5 text-[#000000]"
+                                            fill="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                                          </svg>
+                                        );
+                                      default:
+                                        return (
+                                          <svg
+                                            className="w-5 h-5 text-gray-600"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                                            />
+                                          </svg>
+                                        );
+                                    }
+                                  };
 
-                            // Render all items
-                            return infoItems.map((item, index) => {
-                              const isLast = index === infoItems.length - 1;
+                                  return (
+                                    <a
+                                      key={index}
+                                      href={social.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="hover:opacity-70 transition"
+                                    >
+                                      {getSocialIcon()}
+                                    </a>
+                                  );
+                                },
+                              )}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                  {profileUser.isPlayer && profileUser.bio && (
+                    <div className="bg-white p-4 md:p-6 rounded-lg shadow ">
+                      <div className="">
+                        <h3 className="text-lg font-semibold mb-4">Tiểu sử</h3>
+                        <p className="text-sm font-medium text-gray-900 leading-relaxed whitespace-pre-wrap">
+                          {profileUser.bio}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-                              if (item.component) {
-                                // For custom component (socials)
-                                return (
-                                  <div key={item.key} className={`flex justify-between py-2 ${!isLast ? 'border-b border-gray-100' : ''}`}>
-                                    <span className="text-sm text-gray-600">{item.label}</span>
-                                    {item.component}
-                                  </div>
-                                );
-                              } else {
-                                // For regular InfoRow
-                                return (
-                                  <InfoRow
-                                    key={item.key}
-                                    label={item.label}
-                                    value={item.value!}
-                                    isLast={isLast}
-                                  />
-                                );
-                              }
-                            });
-                          })()}
+                {/* Middle: Recent Events - Wider */}
+                <div className="lg:col-span-6">
+                  <h3 className="text-lg font-semibold mb-4">
+                    Hoạt động gần đây
+                  </h3>
+                  {recentEventsLoading ? (
+                    <div className="text-center py-8 text-gray-500">
+                      Đang tải...
+                    </div>
+                  ) : (
+                    <FeedList
+                      feeds={feeds}
+                      currentUserid={currentUser?.userid}
+                    />
+                  )}
+                </div>
+
+                {/* Right Column: Player Stats or Following List - Narrow */}
+                <div className="lg:col-span-3">
+                  <div className="bg-white p-4 md:p-6 rounded-lg shadow sticky top-20">
+                    {/* Show Followers List */}
+                    {sidebarView === "followers" ? (
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold">
+                            Người theo dõi
+                          </h3>
+                          <button
+                            onClick={() => setSidebarView("default")}
+                            className="text-gray-400 hover:text-gray-600 text-2xl"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {followersList.length === 0 ? (
+                            <p className="text-center text-gray-500 py-8">
+                              Chưa có người theo dõi
+                            </p>
+                          ) : (
+                            followersList.map((follower) => (
+                              <Link
+                                key={follower.userid}
+                                href={`/profile/${follower.userid}?from=followers`}
+                                className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
+                              >
+                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                  {follower.avatar ? (
+                                    <img
+                                      src={follower.avatar}
+                                      alt={follower.fullName}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-green-600 font-semibold text-sm">
+                                      {follower.fullName
+                                        .charAt(0)
+                                        .toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {follower.fullName}
+                                  </p>
+                                </div>
+                              </Link>
+                            ))
+                          )}
                         </div>
                       </div>
-                      {profileUser.isPlayer && profileUser.bio && (
-                        <div className="bg-white p-4 md:p-6 rounded-lg shadow ">
-                          <div className="">
-                            <h3 className="text-lg font-semibold mb-4">
-                              Tiểu sử
-                            </h3>
-                            <p className="text-sm font-medium text-gray-900 leading-relaxed whitespace-pre-wrap">
-                              {profileUser.bio}
+                    ) : sidebarView === "following" ? (
+                      /* Show Following List */
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold">
+                            Đang theo dõi
+                          </h3>
+                          <button
+                            onClick={() => setSidebarView("default")}
+                            className="text-gray-400 hover:text-gray-600 text-2xl"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {followingPlayers.length === 0 ? (
+                            <p className="text-center text-gray-500 py-8">
+                              Chưa theo dõi ai
                             </p>
+                          ) : (
+                            followingPlayers.map((player) => (
+                              <Link
+                                key={player.userid}
+                                href={`/profile/${player.userid}?from=following`}
+                                className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
+                              >
+                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                  {player.avatar ? (
+                                    <img
+                                      src={player.avatar}
+                                      alt={player.fullName}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-green-600 font-semibold text-sm">
+                                      {player.fullName.charAt(0).toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {player.fullName}
+                                  </p>
+                                </div>
+                              </Link>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    ) : profileUser.isPlayer ? (
+                      /* Show Player Stats */
+                      <>
+                        {/* Player Stats */}
+                        {/* Basic Info */}
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4">
+                            Thông tin cầu thủ
+                          </h3>
+                          <div className="space-y-2">
+                            <StatRow
+                              label="Chiều cao"
+                              value={
+                                profileUser.height
+                                  ? `${profileUser.height} cm`
+                                  : "N/A"
+                              }
+                            />
+                            <StatRow
+                              label="Cân nặng"
+                              value={
+                                profileUser.weight
+                                  ? `${profileUser.weight} kg`
+                                  : "N/A"
+                              }
+                            />
+                            <StatRow
+                              label="Chân thuận"
+                              value={
+                                profileUser.preferredFoot === "left"
+                                  ? "Trái"
+                                  : profileUser.preferredFoot === "right"
+                                    ? "Phải"
+                                    : profileUser.preferredFoot === "both"
+                                      ? "Cả hai"
+                                      : "N/A"
+                              }
+                            />
+                            <StatRow
+                              label="Cấp độ"
+                              value={
+                                profileUser.level === "CAU_THU_MOI"
+                                  ? "Cầu thủ mới"
+                                  : profileUser.level === "NGHIEP_DU"
+                                    ? "Nghiệp dư"
+                                    : profileUser.level === "TUYEN_TRE"
+                                      ? "Tuyển trẻ"
+                                      : profileUser.level === "CHUYEN_NGHIEP"
+                                        ? "Chuyên nghiệp"
+                                        : "N/A"
+                              }
+                            />
+                            {profileUser.academy && (
+                              <StatRow
+                                label="Học viện"
+                                value={profileUser.academy}
+                              />
+                            )}
+                            {profileUser.club && (
+                              <StatRow
+                                label="Đội bóng"
+                                value={profileUser.club}
+                              />
+                            )}
                           </div>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Right: Recent Events */}
-                    <div className="lg:col-span-2">
-                      <h3 className="text-lg font-semibold mb-4">
-                        Hoạt động gần đây
-                      </h3>
-                      {recentEventsLoading ? (
-                        <div className="text-center py-8 text-gray-500">
-                          Đang tải...
+                        {/* Skills - Hexagon Chart */}
+                        <div className="mt-6">
+                          <h3 className="text-lg font-semibold mb-4">
+                            Kỹ năng
+                          </h3>
+                          <div className="flex justify-center">
+                            {profileUser?.attributes &&
+                            profileUser.attributes.length > 0 ? (
+                              <HexagonChart
+                                attributes={profileUser.attributes}
+                                size={250}
+                                showLabels={true}
+                              />
+                            ) : (
+                              <div className="text-center py-8 text-gray-400">
+                                <p className="text-sm">
+                                  Chưa có dữ liệu chỉ số
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      ) : (
-                        <FeedList feeds={feeds} currentUserid={currentUser?.userid} />
-                      )}
-                    </div>
-                  </div>
-                )}
 
-                {activeTab === "matches" && (
-                  <div className="text-center py-8 text-gray-500">
-                    Danh sách trận đấu sẽ được hiển thị ở đây
-                  </div>
-                )}
-
-                {activeTab === "events" && (
-                  <div className="space-y-4">
-                    {eventsLoading ? (
-                      <div className="text-center py-8 text-gray-500">
-                        Đang tải...
-                      </div>
-                    ) : events.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        Chưa tham gia sự kiện nào
-                      </div>
+                        {/* Stats */}
+                        <div className="mt-6">
+                          <h3 className="text-lg font-semibold mb-4">
+                            Thông số
+                          </h3>
+                          <div className="grid grid-cols-2 gap-3">
+                            <StatCard
+                              title="Trận đấu"
+                              value={mockStats.matches}
+                            />
+                            <StatCard
+                              title="Trận thắng"
+                              value={mockStats.wins}
+                            />
+                            <StatCard
+                              title="Trận thua"
+                              value={mockStats.losses}
+                            />
+                            <StatCard
+                              title="Phút thi đấu"
+                              value={mockStats.minutes}
+                            />
+                            <StatCard
+                              title="Bàn thắng"
+                              value={mockStats.goals}
+                            />
+                            <StatCard
+                              title="Kiến tạo"
+                              value={mockStats.assists}
+                            />
+                            <StatCard
+                              title="Thẻ đỏ"
+                              value={mockStats.redCards}
+                            />
+                            <StatCard
+                              title="Thẻ vàng"
+                              value={mockStats.yellowCards}
+                            />
+                          </div>
+                        </div>
+                      </>
                     ) : (
                       <>
-                        {events.map((event) => (
-                          <EventCard
-                            key={event.id}
-                            event={event}
-                            userName={profileUser.fullName}
-                            showJoinButton={!isOwnProfile}
-                            onJoinClick={() => handleJoinEvent(event.id)}
-                            isJoining={joiningEventId === event.id}
-                          />
-                        ))}
-
-                        {/* Pagination */}
-                        {eventsTotalPages > 1 && (
-                          <div className="flex justify-center gap-2 mt-6">
-                            <button
-                              onClick={() =>
-                                setEventsPage((prev) => Math.max(0, prev - 1))
-                              }
-                              disabled={eventsPage === 0}
-                              className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                            >
-                              Trước
-                            </button>
-                            <span className="px-4 py-2 text-gray-700">
-                              Trang {eventsPage + 1} / {eventsTotalPages}
-                            </span>
-                            <button
-                              onClick={() =>
-                                setEventsPage((prev) =>
-                                  Math.min(eventsTotalPages - 1, prev + 1),
-                                )
-                              }
-                              disabled={eventsPage >= eventsTotalPages - 1}
-                              className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                            >
-                              Sau
-                            </button>
+                        {/* Following List for Non-Players */}
+                        <h3 className="text-lg font-semibold mb-4">
+                          Đang theo dõi
+                        </h3>
+                        {followingPlayers.length === 0 ? (
+                          <p className="text-center text-gray-500 py-8 text-sm">
+                            Chưa theo dõi ai
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {followingPlayers.map((player) => (
+                              <Link
+                                key={player.userid}
+                                href={`/profile/${player.userid}?from=following`}
+                                className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
+                              >
+                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                  {player.avatar ? (
+                                    <img
+                                      src={player.avatar}
+                                      alt={player.fullName}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-green-600 font-semibold text-sm">
+                                      {player.fullName.charAt(0).toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {player.fullName}
+                                  </p>
+                                </div>
+                              </Link>
+                            ))}
                           </div>
                         )}
                       </>
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "matches" && (
+              <div className="text-center py-8 text-gray-500">
+                Danh sách trận đấu sẽ được hiển thị ở đây
+              </div>
+            )}
+
+            {activeTab === "events" && (
+              <div className="space-y-4">
+                {eventsLoading ? (
+                  <div className="text-center py-8 text-gray-500">
+                    Đang tải...
+                  </div>
+                ) : events.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    Chưa tham gia sự kiện nào
+                  </div>
+                ) : (
+                  <>
+                    {events.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        userName={profileUser.fullName}
+                        showJoinButton={!isOwnProfile}
+                        onJoinClick={() => handleJoinEvent(event.id)}
+                        isJoining={joiningEventId === event.id}
+                      />
+                    ))}
+
+                    {/* Pagination */}
+                    {eventsTotalPages > 1 && (
+                      <div className="flex justify-center gap-2 mt-6">
+                        <button
+                          onClick={() =>
+                            setEventsPage((prev) => Math.max(0, prev - 1))
+                          }
+                          disabled={eventsPage === 0}
+                          className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        >
+                          Trước
+                        </button>
+                        <span className="px-4 py-2 text-gray-700">
+                          Trang {eventsPage + 1} / {eventsTotalPages}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setEventsPage((prev) =>
+                              Math.min(eventsTotalPages - 1, prev + 1),
+                            )
+                          }
+                          disabled={eventsPage >= eventsTotalPages - 1}
+                          className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        >
+                          Sau
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
-            </div>
+            )}
           </div>
         </div>
+
+        {/* Footer */}
+        <div className="hidden md:block">
+          <LandingFooter />
+        </div>
       </main>
-
-      {/* Right Sidebar - Player Stats - Full width on mobile, sidebar on desktop */}
-      {profileUser.isPlayer && (
-        <aside className="md:w-80 mx-4 md:mx-0 mb-32 md:mb-0 md:pt-16 bg-white shadow-lg overflow-auto order-3 md:order-none relative z-10">
-          <div className="p-4 md:p-6 space-y-4 md:space-y-6 md:pb-24">
-            {/* Header with close button when showing followers/following */}
-            {sidebarView !== "default" && (
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">
-                  {sidebarView === "followers"
-                    ? "Người theo dõi"
-                    : "Đang theo dõi"}
-                </h3>
-                <button
-                  onClick={handleCloseSidebar}
-                  className="text-gray-400 hover:text-gray-600 text-2xl"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            {/* Default view - Player Stats */}
-            {sidebarView === "default" && (
-              <>
-                {/* Basic Info */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">
-                    Thông tin cầu thủ
-                  </h3>
-                  <div className="space-y-2">
-                    <StatRow
-                      label="Chiều cao"
-                      value={
-                        profileUser.height ? `${profileUser.height} cm` : "N/A"
-                      }
-                    />
-                    <StatRow
-                      label="Cân nặng"
-                      value={
-                        profileUser.weight ? `${profileUser.weight} kg` : "N/A"
-                      }
-                    />
-                    <StatRow
-                      label="Chân thuận"
-                      value={
-                        profileUser.preferredFoot === "left"
-                          ? "Trái"
-                          : profileUser.preferredFoot === "right"
-                            ? "Phải"
-                            : profileUser.preferredFoot === "both"
-                              ? "Cả hai"
-                              : "N/A"
-                      }
-                    />
-                    <StatRow
-                      label="Cấp độ"
-                      value={
-                        profileUser.level === "CAU_THU_MOI"
-                          ? "Cầu thủ mới"
-                          : profileUser.level === "NGHIEP_DU"
-                            ? "Nghiệp dư"
-                            : profileUser.level === "TUYEN_TRE"
-                              ? "Tuyển trẻ"
-                              : profileUser.level === "CHUYEN_NGHIEP"
-                                ? "Chuyên nghiệp"
-                                : "N/A"
-                      }
-                    />
-                    {profileUser.academy && (
-                      <StatRow label="Học viện" value={profileUser.academy} />
-                    )}
-                    {profileUser.club && (
-                      <StatRow label="Đội bóng" value={profileUser.club} />
-                    )}
-                  </div>
-                </div>
-
-                {/* Skills - Hexagon Chart */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Kỹ năng</h3>
-                  <div className="flex justify-center">
-                    {profileUser?.attributes &&
-                    profileUser.attributes.length > 0 ? (
-                      <HexagonChart
-                        attributes={profileUser.attributes}
-                        size={300}
-                        showLabels={true}
-                      />
-                    ) : (
-                      <div className="text-center py-8 text-gray-400">
-                        <p>Chưa có dữ liệu chỉ số</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Stats */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Thông số</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <StatCard title="Trận đấu" value={mockStats.matches} />
-                    <StatCard title="Trận thắng" value={mockStats.wins} />
-                    <StatCard title="Trận thua" value={mockStats.losses} />
-                    <StatCard title="Phút thi đấu" value={mockStats.minutes} />
-                    <StatCard title="Bàn thắng" value={mockStats.goals} />
-                    <StatCard title="Kiến tạo" value={mockStats.assists} />
-                    <StatCard title="Thẻ đỏ" value={mockStats.redCards} />
-                    <StatCard title="Thẻ vàng" value={mockStats.yellowCards} />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Followers view */}
-            {sidebarView === "followers" && (
-              <div className="space-y-3">
-                {followersList.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
-                    Chưa có người theo dõi
-                  </p>
-                ) : (
-                  followersList.map((follower) => (
-                    <Link
-                      key={follower.userid}
-                      href={`/profile/${follower.userid}?from=players`}
-                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {follower.avatar ? (
-                          <img
-                            src={follower.avatar}
-                            alt={follower.fullName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-green-600 font-semibold text-sm">
-                            {follower.fullName.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {follower.fullName}
-                        </p>
-                      </div>
-                    </Link>
-                  ))
-                )}
-              </div>
-            )}
-
-            {/* Following view */}
-            {sidebarView === "following" && (
-              <div className="space-y-3">
-                {followingPlayers.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
-                    Chưa theo dõi ai
-                  </p>
-                ) : (
-                  followingPlayers.map((player) => (
-                    <Link
-                      key={player.userid}
-                      href={`/profile/${player.userid}?from=players`}
-                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {player.avatar ? (
-                          <img
-                            src={player.avatar}
-                            alt={player.fullName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-green-600 font-semibold text-sm">
-                            {player.fullName.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {player.fullName}
-                        </p>
-                      </div>
-                    </Link>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </aside>
-      )}
-
-      {/* Right Sidebar - Following Players List - Only for non-player profiles */}
-      {!profileUser.isPlayer && (
-        <aside className="md:w-80 mx-4 md:mx-0 mb-32 md:mb-0 md:pt-16 bg-white shadow-lg overflow-auto order-3 md:order-none relative z-10">
-          <div className="p-4 md:p-6">
-            {/* Header with close button when showing followers/following */}
-            {sidebarView !== "default" && (
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">
-                  {sidebarView === "followers"
-                    ? "Người theo dõi"
-                    : "Đang theo dõi"}
-                </h3>
-                <button
-                  onClick={handleCloseSidebar}
-                  className="text-gray-400 hover:text-gray-600 text-2xl"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            {sidebarView === "default" && followingPlayers.length > 0 && (
-              <>
-                <h3 className="text-lg font-semibold mb-4">
-                  Cầu thủ đang theo dõi
-                </h3>
-                <div className="space-y-3">
-                  {followingPlayers.map((player) => (
-                    <Link
-                      key={player.userid}
-                      href={`/profile/${player.userid}?from=players`}
-                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {player.avatar ? (
-                          <img
-                            src={player.avatar}
-                            alt={player.fullName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-green-600 font-semibold text-sm">
-                            {player.fullName.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {player.fullName}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* Followers view for non-player */}
-            {sidebarView === "followers" && (
-              <div className="space-y-3">
-                {followersList.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
-                    Chưa có người theo dõi
-                  </p>
-                ) : (
-                  followersList.map((follower) => (
-                    <Link
-                      key={follower.userid}
-                      href={`/profile/${follower.userid}?from=players`}
-                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {follower.avatar ? (
-                          <img
-                            src={follower.avatar}
-                            alt={follower.fullName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-green-600 font-semibold text-sm">
-                            {follower.fullName.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {follower.fullName}
-                        </p>
-                      </div>
-                    </Link>
-                  ))
-                )}
-              </div>
-            )}
-
-            {/* Following view for non-player */}
-            {sidebarView === "following" && (
-              <div className="space-y-3">
-                {followingPlayers.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
-                    Chưa theo dõi ai
-                  </p>
-                ) : (
-                  followingPlayers.map((player) => (
-                    <Link
-                      key={player.userid}
-                      href={`/profile/${player.userid}?from=players`}
-                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {player.avatar ? (
-                          <img
-                            src={player.avatar}
-                            alt={player.fullName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-green-600 font-semibold text-sm">
-                            {player.fullName.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {player.fullName}
-                        </p>
-                      </div>
-                    </Link>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </aside>
-      )}
 
       {/* Edit Profile Handler Component */}
       <EditProfileHandler />
@@ -1322,9 +1294,19 @@ export default function UserProfilePage() {
 }
 
 // Helper Components
-function InfoRow({ label, value, isLast = false }: { label: string; value: string; isLast?: boolean }) {
+function InfoRow({
+  label,
+  value,
+  isLast = false,
+}: {
+  label: string;
+  value: string;
+  isLast?: boolean;
+}) {
   return (
-    <div className={`flex justify-between py-2 ${!isLast ? 'border-b border-gray-100' : ''}`}>
+    <div
+      className={`flex justify-between py-2 ${!isLast ? "border-b border-gray-100" : ""}`}
+    >
       <span className="text-sm text-gray-600">{label}</span>
       <span className="text-sm font-medium text-gray-900">{value}</span>
     </div>

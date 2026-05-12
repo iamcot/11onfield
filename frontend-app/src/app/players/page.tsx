@@ -1,6 +1,7 @@
 "use client";
 
 import HexagonChart from "@/components/HexagonChart";
+import LandingFooter from "@/components/landing/LandingFooter";
 import MobileNav from "@/components/layout/MobileNav";
 import RightNavigator from "@/components/layout/RightNavigator";
 import Sidebar from "@/components/layout/Sidebar";
@@ -190,21 +191,6 @@ function PlayersContent() {
       <TopUserCard />
 
       <main className="flex-1 overflow-auto pb-16 pt-20 md:pb-0 md:pt-16 relative">
-        {/* Background image at bottom */}
-        <div
-          className={`fixed bottom-0 left-0 right-0 h-64 pointer-events-none z-0 transition-all duration-300 ${isCollapsed ? "md:left-16" : "md:left-64"}`}
-        >
-          <div
-            className="absolute inset-0 bg-cover bg-bottom"
-            style={{ backgroundImage: `url(/images/ground.jpg)` }}
-          >
-            {/* Primary color overlay - dark at bottom, fade to transparent at top */}
-            <div className="absolute inset-0 bg-gradient-to-t from-green-900/60 via-green-900/20 to-transparent"></div>
-            {/* White fade overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/30 to-white"></div>
-          </div>
-        </div>
-
         <div className="max-w-7xl mx-auto px-4 py-6 relative z-10">
           {/* Page Header */}
           <div className="mb-6">
@@ -890,6 +876,11 @@ function PlayersContent() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* Footer */}
+        <div className="hidden md:block">
+          <LandingFooter />
         </div>
       </main>
 

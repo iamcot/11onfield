@@ -8,20 +8,20 @@ export default function HeroSection() {
   return (
     <section
       id="home"
-      className="relative w-full h-[75vh] bg-cover bg-center"
+      className="relative w-full h-[75vh] min-h-[350px] md:min-h-[550px] bg-cover bg-center"
       style={{ backgroundImage: "url(/images/banner-lading-page.jpg)" }}
     >
       {/* Sticky Navigation */}
       <StickyNav />
 
       {/* Hero Content */}
-      <div className="relative h-full flex items-center justify-center px-4 pt-4 md:pt-0">
+      <div className="relative h-full flex items-center justify-center px-4 pt-0 md:pt-0">
         <div className="text-center text-white max-w-4xl mx-auto w-full">
           {/* Banner Text Image */}
-          <div className="mb-6 md:mb-12 w-full flex justify-center md:max-h-[calc(75vh-260px)]">
-            <div className="flex flex-col items-center gap-3 w-full max-w-[200px] md:max-w-[200px] mr-12 md:mr-32 h-full">
+          <div className="w-full flex justify-center">
+            <div className="flex flex-col items-center w-full max-w-[200px] md:max-w-[200px]">
               <div
-                className="w-full h-auto max-h-full relative"
+                className="w-full relative"
                 style={{ aspectRatio: "503/761" }}
               >
                 <Image

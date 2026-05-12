@@ -20,7 +20,7 @@ export default function LandingFooter() {
   ];
 
   return (
-    <footer className="w-full bg-green-700 md:bg-green-900 pt-12 relative overflow-hidden">
+    <footer className="w-full bg-green-700 md:bg-green-900 pt-12 pb-2 relative overflow-hidden">
       {/* Background image with repeat - desktop only */}
       <div
         className="hidden md:block absolute inset-0 bg-repeat"
@@ -175,7 +175,7 @@ export default function LandingFooter() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 p-8 border-t border-green-800 text-center text-green-100 text-sm">
+        <div className="mt-8 pb-2 border-t border-green-800 text-center text-green-100 text-sm">
           © 2026 11 on Field. All rights reserved.
         </div>
       </div>

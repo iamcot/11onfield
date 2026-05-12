@@ -1,17 +1,23 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import LandingFooter from "@/components/landing/LandingFooter";
+import MobileNav from "@/components/layout/MobileNav";
+import RightNavigator from "@/components/layout/RightNavigator";
+import Sidebar from "@/components/layout/Sidebar";
+import TopBar from "@/components/layout/TopBar";
+import TopUserCard from "@/components/layout/TopUserCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { eventService } from "@/services/event.service";
-import { EventListItem, EventsFilters, getStatusDisplayName, getStatusBadgeColor } from "@/types/event";
-import Sidebar from "@/components/layout/Sidebar";
-import MobileNav from "@/components/layout/MobileNav";
-import TopBar from "@/components/layout/TopBar";
-import RightNavigator from "@/components/layout/RightNavigator";
-import TopUserCard from "@/components/layout/TopUserCard";
+import {
+  EventListItem,
+  EventsFilters,
+  getStatusBadgeColor,
+  getStatusDisplayName,
+} from "@/types/event";
 import { formatDateOnly } from "@/utils/timezone";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 function EventsContent() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
@@ -21,7 +27,12 @@ function EventsContent() {
 
   // State
   const [events, setEvents] = useState<EventListItem[]>([]);
-  const [pagination, setPagination] = useState({ page: 0, totalPages: 0, total: 0, pageSize: 20 });
+  const [pagination, setPagination] = useState({
+    page: 0,
+    totalPages: 0,
+    total: 0,
+    pageSize: 20,
+  });
   const [filters, setFilters] = useState<Partial<EventsFilters>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -49,7 +60,7 @@ function EventsContent() {
       sortBy: sortBy || undefined,
       sortOrder: sortOrder || undefined,
     });
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
     setIsInitialized(true);
   }, []);
 
@@ -66,7 +77,9 @@ function EventsContent() {
       params.set("sortOrder", filters.sortOrder || "asc");
     }
 
-    const newUrl = params.toString() ? `/events?${params.toString()}` : "/events";
+    const newUrl = params.toString()
+      ? `/events?${params.toString()}`
+      : "/events";
     window.history.replaceState(null, "", newUrl);
   }, [filters, pagination.page, isInitialized]);
 
@@ -76,8 +89,8 @@ function EventsContent() {
 
     const timer = setTimeout(() => {
       if (searchInput !== (filters.search || "")) {
-        setFilters(prev => ({ ...prev, search: searchInput }));
-        setPagination(prev => ({ ...prev, page: 0 })); // Reset to first page
+        setFilters((prev) => ({ ...prev, search: searchInput }));
+        setPagination((prev) => ({ ...prev, page: 0 })); // Reset to first page
       }
     }, 500);
 
@@ -90,9 +103,13 @@ function EventsContent() {
       const fetchEvents = async () => {
         try {
           setIsLoading(true);
-          const response = await eventService.getEvents(pagination.page, pagination.pageSize, filters);
+          const response = await eventService.getEvents(
+            pagination.page,
+            pagination.pageSize,
+            filters,
+          );
           setEvents(response.data);
-          setPagination(prev => ({
+          setPagination((prev) => ({
             ...prev,
             totalPages: response.totalPages,
             total: response.total,
@@ -109,8 +126,8 @@ function EventsContent() {
   }, [authLoading, filters, pagination.page, isInitialized]);
 
   const handleFilterChange = (key: keyof EventsFilters, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setPagination(prev => ({ ...prev, page: 0 })); // Reset to first page
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPagination((prev) => ({ ...prev, page: 0 })); // Reset to first page
   };
 
   const handleSortChange = (sortBy: string, sortOrder: "asc" | "desc") => {
@@ -129,11 +146,11 @@ function EventsContent() {
   const handleClearFilters = () => {
     setSearchInput("");
     setFilters({});
-    setPagination(prev => ({ ...prev, page: 0 }));
+    setPagination((prev) => ({ ...prev, page: 0 }));
   };
 
   const handlePageChange = (newPage: number) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
+    setPagination((prev) => ({ ...prev, page: newPage }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -171,24 +188,13 @@ function EventsContent() {
       <TopUserCard />
 
       <main className="flex-1 overflow-auto pb-16 pt-20 md:pb-0 md:pt-16 relative">
-        {/* Background image at bottom */}
-        <div className={`fixed bottom-0 left-0 right-0 h-48 pointer-events-none z-0 transition-all duration-300 ${isCollapsed ? 'md:left-16' : 'md:left-64'}`}>
-          <div
-            className="absolute inset-0 bg-cover bg-bottom"
-            style={{ backgroundImage: `url(/images/ground.jpg)` }}
-          >
-            {/* Primary color overlay - dark at bottom, fade to transparent at top */}
-            <div className="absolute inset-0 bg-gradient-to-t from-green-900/60 via-green-900/20 to-transparent"></div>
-            {/* White fade overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/30 to-white"></div>
-          </div>
-        </div>
-
         <div className="max-w-7xl mx-auto px-4 py-6 relative z-10">
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-800">Sự kiện</h1>
-            <p className="text-gray-600 mt-1">Khám phá và tham gia các sự kiện bóng đá</p>
+            <p className="text-gray-600 mt-1">
+              Khám phá và tham gia các sự kiện bóng đá
+            </p>
           </div>
 
           {/* Filters Section */}
@@ -210,8 +216,18 @@ function EventsContent() {
                   className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
                   aria-label="Sắp xếp"
                 >
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                  <svg
+                    className="w-5 h-5 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                    />
                   </svg>
                 </button>
 
@@ -278,7 +294,9 @@ function EventsContent() {
             <div className="md:hidden flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               <select
                 value={filters.status || ""}
-                onChange={(e) => handleFilterChange("status", e.target.value || undefined)}
+                onChange={(e) =>
+                  handleFilterChange("status", e.target.value || undefined)
+                }
                 className="flex-shrink-0 px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
               >
                 <option value="">Trạng thái</option>
@@ -327,7 +345,9 @@ function EventsContent() {
             <div className="hidden md:grid grid-cols-1 gap-3 mb-3">
               <select
                 value={filters.status || ""}
-                onChange={(e) => handleFilterChange("status", e.target.value || undefined)}
+                onChange={(e) =>
+                  handleFilterChange("status", e.target.value || undefined)
+                }
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               >
                 <option value="">Tất cả trạng thái</option>
@@ -395,7 +415,9 @@ function EventsContent() {
                       </div>
                     ) : (
                       <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 text-sm">Không có hình ảnh</span>
+                        <span className="text-gray-400 text-sm">
+                          Không có hình ảnh
+                        </span>
                       </div>
                     )}
 
@@ -410,7 +432,7 @@ function EventsContent() {
                       <div className="mb-3">
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${getStatusBadgeColor(
-                            event.status
+                            event.status,
                           )}`}
                         >
                           {getStatusDisplayName(event.status)}
@@ -434,7 +456,9 @@ function EventsContent() {
                               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                             />
                           </svg>
-                          <span>{formatDate(event.startDate, event.startTime)}</span>
+                          <span>
+                            {formatDate(event.startDate, event.startTime)}
+                          </span>
                         </div>
 
                         {/* Location */}
@@ -516,6 +540,11 @@ function EventsContent() {
             </>
           )}
         </div>
+
+        {/* Footer */}
+        <div className="hidden md:block">
+          <LandingFooter />
+        </div>
       </main>
 
       <MobileNav backgroundImage="/images/ground.jpg" />
@@ -525,11 +554,13 @@ function EventsContent() {
 
 export default function EventsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Đang tải...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Đang tải...</p>
+        </div>
+      }
+    >
       <EventsContent />
     </Suspense>
   );
