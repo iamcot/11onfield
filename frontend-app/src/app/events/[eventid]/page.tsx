@@ -111,6 +111,42 @@ export default function EventDetailPage() {
     return dateFormatted;
   };
 
+  const formatEventTime = () => {
+    if (!event) return "";
+
+    const startDate = new Date(event.startDate);
+    const endDate = new Date(event.endDate);
+
+    const startDateStr = startDate.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    const endDateStr = endDate.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    // Same date
+    if (startDateStr === endDateStr) {
+      if (event.startTime && event.endTime) {
+        // Same day with time
+        return `${startDateStr}, ${event.startTime} - ${event.endTime}`;
+      } else {
+        // Same day without time
+        return startDateStr;
+      }
+    } else {
+      // Different dates
+      if (event.startTime && event.endTime) {
+        return `${startDateStr} ${event.startTime} - ${endDateStr} ${event.endTime}`;
+      } else {
+        return `${startDateStr} - ${endDateStr}`;
+      }
+    }
+  };
+
   const getRegistrationDeadlineText = () => {
     if (!event) return "";
 
@@ -197,10 +233,10 @@ export default function EventDetailPage() {
           {/* Event Info Card */}
           <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
             {/* Title and Status */}
-            <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-              <h1 className="text-3xl font-bold text-gray-800 flex-1">{event.title}</h1>
+            <div className="flex flex-col md:flex-row md:flex-wrap md:items-start md:justify-between gap-4 mb-4">
+              <h1 className="text-xl md:text-3xl font-bold text-gray-800 md:flex-1">{event.title}</h1>
               <span
-                className={`px-3 py-1 text-sm font-semibold rounded-full text-white ${getStatusBadgeColor(
+                className={`px-3 py-1 text-sm font-semibold rounded-full text-white self-start ${getStatusBadgeColor(
                   event.status
                 )}`}
               >
@@ -215,16 +251,10 @@ export default function EventDetailPage() {
 
             {/* Event Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Start Date */}
+              {/* Event Time */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 mb-1">Bắt đầu</h3>
-                <p className="text-gray-800">{formatDate(event.startDate, event.startTime)}</p>
-              </div>
-
-              {/* End Date */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-500 mb-1">Kết thúc</h3>
-                <p className="text-gray-800">{formatDate(event.endDate, event.endTime)}</p>
+                <h3 className="text-sm font-semibold text-gray-500 mb-1">Thời gian</h3>
+                <p className="text-gray-800">{formatEventTime()}</p>
               </div>
 
               {/* Location */}
