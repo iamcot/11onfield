@@ -97,7 +97,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend-app
-        run: npm ci
+        run: nice -n 19 npm ci --prefer-offline --no-audit
 
       - name: Create production environment file
         working-directory: frontend-app
