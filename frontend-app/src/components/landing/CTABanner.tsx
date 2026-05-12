@@ -35,7 +35,7 @@ export default function CTABanner() {
             <img
               src="/images/btn-register.png"
               alt="Đăng ký ngay"
-              className="h-10 md:h-16 lg:h-20 w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+              className="h-8 md:h-16 lg:h-20 w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
               onError={(e) => {
                 e.currentTarget.style.display = "none";
               }}

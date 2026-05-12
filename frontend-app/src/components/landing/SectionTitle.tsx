@@ -4,17 +4,17 @@ interface SectionTitleProps {
 
 export default function SectionTitle({ title }: SectionTitleProps) {
   return (
-    <div className="flex items-center justify-center gap-4 mb-12">
+    <div className="flex items-center justify-center gap-2 md:gap-4 mb-8 md:mb-12">
       {/* Left triangle */}
-      <div className="w-8 md:w-12 h-1 bg-yellow-400 transform -skew-x-12"></div>
+      <div className="w-6 md:w-8 lg:w-12 h-1 bg-yellow-400 transform -skew-x-12"></div>
 
       {/* Title */}
-      <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-green-700 uppercase text-center">
+      <h2 className="text-lg md:text-2xl lg:text-4xl font-bold text-green-700 uppercase text-center whitespace-nowrap">
         {title}
       </h2>
 
       {/* Right triangle */}
-      <div className="w-8 md:w-12 h-1 bg-yellow-400 transform skew-x-12"></div>
+      <div className="w-6 md:w-8 lg:w-12 h-1 bg-yellow-400 transform skew-x-12"></div>
     </div>
   );
 }

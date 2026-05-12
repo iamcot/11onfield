@@ -175,7 +175,7 @@ export default function LandingFooter() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 pt-8 border-t border-green-800 text-center text-green-100 text-sm">
+        <div className="mt-8 p-8 border-t border-green-800 text-center text-green-100 text-sm">
           © 2026 11 on Field. All rights reserved.
         </div>
       </div>

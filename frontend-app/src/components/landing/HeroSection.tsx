@@ -12,7 +12,7 @@ export default function HeroSection() {
       <StickyNav />
 
       {/* Hero Content */}
-      <div className="relative h-full flex items-center justify-center px-4">
+      <div className="relative h-full flex items-center justify-center px-4 pt-20 md:pt-0">
         <div className="text-center text-white max-w-4xl mx-auto w-full">
           {/* Banner Text Image */}
           <div className="mb-8 md:mb-12 w-full flex justify-center">
