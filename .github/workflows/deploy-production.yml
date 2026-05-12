@@ -219,6 +219,10 @@ jobs:
           AWS_REGION=${{ secrets.AWS_REGION }}
           AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}
           FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          ZALO_APP_ID=${{ secrets.ZALO_APP_ID }}
+          ZALO_APP_SECRET=${{ secrets.ZALO_APP_SECRET }}
+          ZALO_OTP_TEMPLATE_ID=${{ secrets.ZALO_OTP_TEMPLATE_ID }}
+          ZALO_REDIRECT_URI=${{ secrets.ZALO_REDIRECT_URI }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
           sg 11of-deploy -c "chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env" || true
