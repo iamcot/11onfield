@@ -42,10 +42,32 @@ public class PlayerService {
             .height(playerData.getHeight())
             .weight(playerData.getWeight())
             .preferredFoot(playerData.getPreferredFoot())
+            .level(playerData.getLevel())
+            .bio(playerData.getBio())
+            .personalId(playerData.getPersonalId())
+            .school(playerData.getSchool())
+            .academy(playerData.getAcademy())
+            .club(playerData.getClub())
+            .achievements(playerData.getAchievements() != null ? new java.util.ArrayList<>(playerData.getAchievements()) : new java.util.ArrayList<>())
+            .highlights(playerData.getHighlights() != null ? new java.util.ArrayList<>(playerData.getHighlights()) : new java.util.ArrayList<>())
+            .socials(playerData.getSocials() != null ? new java.util.ArrayList<>(playerData.getSocials()) : new java.util.ArrayList<>())
             .build();
 
+        // Fix player references in child entities (they were referencing the transient playerData)
+        for (com.elevenof.backoffice.model.PlayerAchievement ach : player.getAchievements()) {
+            ach.setPlayer(player);
+        }
+        for (com.elevenof.backoffice.model.PlayerHighlight highlight : player.getHighlights()) {
+            highlight.setPlayer(player);
+        }
+        for (com.elevenof.backoffice.model.PlayerSocial social : player.getSocials()) {
+            social.setPlayer(player);
+        }
+
         Player savedPlayer = playerRepository.save(player);
-        log.info("Created player profile for user ID: {}", userId);
+        log.info("Created player profile for user ID: {} with extended fields (level: {}, school: {}, academy: {}, club: {}, achievements: {}, highlights: {}, socials: {})",
+            userId, player.getLevel(), player.getSchool(), player.getAcademy(), player.getClub(),
+            player.getAchievements().size(), player.getHighlights().size(), player.getSocials().size());
         return savedPlayer;
     }
 

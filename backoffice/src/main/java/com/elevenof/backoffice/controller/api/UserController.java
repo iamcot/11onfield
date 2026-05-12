@@ -596,7 +596,15 @@ public class UserController {
                     sortProperty = sortBy;
             }
 
-            sort = sortOrder.equalsIgnoreCase("desc")
+            // Special case for DOB: reverse the sort order
+            // Because "Age ascending" means older people first (DOB descending)
+            // and "Age descending" means younger people first (DOB ascending)
+            boolean shouldReverse = "dob".equals(sortBy);
+            String effectiveSortOrder = shouldReverse
+                ? (sortOrder.equalsIgnoreCase("desc") ? "asc" : "desc")
+                : sortOrder;
+
+            sort = effectiveSortOrder.equalsIgnoreCase("desc")
                 ? Sort.by(sortProperty).descending()
                 : Sort.by(sortProperty).ascending();
         }
