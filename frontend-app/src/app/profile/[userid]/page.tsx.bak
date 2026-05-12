@@ -12,9 +12,16 @@ import { appConfig } from "@/config/app.config";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
 import { useSidebar } from "@/contexts/SidebarContext";
+import {
+  compressImage,
+  formatFileSize,
+  isValidImageFile,
+  isValidImageSize,
+} from "@/lib/image-utils";
 import { getMockUserByPhone } from "@/mocks/user.mock";
 import { eventService } from "@/services/event.service";
 import { followService } from "@/services/follow.service";
+import { provinceService } from "@/services/province.service";
 import { userService } from "@/services/user.service";
 import { EventListItem } from "@/types/event";
 import { UserListItem } from "@/types/user";
@@ -47,6 +54,16 @@ export default function UserProfilePage() {
   const [activeTab, setActiveTab] = useState<"profile" | "matches" | "events">(
     "profile",
   );
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState<any>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [provinces, setProvinces] = useState<any[]>([]);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(
+    null,
+  );
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
 
   // Follow state
   const [isFollowing, setIsFollowing] = useState(false);
@@ -165,6 +182,208 @@ export default function UserProfilePage() {
     setSidebarView("default");
     setShowRightNav(false);
   };
+
+  const handleOpenEditModal = async () => {
+    // Use currentUser if profileUser is not available (e.g., when opening from other pages)
+    const userToEdit = profileUser || currentUser;
+
+    if (!userToEdit) {
+      console.error("No user data available");
+      return;
+    }
+
+    // Load provinces
+    try {
+      const provinceData = await provinceService.getAllProvinces();
+      setProvinces(provinceData);
+    } catch (error) {
+      console.error("Error loading provinces:", error);
+      setProvinces([]);
+    }
+
+    // Initialize form data with current profile data
+    const formData = {
+      fullName: userToEdit.fullName || "",
+      email: userToEdit.email || "",
+      dob: userToEdit.dob || "",
+      gender: userToEdit.gender || "",
+      provinceId: userToEdit.provinceId ? String(userToEdit.provinceId) : "",
+      // Player-specific fields
+      ...(userToEdit.isPlayer && {
+        height: userToEdit.height ? String(userToEdit.height) : "",
+        weight: userToEdit.weight ? String(userToEdit.weight) : "",
+        preferredFoot: userToEdit.preferredFoot || "",
+        positions: userToEdit.positions || [],
+        level: userToEdit.level || "",
+        bio: userToEdit.bio || "",
+      }),
+    };
+
+    // Set form data and open modal
+    await new Promise((resolve) => {
+      setEditFormData(formData);
+      resolve(undefined);
+    });
+
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    closeEditProfile();
+    // Clear avatar selection
+    if (selectedAvatarFile) {
+      setSelectedAvatarFile(null);
+    }
+    if (avatarPreviewUrl) {
+      URL.revokeObjectURL(avatarPreviewUrl);
+      setAvatarPreviewUrl(null);
+    }
+  };
+
+  const handleEditFormChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+    setEditFormData({
+      ...editFormData,
+      [name]: value,
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setIsSaving(true);
+
+      // Upload avatar first if selected
+      if (selectedAvatarFile) {
+        setUploadProgress("Đang nén ảnh...");
+
+        // Compress image before upload
+        const compressedFile = await compressImage(
+          selectedAvatarFile,
+          800,
+          800,
+          0.8,
+        );
+        console.log(
+          `Original: ${formatFileSize(selectedAvatarFile.size)}, Compressed: ${formatFileSize(compressedFile.size)}`,
+        );
+
+        setUploadProgress("Đang upload ảnh...");
+
+        // Upload to backend
+        await userService.uploadAvatar(compressedFile);
+        setUploadProgress("");
+      }
+
+      // Then update profile data
+      // Filter out empty values to prevent sending empty strings
+      const cleanedData: any = {};
+      Object.keys(editFormData).forEach((key) => {
+        const value = editFormData[key];
+        // Only include non-empty values
+        if (value !== "" && value !== null && value !== undefined) {
+          cleanedData[key] = value;
+        }
+      });
+
+      await userService.updateProfile(cleanedData);
+
+      // Refresh profile data
+      const apiUser = await userService.getUserByUserid(userid);
+      const transformedUser = {
+        username: apiUser.phone,
+        userid: apiUser.userid,
+        fullName: apiUser.fullName,
+        email: apiUser.email,
+        avatar: apiUser.avatar,
+        dob: apiUser.dob,
+        gender: apiUser.gender,
+        province: apiUser.address?.province?.name,
+        provinceId: apiUser.address?.province?.id,
+        address: apiUser.address?.address,
+        ward: apiUser.address?.ward,
+        createdAt: apiUser.createdAt,
+        isPlayer: apiUser.role === "PLAYER",
+        positions: apiUser.positions || [],
+        height: apiUser.height,
+        weight: apiUser.weight,
+        preferredFoot: apiUser.preferredFoot,
+        level: apiUser.level,
+        bio: apiUser.bio,
+        attributes: apiUser.attributes || [],
+      };
+      setProfileUser(transformedUser);
+
+      // Clear avatar selection
+      setSelectedAvatarFile(null);
+      if (avatarPreviewUrl) {
+        URL.revokeObjectURL(avatarPreviewUrl);
+      }
+      setAvatarPreviewUrl(null);
+
+      // Show success notification
+      alert("Cập nhật thông tin thành công!");
+
+      handleCloseEditModal();
+    } catch (err: any) {
+      console.error("Error updating profile:", err);
+      alert(err.message || "Cập nhật thất bại");
+    } finally {
+      setIsSaving(false);
+      setUploadProgress("");
+    }
+  };
+
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!isValidImageFile(file)) {
+      alert("Chỉ chấp nhận file ảnh: JPEG, PNG, GIF, WebP");
+      return;
+    }
+
+    // Validate file size
+    if (!isValidImageSize(file, 20)) {
+      alert(
+        `Kích thước file quá lớn (${formatFileSize(file.size)}). Tối đa 20MB.`,
+      );
+      return;
+    }
+
+    setSelectedAvatarFile(file);
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreviewUrl(previewUrl);
+  };
+
+  const handleAvatarClick = () => {
+    // Trigger hidden file input
+    document.getElementById("avatar-file-input")?.click();
+  };
+
+  const handleCancelAvatarSelection = () => {
+    setSelectedAvatarFile(null);
+    if (avatarPreviewUrl) {
+      URL.revokeObjectURL(avatarPreviewUrl);
+    }
+    setAvatarPreviewUrl(null);
+  };
+
+  // Register callback for edit profile from context
+  useEffect(() => {
+    const isOwn = currentUser?.userid === profileUser?.userid;
+    if (profileUser && isOwn) {
+      setOpenCallback(handleOpenEditModal);
+    }
+    return () => setOpenCallback(null);
+  }, [profileUser, currentUser]);
 
   useEffect(() => {
     if (!authLoading && userid) {
@@ -1379,8 +1598,423 @@ export default function UserProfilePage() {
         </aside>
       )}
 
-      {/* Edit Profile Handler Component */}
-      <EditProfileHandler />
+      {/* Edit Profile Modal */}
+      {showEditModal && editFormData.fullName && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div
+            className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            key={editFormData.fullName}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">
+                Chỉnh sửa hồ sơ
+              </h3>
+              <button
+                onClick={handleCloseEditModal}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Avatar Upload Section */}
+              <div className="border-b pb-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                  Ảnh đại diện
+                </h4>
+
+                <div className="flex items-center gap-6">
+                  {/* Avatar Preview */}
+                  <div className="relative">
+                    {avatarPreviewUrl || profileUser.avatar ? (
+                      <img
+                        src={avatarPreviewUrl || profileUser.avatar}
+                        alt="Avatar"
+                        className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-green-200 flex items-center justify-center text-2xl font-bold text-green-600">
+                        {profileUser.fullName?.charAt(0) ||
+                          profileUser.username.charAt(0)}
+                      </div>
+                    )}
+
+                    {/* Clickable overlay */}
+                    <button
+                      onClick={handleAvatarClick}
+                      disabled={isUploadingAvatar}
+                      className="absolute inset-0 rounded-full bg-black bg-opacity-0 hover:bg-opacity-30 transition flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                      title="Chọn ảnh"
+                    >
+                      <span className="opacity-0 hover:opacity-100 text-white text-sm font-medium">
+                        Đổi ảnh
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Upload Controls */}
+                  <div className="flex-1">
+                    {selectedAvatarFile ? (
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-700">
+                          <span className="font-medium">
+                            {selectedAvatarFile.name}
+                          </span>
+                          <span className="text-gray-500 ml-2">
+                            ({formatFileSize(selectedAvatarFile.size)})
+                          </span>
+                        </p>
+
+                        {uploadProgress && (
+                          <p className="text-sm text-green-600 font-medium">
+                            {uploadProgress}
+                          </p>
+                        )}
+
+                        <button
+                          onClick={handleAvatarClick}
+                          disabled={isUploadingAvatar}
+                          className="text-sm text-green-600 hover:text-green-700 disabled:opacity-50"
+                        >
+                          Chọn ảnh khác
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <button
+                          onClick={handleAvatarClick}
+                          disabled={isUploadingAvatar}
+                          className="px-4 py-2 btn-primary text-white rounded-md transition disabled:opacity-50 text-sm"
+                        >
+                          Chọn ảnh mới
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2">
+                          JPEG, PNG, GIF, WebP. Tối đa 20MB.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hidden file input */}
+                  <input
+                    id="avatar-file-input"
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleAvatarFileChange}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
+              {/* User Info Section */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                  Thông tin cơ bản
+                </h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Họ và tên *
+                    </label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={editFormData.fullName || ""}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Nhập họ và tên"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={editFormData.email || ""}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="email@example.com"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ngày sinh
+                      </label>
+                      <input
+                        type="date"
+                        name="dob"
+                        value={editFormData.dob || ""}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Giới tính
+                      </label>
+                      <select
+                        name="gender"
+                        value={editFormData.gender || ""}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="">Chọn giới tính</option>
+                        <option value="MALE">Nam</option>
+                        <option value="FEMALE">Nữ</option>
+                        <option value="OTHER">Khác</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tỉnh/Thành phố
+                    </label>
+                    <select
+                      name="provinceId"
+                      value={editFormData.provinceId || ""}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="">Chọn tỉnh/thành phố</option>
+                      {provinces.map((province) => (
+                        <option key={province.id} value={province.id}>
+                          {province.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Player Info Section - Only show if user is a player */}
+              {profileUser.isPlayer && (
+                <div className="border-t pt-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                    Thông tin cầu thủ
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Chiều cao (cm)
+                        </label>
+                        <input
+                          type="number"
+                          name="height"
+                          value={editFormData.height || ""}
+                          onChange={handleEditFormChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          placeholder="170"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Cân nặng (kg)
+                        </label>
+                        <input
+                          type="number"
+                          name="weight"
+                          value={editFormData.weight || ""}
+                          onChange={handleEditFormChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          placeholder="65"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Vị trí thi đấu
+                      </label>
+                      <div className="mt-1 relative">
+                        <div className="min-h-[42px] w-full px-3 py-2 border border-gray-300 bg-white rounded-md focus-within:ring-green-500 focus-within:border-green-500">
+                          {/* Selected positions as tags inside the box */}
+                          {(editFormData.positions || []).length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              {(editFormData.positions || []).map(
+                                (positionValue: string) => {
+                                  const positionOptions = [
+                                    { value: "striker", label: "Tiền đạo" },
+                                    { value: "midfielder", label: "Tiền vệ" },
+                                    { value: "centerback", label: "Trung vệ" },
+                                    { value: "defender", label: "Hậu vệ" },
+                                    { value: "goalkeeper", label: "Thủ môn" },
+                                  ];
+                                  const option = positionOptions.find(
+                                    (opt) => opt.value === positionValue,
+                                  );
+                                  return (
+                                    <span
+                                      key={positionValue}
+                                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+                                    >
+                                      {option?.label}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const newPositions = (
+                                            editFormData.positions || []
+                                          ).filter(
+                                            (p: string) => p !== positionValue,
+                                          );
+                                          setEditFormData({
+                                            ...editFormData,
+                                            positions: newPositions,
+                                          });
+                                        }}
+                                        className="ml-1 inline-flex items-center justify-center w-3 h-3 text-green-600 hover:text-green-800 focus:outline-none"
+                                      >
+                                        <span className="sr-only">
+                                          Remove {option?.label}
+                                        </span>
+                                        <svg
+                                          className="w-2.5 h-2.5"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                      </button>
+                                    </span>
+                                  );
+                                },
+                              )}
+                            </div>
+                          )}
+
+                          {/* Dropdown select */}
+                          <select
+                            value=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const currentPositions =
+                                  editFormData.positions || [];
+                                if (
+                                  !currentPositions.includes(e.target.value)
+                                ) {
+                                  setEditFormData({
+                                    ...editFormData,
+                                    positions: [
+                                      ...currentPositions,
+                                      e.target.value,
+                                    ],
+                                  });
+                                }
+                              }
+                            }}
+                            className="w-full border-none focus:ring-0 focus:outline-none p-0 text-sm"
+                          >
+                            <option value="">Chọn vị trí thi đấu</option>
+                            {[
+                              { value: "striker", label: "Tiền đạo" },
+                              { value: "midfielder", label: "Tiền vệ" },
+                              { value: "centerback", label: "Trung vệ" },
+                              { value: "defender", label: "Hậu vệ" },
+                              { value: "goalkeeper", label: "Thủ môn" },
+                            ].map((option) => (
+                              <option
+                                key={option.value}
+                                value={option.value}
+                                disabled={(
+                                  editFormData.positions || []
+                                ).includes(option.value)}
+                              >
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Chân thuận
+                      </label>
+                      <select
+                        name="preferredFoot"
+                        value={editFormData.preferredFoot || ""}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="">Chọn chân thuận</option>
+                        <option value="left">Trái</option>
+                        <option value="right">Phải</option>
+                        <option value="both">Cả hai</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Cấp độ
+                      </label>
+                      <select
+                        name="level"
+                        value={editFormData.level || ""}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="">Chọn cấp độ</option>
+                        <option value="CAU_THU_MOI">Cầu thủ mới</option>
+                        <option value="NGHIEP_DU">Nghiệp dư</option>
+                        <option value="TUYEN_TRE">Tuyển trẻ</option>
+                        <option value="CHUYEN_NGHIEP">Chuyên nghiệp</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Tiểu sử
+                      </label>
+                      <textarea
+                        name="bio"
+                        value={editFormData.bio || ""}
+                        onChange={handleEditFormChange}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Mô tả ngắn về bản thân..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
+              <button
+                onClick={handleCloseEditModal}
+                disabled={isSaving}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={isSaving}
+                className="px-4 py-2 btn-primary text-white rounded-md transition disabled:opacity-50"
+              >
+                {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Bottom Navigation - Only visible on mobile */}
       <MobileNav backgroundImage="/images/ground.jpg" />

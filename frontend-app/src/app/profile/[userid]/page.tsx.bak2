@@ -12,9 +12,16 @@ import { appConfig } from "@/config/app.config";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
 import { useSidebar } from "@/contexts/SidebarContext";
+import {
+  compressImage,
+  formatFileSize,
+  isValidImageFile,
+  isValidImageSize,
+} from "@/lib/image-utils";
 import { getMockUserByPhone } from "@/mocks/user.mock";
 import { eventService } from "@/services/event.service";
 import { followService } from "@/services/follow.service";
+import { provinceService } from "@/services/province.service";
 import { userService } from "@/services/user.service";
 import { EventListItem } from "@/types/event";
 import { UserListItem } from "@/types/user";
@@ -165,6 +172,208 @@ export default function UserProfilePage() {
     setSidebarView("default");
     setShowRightNav(false);
   };
+
+  const handleOpenEditModal = async () => {
+    // Use currentUser if profileUser is not available (e.g., when opening from other pages)
+    const userToEdit = profileUser || currentUser;
+
+    if (!userToEdit) {
+      console.error("No user data available");
+      return;
+    }
+
+    // Load provinces
+    try {
+      const provinceData = await provinceService.getAllProvinces();
+      setProvinces(provinceData);
+    } catch (error) {
+      console.error("Error loading provinces:", error);
+      setProvinces([]);
+    }
+
+    // Initialize form data with current profile data
+    const formData = {
+      fullName: userToEdit.fullName || "",
+      email: userToEdit.email || "",
+      dob: userToEdit.dob || "",
+      gender: userToEdit.gender || "",
+      provinceId: userToEdit.provinceId ? String(userToEdit.provinceId) : "",
+      // Player-specific fields
+      ...(userToEdit.isPlayer && {
+        height: userToEdit.height ? String(userToEdit.height) : "",
+        weight: userToEdit.weight ? String(userToEdit.weight) : "",
+        preferredFoot: userToEdit.preferredFoot || "",
+        positions: userToEdit.positions || [],
+        level: userToEdit.level || "",
+        bio: userToEdit.bio || "",
+      }),
+    };
+
+    // Set form data and open modal
+    await new Promise((resolve) => {
+      setEditFormData(formData);
+      resolve(undefined);
+    });
+
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    closeEditProfile();
+    // Clear avatar selection
+    if (selectedAvatarFile) {
+      setSelectedAvatarFile(null);
+    }
+    if (avatarPreviewUrl) {
+      URL.revokeObjectURL(avatarPreviewUrl);
+      setAvatarPreviewUrl(null);
+    }
+  };
+
+  const handleEditFormChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+    setEditFormData({
+      ...editFormData,
+      [name]: value,
+    });
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setIsSaving(true);
+
+      // Upload avatar first if selected
+      if (selectedAvatarFile) {
+        setUploadProgress("Đang nén ảnh...");
+
+        // Compress image before upload
+        const compressedFile = await compressImage(
+          selectedAvatarFile,
+          800,
+          800,
+          0.8,
+        );
+        console.log(
+          `Original: ${formatFileSize(selectedAvatarFile.size)}, Compressed: ${formatFileSize(compressedFile.size)}`,
+        );
+
+        setUploadProgress("Đang upload ảnh...");
+
+        // Upload to backend
+        await userService.uploadAvatar(compressedFile);
+        setUploadProgress("");
+      }
+
+      // Then update profile data
+      // Filter out empty values to prevent sending empty strings
+      const cleanedData: any = {};
+      Object.keys(editFormData).forEach((key) => {
+        const value = editFormData[key];
+        // Only include non-empty values
+        if (value !== "" && value !== null && value !== undefined) {
+          cleanedData[key] = value;
+        }
+      });
+
+      await userService.updateProfile(cleanedData);
+
+      // Refresh profile data
+      const apiUser = await userService.getUserByUserid(userid);
+      const transformedUser = {
+        username: apiUser.phone,
+        userid: apiUser.userid,
+        fullName: apiUser.fullName,
+        email: apiUser.email,
+        avatar: apiUser.avatar,
+        dob: apiUser.dob,
+        gender: apiUser.gender,
+        province: apiUser.address?.province?.name,
+        provinceId: apiUser.address?.province?.id,
+        address: apiUser.address?.address,
+        ward: apiUser.address?.ward,
+        createdAt: apiUser.createdAt,
+        isPlayer: apiUser.role === "PLAYER",
+        positions: apiUser.positions || [],
+        height: apiUser.height,
+        weight: apiUser.weight,
+        preferredFoot: apiUser.preferredFoot,
+        level: apiUser.level,
+        bio: apiUser.bio,
+        attributes: apiUser.attributes || [],
+      };
+      setProfileUser(transformedUser);
+
+      // Clear avatar selection
+      setSelectedAvatarFile(null);
+      if (avatarPreviewUrl) {
+        URL.revokeObjectURL(avatarPreviewUrl);
+      }
+      setAvatarPreviewUrl(null);
+
+      // Show success notification
+      alert("Cập nhật thông tin thành công!");
+
+      handleCloseEditModal();
+    } catch (err: any) {
+      console.error("Error updating profile:", err);
+      alert(err.message || "Cập nhật thất bại");
+    } finally {
+      setIsSaving(false);
+      setUploadProgress("");
+    }
+  };
+
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!isValidImageFile(file)) {
+      alert("Chỉ chấp nhận file ảnh: JPEG, PNG, GIF, WebP");
+      return;
+    }
+
+    // Validate file size
+    if (!isValidImageSize(file, 20)) {
+      alert(
+        `Kích thước file quá lớn (${formatFileSize(file.size)}). Tối đa 20MB.`,
+      );
+      return;
+    }
+
+    setSelectedAvatarFile(file);
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreviewUrl(previewUrl);
+  };
+
+  const handleAvatarClick = () => {
+    // Trigger hidden file input
+    document.getElementById("avatar-file-input")?.click();
+  };
+
+  const handleCancelAvatarSelection = () => {
+    setSelectedAvatarFile(null);
+    if (avatarPreviewUrl) {
+      URL.revokeObjectURL(avatarPreviewUrl);
+    }
+    setAvatarPreviewUrl(null);
+  };
+
+  // Register callback for edit profile from context
+  useEffect(() => {
+    const isOwn = currentUser?.userid === profileUser?.userid;
+    if (profileUser && isOwn) {
+      setOpenCallback(handleOpenEditModal);
+    }
+    return () => setOpenCallback(null);
+  }, [profileUser, currentUser]);
 
   useEffect(() => {
     if (!authLoading && userid) {
