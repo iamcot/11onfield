@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import StickyNav from "./StickyNav";
@@ -31,13 +33,36 @@ export default function HeroSection() {
                   sizes="(max-width: 768px) 200px, 200px"
                 />
               </div>
+
               <Link href="/auth/register" className="w-full">
-                <img
-                  src="/images/btn-register.png"
-                  alt="Đăng ký ngay"
-                  className="w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                />
+                <div className="relative overflow-hidden">
+                  <img
+                    src="/images/btn-register.png"
+                    alt="Đăng ký ngay"
+                    className="w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                  />
+                  {/* Shine effect */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 45%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.3) 55%, transparent 100%)',
+                      animation: 'shine 3s infinite',
+                      animationDelay: '1s'
+                    }}
+                  />
+                </div>
               </Link>
+
+              <style jsx>{`
+                @keyframes shine {
+                  0% {
+                    transform: translateX(-100%) skewX(-15deg);
+                  }
+                  100% {
+                    transform: translateX(200%) skewX(-15deg);
+                  }
+                }
+              `}</style>
             </div>
           </div>
         </div>
