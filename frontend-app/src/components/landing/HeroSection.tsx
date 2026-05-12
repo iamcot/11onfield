@@ -16,8 +16,8 @@ export default function HeroSection() {
       <div className="relative h-full flex items-center justify-center px-4 pt-4 md:pt-0">
         <div className="text-center text-white max-w-4xl mx-auto w-full">
           {/* Banner Text Image */}
-          <div className="mb-6 md:mb-12 w-full flex justify-center max-h-[calc(75vh-200px)]">
-            <div className="flex flex-col items-center gap-3 w-full max-w-[180px] md:max-w-[240px] mr-12 md:mr-32 h-full">
+          <div className="mb-4 md:mb-12 w-full flex justify-center max-h-[calc(75vh-280px)] md:max-h-[calc(75vh-200px)]">
+            <div className="flex flex-col items-center gap-2 md:gap-3 w-full max-w-[130px] md:max-w-[240px] mr-12 md:mr-32 h-full">
               <div className="w-full h-auto max-h-full relative" style={{ aspectRatio: '503/761' }}>
                 <Image
                   src="/images/banner-text.png"
@@ -25,10 +25,10 @@ export default function HeroSection() {
                   fill
                   className="object-contain"
                   priority
-                  sizes="(max-width: 768px) 180px, 240px"
+                  sizes="(max-width: 768px) 130px, 240px"
                 />
               </div>
-              <Link href="/auth/register" className="w-[85%] md:w-full">
+              <Link href="/auth/register" className="w-[80%] md:w-full">
                 <img
                   src="/images/btn-register.png"
                   alt="Đăng ký ngay"
