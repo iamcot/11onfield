@@ -231,6 +231,12 @@ jobs:
 
       - name: Deploy backend
         run: |
+          # Copy backoffice scripts to a temporary location for deployment
+          if [ -d "backoffice/scripts" ]; then
+            mkdir -p /tmp/backoffice-scripts
+            cp -r backoffice/scripts/* /tmp/backoffice-scripts/
+          fi
+
           bash ${{ env.DEPLOY_PATH }}/scripts/deploy-backend.sh \
             /tmp/artifacts/backend/backoffice-0.0.1-SNAPSHOT.jar
 

@@ -17,11 +17,12 @@ cp "${ARTIFACT_PATH}" "${RELEASE_PATH}/backoffice.jar"
 cp "${DEPLOY_PATH}/.env" "${RELEASE_PATH}/.env"
 
 # Copy utility scripts from backoffice/scripts if they exist
-if [ -d "backoffice/scripts" ]; then
+if [ -d "/tmp/backoffice-scripts" ]; then
   echo "Copying utility scripts..."
-  cp -r backoffice/scripts/* "${RELEASE_PATH}/scripts/"
+  cp -r /tmp/backoffice-scripts/* "${RELEASE_PATH}/scripts/"
   chmod +x "${RELEASE_PATH}/scripts/"*.sh 2>/dev/null || true
   echo "✓ Utility scripts copied"
+  rm -rf /tmp/backoffice-scripts
 fi
 
 # Update symlink atomically (zero downtime)
