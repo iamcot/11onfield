@@ -181,8 +181,10 @@ function EventsContent() {
             className="absolute inset-0 bg-cover bg-bottom"
             style={{ backgroundImage: `url(/images/ground.jpg)` }}
           >
-            {/* Gradient overlay fade to white at top */}
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/50 to-white"></div>
+            {/* Primary color overlay - dark at bottom, fade to transparent at top */}
+            <div className="absolute inset-0 bg-gradient-to-t from-green-900/60 via-green-900/20 to-transparent"></div>
+            {/* White fade overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/30 to-white"></div>
           </div>
         </div>
 

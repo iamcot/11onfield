@@ -185,7 +185,7 @@ export default function RegisterPage() {
                 Hoặc{" "}
                 <Link
                   href="/auth/login"
-                  className="font-medium text-orange-600 hover:text-orange-500"
+                  className="font-medium text-green-700 hover:text-green-600"
                 >
                   đăng nhập tài khoản có sẵn
                 </Link>
@@ -216,7 +216,7 @@ export default function RegisterPage() {
                     required
                     value={formData.fullName}
                     onChange={handleChange}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     placeholder="Nhập họ và tên"
                   />
                   {fieldErrors.fullName && (
@@ -241,7 +241,7 @@ export default function RegisterPage() {
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     placeholder="0123456789"
                   />
                   {fieldErrors.phone && (
@@ -266,7 +266,7 @@ export default function RegisterPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     placeholder="Nhập mật khẩu"
                   />
                   {fieldErrors.password && (
@@ -291,7 +291,7 @@ export default function RegisterPage() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     placeholder="Nhập lại mật khẩu"
                   />
                   {fieldErrors.confirmPassword && (
@@ -316,7 +316,7 @@ export default function RegisterPage() {
                   required
                   value={formData.provinceId}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                 >
                   <option value="">-- Chọn tỉnh/thành phố --</option>
                   {provinces.map((province) => (
@@ -364,7 +364,7 @@ export default function RegisterPage() {
 
                     {/* Dropdown with selected positions inside */}
                     <div className="mt-1 relative">
-                      <div className="min-h-[42px] w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus-within:ring-orange-500 focus-within:border-orange-500">
+                      <div className="min-h-[42px] w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus-within:ring-green-700 focus-within:border-green-700">
                         {/* Selected positions as tags inside the box */}
                         {formData.positions.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-2">
@@ -376,7 +376,7 @@ export default function RegisterPage() {
                               return (
                                 <span
                                   key={positionValue}
-                                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800"
+                                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
                                 >
                                   {option?.label}
                                   <button
@@ -384,7 +384,7 @@ export default function RegisterPage() {
                                     onClick={() =>
                                       removePosition(positionValue)
                                     }
-                                    className="ml-1 inline-flex items-center justify-center w-3 h-3 text-orange-600 hover:text-orange-800 focus:outline-none"
+                                    className="ml-1 inline-flex items-center justify-center w-3 h-3 text-green-700 hover:text-green-900 focus:outline-none"
                                   >
                                     <span className="sr-only">
                                       Remove {option?.label}
@@ -451,7 +451,7 @@ export default function RegisterPage() {
                         type="number"
                         value={formData.height}
                         onChange={handleChange}
-                        className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                        className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                         placeholder="170"
                       />
                     </div>
@@ -469,7 +469,7 @@ export default function RegisterPage() {
                         type="number"
                         value={formData.weight}
                         onChange={handleChange}
-                        className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                        className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                         placeholder="65"
                       />
                     </div>
@@ -487,7 +487,7 @@ export default function RegisterPage() {
                       name="preferredFoot"
                       value={formData.preferredFoot}
                       onChange={handleChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     >
                       <option value="">Chọn chân thuận</option>
                       {registerConfig.preferredFootOptions.map((option) => (
@@ -512,7 +512,7 @@ export default function RegisterPage() {
                       autoComplete="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                       placeholder="email@example.com"
                     />
                   </div>
@@ -521,19 +521,19 @@ export default function RegisterPage() {
 
               {/* Terms and Conditions */}
               <div className="pt-4">
-                <label className="flex items-start">
+                <label className="flex items-center">
                   <input
                     type="checkbox"
                     checked={acceptedTerms}
                     onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
                   />
                   <span className="ml-2 text-sm text-gray-700">
                     Tôi đồng ý với{" "}
                     <Link
                       href="/terms"
                       target="_blank"
-                      className="text-orange-600 hover:text-orange-500 underline"
+                      className="text-green-700 hover:text-green-600 underline"
                     >
                       điều khoản và điều kiện
                     </Link>
@@ -546,7 +546,7 @@ export default function RegisterPage() {
                 <button
                   type="submit"
                   disabled={isLoading || !acceptedTerms}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:bg-orange-300 disabled:cursor-not-allowed"
+                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white btn-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? "Đang đăng ký..." : "Đăng ký"}
                 </button>
@@ -591,7 +591,7 @@ export default function RegisterPage() {
                 Hoặc{" "}
                 <Link
                   href="/auth/login"
-                  className="font-medium text-orange-600 hover:text-orange-500"
+                  className="font-medium text-green-700 hover:text-green-600"
                 >
                   đăng nhập tài khoản có sẵn
                 </Link>
@@ -622,7 +622,7 @@ export default function RegisterPage() {
                     required
                     value={formData.fullName}
                     onChange={handleChange}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     placeholder="Nhập họ và tên"
                   />
                   {fieldErrors.fullName && (
@@ -647,7 +647,7 @@ export default function RegisterPage() {
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     placeholder="0123456789"
                   />
                   {fieldErrors.phone && (
@@ -672,7 +672,7 @@ export default function RegisterPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     placeholder="Nhập mật khẩu"
                   />
                   {fieldErrors.password && (
@@ -697,7 +697,7 @@ export default function RegisterPage() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     placeholder="Nhập lại mật khẩu"
                   />
                   {fieldErrors.confirmPassword && (
@@ -722,7 +722,7 @@ export default function RegisterPage() {
                   required
                   value={formData.provinceId}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                 >
                   <option value="">-- Chọn tỉnh/thành phố --</option>
                   {provinces.map((province) => (
@@ -770,7 +770,7 @@ export default function RegisterPage() {
 
                     {/* Dropdown with selected positions inside */}
                     <div className="mt-1 relative">
-                      <div className="min-h-[42px] w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus-within:ring-orange-500 focus-within:border-orange-500">
+                      <div className="min-h-[42px] w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus-within:ring-green-700 focus-within:border-green-700">
                         {/* Selected positions as tags inside the box */}
                         {formData.positions.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-2">
@@ -782,7 +782,7 @@ export default function RegisterPage() {
                               return (
                                 <span
                                   key={positionValue}
-                                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800"
+                                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
                                 >
                                   {option?.label}
                                   <button
@@ -790,7 +790,7 @@ export default function RegisterPage() {
                                     onClick={() =>
                                       removePosition(positionValue)
                                     }
-                                    className="ml-1 inline-flex items-center justify-center w-3 h-3 text-orange-600 hover:text-orange-800 focus:outline-none"
+                                    className="ml-1 inline-flex items-center justify-center w-3 h-3 text-green-700 hover:text-green-900 focus:outline-none"
                                   >
                                     <span className="sr-only">
                                       Remove {option?.label}
@@ -857,7 +857,7 @@ export default function RegisterPage() {
                         type="number"
                         value={formData.height}
                         onChange={handleChange}
-                        className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                        className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                         placeholder="170"
                       />
                     </div>
@@ -875,7 +875,7 @@ export default function RegisterPage() {
                         type="number"
                         value={formData.weight}
                         onChange={handleChange}
-                        className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                        className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                         placeholder="65"
                       />
                     </div>
@@ -893,7 +893,7 @@ export default function RegisterPage() {
                       name="preferredFoot"
                       value={formData.preferredFoot}
                       onChange={handleChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                     >
                       <option value="">Chọn chân thuận</option>
                       {registerConfig.preferredFootOptions.map((option) => (
@@ -918,7 +918,7 @@ export default function RegisterPage() {
                       autoComplete="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                      className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
                       placeholder="email@example.com"
                     />
                   </div>
@@ -927,19 +927,19 @@ export default function RegisterPage() {
 
               {/* Terms and Conditions */}
               <div className="pt-4">
-                <label className="flex items-start">
+                <label className="flex items-center">
                   <input
                     type="checkbox"
                     checked={acceptedTerms}
                     onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-1 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
                   />
                   <span className="ml-2 text-sm text-gray-700">
                     Tôi đồng ý với{" "}
                     <Link
                       href="/terms"
                       target="_blank"
-                      className="text-orange-600 hover:text-orange-500 underline"
+                      className="text-green-700 hover:text-green-600 underline"
                     >
                       điều khoản và điều kiện
                     </Link>
@@ -952,7 +952,7 @@ export default function RegisterPage() {
                 <button
                   type="submit"
                   disabled={isLoading || !acceptedTerms}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:bg-orange-300 disabled:cursor-not-allowed"
+                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white btn-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? "Đang đăng ký..." : "Đăng ký"}
                 </button>

@@ -588,7 +588,7 @@ export default function UserProfilePage() {
         {(sidebarView === "followers" || sidebarView === "following") && (
           <div>
             {/* Header */}
-            <div className="bg-gradient-to-r from-green-500 to-green-300 p-4">
+            <div className="bg-gradient-to-r from-green-900 via-green-800 to-green-950 p-4">
               <h2 className="text-white text-lg font-semibold">
                 {sidebarView === "followers" ? "Người theo dõi" : "Đang theo dõi"}
               </h2>
@@ -653,8 +653,10 @@ export default function UserProfilePage() {
             className="absolute inset-0 bg-cover bg-bottom"
             style={{ backgroundImage: `url(/images/ground.jpg)` }}
           >
-            {/* Gradient overlay fade to white at top */}
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/50 to-white"></div>
+            {/* Primary color overlay - dark at bottom, fade to transparent at top */}
+            <div className="absolute inset-0 bg-gradient-to-t from-green-900/60 via-green-900/20 to-transparent"></div>
+            {/* White fade overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/30 to-white"></div>
           </div>
         </div>
 
@@ -1500,7 +1502,7 @@ export default function UserProfilePage() {
                         <button
                           onClick={handleAvatarClick}
                           disabled={isUploadingAvatar}
-                          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm"
+                          className="px-4 py-2 btn-primary text-white rounded-md transition disabled:opacity-50 text-sm"
                         >
                           Chọn ảnh mới
                         </button>
@@ -1802,7 +1804,7 @@ export default function UserProfilePage() {
               <button
                 onClick={handleSaveProfile}
                 disabled={isSaving}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                className="px-4 py-2 btn-primary text-white rounded-md transition disabled:opacity-50"
               >
                 {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
               </button>

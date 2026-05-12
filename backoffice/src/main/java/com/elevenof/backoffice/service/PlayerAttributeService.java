@@ -1,5 +1,6 @@
 package com.elevenof.backoffice.service;
 
+import com.elevenof.backoffice.dto.response.PlayerAttributeDTO;
 import com.elevenof.backoffice.model.Player;
 import com.elevenof.backoffice.model.PlayerAttribute;
 import com.elevenof.backoffice.model.PlayerAttributeType;
@@ -29,6 +30,15 @@ public class PlayerAttributeService {
 
     public List<PlayerAttribute> getPlayerAttributes(Long playerId) {
         return attributeRepository.findByPlayerId(playerId);
+    }
+
+    /**
+     * Get hexagon attributes with values for a player
+     * Always returns 6 hexagon attributes (left join with attribute types)
+     * If player has no value for an attribute, attributeValue will be null
+     */
+    public List<PlayerAttributeDTO> getHexagonAttributesWithValues(Long playerId) {
+        return attributeRepository.getHexagonAttributesWithValues(playerId);
     }
 
     public Map<String, Integer> getPlayerAttributesAsMap(Long playerId) {

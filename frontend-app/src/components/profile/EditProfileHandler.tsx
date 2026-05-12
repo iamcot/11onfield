@@ -243,7 +243,7 @@ export default function EditProfileHandler() {
                   <div>
                     <button
                       onClick={handleAvatarClick}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+                      className="px-4 py-2 btn-primary text-white rounded-md transition text-sm"
                     >
                       Chọn ảnh mới
                     </button>
@@ -534,7 +534,7 @@ export default function EditProfileHandler() {
           <button
             onClick={handleSaveProfile}
             disabled={isSaving}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+            className="px-4 py-2 btn-primary text-white rounded-md transition disabled:opacity-50"
           >
             {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
           </button>

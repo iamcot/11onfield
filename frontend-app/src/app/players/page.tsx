@@ -1,11 +1,11 @@
 "use client";
 
+import HexagonChart from "@/components/HexagonChart";
 import MobileNav from "@/components/layout/MobileNav";
 import RightNavigator from "@/components/layout/RightNavigator";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
-import HexagonChart from "@/components/HexagonChart";
 import PlayerCard from "@/components/PlayerCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -40,7 +40,7 @@ function PlayersContent() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showRightNav, setShowRightNav] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [viewMode, setViewMode] = useState<"list" | "card">("list");
+  const [viewMode, setViewMode] = useState<"list" | "card">("card");
 
   const handleLogout = () => {
     logout();
@@ -191,13 +191,17 @@ function PlayersContent() {
 
       <main className="flex-1 overflow-auto pb-16 pt-20 md:pb-0 md:pt-16 relative">
         {/* Background image at bottom */}
-        <div className={`fixed bottom-0 left-0 right-0 h-48 pointer-events-none z-0 transition-all duration-300 ${isCollapsed ? 'md:left-16' : 'md:left-64'}`}>
+        <div
+          className={`fixed bottom-0 left-0 right-0 h-64 pointer-events-none z-0 transition-all duration-300 ${isCollapsed ? "md:left-16" : "md:left-64"}`}
+        >
           <div
             className="absolute inset-0 bg-cover bg-bottom"
             style={{ backgroundImage: `url(/images/ground.jpg)` }}
           >
-            {/* Gradient overlay fade to white at top */}
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/50 to-white"></div>
+            {/* Primary color overlay - dark at bottom, fade to transparent at top */}
+            <div className="absolute inset-0 bg-gradient-to-t from-green-900/60 via-green-900/20 to-transparent"></div>
+            {/* White fade overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/30 to-white"></div>
           </div>
         </div>
 
@@ -231,8 +235,18 @@ function PlayersContent() {
                   className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
                   aria-label="Sắp xếp"
                 >
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                  <svg
+                    className="w-5 h-5 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                    />
                   </svg>
                 </button>
 
@@ -296,17 +310,39 @@ function PlayersContent() {
 
               {/* View Mode Toggle */}
               <button
-                onClick={() => setViewMode(viewMode === "list" ? "card" : "list")}
+                onClick={() =>
+                  setViewMode(viewMode === "list" ? "card" : "list")
+                }
                 className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
                 aria-label="Chuyển chế độ xem"
               >
                 {viewMode === "list" ? (
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  <svg
+                    className="w-5 h-5 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                    />
                   </svg>
                 ) : (
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <svg
+                    className="w-5 h-5 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
                   </svg>
                 )}
               </button>
@@ -324,10 +360,10 @@ function PlayersContent() {
                 }
                 className="flex-shrink-0 px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
                 style={{
-                  colorScheme: 'light',
-                  backgroundColor: 'white',
-                  color: '#374151',
-                  WebkitTextFillColor: '#374151'
+                  colorScheme: "light",
+                  backgroundColor: "white",
+                  color: "#374151",
+                  WebkitTextFillColor: "#374151",
                 }}
               >
                 <option value="">Vị trí</option>
@@ -404,17 +440,39 @@ function PlayersContent() {
 
               {/* View Mode Toggle */}
               <button
-                onClick={() => setViewMode(viewMode === "list" ? "card" : "list")}
+                onClick={() =>
+                  setViewMode(viewMode === "list" ? "card" : "list")
+                }
                 className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
                 aria-label="Chuyển chế độ xem"
               >
                 {viewMode === "list" ? (
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  <svg
+                    className="w-5 h-5 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                    />
                   </svg>
                 ) : (
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <svg
+                    className="w-5 h-5 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
                   </svg>
                 )}
               </button>
@@ -509,7 +567,9 @@ function PlayersContent() {
 
           {/* Players Content */}
           {isLoading ? (
-            <div className="p-8 text-center text-gray-500 bg-white rounded-lg shadow">Đang tải...</div>
+            <div className="p-8 text-center text-gray-500 bg-white rounded-lg shadow">
+              Đang tải...
+            </div>
           ) : players.length === 0 ? (
             <div className="p-8 text-center text-gray-500 bg-white rounded-lg shadow">
               Không tìm thấy cầu thủ nào
@@ -522,125 +582,239 @@ function PlayersContent() {
                   /* Desktop Table View */
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Chỉ số
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Avatar
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Tên
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Tuổi
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Chiều cao
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Cân nặng
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Vị trí
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Chân thuận
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Cấp độ
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Tỉnh/TP
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {players.map((player) => (
-                        <tr
-                          key={player.id}
-                          onClick={() => handleRowClick(player.userid)}
-                          className="hover:bg-gray-50 cursor-pointer transition"
-                        >
-                          <td className="px-4 py-3">
-                            {player.attributes && player.attributes.length > 0 ? (
-                              <HexagonChart
-                                attributes={player.attributes}
-                                size={60}
-                                showLabels={false}
-                              />
-                            ) : (
-                              <div className="w-[60px] h-[60px]" />
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            {player.avatar ? (
-                              <img
-                                src={player.avatar}
-                                alt={player.fullName}
-                                className="w-10 h-10 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-sm font-bold text-green-600">
-                                {player.fullName?.charAt(0) || "?"}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                            {player.fullName}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {player.age || "N/A"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {player.height ? `${player.height} cm` : "N/A"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {player.weight ? `${player.weight} kg` : "N/A"}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex gap-1 flex-wrap">
-                              {player.positions.slice(0, 2).map((pos) => (
-                                <span
-                                  key={pos}
-                                  className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                                >
-                                  {getPositionDisplayName(pos)}
-                                </span>
-                              ))}
-                              {player.positions.length > 2 && (
-                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                                  +{player.positions.length - 2}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {player.preferredFoot
-                              ? getPreferredFootDisplayName(
-                                  player.preferredFoot,
-                                )
-                              : "N/A"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {player.level
-                              ? getLevelDisplayName(player.level)
-                              : "N/A"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
-                            {player.provinceName || "N/A"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      <table className="w-full">
+                        <thead className="bg-gray-50 border-b">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Chỉ số
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Avatar
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Tên
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Tuổi
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Chiều cao
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Cân nặng
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Vị trí
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Chân thuận
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Cấp độ
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Tỉnh/TP
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {players.map((player) => (
+                            <tr
+                              key={player.id}
+                              onClick={() => handleRowClick(player.userid)}
+                              className="hover:bg-gray-50 cursor-pointer transition"
+                            >
+                              <td className="px-4 py-3">
+                                {player.attributes &&
+                                player.attributes.length > 0 ? (
+                                  <HexagonChart
+                                    attributes={player.attributes}
+                                    size={60}
+                                    showLabels={false}
+                                  />
+                                ) : (
+                                  <div className="w-[60px] h-[60px]" />
+                                )}
+                              </td>
+                              <td className="px-4 py-3">
+                                {player.avatar ? (
+                                  <img
+                                    src={player.avatar}
+                                    alt={player.fullName}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-sm font-bold text-green-600">
+                                    {player.fullName?.charAt(0) || "?"}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                {player.fullName}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {player.age || "N/A"}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {player.height ? `${player.height} cm` : "N/A"}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {player.weight ? `${player.weight} kg` : "N/A"}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-1 flex-wrap">
+                                  {player.positions.slice(0, 2).map((pos) => (
+                                    <span
+                                      key={pos}
+                                      className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                                    >
+                                      {getPositionDisplayName(pos)}
+                                    </span>
+                                  ))}
+                                  {player.positions.length > 2 && (
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                      +{player.positions.length - 2}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {player.preferredFoot
+                                  ? getPreferredFootDisplayName(
+                                      player.preferredFoot,
+                                    )
+                                  : "N/A"}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {player.level
+                                  ? getLevelDisplayName(player.level)
+                                  : "N/A"}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                {player.provinceName || "N/A"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 ) : (
                   /* Desktop Card View - 3-4 columns */
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {players.map((player) => (
+                      <div
+                        key={player.id}
+                        onClick={() => handleRowClick(player.userid)}
+                        className="cursor-pointer md:hover:scale-105 transition-transform"
+                      >
+                        <PlayerCard
+                          avatar={player.avatar}
+                          fullName={player.fullName}
+                          positions={player.positions}
+                          preferredFoot={player.preferredFoot}
+                          attributes={player.attributes}
+                          className="w-full"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden">
+                {viewMode === "list" ? (
+                  /* List View - Table Style */
+                  <div className="bg-white rounded-lg shadow divide-y divide-gray-200">
+                    {players.map((player) => (
+                      <div
+                        key={player.id}
+                        onClick={() => handleRowClick(player.userid)}
+                        className="p-4 hover:bg-gray-50 cursor-pointer transition"
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {player.avatar ? (
+                              <img
+                                src={player.avatar}
+                                alt={player.fullName}
+                                className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-green-200 flex items-center justify-center text-lg font-bold text-green-600 flex-shrink-0">
+                                {player.fullName?.charAt(0) || "?"}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 truncate">
+                                {player.fullName}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                {player.age ? `${player.age} tuổi` : "N/A"} •{" "}
+                                {player.height ? `${player.height} cm` : "N/A"}{" "}
+                                •{" "}
+                                {player.weight ? `${player.weight} kg` : "N/A"}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Hexagon in top right corner */}
+                          <div className="flex-shrink-0">
+                            {player.attributes &&
+                            player.attributes.length > 0 ? (
+                              <HexagonChart
+                                attributes={player.attributes}
+                                size={50}
+                                showLabels={false}
+                              />
+                            ) : (
+                              <div className="w-[50px] h-[50px]" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="text-gray-500">Vị trí:</span>{" "}
+                            <span className="font-medium text-gray-900">
+                              {player.positions.length > 0
+                                ? player.positions
+                                    .map(getPositionDisplayName)
+                                    .join(", ")
+                                : "N/A"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Chân:</span>{" "}
+                            <span className="font-medium text-gray-900">
+                              {player.preferredFoot
+                                ? getPreferredFootDisplayName(
+                                    player.preferredFoot,
+                                  )
+                                : "N/A"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Cấp độ:</span>{" "}
+                            <span className="font-medium text-gray-900">
+                              {player.level
+                                ? getLevelDisplayName(player.level)
+                                : "N/A"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Tỉnh/TP:</span>{" "}
+                            <span className="font-medium text-gray-900">
+                              {player.provinceName || "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Card View - 2 columns Grid - Same as desktop design */
+                  <div className="grid grid-cols-2 gap-3">
                     {players.map((player) => (
                       <div
                         key={player.id}
@@ -660,122 +834,11 @@ function PlayersContent() {
                   </div>
                 )}
               </div>
+            </>
+          )}
 
-              {/* Mobile Cards */}
-              <div className="md:hidden">
-                  {viewMode === "list" ? (
-                    /* List View - Table Style */
-                    <div className="bg-white rounded-lg shadow divide-y divide-gray-200">
-                      {players.map((player) => (
-                        <div
-                          key={player.id}
-                          onClick={() => handleRowClick(player.userid)}
-                          className="p-4 hover:bg-gray-50 cursor-pointer transition"
-                        >
-                          <div className="flex items-start gap-3 mb-3">
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              {player.avatar ? (
-                                <img
-                                  src={player.avatar}
-                                  alt={player.fullName}
-                                  className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                                />
-                              ) : (
-                                <div className="w-12 h-12 rounded-full bg-green-200 flex items-center justify-center text-lg font-bold text-green-600 flex-shrink-0">
-                                  {player.fullName?.charAt(0) || "?"}
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-gray-900 truncate">
-                                  {player.fullName}
-                                </h3>
-                                <p className="text-sm text-gray-500">
-                                  {player.age ? `${player.age} tuổi` : "N/A"} •{" "}
-                                  {player.height ? `${player.height} cm` : "N/A"} •{" "}
-                                  {player.weight ? `${player.weight} kg` : "N/A"}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Hexagon in top right corner */}
-                            <div className="flex-shrink-0">
-                              {player.attributes && player.attributes.length > 0 ? (
-                                <HexagonChart
-                                  attributes={player.attributes}
-                                  size={50}
-                                  showLabels={false}
-                                />
-                              ) : (
-                                <div className="w-[50px] h-[50px]" />
-                              )}
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="text-gray-500">Vị trí:</span>{" "}
-                              <span className="font-medium text-gray-900">
-                                {player.positions.length > 0
-                                  ? player.positions
-                                      .map(getPositionDisplayName)
-                                      .join(", ")
-                                  : "N/A"}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Chân:</span>{" "}
-                              <span className="font-medium text-gray-900">
-                                {player.preferredFoot
-                                  ? getPreferredFootDisplayName(
-                                      player.preferredFoot,
-                                    )
-                                  : "N/A"}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Cấp độ:</span>{" "}
-                              <span className="font-medium text-gray-900">
-                                {player.level
-                                  ? getLevelDisplayName(player.level)
-                                  : "N/A"}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Tỉnh/TP:</span>{" "}
-                              <span className="font-medium text-gray-900">
-                                {player.provinceName || "N/A"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    /* Card View - 2 columns Grid - Same as desktop design */
-                    <div className="grid grid-cols-2 gap-3">
-                      {players.map((player) => (
-                        <div
-                          key={player.id}
-                          onClick={() => handleRowClick(player.userid)}
-                          className="cursor-pointer hover:scale-105 transition-transform"
-                        >
-                          <PlayerCard
-                            avatar={player.avatar}
-                            fullName={player.fullName}
-                            positions={player.positions}
-                            preferredFoot={player.preferredFoot}
-                            attributes={player.attributes}
-                            className="w-full"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
             <div className="mt-6 flex items-center justify-between">
               <button
                 onClick={() => handlePageChange(pagination.page - 1)}

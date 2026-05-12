@@ -13,6 +13,21 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
+
+  /* Global green background */
+  .bg-global-green {
+    background-color: rgb(4 18 15 / 0.3); /* green-950/30 */
+  }
+
+  /* Primary button gradient */
+  .btn-primary {
+    background: linear-gradient(to right, rgb(20 83 45), rgb(22 101 52), rgb(4 18 15));
+    /* from-green-900 via-green-800 to-green-950 */
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
 }
 
 :root {

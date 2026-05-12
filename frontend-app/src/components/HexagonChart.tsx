@@ -23,7 +23,7 @@ export default function HexagonChart({
   size = 400,
   showLabels = true,
   showValues = true,
-  labelFontSize = 12,
+  labelFontSize = 14,
   className = "",
 }: HexagonChartProps) {
   // Filter and get up to 6 hexagon attributes
@@ -113,7 +113,7 @@ export default function HexagonChart({
               textAnchor="middle"
               dominantBaseline="middle"
               className="fill-green-600"
-              style={{ fontSize: "11px", fontWeight: "normal" }}
+              style={{ fontSize: "14px", fontWeight: "bold" }}
             >
               {attr.attributeValue}
             </text>
