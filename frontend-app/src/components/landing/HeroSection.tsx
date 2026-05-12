@@ -12,11 +12,11 @@ export default function HeroSection() {
       <StickyNav />
 
       {/* Hero Content */}
-      <div className="relative h-full flex items-center justify-center px-4 pt-20 md:pt-0">
+      <div className="relative h-full flex items-center justify-center px-4 pt-4 md:pt-0">
         <div className="text-center text-white max-w-4xl mx-auto w-full">
           {/* Banner Text Image */}
-          <div className="mb-8 md:mb-12 w-full flex justify-center">
-            <div className="flex flex-col items-center gap-4 w-full max-w-[240px] mr-12 md:mr-32">
+          <div className="mb-6 md:mb-12 w-full flex justify-center">
+            <div className="flex flex-col items-center gap-3 w-full max-w-[180px] md:max-w-[240px] mr-12 md:mr-32">
               <img
                 src="/images/banner-text.png"
                 alt="11 ON FIELD - Chương trình tuyển chọn cầu thủ trẻ"
@@ -26,7 +26,7 @@ export default function HeroSection() {
                 <img
                   src="/images/btn-register.png"
                   alt="Đăng ký ngay"
-                  className="w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                  className="w-[85%] md:w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
                 />
               </Link>
             </div>
