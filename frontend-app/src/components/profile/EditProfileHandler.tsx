@@ -18,6 +18,7 @@ export default function EditProfileHandler() {
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string>("");
+  // const [removeBackground, setRemoveBackground] = useState(false); // TEMPORARILY DISABLED
 
   const handleOpenEditModal = useCallback(async () => {
     console.log("EditProfileHandler: handleOpenEditModal called, currentUser:", currentUser?.userid);
@@ -103,7 +104,7 @@ export default function EditProfileHandler() {
         setUploadProgress("Đang nén ảnh...");
         const compressedFile = await compressImage(selectedAvatarFile, 800, 800, 0.8);
         setUploadProgress("Đang upload ảnh...");
-        await userService.uploadAvatar(compressedFile);
+        await userService.uploadAvatar(compressedFile, false); // Background removal disabled
         setUploadProgress("");
       }
 
@@ -261,6 +262,22 @@ export default function EditProfileHandler() {
                 onChange={handleAvatarFileChange}
                 className="hidden"
               />
+
+              {/* Background Removal Checkbox - TEMPORARILY DISABLED */}
+              {/* {selectedAvatarFile && (
+                <div className="flex items-center gap-2 mt-3">
+                  <input
+                    type="checkbox"
+                    id="removeBackground"
+                    checked={removeBackground}
+                    onChange={(e) => setRemoveBackground(e.target.checked)}
+                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <label htmlFor="removeBackground" className="text-sm text-gray-700 cursor-pointer">
+                    Tự động xóa background
+                  </label>
+                </div>
+              )} */}
             </div>
           </div>
 

@@ -16,6 +16,7 @@ import com.elevenof.backoffice.model.PlayerAttribute;
 import com.elevenof.backoffice.model.User;
 import com.elevenof.backoffice.repository.UserRepository;
 import com.elevenof.backoffice.service.AddressService;
+import com.elevenof.backoffice.service.BackgroundRemovalService;
 import com.elevenof.backoffice.service.FollowService;
 import com.elevenof.backoffice.service.PlayerAttributeService;
 import com.elevenof.backoffice.service.PlayerService;
@@ -34,7 +35,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Arrays;
@@ -56,6 +60,7 @@ public class UserController {
     private final S3Service s3Service;
     private final FollowService followService;
     private final PlayerAttributeService playerAttributeService;
+    private final BackgroundRemovalService backgroundRemovalService;
 
     /**
      * Helper method to get User from userid (String) in JWT token
@@ -240,7 +245,8 @@ public class UserController {
     @PostMapping(value = "/me/avatar", consumes = "multipart/form-data")
     public ResponseEntity<Map<String, String>> uploadAvatar(
             Authentication authentication,
-            @RequestParam("file") MultipartFile file
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "removeBackground", required = false, defaultValue = "false") boolean removeBackground
     ) {
         User user = getUserFromAuthentication(authentication);
 
@@ -258,13 +264,38 @@ public class UserController {
         }
 
         try {
+            // Process background removal if requested
+            MultipartFile processedFile = file;
+            if (removeBackground) {
+                try {
+                    log.info("Background removal requested for user {}", user.getId());
+                    byte[] processedBytes = backgroundRemovalService.removeBackgroundWithFallback(file.getBytes());
+
+                    // Create new MultipartFile with processed image (PNG format from Lambda)
+                    String originalFilename = file.getOriginalFilename();
+                    String newFilename = originalFilename != null
+                        ? originalFilename.replaceFirst("[.][^.]+$", ".png")
+                        : "avatar.png";
+
+                    processedFile = new ByteArrayMultipartFile(
+                        processedBytes,
+                        newFilename,
+                        "image/png"
+                    );
+                    log.info("Background removal completed, new size: {} bytes", processedBytes.length);
+                } catch (Exception e) {
+                    log.warn("Background removal failed for user {}, using original image: {}", user.getId(), e.getMessage());
+                    // Fallback to original file (already set)
+                }
+            }
+
             // Delete old avatar if exists
             if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
                 s3Service.deleteAvatar(user.getAvatar());
             }
 
-            // Upload new avatar
-            String avatarUrl = s3Service.uploadAvatar(file, user.getId());
+            // Upload new avatar (processed or original)
+            String avatarUrl = s3Service.uploadAvatar(processedFile, user.getId());
 
             // Update user avatar
             user.setAvatar(avatarUrl);
@@ -278,6 +309,61 @@ public class UserController {
         } catch (IOException e) {
             log.error("Failed to upload avatar for user {}", user.getId(), e);
             throw new FileUploadException("Upload thất bại: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Helper class to wrap byte array as MultipartFile
+     */
+    private static class ByteArrayMultipartFile implements MultipartFile {
+        private final byte[] content;
+        private final String filename;
+        private final String contentType;
+
+        public ByteArrayMultipartFile(byte[] content, String filename, String contentType) {
+            this.content = content;
+            this.filename = filename;
+            this.contentType = contentType;
+        }
+
+        @Override
+        public String getName() {
+            return "file";
+        }
+
+        @Override
+        public String getOriginalFilename() {
+            return filename;
+        }
+
+        @Override
+        public String getContentType() {
+            return contentType;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return content == null || content.length == 0;
+        }
+
+        @Override
+        public long getSize() {
+            return content.length;
+        }
+
+        @Override
+        public byte[] getBytes() {
+            return content;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return new ByteArrayInputStream(content);
+        }
+
+        @Override
+        public void transferTo(File dest) throws IOException, IllegalStateException {
+            throw new UnsupportedOperationException("transferTo not supported");
         }
     }
 

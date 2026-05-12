@@ -52,6 +52,11 @@ aws:
     bucketName: ${AWS_S3_BUCKET:11of}
     avatarFolder: avatars/
     eventImageFolder: events/
+  lambda:
+    accessKey: ${AWS_ACCESS_KEY_ID:your-access-key}
+    secretKey: ${AWS_SECRET_ACCESS_KEY:your-secret-key}
+    region: ${AWS_REGION:ap-southeast-1}
+    bgRemoverFunctionName: ${LAMBDA_BG_REMOVER_FUNCTION:bg-remover}
 
 app:
   frontend:

@@ -95,7 +95,7 @@ export const userService = {
     });
   },
 
-  async uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
+  async uploadAvatar(file: File, removeBackground: boolean = false): Promise<{ avatarUrl: string }> {
     const token = storage.getToken();
 
     if (!token) {
@@ -105,6 +105,7 @@ export const userService = {
     // Create FormData
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('removeBackground', removeBackground.toString());
 
     return apiClient.postMultipart<{ avatarUrl: string }>('/users/me/avatar', formData, {
       headers: {
