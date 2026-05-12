@@ -41,7 +41,7 @@ function PlayersContent() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showRightNav, setShowRightNav] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [viewMode, setViewMode] = useState<"list" | "card">("card");
+  const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const handleLogout = () => {
     logout();

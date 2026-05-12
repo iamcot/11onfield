@@ -2,6 +2,7 @@
 
 import { authService } from "@/services/auth.service";
 import Image from "next/image";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -50,16 +51,16 @@ export default function ResetPasswordPage() {
         {/* Top section - Logo */}
         <div className="relative py-4 bg-white">
           <div className="flex items-center justify-center">
-            <div className="text-center px-8">
+            <Link href="/" className="text-center px-8">
               <Image
-                src="/images/banner_register.jpg"
+                src="/images/logo-color-full.png"
                 alt="11of Logo"
                 width={250}
                 height={60}
-                className="mx-auto"
+                className="mx-auto cursor-pointer hover:opacity-80 transition"
                 priority
               />
-            </div>
+            </Link>
           </div>
         </div>
 
@@ -151,6 +152,20 @@ export default function ResetPasswordPage() {
         {/* Right column - Form - Scrollable */}
         <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white min-h-screen">
           <div className="max-w-md w-full space-y-8">
+            {/* Logo */}
+            <div className="flex justify-center mb-8">
+              <Link href="/">
+                <Image
+                  src="/images/logo-color-full.png"
+                  alt="11of Logo"
+                  width={250}
+                  height={60}
+                  className="cursor-pointer hover:opacity-80 transition"
+                  priority
+                />
+              </Link>
+            </div>
+
             <div>
               <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                 Đặt lại mật khẩu
