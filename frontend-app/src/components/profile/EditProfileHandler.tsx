@@ -9,6 +9,8 @@ import DynamicFieldList from "@/components/forms/DynamicFieldList";
 import DynamicAchievementList from "@/components/forms/DynamicAchievementList";
 import DynamicHighlightList from "@/components/forms/DynamicHighlightList";
 import { useEffect, useState, useCallback } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function EditProfileHandler() {
   const { user: currentUser } = useAuth();
@@ -138,6 +140,36 @@ export default function EditProfileHandler() {
     try {
       setIsSaving(true);
 
+      // Validate achievements and highlights have both title/url AND date
+      if (currentUser?.role === "PLAYER") {
+        // Check individual achievements
+        for (const achievement of individualAchievements) {
+          if (achievement.title && achievement.title.trim() && !achievement.date) {
+            alert("Vui lòng chọn ngày cho tất cả các thành tích cá nhân");
+            setIsSaving(false);
+            return;
+          }
+        }
+
+        // Check team achievements
+        for (const achievement of teamAchievements) {
+          if (achievement.title && achievement.title.trim() && !achievement.date) {
+            alert("Vui lòng chọn ngày cho tất cả các thành tích tập thể");
+            setIsSaving(false);
+            return;
+          }
+        }
+
+        // Check highlights
+        for (const highlight of highlights) {
+          if (highlight.url && highlight.url.trim() && !highlight.date) {
+            alert("Vui lòng chọn ngày cho tất cả các video highlights");
+            setIsSaving(false);
+            return;
+          }
+        }
+      }
+
       // Upload avatar first if selected
       if (selectedAvatarFile) {
         setUploadProgress("Đang nén ảnh...");
@@ -159,24 +191,24 @@ export default function EditProfileHandler() {
       // Add collections data for players (check if user is a player)
       if (currentUser?.role === "PLAYER") {
         cleanedData.individualAchievements = individualAchievements
-          .filter(a => a.title && a.title.trim())
+          .filter(a => a.title && a.title.trim() && a.date)
           .map(a => ({
             title: a.title,
-            date: a.date || null
+            date: a.date
           }));
 
         cleanedData.teamAchievements = teamAchievements
-          .filter(a => a.title && a.title.trim())
+          .filter(a => a.title && a.title.trim() && a.date)
           .map(a => ({
             title: a.title,
-            date: a.date || null
+            date: a.date
           }));
 
         cleanedData.highlights = highlights
-          .filter(h => h.url && h.url.trim())
+          .filter(h => h.url && h.url.trim() && h.date)
           .map(h => ({
             url: h.url,
-            date: h.date || null
+            date: h.date
           }));
 
         cleanedData.socials = socials.filter(s => s.trim());
@@ -382,12 +414,21 @@ export default function EditProfileHandler() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Ngày sinh
                   </label>
-                  <input
-                    type="date"
-                    name="dob"
-                    value={editFormData.dob || ""}
-                    onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                  <DatePicker
+                    selected={editFormData.dob ? new Date(editFormData.dob) : null}
+                    onChange={(date: Date | null) => {
+                      setEditFormData({
+                        ...editFormData,
+                        dob: date ? date.toISOString().split('T')[0] : ""
+                      });
+                    }}
+                    dateFormat="dd/MM/yyyy"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholderText="Chọn ngày sinh"
+                    showYearDropdown
+                    showMonthDropdown
+                    dropdownMode="select"
+                    maxDate={new Date()}
                   />
                 </div>
 

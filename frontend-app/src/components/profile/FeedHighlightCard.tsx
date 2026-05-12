@@ -127,7 +127,7 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
-      <div className="flex items-start gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-3">
         <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
           <svg
             className="w-6 h-6 text-red-600"

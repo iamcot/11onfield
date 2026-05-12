@@ -64,17 +64,34 @@ export default function FeedEventCard({ feed, isOwnProfile }: FeedEventCardProps
   const displayName = isOwnProfile ? "Bạn" : fullName;
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-lg shadow p-4">
       {/* Card Header */}
-      <div className="px-4 py-3 bg-gray-50 border-b">
-        <p className="text-sm text-gray-700">
-          <span className="font-semibold">{displayName}</span> đã tham gia{" "}
-          <span className="font-semibold">sự kiện</span>
-        </p>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+          <svg
+            className="w-6 h-6 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+        <div className="flex-1">
+          <h4 className="text-sm font-medium text-gray-900">
+            <span className="font-semibold">{displayName}</span> đã tham gia{" "}
+            <span className="font-semibold">sự kiện</span>
+          </h4>
+        </div>
       </div>
 
       {/* Card Body */}
-      <div className="p-4">
+      <div>
         <Link href={`/events/${event.eventId}`} className="block hover:opacity-80 transition">
           <div className="flex flex-col gap-3">
             {/* Event Image */}

@@ -13,6 +13,8 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  shouldCheckProfileCompletion: boolean;
+  setProfileCompletionChecked: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [shouldCheckProfileCompletion, setShouldCheckProfileCompletion] = useState(false);
 
   useEffect(() => {
     // Check if user is authenticated on mount
@@ -73,12 +76,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             avatar: userProfile.avatar,
           };
           setUser(userWithAvatar);
+          setShouldCheckProfileCompletion(true); // Trigger profile check after login
         } catch (error) {
           console.error('Failed to fetch user profile:', error);
           setUser(response.user);
+          setShouldCheckProfileCompletion(true);
         }
       } else {
         setUser(response.user);
+        setShouldCheckProfileCompletion(true);
       }
     } finally {
       setIsLoading(false);
@@ -99,12 +105,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             avatar: userProfile.avatar,
           };
           setUser(userWithAvatar);
+          setShouldCheckProfileCompletion(true); // Trigger profile check after registration
         } catch (error) {
           console.error('Failed to fetch user profile:', error);
           setUser(response.user);
+          setShouldCheckProfileCompletion(true);
         }
       } else {
         setUser(response.user);
+        setShouldCheckProfileCompletion(true);
       }
     } finally {
       setIsLoading(false);
@@ -116,9 +125,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authService.logout();
       setUser(null);
+      setShouldCheckProfileCompletion(false); // Reset check flag on logout
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const setProfileCompletionChecked = () => {
+    setShouldCheckProfileCompletion(false);
   };
 
   const refreshUser = async () => {
@@ -150,6 +164,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register,
     logout,
     refreshUser,
+    shouldCheckProfileCompletion,
+    setProfileCompletionChecked,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

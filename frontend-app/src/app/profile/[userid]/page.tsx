@@ -10,6 +10,7 @@ import EventCard from "@/components/profile/EventCard";
 import FeedList from "@/components/profile/FeedList";
 import EditProfileHandler from "@/components/profile/EditProfileHandler";
 import { appConfig } from "@/config/app.config";
+import { profileCompletionConfig } from "@/config/profile-completion.config";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
 import { useSidebar } from "@/contexts/SidebarContext";
@@ -32,9 +33,11 @@ export default function UserProfilePage() {
     isAuthenticated,
     isLoading: authLoading,
     logout,
+    shouldCheckProfileCompletion,
+    setProfileCompletionChecked,
   } = useAuth();
   const { isCollapsed } = useSidebar();
-  const { closeEditProfile, setOpenCallback } = useEditProfile();
+  const { closeEditProfile, setOpenCallback, openEditProfile } = useEditProfile();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -232,6 +235,31 @@ export default function UserProfilePage() {
 
   // Determine if viewing own profile
   const isOwnProfile = currentUser?.userid === profileUser?.userid;
+
+  // Check profile completion for own profile
+  useEffect(() => {
+    if (
+      isOwnProfile &&
+      profileUser &&
+      (shouldCheckProfileCompletion || userid === currentUser?.userid)
+    ) {
+      console.log('[Profile Check] Checking profile completion...');
+      const isIncomplete = profileCompletionConfig.isPlayerProfileIncomplete(profileUser);
+
+      if (isIncomplete) {
+        console.log('[Profile Check] Profile incomplete, opening edit modal');
+        // Small delay to ensure the page is rendered before opening modal
+        setTimeout(() => {
+          openEditProfile();
+        }, 500);
+      }
+
+      // Mark as checked to prevent repeated checks
+      if (shouldCheckProfileCompletion) {
+        setProfileCompletionChecked();
+      }
+    }
+  }, [isOwnProfile, profileUser, shouldCheckProfileCompletion, currentUser, userid, openEditProfile, setProfileCompletionChecked]);
 
   // Fetch follow status when viewing other's profile
   useEffect(() => {

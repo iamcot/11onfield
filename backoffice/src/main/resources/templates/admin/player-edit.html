@@ -14,7 +14,7 @@
             <div class="card-header">
               <h3 class="card-title">Chỉnh sửa thông tin cầu thủ</h3>
             </div>
-            <form th:action="@{/admin/players/edit/{id}(id=${player.id})}" method="post">
+            <form id="playerEditForm" th:action="@{/admin/players/edit/{id}(id=${player.id})}" method="post">
               <div class="card-body">
                 <!-- User Information Section -->
                 <h5 class="mb-3">Thông tin cơ bản</h5>
@@ -293,25 +293,27 @@
                              th:if="${achievement.type.name() == 'INDIVIDUAL'}"
                              class="mb-2">
                           <div class="row">
-                            <div class="col-8">
+                            <div class="col-md-8 col-12 mb-2 mb-md-0">
                               <input
                                 type="text"
                                 class="form-control"
                                 th:name="|individualAchievements[${iterStat.index}].title|"
                                 th:value="${achievement.title}"
                                 placeholder="Tiêu đề thành tích"
+                                required
                               />
                             </div>
-                            <div class="col-3">
+                            <div class="col-md-3 col-10 mb-2 mb-md-0">
                               <input
                                 type="date"
                                 class="form-control"
                                 th:name="|individualAchievements[${iterStat.index}].date|"
                                 th:value="${achievement.achievementDate}"
+                                required
                               />
                             </div>
-                            <div class="col-1">
-                              <button type="button" class="btn btn-danger btn-remove-achievement">
+                            <div class="col-md-1 col-2">
+                              <button type="button" class="btn btn-danger btn-remove-achievement w-100">
                                 <i class="fas fa-times"></i>
                               </button>
                             </div>
@@ -337,25 +339,27 @@
                              th:if="${achievement.type.name() == 'TEAM'}"
                              class="mb-2">
                           <div class="row">
-                            <div class="col-8">
+                            <div class="col-md-8 col-12 mb-2 mb-md-0">
                               <input
                                 type="text"
                                 class="form-control"
                                 th:name="|teamAchievements[${iterStat.index}].title|"
                                 th:value="${achievement.title}"
                                 placeholder="Tiêu đề thành tích"
+                                required
                               />
                             </div>
-                            <div class="col-3">
+                            <div class="col-md-3 col-10 mb-2 mb-md-0">
                               <input
                                 type="date"
                                 class="form-control"
                                 th:name="|teamAchievements[${iterStat.index}].date|"
                                 th:value="${achievement.achievementDate}"
+                                required
                               />
                             </div>
-                            <div class="col-1">
-                              <button type="button" class="btn btn-danger btn-remove-achievement">
+                            <div class="col-md-1 col-2">
+                              <button type="button" class="btn btn-danger btn-remove-achievement w-100">
                                 <i class="fas fa-times"></i>
                               </button>
                             </div>
@@ -383,25 +387,27 @@
                       <div id="highlights">
                         <div th:each="highlight, iterStat : ${player.highlights}" class="mb-2">
                           <div class="row">
-                            <div class="col-8">
+                            <div class="col-md-8 col-12 mb-2 mb-md-0">
                               <input
                                 type="url"
                                 class="form-control"
                                 th:name="|highlights[${iterStat.index}].url|"
                                 th:value="${highlight.url}"
                                 placeholder="URL video (YouTube, Facebook, Vimeo...)"
+                                required
                               />
                             </div>
-                            <div class="col-3">
+                            <div class="col-md-3 col-10 mb-2 mb-md-0">
                               <input
                                 type="date"
                                 class="form-control"
                                 th:name="|highlights[${iterStat.index}].date|"
                                 th:value="${highlight.highlightDate}"
+                                required
                               />
                             </div>
-                            <div class="col-1">
-                              <button type="button" class="btn btn-danger btn-remove-highlight">
+                            <div class="col-md-1 col-2">
+                              <button type="button" class="btn btn-danger btn-remove-highlight w-100">
                                 <i class="fas fa-times"></i>
                               </button>
                             </div>
@@ -499,14 +505,14 @@
             $('#individualAchievements').append(
               '<div class="mb-2">' +
                 '<div class="row">' +
-                  '<div class="col-8">' +
-                    '<input type="text" class="form-control" name="individualAchievements[' + individualAchievementIndex + '].title" placeholder="Tiêu đề thành tích" />' +
+                  '<div class="col-md-8 col-12 mb-2 mb-md-0">' +
+                    '<input type="text" class="form-control" name="individualAchievements[' + individualAchievementIndex + '].title" placeholder="Tiêu đề thành tích" required />' +
                   '</div>' +
-                  '<div class="col-3">' +
-                    '<input type="date" class="form-control" name="individualAchievements[' + individualAchievementIndex + '].date" />' +
+                  '<div class="col-md-3 col-10 mb-2 mb-md-0">' +
+                    '<input type="date" class="form-control" name="individualAchievements[' + individualAchievementIndex + '].date" required />' +
                   '</div>' +
-                  '<div class="col-1">' +
-                    '<button type="button" class="btn btn-danger btn-remove-achievement"><i class="fas fa-times"></i></button>' +
+                  '<div class="col-md-1 col-2">' +
+                    '<button type="button" class="btn btn-danger btn-remove-achievement w-100"><i class="fas fa-times"></i></button>' +
                   '</div>' +
                 '</div>' +
               '</div>'
@@ -519,14 +525,14 @@
             $('#teamAchievements').append(
               '<div class="mb-2">' +
                 '<div class="row">' +
-                  '<div class="col-8">' +
-                    '<input type="text" class="form-control" name="teamAchievements[' + teamAchievementIndex + '].title" placeholder="Tiêu đề thành tích" />' +
+                  '<div class="col-md-8 col-12 mb-2 mb-md-0">' +
+                    '<input type="text" class="form-control" name="teamAchievements[' + teamAchievementIndex + '].title" placeholder="Tiêu đề thành tích" required />' +
                   '</div>' +
-                  '<div class="col-3">' +
-                    '<input type="date" class="form-control" name="teamAchievements[' + teamAchievementIndex + '].date" />' +
+                  '<div class="col-md-3 col-10 mb-2 mb-md-0">' +
+                    '<input type="date" class="form-control" name="teamAchievements[' + teamAchievementIndex + '].date" required />' +
                   '</div>' +
-                  '<div class="col-1">' +
-                    '<button type="button" class="btn btn-danger btn-remove-achievement"><i class="fas fa-times"></i></button>' +
+                  '<div class="col-md-1 col-2">' +
+                    '<button type="button" class="btn btn-danger btn-remove-achievement w-100"><i class="fas fa-times"></i></button>' +
                   '</div>' +
                 '</div>' +
               '</div>'
@@ -539,14 +545,14 @@
             $('#highlights').append(
               '<div class="mb-2">' +
                 '<div class="row">' +
-                  '<div class="col-8">' +
-                    '<input type="url" class="form-control" name="highlights[' + highlightIndex + '].url" placeholder="URL video (YouTube, Facebook, Vimeo...)" />' +
+                  '<div class="col-md-8 col-12 mb-2 mb-md-0">' +
+                    '<input type="url" class="form-control" name="highlights[' + highlightIndex + '].url" placeholder="URL video (YouTube, Facebook, Vimeo...)" required />' +
                   '</div>' +
-                  '<div class="col-3">' +
-                    '<input type="date" class="form-control" name="highlights[' + highlightIndex + '].date" />' +
+                  '<div class="col-md-3 col-10 mb-2 mb-md-0">' +
+                    '<input type="date" class="form-control" name="highlights[' + highlightIndex + '].date" required />' +
                   '</div>' +
-                  '<div class="col-1">' +
-                    '<button type="button" class="btn btn-danger btn-remove-highlight"><i class="fas fa-times"></i></button>' +
+                  '<div class="col-md-1 col-2">' +
+                    '<button type="button" class="btn btn-danger btn-remove-highlight w-100"><i class="fas fa-times"></i></button>' +
                   '</div>' +
                 '</div>' +
               '</div>'
@@ -571,6 +577,44 @@
 
           $(document).on('click', '.btn-remove-achievement, .btn-remove-highlight, .btn-remove-social', function() {
             $(this).closest('.mb-2').remove();
+          });
+
+          // Validate form before submit
+          $('#playerEditForm').on('submit', function(e) {
+            var isValid = true;
+            var errorMessage = '';
+
+            // Check all achievement rows
+            $('#individualAchievements .mb-2, #teamAchievements .mb-2').each(function() {
+              var titleInput = $(this).find('input[type="text"]');
+              var dateInput = $(this).find('input[type="date"]');
+
+              if (titleInput.val().trim() !== '' && dateInput.val() === '') {
+                isValid = false;
+                errorMessage = 'Vui lòng chọn ngày cho tất cả các thành tích đã nhập';
+                return false; // break loop
+              }
+            });
+
+            // Check all highlight rows
+            if (isValid) {
+              $('#highlights .mb-2').each(function() {
+                var urlInput = $(this).find('input[type="url"]');
+                var dateInput = $(this).find('input[type="date"]');
+
+                if (urlInput.val().trim() !== '' && dateInput.val() === '') {
+                  isValid = false;
+                  errorMessage = 'Vui lòng chọn ngày cho tất cả các video highlights đã nhập';
+                  return false; // break loop
+                }
+              });
+            }
+
+            if (!isValid) {
+              e.preventDefault();
+              alert(errorMessage);
+              return false;
+            }
           });
         });
       </script>
