@@ -5,7 +5,7 @@ import { useEditProfile } from "@/contexts/EditProfileContext";
 import { provinceService } from "@/services/province.service";
 import { userService } from "@/services/user.service";
 import { compressImage, formatFileSize, isValidImageFile, isValidImageSize } from "@/lib/image-utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export default function EditProfileHandler() {
   const { user: currentUser } = useAuth();
@@ -19,9 +19,12 @@ export default function EditProfileHandler() {
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string>("");
 
-  const handleOpenEditModal = async () => {
+  const handleOpenEditModal = useCallback(async () => {
+    console.log("EditProfileHandler: handleOpenEditModal called, currentUser:", currentUser?.userid);
+
     if (!currentUser?.userid) {
       console.error("No user data available");
+      alert("Vui lòng đăng nhập để chỉnh sửa hồ sơ");
       return;
     }
 
@@ -65,7 +68,7 @@ export default function EditProfileHandler() {
       console.error("Error loading profile:", error);
       alert("Không thể tải thông tin hồ sơ");
     }
-  };
+  }, [currentUser]);
 
   const handleCloseEditModal = () => {
     setShowEditModal(false);
@@ -162,13 +165,15 @@ export default function EditProfileHandler() {
     document.getElementById("global-avatar-file-input")?.click();
   };
 
-  // Register callback
+  // Register callback - always register with stable function reference
   useEffect(() => {
-    if (currentUser) {
-      setOpenCallback(handleOpenEditModal);
-    }
-    return () => setOpenCallback(null);
-  }, [currentUser]);
+    console.log("EditProfileHandler: Registering callback, currentUser:", currentUser?.userid);
+    setOpenCallback(handleOpenEditModal);
+    return () => {
+      console.log("EditProfileHandler: Cleanup - unregistering callback");
+      setOpenCallback(null);
+    };
+  }, [handleOpenEditModal, setOpenCallback]);
 
   if (!showEditModal) return null;
 

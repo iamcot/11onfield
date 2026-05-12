@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { EditProfileProvider } from '@/contexts/EditProfileContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import EditProfileHandler from '@/components/profile/EditProfileHandler';
+import SafariLightModeWrapper from '@/components/forms/SafariLightModeWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,12 +21,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="color-scheme" content="light only" />
+      </head>
       <body className={inter.className}>
         <AuthProvider>
           <SidebarProvider>
             <EditProfileProvider>
               {children}
               <EditProfileHandler />
+              <SafariLightModeWrapper />
             </EditProfileProvider>
           </SidebarProvider>
         </AuthProvider>

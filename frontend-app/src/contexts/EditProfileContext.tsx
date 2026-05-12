@@ -16,9 +16,11 @@ export function EditProfileProvider({ children }: { children: ReactNode }) {
   const [openCallback, setOpenCallbackState] = useState<(() => void) | null>(null);
 
   const openEditProfile = useCallback(() => {
+    console.log("EditProfileContext: openEditProfile called, callback exists:", !!openCallback);
     if (openCallback) {
       openCallback();
     } else {
+      console.warn("EditProfileContext: No callback registered, falling back to setIsOpen");
       setIsOpen(true);
     }
   }, [openCallback]);
