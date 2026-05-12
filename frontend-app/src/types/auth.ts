@@ -46,3 +46,17 @@ export interface ApiError {
   status: number;
   errors?: Record<string, string[]>;
 }
+
+export interface ForgotPasswordRequest {
+  phone: string;
+}
+
+export interface VerifyOtpRequest {
+  phone: string;
+  otpCode: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}

@@ -169,6 +169,18 @@
                   <p>Tài khoản và phân quyền</p>
                 </a>
               </li>
+
+              <!-- ZNS Configuration -->
+              <li class="nav-item">
+                <a
+                  th:href="@{/admin/zns}"
+                  th:classappend="${title == 'Quản lý ZNS Token' ? 'active' : ''}"
+                  class="nav-link"
+                >
+                  <i class="nav-icon fas fa-envelope"></i>
+                  <p>Cấu hình ZNS</p>
+                </a>
+              </li>
             </ul>
           </nav>
         </div>

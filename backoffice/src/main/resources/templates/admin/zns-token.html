@@ -1,0 +1,95 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content})}"
+>
+  <body>
+    <div th:fragment="content">
+      <section class="content">
+        <div class="container-fluid">
+          <!-- Alert messages -->
+          <div
+            th:if="${message}"
+            class="alert alert-success alert-dismissible fade show"
+          >
+            <span th:text="${message}"></span>
+            <button type="button" class="close" data-dismiss="alert">
+              &times;
+            </button>
+          </div>
+          <div
+            th:if="${error}"
+            class="alert alert-danger alert-dismissible fade show"
+          >
+            <span th:text="${error}"></span>
+            <button type="button" class="close" data-dismiss="alert">
+              &times;
+            </button>
+          </div>
+
+          <!-- Token Info Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Thông tin Token</h3>
+            </div>
+            <div class="card-body">
+              <div
+                th:if="${tokenInfo != null and tokenInfo.status == 'ACTIVE'}"
+              >
+                <table class="table table-bordered">
+                  <tr>
+                    <th style="width: 200px">Trạng thái</th>
+                    <td><span class="badge badge-success">ACTIVE</span></td>
+                  </tr>
+                  <tr>
+                    <th>Access Token</th>
+                    <td th:text="${tokenInfo.accessTokenPreview} + '...'"></td>
+                  </tr>
+                  <tr>
+                    <th>Refresh Token</th>
+                    <td th:text="${tokenInfo.refreshTokenPreview} + '...'"></td>
+                  </tr>
+                  <tr>
+                    <th>Hết hạn</th>
+                    <td th:text="${tokenInfo.expiresAt}"></td>
+                  </tr>
+                </table>
+                <div class="mt-3">
+                  <a href="/admin/zns/authorize" class="btn btn-warning">
+                    <i class="fas fa-sync-alt"></i> Làm mới Token
+                  </a>
+                </div>
+              </div>
+              <div th:if="${tokenInfo == null or tokenInfo.status != 'ACTIVE'}">
+                <p class="text-muted">
+                  Token chưa được cấu hình hoặc đã hết hạn.
+                </p>
+                <a href="/admin/zns/authorize" class="btn btn-primary">
+                  <i class="fas fa-key"></i> Kết nối với Zalo
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Instructions -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Hướng dẫn</h3>
+            </div>
+            <div class="card-body">
+              <ol>
+                <li>Click vào nút "Kết nối với Zalo" để bắt đầu</li>
+                <li>Đăng nhập vào tài khoản Zalo Official Account của bạn</li>
+                <li>Cấp quyền cho ứng dụng</li>
+                <li>
+                  Token sẽ được tự động lưu và làm mới nếu có 1 request refresh
+                  từ user trong vòng 3 tháng
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

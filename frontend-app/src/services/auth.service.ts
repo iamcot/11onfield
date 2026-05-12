@@ -95,4 +95,16 @@ export const authService = {
   getStoredUser(): User | null {
     return storage.getUser();
   },
+
+  async forgotPassword(phone: string): Promise<void> {
+    return apiClient.post('/auth/forgot-password', { phone });
+  },
+
+  async verifyOtp(phone: string, otpCode: string): Promise<{ token: string }> {
+    return apiClient.post('/auth/verify-otp', { phone, otpCode });
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    return apiClient.post('/auth/reset-password', { token, newPassword });
+  },
 };

@@ -58,6 +58,16 @@ aws:
     region: ${AWS_REGION:ap-southeast-1}
     bgRemoverFunctionName: ${LAMBDA_BG_REMOVER_FUNCTION:bg-remover}
 
+zalo:
+  zns:
+    appId: ${ZALO_APP_ID:your-app-id}
+    appSecret: ${ZALO_APP_SECRET:your-app-secret}
+    redirectUri: ${ZALO_REDIRECT_URI:http://localhost:8081/admin/zns/callback}
+    codeChallenge: ${ZALO_CODE_CHALLENGE:vwIliF0AjbWFu4lV4g0fciDAI8OUie7tx2nM06_jdd8}
+    codeVerifier: ${ZALO_CODE_VERIFIER:anylearn}
+    otpTemplateId: ${ZALO_OTP_TEMPLATE_ID:275670}
+    testMode: ${ZALO_TEST_MODE:true}
+
 app:
   frontend:
     url: ${FRONTEND_URL:http://localhost}
@@ -66,3 +76,4 @@ logging:
   level:
     com.elevenof.backoffice: DEBUG
     org.springframework.security: DEBUG
+    com.elevenof.backoffice.service.ZnsService: DEBUG
