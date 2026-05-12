@@ -7,6 +7,7 @@ import { eventService } from "@/services/event.service";
 import { EventDetail, getStatusDisplayName, getStatusBadgeColor } from "@/types/event";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
+import { formatDateOnly } from "@/utils/timezone";
 
 export default function EventDetailPage() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
@@ -114,19 +115,8 @@ export default function EventDetailPage() {
   const formatEventTime = () => {
     if (!event) return "";
 
-    const startDate = new Date(event.startDate);
-    const endDate = new Date(event.endDate);
-
-    const startDateStr = startDate.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-    const endDateStr = endDate.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    const startDateStr = formatDateOnly(event.startDate);
+    const endDateStr = formatDateOnly(event.endDate);
 
     // Same date
     if (startDateStr === endDateStr) {

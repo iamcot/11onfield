@@ -1,8 +1,7 @@
 import { EventListItem, getStatusBadgeColor, getStatusDisplayName } from "@/types/event";
 import Image from "next/image";
 import Link from "next/link";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { formatDateOnly } from "@/utils/timezone";
 
 interface EventCardProps {
   event: EventListItem;
@@ -21,8 +20,7 @@ export default function EventCard({
 }: EventCardProps) {
   const formatEventDate = () => {
     try {
-      const startDate = new Date(event.startDate);
-      const dateStr = format(startDate, "dd/MM/yyyy", { locale: vi });
+      const dateStr = formatDateOnly(event.startDate);
 
       if (event.startTime) {
         return `${dateStr} lúc ${event.startTime}`;

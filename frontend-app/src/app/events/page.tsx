@@ -11,6 +11,7 @@ import MobileNav from "@/components/layout/MobileNav";
 import TopBar from "@/components/layout/TopBar";
 import RightNavigator from "@/components/layout/RightNavigator";
 import TopUserCard from "@/components/layout/TopUserCard";
+import { formatDateOnly } from "@/utils/timezone";
 
 function EventsContent() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
@@ -141,12 +142,7 @@ function EventsContent() {
   };
 
   const formatDate = (dateStr: string, timeStr: string | null) => {
-    const date = new Date(dateStr);
-    const dateFormatted = date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    const dateFormatted = formatDateOnly(dateStr);
     if (timeStr) {
       return `${dateFormatted} ${timeStr}`;
     }

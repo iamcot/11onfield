@@ -3,7 +3,7 @@ spring:
     name: backoffice
 
   datasource:
-    url: jdbc:mysql://localhost:3306/elevenof_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/elevenof_db?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -17,12 +17,13 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080}
-          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8080/.well-known/jwks.json}
+  # OAuth2 Resource Server configuration removed - using custom JWT implementation
+  # security:
+  #   oauth2:
+  #     resourceserver:
+  #       jwt:
+  #         issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080}
+  #         jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8080/.well-known/jwks.json}
 
   thymeleaf:
     cache: false
@@ -36,6 +37,11 @@ spring:
       max-file-size: 20MB
       max-request-size: 20MB
       file-size-threshold: 2MB
+
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+    serialization:
+      write-dates-as-timestamps: false
 
 server:
   port: ${SERVER_PORT:8081}
