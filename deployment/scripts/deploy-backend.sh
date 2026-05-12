@@ -18,11 +18,16 @@ cp "${DEPLOY_PATH}/.env" "${RELEASE_PATH}/.env"
 
 # Copy utility scripts from backoffice/scripts if they exist
 if [ -d "/tmp/backoffice-scripts" ]; then
-  echo "Copying utility scripts..."
-  cp -r /tmp/backoffice-scripts/* "${RELEASE_PATH}/scripts/"
-  chmod +x "${RELEASE_PATH}/scripts/"*.sh 2>/dev/null || true
+  echo "📂 Found /tmp/backoffice-scripts directory"
+  ls -la /tmp/backoffice-scripts/
+  echo "Copying utility scripts to ${RELEASE_PATH}/scripts/..."
+  cp -v -r /tmp/backoffice-scripts/* "${RELEASE_PATH}/scripts/"
+  chmod -v +x "${RELEASE_PATH}/scripts/"*.sh 2>/dev/null || true
   echo "✓ Utility scripts copied"
+  ls -la "${RELEASE_PATH}/scripts/"
   rm -rf /tmp/backoffice-scripts
+else
+  echo "⚠️ /tmp/backoffice-scripts directory not found - scripts will not be deployed"
 fi
 
 # Update symlink atomically (zero downtime)

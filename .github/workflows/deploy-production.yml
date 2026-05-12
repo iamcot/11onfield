@@ -233,8 +233,16 @@ jobs:
         run: |
           # Copy backoffice scripts to a temporary location for deployment
           if [ -d "backoffice/scripts" ]; then
+            echo "📂 Found backoffice/scripts directory"
+            ls -la backoffice/scripts/
             mkdir -p /tmp/backoffice-scripts
             cp -r backoffice/scripts/* /tmp/backoffice-scripts/
+            echo "✓ Copied to /tmp/backoffice-scripts"
+            ls -la /tmp/backoffice-scripts/
+          else
+            echo "⚠️ backoffice/scripts directory not found"
+            pwd
+            ls -la backoffice/ || echo "backoffice directory not found"
           fi
 
           bash ${{ env.DEPLOY_PATH }}/scripts/deploy-backend.sh \
