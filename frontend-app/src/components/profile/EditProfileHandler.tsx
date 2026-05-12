@@ -384,6 +384,97 @@ export default function EditProfileHandler() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Vị trí thi đấu
+                  </label>
+                  <div className="mt-1 relative">
+                    <div className="min-h-[42px] w-full px-3 py-2 border border-gray-300 bg-white rounded-md focus-within:ring-green-500 focus-within:border-green-500">
+                      {/* Selected positions as tags inside the box */}
+                      {(editFormData.positions || []).length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {(editFormData.positions || []).map((positionValue: string) => {
+                            const positionOptions = [
+                              { value: 'striker', label: 'Tiền đạo' },
+                              { value: 'midfielder', label: 'Tiền vệ' },
+                              { value: 'centerback', label: 'Trung vệ' },
+                              { value: 'defender', label: 'Hậu vệ' },
+                              { value: 'goalkeeper', label: 'Thủ môn' },
+                            ];
+                            const option = positionOptions.find(opt => opt.value === positionValue);
+                            return (
+                              <span
+                                key={positionValue}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+                              >
+                                {option?.label}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newPositions = (editFormData.positions || []).filter((p: string) => p !== positionValue);
+                                    setEditFormData({
+                                      ...editFormData,
+                                      positions: newPositions,
+                                    });
+                                  }}
+                                  className="ml-1 inline-flex items-center justify-center w-3 h-3 text-green-600 hover:text-green-800 focus:outline-none"
+                                >
+                                  <span className="sr-only">Remove {option?.label}</span>
+                                  <svg
+                                    className="w-2.5 h-2.5"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Dropdown select */}
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const currentPositions = editFormData.positions || [];
+                            if (!currentPositions.includes(e.target.value)) {
+                              setEditFormData({
+                                ...editFormData,
+                                positions: [...currentPositions, e.target.value],
+                              });
+                            }
+                          }
+                        }}
+                        className="w-full border-none focus:ring-0 focus:outline-none p-0 text-sm"
+                      >
+                        <option value="">Chọn vị trí thi đấu</option>
+                        {[
+                          { value: 'striker', label: 'Tiền đạo' },
+                          { value: 'midfielder', label: 'Tiền vệ' },
+                          { value: 'centerback', label: 'Trung vệ' },
+                          { value: 'defender', label: 'Hậu vệ' },
+                          { value: 'goalkeeper', label: 'Thủ môn' },
+                        ].map((option) => (
+                          <option
+                            key={option.value}
+                            value={option.value}
+                            disabled={(editFormData.positions || []).includes(option.value)}
+                          >
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Chân thuận
                   </label>
                   <select
