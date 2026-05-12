@@ -245,7 +245,7 @@ jobs:
             ls -la backoffice/ || echo "backoffice directory not found"
           fi
 
-          bash ${{ env.DEPLOY_PATH }}/scripts/deploy-backend.sh \
+          bash deployment/scripts/deploy-backend.sh \
             /tmp/artifacts/backend/backoffice-0.0.1-SNAPSHOT.jar
 
       - name: Wait for backend startup
