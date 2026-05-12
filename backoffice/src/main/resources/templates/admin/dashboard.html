@@ -160,12 +160,8 @@
                       <span th:text="${event.title}">Event Title</span>
                       <span
                         class="badge float-right"
-                        th:classappend="${event.status.name() == 'PLAN'} ? 'badge-secondary' :
-                                                         ${event.status.name() == 'OPEN_REGISTER'} ? 'badge-success' :
-                                                         ${event.status.name() == 'CLOSE_REGISTER'} ? 'badge-warning' : 'badge-info'"
-                        th:text="${event.status.name() == 'PLAN'} ? 'Kế hoạch' :
-                                                   ${event.status.name() == 'OPEN_REGISTER'} ? 'Mở ĐK' :
-                                                   ${event.status.name() == 'CLOSE_REGISTER'} ? 'Đóng ĐK' : 'Khác'"
+                        th:classappend="${event.status.name() == 'PLAN' ? 'badge-secondary' : (event.status.name() == 'OPEN_REGISTER' ? 'badge-success' : (event.status.name() == 'CLOSE_REGISTER' ? 'badge-warning' : 'badge-info'))}"
+                        th:text="${event.status.name() == 'PLAN' ? 'Kế hoạch' : (event.status.name() == 'OPEN_REGISTER' ? 'Mở ĐK' : (event.status.name() == 'CLOSE_REGISTER' ? 'Đóng ĐK' : 'Khác'))}"
                       >
                         Status
                       </span>
