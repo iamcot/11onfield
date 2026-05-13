@@ -8,7 +8,7 @@ import { compressImage, formatFileSize, isValidImageFile, isValidImageSize } fro
 import DynamicFieldList from "@/components/forms/DynamicFieldList";
 import DynamicAchievementList from "@/components/forms/DynamicAchievementList";
 import DynamicHighlightList from "@/components/forms/DynamicHighlightList";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -20,6 +20,12 @@ export default function EditProfileHandler() {
   const [editFormData, setEditFormData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
   const [provinces, setProvinces] = useState<any[]>([]);
+
+  // Use refs to persist avatar data across component remounts
+  const selectedAvatarFileRef = useRef<File | null>(null);
+  const avatarPreviewUrlRef = useRef<string | null>(null);
+
+  // Keep state for triggering re-renders
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string>("");
@@ -31,8 +37,6 @@ export default function EditProfileHandler() {
   const [socials, setSocials] = useState<string[]>([]);
 
   const handleOpenEditModal = useCallback(async () => {
-    console.log("EditProfileHandler: handleOpenEditModal called, currentUser:", currentUser?.userid);
-
     if (!currentUser?.userid) {
       console.error("No user data available");
       alert("Vui lòng đăng nhập để chỉnh sửa hồ sơ");
@@ -101,9 +105,6 @@ export default function EditProfileHandler() {
         );
       }
 
-      console.log("Full Profile:", fullProfile);
-      console.log("Form Data:", formData);
-
       setEditFormData(formData);
       setShowEditModal(true);
     } catch (error) {
@@ -140,6 +141,9 @@ export default function EditProfileHandler() {
     try {
       setIsSaving(true);
 
+      // Use ref as fallback if state is null (due to remount)
+      const fileToUpload = selectedAvatarFile || selectedAvatarFileRef.current;
+
       // Validate achievements and highlights have both title/url AND date
       if (currentUser?.role === "PLAYER") {
         // Check individual achievements
@@ -171,9 +175,9 @@ export default function EditProfileHandler() {
       }
 
       // Upload avatar first if selected
-      if (selectedAvatarFile) {
+      if (fileToUpload) {
         setUploadProgress("Đang nén ảnh...");
-        const compressedFile = await compressImage(selectedAvatarFile, 800, 800, 0.8);
+        const compressedFile = await compressImage(fileToUpload, 800, 800, 0.8);
         setUploadProgress("Đang upload ảnh...");
         await userService.uploadAvatar(compressedFile, false); // Background removal disabled
         setUploadProgress("");
@@ -214,7 +218,6 @@ export default function EditProfileHandler() {
         cleanedData.socials = socials.filter(s => s.trim());
       }
 
-      console.log("Sending profile update:", cleanedData);
       await userService.updateProfile(cleanedData);
 
       // Clear avatar selection
@@ -226,6 +229,10 @@ export default function EditProfileHandler() {
 
       alert("Cập nhật thông tin thành công!");
       handleCloseEditModal();
+
+      // Clear refs
+      selectedAvatarFileRef.current = null;
+      avatarPreviewUrlRef.current = null;
 
       // Reload page to refresh user data
       window.location.reload();
@@ -240,6 +247,7 @@ export default function EditProfileHandler() {
 
   const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (!file) return;
 
     if (!isValidImageFile(file)) {
@@ -252,11 +260,16 @@ export default function EditProfileHandler() {
       return;
     }
 
+    // Save to both state and ref
+    selectedAvatarFileRef.current = file;
     setSelectedAvatarFile(file);
+
     const previewUrl = URL.createObjectURL(file);
-    if (avatarPreviewUrl) {
-      URL.revokeObjectURL(avatarPreviewUrl);
+    if (avatarPreviewUrlRef.current) {
+      URL.revokeObjectURL(avatarPreviewUrlRef.current);
     }
+
+    avatarPreviewUrlRef.current = previewUrl;
     setAvatarPreviewUrl(previewUrl);
   };
 
@@ -266,13 +279,18 @@ export default function EditProfileHandler() {
 
   // Register callback - always register with stable function reference
   useEffect(() => {
-    console.log("EditProfileHandler: Registering callback, currentUser:", currentUser?.userid);
     setOpenCallback(handleOpenEditModal);
     return () => {
-      console.log("EditProfileHandler: Cleanup - unregistering callback");
       setOpenCallback(null);
     };
   }, [handleOpenEditModal, setOpenCallback]);
+
+  // Close modal when user signs out or becomes unauthenticated
+  useEffect(() => {
+    if (!currentUser && showEditModal) {
+      setShowEditModal(false);
+    }
+  }, [currentUser, showEditModal]);
 
   if (!showEditModal) return null;
 
@@ -297,26 +315,25 @@ export default function EditProfileHandler() {
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Ảnh đại diện</h4>
             <div className="flex items-center gap-6">
               <div className="relative">
-                {avatarPreviewUrl || currentUser?.avatar ? (
-                  <img
-                    src={avatarPreviewUrl || currentUser?.avatar}
-                    alt="Avatar"
-                    className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-green-200 flex items-center justify-center text-2xl font-bold text-green-600">
-                    {currentUser?.fullName?.charAt(0) || "U"}
-                  </div>
-                )}
-                <button
-                  onClick={handleAvatarClick}
-                  className="absolute inset-0 rounded-full bg-black bg-opacity-0 hover:bg-opacity-30 transition flex items-center justify-center cursor-pointer"
-                  title="Chọn ảnh"
-                >
-                  <span className="opacity-0 hover:opacity-100 text-white text-sm font-medium">
-                    Đổi ảnh
-                  </span>
-                </button>
+                {(() => {
+                  const avatarSrc = avatarPreviewUrl || currentUser?.avatar;
+
+                  if (avatarSrc) {
+                    return (
+                      <img
+                        src={avatarSrc}
+                        alt="Avatar"
+                        className="w-24 h-24 rounded-full object-cover"
+                      />
+                    );
+                  } else {
+                    return (
+                      <div className="w-24 h-24 rounded-full bg-green-200 flex items-center justify-center text-2xl font-bold text-green-600">
+                        {currentUser?.fullName?.charAt(0) || "U"}
+                      </div>
+                    );
+                  }
+                })()}
               </div>
 
               <div className="flex-1">

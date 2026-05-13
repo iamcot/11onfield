@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Random;
 
 @Service
@@ -89,16 +90,30 @@ public class UserAuthService {
             log.info("Address created for user: {}", savedUser.getId());
         }
 
-        // Create Player profile if role is PLAYER
-        if (savedUser.getRole() == User.Role.PLAYER && request.getPlayerProfile() != null) {
-            PlayerProfileRequest profile = request.getPlayerProfile();
-            Player player = Player.builder()
-                    .user(savedUser)
-                    .positions(profile.getPositions() != null ? String.join(",", profile.getPositions()) : null)
-                    .height(profile.getHeight())
-                    .weight(profile.getWeight())
-                    .preferredFoot(profile.getPreferredFoot())
-                    .build();
+        // Create Player profile if role is PLAYER (always create, even if no data provided)
+        if (savedUser.getRole() == User.Role.PLAYER) {
+            Player player;
+            if (request.getPlayerProfile() != null) {
+                PlayerProfileRequest profile = request.getPlayerProfile();
+                player = Player.builder()
+                        .user(savedUser)
+                        .positions(profile.getPositions() != null ? String.join(",", profile.getPositions()) : null)
+                        .height(profile.getHeight())
+                        .weight(profile.getWeight())
+                        .preferredFoot(profile.getPreferredFoot())
+                        .achievements(new ArrayList<>())
+                        .highlights(new ArrayList<>())
+                        .socials(new ArrayList<>())
+                        .build();
+            } else {
+                // Create minimal Player profile if no data provided
+                player = Player.builder()
+                        .user(savedUser)
+                        .achievements(new ArrayList<>())
+                        .highlights(new ArrayList<>())
+                        .socials(new ArrayList<>())
+                        .build();
+            }
             playerService.createPlayerProfile(savedUser.getId(), player);
             log.info("Player profile created for user: {}", savedUser.getId());
         }

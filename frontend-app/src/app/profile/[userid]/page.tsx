@@ -7,7 +7,6 @@ import RightNavigator from "@/components/layout/RightNavigator";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
-import EditProfileHandler from "@/components/profile/EditProfileHandler";
 import EventCard from "@/components/profile/EventCard";
 import FeedList from "@/components/profile/FeedList";
 import { appConfig } from "@/config/app.config";
@@ -1284,8 +1283,7 @@ export default function UserProfilePage() {
         </div>
       </main>
 
-      {/* Edit Profile Handler Component */}
-      <EditProfileHandler />
+      {/* Edit Profile Handler is in layout.tsx - no need to include here */}
 
       {/* Mobile Bottom Navigation - Only visible on mobile */}
       <MobileNav backgroundImage="/images/ground.jpg" />

@@ -96,6 +96,7 @@ public class UserController {
             .userid(user.getUserid())
             .fullName(user.getFullName())
             .email(user.getEmail())
+            .avatar(user.getAvatar())
             .role(user.getRole().name())
             .createdAt(user.getCreatedAt())
             .build();
@@ -425,6 +426,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/me/avatar", consumes = "multipart/form-data")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<Map<String, String>> uploadAvatar(
             Authentication authentication,
             @RequestParam("file") MultipartFile file,
@@ -446,6 +448,9 @@ public class UserController {
         }
 
         try {
+            log.info("=== UPLOAD AVATAR START === User ID: {}, File: {}, Size: {}",
+                user.getId(), file.getOriginalFilename(), file.getSize());
+
             // Process background removal if requested
             MultipartFile processedFile = file;
             if (removeBackground) {
@@ -473,20 +478,26 @@ public class UserController {
 
             // Delete old avatar if exists
             if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                log.info("Deleting old avatar: {}", user.getAvatar());
                 s3Service.deleteAvatar(user.getAvatar());
             }
 
             // Upload new avatar (processed or original)
+            log.info("Uploading new avatar to S3...");
             String avatarUrl = s3Service.uploadAvatar(processedFile, user.getId());
+            log.info("S3 Upload successful. Avatar URL: {}", avatarUrl);
 
             // Update user avatar
+            log.info("Saving avatar URL to database. Old avatar: {}, New avatar: {}", user.getAvatar(), avatarUrl);
             user.setAvatar(avatarUrl);
-            userRepository.save(user);
+            User savedUser = userRepository.save(user);
+            log.info("Database save successful. Saved avatar: {}", savedUser.getAvatar());
 
             // Return avatar URL
             Map<String, String> response = new HashMap<>();
             response.put("avatarUrl", avatarUrl);
 
+            log.info("=== UPLOAD AVATAR SUCCESS === Avatar URL: {}", avatarUrl);
             return ResponseEntity.ok(response);
         } catch (IOException e) {
             log.error("Failed to upload avatar for user {}", user.getId(), e);
