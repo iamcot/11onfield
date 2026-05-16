@@ -15,7 +15,7 @@ export default function FAQSection() {
     {
       question: "Ai có thể tham gia chương trình?",
       answer:
-        "Chương trình dành cho các cầu thủ nam từ 16-23 tuổi, có đam mê bóng đá và mong muốn phát triển sự nghiệp chuyên nghiệp. Không yêu cầu kinh nghiệm thi đấu chuyên nghiệp trước đó.",
+        "Chương trình dành cho các cầu thủ nam từ 16-21 tuổi, có đam mê bóng đá và mong muốn phát triển sự nghiệp chuyên nghiệp. Không yêu cầu kinh nghiệm thi đấu chuyên nghiệp trước đó.",
     },
     {
       question: "Sau khi đăng ký, tôi sẽ được liên hệ như thế nào?",

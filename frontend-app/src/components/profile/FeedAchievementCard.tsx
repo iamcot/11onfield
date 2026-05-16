@@ -32,13 +32,6 @@ export default function FeedAchievementCard({ feed, isOwnProfile }: FeedAchievem
         </span>
       );
     }
-    if (achievement.approvalStatus === 'APPROVED') {
-      return (
-        <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-          Đã duyệt
-        </span>
-      );
-    }
     return null;
   };
 

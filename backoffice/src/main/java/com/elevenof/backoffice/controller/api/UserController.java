@@ -837,9 +837,13 @@ public class UserController {
             User targetUser = userRepository.findByUserid(userid)
                     .orElseThrow(() -> new RuntimeException("User not found"));
             isOwner = currentUser.getId().equals(targetUser.getId());
+            log.info("getUserFeeds - userid: {}, currentUser: {}, isOwner: {}", userid, currentUser.getUserid(), isOwner);
+        } else {
+            log.info("getUserFeeds - userid: {}, authentication is null or not authenticated, isOwner: false", userid);
         }
 
         List<FeedItemDTO> feeds = feedService.getUserFeeds(userid, isOwner);
+        log.info("getUserFeeds - returning {} feeds for userid: {}", feeds.size(), userid);
         return ResponseEntity.ok(feeds);
     }
 }
