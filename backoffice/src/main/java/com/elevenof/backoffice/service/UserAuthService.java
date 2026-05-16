@@ -32,6 +32,7 @@ public class UserAuthService {
 
     private final UserRepository userRepository;
     private final PlayerService playerService;
+    private final PlayerAttributeService playerAttributeService;
     private final AddressService addressService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
