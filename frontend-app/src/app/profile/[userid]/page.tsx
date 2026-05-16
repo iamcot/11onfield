@@ -28,7 +28,7 @@ import { useEffect, useState } from "react";
 interface UserProfile {
   username: string;
   userid: string;
-  fullName: string;
+  fullName?: string;
   email?: string;
   avatar?: string | null;
   dob?: string | null;
@@ -1287,7 +1287,7 @@ export default function UserProfilePage() {
                       <EventCard
                         key={event.id}
                         event={event}
-                        userName={profileUser.fullName}
+                        userName={profileUser.fullName || ''}
                         showJoinButton={!isOwnProfile}
                         onJoinClick={() => handleJoinEvent(event.id)}
                         isJoining={joiningEventId === event.id}

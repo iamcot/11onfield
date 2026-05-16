@@ -75,6 +75,7 @@ export const mockRegister = (data: any): AuthResponse => {
     id: String(mockUsers.length + 1),
     userid: `user_${String(mockUsers.length + 1).padStart(3, '0')}`,
     phone: data.phone,
+    username: data.phone,
     email: data.email || '',
     fullName: data.fullName,
     role: 'USER',
