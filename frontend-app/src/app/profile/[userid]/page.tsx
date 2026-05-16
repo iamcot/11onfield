@@ -103,6 +103,7 @@ export default function UserProfilePage() {
   const [feeds, setFeeds] = useState<FeedItem[]>([]);
   const [recentEventsLoading, setRecentEventsLoading] = useState(false);
   const [showRightNav, setShowRightNav] = useState(false);
+  const [showSyntheticInfoModal, setShowSyntheticInfoModal] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -479,8 +480,8 @@ export default function UserProfilePage() {
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-green-200 flex items-center justify-center">
-                          <span className="text-green-600 font-bold">
+                        <div className="w-12 h-12 rounded-full bg-green-700 flex items-center justify-center">
+                          <span className="text-white font-bold">
                             {user.fullName.charAt(0)}
                           </span>
                         </div>
@@ -554,7 +555,7 @@ export default function UserProfilePage() {
                     className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-green-200 flex items-center justify-center text-3xl md:text-4xl font-bold text-green-600 flex-shrink-0">
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-green-700 flex items-center justify-center text-3xl md:text-4xl font-bold text-white flex-shrink-0">
                     {profileUser.fullName?.charAt(0) ||
                       profileUser.username.charAt(0)}
                   </div>
@@ -1013,7 +1014,7 @@ export default function UserProfilePage() {
                                 href={`/profile/${follower.userid}?from=followers`}
                                 className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
                               >
-                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center overflow-hidden flex-shrink-0">
                                   {follower.avatar ? (
                                     <img
                                       src={follower.avatar}
@@ -1021,7 +1022,7 @@ export default function UserProfilePage() {
                                       className="w-full h-full object-cover"
                                     />
                                   ) : (
-                                    <span className="text-green-600 font-semibold text-sm">
+                                    <span className="text-white font-semibold text-sm">
                                       {follower.fullName
                                         .charAt(0)
                                         .toUpperCase()}
@@ -1064,7 +1065,7 @@ export default function UserProfilePage() {
                                 href={`/profile/${player.userid}?from=following`}
                                 className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
                               >
-                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center overflow-hidden flex-shrink-0">
                                   {player.avatar ? (
                                     <img
                                       src={player.avatar}
@@ -1072,7 +1073,7 @@ export default function UserProfilePage() {
                                       className="w-full h-full object-cover"
                                     />
                                   ) : (
-                                    <span className="text-green-600 font-semibold text-sm">
+                                    <span className="text-white font-semibold text-sm">
                                       {player.fullName.charAt(0).toUpperCase()}
                                     </span>
                                   )}
@@ -1156,8 +1157,29 @@ export default function UserProfilePage() {
 
                         {/* Skills - Hexagon Chart */}
                         <div className="mt-6">
-                          <h3 className="text-lg font-semibold mb-4">
+                          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                             Kỹ năng
+                            {profileUser?.attributes &&
+                              profileUser.attributes.length > 0 &&
+                              profileUser.attributes[0]?.isSynthetic && (
+                                <button
+                                  onClick={() => setShowSyntheticInfoModal(true)}
+                                  className="text-blue-500 hover:text-blue-600 transition-colors"
+                                  title="Thông tin về chỉ số tự động"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
                           </h3>
                           <div className="flex justify-center">
                             {profileUser?.attributes &&
@@ -1236,7 +1258,7 @@ export default function UserProfilePage() {
                                 href={`/profile/${player.userid}?from=following`}
                                 className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition"
                               >
-                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center overflow-hidden flex-shrink-0">
                                   {player.avatar ? (
                                     <img
                                       src={player.avatar}
@@ -1244,7 +1266,7 @@ export default function UserProfilePage() {
                                       className="w-full h-full object-cover"
                                     />
                                   ) : (
-                                    <span className="text-green-600 font-semibold text-sm">
+                                    <span className="text-white font-semibold text-sm">
                                       {player.fullName.charAt(0).toUpperCase()}
                                     </span>
                                   )}
@@ -1336,6 +1358,81 @@ export default function UserProfilePage() {
       </main>
 
       {/* Edit Profile Handler is in layout.tsx - no need to include here */}
+
+      {/* Synthetic Attributes Info Modal */}
+      {showSyntheticInfoModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowSyntheticInfoModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg max-w-lg w-full p-6 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-bold text-gray-900">
+                Chỉ số tự động (Synthetic Attributes)
+              </h3>
+              <button
+                onClick={() => setShowSyntheticInfoModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4 text-sm text-gray-700">
+              <p>
+                <strong>Chỉ số tự động</strong> được hệ thống tính toán dựa trên
+                thông tin profile của cầu thủ. Đây là chỉ số tạm thời để so sánh
+                khi chưa có đánh giá chuyên môn.
+              </p>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold mb-2 text-blue-900">
+                  Công thức tính:
+                </h4>
+                <ul className="space-y-2">
+                  <li>
+                    <strong>Thể chất (FIT):</strong> Tính từ chiều cao, cân nặng
+                    (BMI), và tuổi
+                  </li>
+                  <li>
+                    <strong>Kinh nghiệm (EXP):</strong> Số năm kinh nghiệm và
+                    level cầu thủ
+                  </li>
+                  <li>
+                    <strong>Kỹ năng (SKL):</strong> Số vị trí có thể chơi và chân
+                    thuận
+                  </li>
+                  <li>
+                    <strong>Hoàn thiện profile (PRF):</strong> % các trường thông
+                    tin đã điền
+                  </li>
+                  <li>
+                    <strong>Thành tích (ACH):</strong> Số thành tích đã được duyệt
+                  </li>
+                  <li>
+                    <strong>Highlights (HLT):</strong> Số video highlights đã được
+                    duyệt
+                  </li>
+                </ul>
+              </div>
+
+              <p className="text-gray-600 text-xs">
+                💡 <strong>Lưu ý:</strong> Chỉ số này chỉ mang tính tham khảo.
+                Chỉ số thực tế sẽ được đánh giá bởi huấn luyện viên hoặc admin.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Bottom Navigation - Only visible on mobile */}
       <MobileNav backgroundImage="/images/ground.jpg" />

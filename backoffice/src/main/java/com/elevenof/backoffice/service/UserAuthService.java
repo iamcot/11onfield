@@ -116,6 +116,18 @@ public class UserAuthService {
             }
             playerService.createPlayerProfile(savedUser.getId(), player);
             log.info("Player profile created for user: {}", savedUser.getId());
+
+            // Auto-generate synthetic attributes for new player
+            try {
+                playerAttributeService.generateAndSaveSyntheticAttributes(
+                    savedUser.getId(),
+                    "SYSTEM_REGISTRATION"
+                );
+                log.info("Synthetic attributes generated for player: {}", savedUser.getId());
+            } catch (Exception e) {
+                log.warn("Failed to generate synthetic attributes for player: {}", savedUser.getId(), e);
+                // Don't fail registration if attribute generation fails
+            }
         }
 
         // Generate JWT token

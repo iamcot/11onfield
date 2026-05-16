@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * DTO for player attribute data in API responses
  */
@@ -19,4 +21,6 @@ public class PlayerAttributeDTO {
     private String attributeGroup;
     private Boolean isHexagon;
     private Boolean isGoalKeeper;
+    private Boolean isSynthetic;
+    private LocalDateTime generationTimestamp;
 }

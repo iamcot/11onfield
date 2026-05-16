@@ -15,10 +15,10 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 shadow-lg z-40 overflow-hidden">
-      {/* Background with gradient connector at top */}
+      {/* Background with connector at top */}
       <div className="absolute inset-0">
-        {/* Top gradient connector (light green to green) */}
-        <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-b from-green-100 to-green-500"></div>
+        {/* Top connector (light green to green) */}
+        <div className="absolute top-0 left-0 right-0 h-3 bg-green-700"></div>
 
         {/* Main background */}
         {backgroundImage ? (
@@ -27,10 +27,10 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
             style={{ backgroundImage: `url(${backgroundImage})` }}
           >
             {/* Primary color overlay for theme consistency */}
-            <div className="absolute inset-0 bg-gradient-to-br from-green-900/70 via-green-800/70 to-green-950/70"></div>
+            <div className="absolute inset-0 bg-green-800/70"></div>
           </div>
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-green-900 via-green-800 to-green-950"></div>
+          <div className="absolute inset-0 bg-green-800"></div>
         )}
       </div>
 

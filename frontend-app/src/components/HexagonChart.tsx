@@ -113,7 +113,7 @@ export default function HexagonChart({
               textAnchor="middle"
               dominantBaseline="middle"
               className="fill-green-600"
-              style={{ fontSize: "14px", fontWeight: "bold" }}
+              style={{ fontSize: "14px", fontWeight: "600" }}
             >
               {attr.attributeValue}
             </text>
@@ -144,9 +144,9 @@ export default function HexagonChart({
       {hexagonAttrs.length > 0 && (
         <polygon
           points={dataPoints}
-          fill="rgba(34, 197, 94, 0.3)"
-          stroke="#22c55e"
-          strokeWidth="3"
+          fill="rgba(34, 197, 94, 0.2)"
+          stroke="#16a34a"
+          strokeWidth="2.5"
         />
       )}
 

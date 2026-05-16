@@ -71,15 +71,19 @@
                       >
                         <i class="fas fa-edit"></i>
                       </a>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-danger"
+                        th:onclick="|document.getElementById('deleteAttributeTypeForm${type.id}').submit();|"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
                       <form
+                        th:id="'deleteAttributeTypeForm' + ${type.id}"
                         th:action="@{/admin/attribute-types/delete/{id}(id=${type.id})}"
                         method="post"
-                        style="display: inline;"
-                        onsubmit="return confirm('Bạn có chắc chắn muốn xóa loại chỉ số này?');"
+                        style="display: none;"
                       >
-                        <button type="submit" class="btn btn-sm btn-danger">
-                          <i class="fas fa-trash"></i>
-                        </button>
                       </form>
                     </td>
                   </tr>

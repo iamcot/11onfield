@@ -4,242 +4,226 @@
   th:replace="~{fragments/layout :: layout (${title}, ~{::content})}"
 >
   <head>
-    <title>Manage Player Attributes</title>
+    <title>Quản lý Attributes</title>
   </head>
   <body>
     <div th:fragment="content">
-      <style>
-        .content .attributes-grid {
-          display: grid !important;
-          grid-template-columns: repeat(3, 1fr) !important;
-          gap: 20px !important;
-          margin-top: 20px !important;
-        }
-
-        @media (max-width: 1200px) {
-          .content .attributes-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .content .attributes-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-
-        .content .attribute-card {
-          border: 1px solid #dee2e6 !important;
-          border-radius: 8px !important;
-          padding: 15px !important;
-          background: #fff !important;
-          transition: box-shadow 0.2s !important;
-        }
-
-        .content .attribute-card:hover {
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-        }
-
-        .content .attribute-header {
-          display: flex !important;
-          justify-content: space-between !important;
-          align-items: flex-start !important;
-          margin-bottom: 12px !important;
-        }
-
-        .content .attribute-title {
-          flex: 1 !important;
-        }
-
-        .content .attribute-name {
-          font-weight: 600 !important;
-          font-size: 1rem !important;
-          color: #333 !important;
-          margin-bottom: 3px !important;
-        }
-
-        .content .attribute-key {
-          font-size: 0.8rem !important;
-          color: #6c757d !important;
-          font-family: monospace !important;
-        }
-
-        .content .attribute-badges {
-          display: flex !important;
-          gap: 5px !important;
-          flex-wrap: wrap !important;
-        }
-
-        .content .attribute-input-section {
-          margin-top: 15px !important;
-        }
-
-        .content .input-group-custom {
-          display: flex !important;
-          align-items: center !important;
-          gap: 10px !important;
-        }
-
-        .content .range-container {
-          flex: 1 !important;
-          position: relative !important;
-        }
-
-        .content .custom-range {
-          width: 100% !important;
-        }
-
-        .content .number-input {
-          width: 70px !important;
-          text-align: center !important;
-        }
-
-        .content .attribute-value-display {
-          text-align: center !important;
-          margin-top: 8px !important;
-          font-size: 1.5rem !important;
-          font-weight: bold !important;
-          color: #007bff !important;
-        }
-      </style>
-
       <div class="row">
         <div class="col-12">
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">
-                Quản lý chỉ số - <span th:text="${player.user.fullName}"></span>
+                <i class="fas fa-chart-line"></i> Quản lý Attributes -
+                <span th:text="${player.user.fullName}"></span>
               </h3>
               <div class="card-tools">
-                <a th:href="@{/admin/players}" class="btn btn-secondary btn-sm">
-                  <i class="fas fa-arrow-left"></i> Quay lại
+                <a th:href="@{'/admin/players/edit/' + ${player.user.id}}" class="btn btn-secondary btn-sm">
+                  <i class="fas fa-arrow-left"></i> Quay lại profile
                 </a>
               </div>
             </div>
+          </div>
 
-            <form th:action="@{/admin/players/{id}/attributes/save(id=${player.id})}" method="post">
-              <div class="card-body">
-                <div class="mb-3">
-                  <p class="text-muted">
-                    <i class="fas fa-info-circle"></i>
-                    Nhập giá trị từ 0-100 cho mỗi chỉ số. Để trống nếu chỉ số chưa được đánh giá.
-                  </p>
+          <!-- Real Attributes Section -->
+          <div class="card mt-3">
+            <div class="card-header bg-success">
+              <h5 class="mb-0">
+                <i class="fas fa-user-edit"></i> Real Attributes (Nhập thủ công)
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="alert alert-info">
+                <strong>Real Attributes:</strong> Các chỉ số được đánh giá và nhập thủ công bởi admin/huấn luyện viên.
+                Đây là các chỉ số chính xác nhất về kỹ năng thực tế của cầu thủ.
+              </div>
+
+              <!-- Display Current Status -->
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <p><strong>Trạng thái:</strong></p>
+                  <span th:if="${hasRealAttributes}" class="badge badge-success badge-lg">
+                    <i class="fas fa-check-circle"></i> Đã có Real Attributes
+                  </span>
+                  <span th:if="${!hasRealAttributes}" class="badge badge-secondary badge-lg">
+                    <i class="fas fa-times-circle"></i> Chưa có Real Attributes
+                  </span>
                 </div>
+              </div>
 
-                <div th:if="${#lists.isEmpty(allAttributeTypes)}" class="alert alert-warning">
-                  <i class="fas fa-exclamation-triangle"></i>
-                  Chưa có loại chỉ số nào được định nghĩa. Vui lòng tạo loại chỉ số trước.
-                  <a th:href="@{/admin/attribute-types/new}" class="alert-link">Tạo loại chỉ số mới</a>
+              <!-- Real Attributes List (if exists) -->
+              <div th:if="${hasRealAttributes}" class="table-responsive">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Chỉ số</th>
+                      <th>Giá trị</th>
+                      <th>Nhóm</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="attr : ${realAttributes}">
+                      <td th:text="${attr.attributeName}"></td>
+                      <td>
+                        <span class="badge badge-primary" th:text="${attr.attributeValue}"></span>
+                      </td>
+                      <td th:text="${attr.attributeGroup}"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Link to edit real attributes in player-edit page -->
+              <div class="mt-3">
+                <a th:href="@{'/admin/players/edit/' + ${player.user.id}}" class="btn btn-success">
+                  <i class="fas fa-edit"></i>
+                  <span th:if="${hasRealAttributes}">Chỉnh sửa Real Attributes</span>
+                  <span th:if="${!hasRealAttributes}">Nhập Real Attributes</span>
+                </a>
+
+                <button th:if="${hasRealAttributes && !hasSyntheticAttributes}"
+                        type="button"
+                        class="btn btn-danger ml-2"
+                        onclick="confirmDeleteReal()">
+                  <i class="fas fa-trash"></i> Xóa Real Attributes
+                </button>
+                <form th:action="@{/admin/players/{id}/attributes/switch-to-synthetic(id=${player.user.id})}"
+                      method="post"
+                      id="deleteRealForm"
+                      style="display: none;">
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Synthetic Attributes Section -->
+          <div class="card mt-3">
+            <div class="card-header bg-primary">
+              <h5 class="mb-0 text-white">
+                <i class="fas fa-robot"></i> Synthetic Attributes (Tự động tính)
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="alert alert-info">
+                <strong>Synthetic Attributes:</strong> Các chỉ số được tự động tính toán từ dữ liệu của cầu thủ
+                (thể chất, kinh nghiệm, độ hoàn thiện profile, thành tích, highlights).
+                Sử dụng khi chưa có đánh giá chuyên môn.
+              </div>
+
+              <!-- Display Current Status -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <p><strong>Trạng thái:</strong></p>
+                  <span th:if="${hasSyntheticAttributes}" class="badge badge-primary badge-lg">
+                    <i class="fas fa-check-circle"></i> Đang dùng Synthetic Attributes
+                  </span>
+                  <span th:if="${!hasSyntheticAttributes}" class="badge badge-secondary badge-lg">
+                    <i class="fas fa-times-circle"></i> Chưa có Synthetic Attributes
+                  </span>
                 </div>
+                <div class="col-md-6 text-right">
+                  <p><strong>Thời gian tạo/cập nhật:</strong></p>
+                  <span th:if="${generationTimestamp != null}" th:text="${#temporals.format(generationTimestamp, 'dd/MM/yyyy HH:mm')}"></span>
+                  <span th:if="${generationTimestamp == null}" class="text-muted">Chưa có</span>
+                </div>
+              </div>
 
-                <div th:unless="${#lists.isEmpty(allAttributeTypes)}">
-                  <div class="attributes-grid">
-                    <div th:each="attrType : ${allAttributeTypes}" class="attribute-card">
-                      <div class="attribute-header">
-                        <div class="attribute-title">
-                          <div class="attribute-name" th:text="${attrType.attributeName}"></div>
-                          <div class="attribute-key">
-                            <code th:text="${attrType.attributeKey}"></code>
-                          </div>
-                        </div>
-                        <div class="attribute-badges">
-                          <span th:if="${attrType.attributeGroup}" class="badge badge-secondary badge-sm" th:text="${attrType.attributeGroup}"></span>
-                          <span th:if="${attrType.isHexagon}" class="badge badge-success badge-sm" title="Hiển thị trên hexagon">
-                            <i class="fas fa-chart-line"></i>
-                          </span>
-                          <span th:if="${attrType.isGoalKeeper}" class="badge badge-info badge-sm" title="Dành cho thủ môn">
-                            <i class="fas fa-hands"></i>
-                          </span>
-                        </div>
-                      </div>
+              <!-- Synthetic Attributes List (if exists) -->
+              <div th:if="${hasSyntheticAttributes}" class="table-responsive mb-3">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Chỉ số</th>
+                      <th>Giá trị</th>
+                      <th>Công thức</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="attr : ${syntheticAttributes}">
+                      <td th:text="${attr.attributeName}"></td>
+                      <td>
+                        <span class="badge badge-info" th:text="${attr.attributeValue}"></span>
+                      </td>
+                      <td class="small text-muted">
+                        <span th:switch="${attr.attributeKey}">
+                          <span th:case="'FIT'">Tính từ BMI + tuổi</span>
+                          <span th:case="'EXP'">Số năm kinh nghiệm + level</span>
+                          <span th:case="'SKL'">Số vị trí + chân thuận</span>
+                          <span th:case="'PRF'">% hoàn thiện profile</span>
+                          <span th:case="'ACH'">Số thành tích đã duyệt</span>
+                          <span th:case="'HLT'">Số highlights đã duyệt</span>
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-                      <div class="attribute-input-section">
-                        <div class="input-group-custom">
-                          <div class="range-container">
-                            <input
-                              type="range"
-                              class="custom-range"
-                              th:id="'range_' + ${attrType.id}"
-                              th:value="${attributeValues.get(attrType.id) != null ? attributeValues.get(attrType.id) : 0}"
-                              min="0"
-                              max="100"
-                              step="1"
-                              oninput="syncFromRange(this)"
-                            />
-                          </div>
-                          <input
-                            type="number"
-                            class="form-control form-control-sm number-input"
-                            th:name="'attr_' + ${attrType.id}"
-                            th:id="'input_' + ${attrType.id}"
-                            th:value="${attributeValues.get(attrType.id) != null ? attributeValues.get(attrType.id) : 0}"
-                            min="0"
-                            max="100"
-                            oninput="syncFromInput(this)"
-                            placeholder="0"
-                          />
-                        </div>
-                        <div class="attribute-value-display" th:id="'display_' + ${attrType.id}" th:text="${attributeValues.get(attrType.id) != null ? attributeValues.get(attrType.id) : 0}">0</div>
-                      </div>
-                    </div>
+              <!-- Action Buttons -->
+              <div class="mt-3">
+                <button type="button" class="btn btn-primary" onclick="confirmGenerate()">
+                  <i class="fas fa-sync-alt"></i>
+                  <span th:if="${hasSyntheticAttributes}">Cập nhật Synthetic Attributes</span>
+                  <span th:if="${!hasSyntheticAttributes}">Tạo Synthetic Attributes</span>
+                </button>
+                <form th:action="@{/admin/players/{id}/attributes/generate(id=${player.user.id})}"
+                      method="post"
+                      id="generateForm"
+                      style="display: none;">
+                </form>
+
+                <button th:if="${hasSyntheticAttributes}"
+                        type="button"
+                        class="btn btn-danger ml-2"
+                        onclick="confirmDeleteSynthetic()">
+                  <i class="fas fa-trash"></i> Xóa Synthetic Attributes
+                </button>
+                <form th:action="@{/admin/players/{id}/attributes/switch-to-real(id=${player.user.id})}"
+                      method="post"
+                      id="deleteSyntheticForm"
+                      style="display: none;">
+                </form>
+              </div>
+
+              <!-- Formula Preview (Collapsible) -->
+              <div class="mt-3">
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-toggle="collapse"
+                        data-target="#formulaPreview">
+                  <i class="fas fa-info-circle"></i> Xem công thức chi tiết
+                </button>
+                <div class="collapse mt-2" id="formulaPreview">
+                  <div class="card card-body bg-light">
+                    <h6>Công thức tính Synthetic Attributes:</h6>
+                    <ul class="small mb-0">
+                      <li><strong>Thể chất (FIT):</strong> Base 50 + BMI (0-20) + Age (0-20). BMI trong khoảng 18.5-24.9 được +20, tuổi 18-25 được +20.</li>
+                      <li><strong>Kinh nghiệm (EXP):</strong> Base 20 + (Years × 8, max 40) + Level bonus (CAU_THU_MOI: 10, NGHIEP_DU: 20, TUYEN_TRE: 30, CHUYEN_NGHIEP: 40).</li>
+                      <li><strong>Kỹ năng (SKL):</strong> Base 40 + Positions (1: +10, 2: +20, 3+: +30) + Foot (Both: +30, Single: +20, None: +10).</li>
+                      <li><strong>Hoàn thiện profile (PRF):</strong> (Số trường đã điền / 12) × 100. Kiểm tra: fullName, phone, email, dob, gender, height, weight, positions, preferredFoot, bio, academy/school/club.</li>
+                      <li><strong>Thành tích (ACH):</strong> Base 20 + (Số thành tích APPROVED × 15), max 100.</li>
+                      <li><strong>Highlights (HLT):</strong> Base 20 + (Số highlights APPROVED × 20), max 100.</li>
+                    </ul>
                   </div>
                 </div>
               </div>
-
-              <div class="card-footer">
-                <button type="submit" class="btn btn-primary" th:disabled="${#lists.isEmpty(allAttributeTypes)}">
-                  <i class="fas fa-save"></i> Lưu chỉ số
-                </button>
-                <a th:href="@{/admin/players}" class="btn btn-secondary">
-                  <i class="fas fa-times"></i> Hủy
-                </a>
-              </div>
-            </form>
+            </div>
           </div>
+
+          <script>
+            // Prevent duplicate confirms - use custom.js global handler
+            function confirmGenerate() {
+              document.getElementById('generateForm').submit();
+            }
+
+            function confirmDeleteSynthetic() {
+              document.getElementById('deleteSyntheticForm').submit();
+            }
+
+            function confirmDeleteReal() {
+              document.getElementById('deleteRealForm').submit();
+            }
+          </script>
+
         </div>
       </div>
-
-      <script>
-        function syncFromRange(rangeInput) {
-          const id = rangeInput.id.replace('range_', '');
-          const numberInput = document.getElementById('input_' + id);
-          const displayValue = document.getElementById('display_' + id);
-
-          if (numberInput) {
-            numberInput.value = rangeInput.value;
-          }
-          if (displayValue) {
-            displayValue.textContent = rangeInput.value;
-          }
-        }
-
-        function syncFromInput(numberInput) {
-          const id = numberInput.id.replace('input_', '');
-          const rangeInput = document.getElementById('range_' + id);
-          const displayValue = document.getElementById('display_' + id);
-
-          // Validate and clamp value
-          let value = parseInt(numberInput.value);
-          if (isNaN(value)) value = 0;
-          if (value < 0) value = 0;
-          if (value > 100) value = 100;
-
-          numberInput.value = value;
-
-          if (rangeInput) {
-            rangeInput.value = value;
-          }
-          if (displayValue) {
-            displayValue.textContent = value;
-          }
-        }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-          const ranges = document.querySelectorAll('input[type="range"]');
-          ranges.forEach(range => syncFromRange(range));
-        });
-      </script>
     </div>
   </body>
 </html>

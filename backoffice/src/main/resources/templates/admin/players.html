@@ -77,6 +77,19 @@
               </form>
             </div>
 
+            <!-- Bulk Actions Section -->
+            <div class="card-body border-bottom">
+              <form th:action="@{/admin/players/bulk-generate-attributes}" method="post"
+                    onsubmit="return confirm('Tạo synthetic attributes cho tất cả cầu thủ chưa có attributes?');">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  <i class="fas fa-magic"></i> Tạo synthetic attributes (bulk)
+                </button>
+                <small class="text-muted ml-2">
+                  Tự động tạo 6 attributes cho cầu thủ chưa có attributes
+                </small>
+              </form>
+            </div>
+
             <div class="card-body">
               <table class="table table-bordered table-hover">
                 <thead>
@@ -106,9 +119,26 @@
                       <div th:replace="~{fragments/hexagon-chart :: hexagon-chart(
                         ${player.id},
                         ${player.user.fullName},
-                        ${hexagonAttributes},
+                        ${playerHexagonTypesMap.get(player.id)},
                         ${playerAttributesMap.get(player.id)}
                       )}"></div>
+                      <div class="mt-1">
+                        <span th:if="${playerAttributeTypeMap.get(player.id) == 'synthetic'}"
+                              class="badge badge-primary badge-sm"
+                              style="font-size: 0.7rem;">
+                          <i class="fas fa-robot"></i> Synthetic
+                        </span>
+                        <span th:if="${playerAttributeTypeMap.get(player.id) == 'real'}"
+                              class="badge badge-success badge-sm"
+                              style="font-size: 0.7rem;">
+                          <i class="fas fa-user-edit"></i> Real
+                        </span>
+                        <span th:if="${playerAttributeTypeMap.get(player.id) == 'none'}"
+                              class="badge badge-secondary badge-sm"
+                              style="font-size: 0.7rem;">
+                          <i class="fas fa-times"></i> None
+                        </span>
+                      </div>
                     </td>
                     <td>
                       <div class="d-flex align-items-center">

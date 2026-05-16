@@ -680,7 +680,7 @@ function PlayersContent() {
                                     className="w-10 h-10 rounded-full object-cover"
                                   />
                                 ) : (
-                                  <div className="w-10 h-10 rounded-full bg-green-200 flex items-center justify-center text-sm font-bold text-green-600">
+                                  <div className="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center text-sm font-bold text-white">
                                     {player.fullName?.charAt(0) || "?"}
                                   </div>
                                 )}
@@ -778,7 +778,7 @@ function PlayersContent() {
                                 className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                               />
                             ) : (
-                              <div className="w-12 h-12 rounded-full bg-green-200 flex items-center justify-center text-lg font-bold text-green-600 flex-shrink-0">
+                              <div className="w-12 h-12 rounded-full bg-green-700 flex items-center justify-center text-lg font-bold text-white flex-shrink-0">
                                 {player.fullName?.charAt(0) || "?"}
                               </div>
                             )}
@@ -838,12 +838,12 @@ function PlayersContent() {
                                 : "N/A"}
                             </span>
                           </div>
-                          <div>
-                            <span className="text-gray-500">Tỉnh/TP:</span>{" "}
-                            <span className="font-medium text-gray-900">
-                              {player.provinceName || "N/A"}
-                            </span>
-                          </div>
+                        </div>
+                        <div className="text-sm mt-2">
+                          <span className="text-gray-500">Tỉnh/TP:</span>{" "}
+                          <span className="font-medium text-gray-900">
+                            {player.provinceName || "N/A"}
+                          </span>
                         </div>
                       </div>
                     ))}

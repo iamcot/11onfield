@@ -56,6 +56,7 @@ public class AdminController {
     private final S3Service s3Service;
     private final com.elevenof.backoffice.service.PlayerAttributeTypeService playerAttributeTypeService;
     private final com.elevenof.backoffice.service.PlayerAttributeService playerAttributeService;
+    private final com.elevenof.backoffice.repository.PlayerAttributeRepository playerAttributeRepository;
     private final PlayerAchievementRepository playerAchievementRepository;
     private final PlayerHighlightRepository playerHighlightRepository;
     private final PlayerSocialRepository playerSocialRepository;
@@ -176,14 +177,54 @@ public class AdminController {
             // Load all provinces for filter dropdown
             List<Province> provinces = provinceRepository.findAll();
 
-            // Load hexagon attribute types
-            List<com.elevenof.backoffice.model.PlayerAttributeType> hexagonAttributes =
-                playerAttributeTypeService.getHexagonAttributeTypes();
-
             // Load attributes for all players in current page
             Map<Long, Map<String, Integer>> playerAttributesMap = new java.util.HashMap<>();
+            Map<Long, String> playerAttributeTypeMap = new java.util.HashMap<>(); // "synthetic", "real", or "none"
+            Map<Long, List<com.elevenof.backoffice.model.PlayerAttributeType>> playerHexagonTypesMap = new java.util.HashMap<>();
+
+            // Load synthetic and real hexagon types once
+            List<com.elevenof.backoffice.model.PlayerAttributeType> syntheticTypes = new ArrayList<>();
+            List<String> syntheticKeys = List.of("FIT", "EXP", "SKL", "PRF", "ACH", "HLT");
+            for (String key : syntheticKeys) {
+                try {
+                    syntheticTypes.add(playerAttributeTypeService.getAttributeTypeByKey(key));
+                } catch (IllegalArgumentException e) {
+                    // Synthetic type not found, continue
+                }
+            }
+            List<com.elevenof.backoffice.model.PlayerAttributeType> realHexagonTypes =
+                    playerAttributeTypeService.getHexagonAttributeTypes();
+
             for (Player player : playerPage.getContent()) {
-                Map<String, Integer> attrs = playerAttributeService.getPlayerAttributesAsMap(player.getId());
+                Long userId = player.getUser().getId();
+
+                // Determine attribute type first
+                boolean hasSynthetic = playerAttributeService.hasSyntheticAttributes(userId);
+                boolean hasReal = playerAttributeService.hasRealAttributes(userId);
+
+                // Assign appropriate attribute types based on what player has
+                if (hasSynthetic) {
+                    playerAttributeTypeMap.put(player.getId(), "synthetic");
+                    playerHexagonTypesMap.put(player.getId(), syntheticTypes);
+                } else if (hasReal) {
+                    playerAttributeTypeMap.put(player.getId(), "real");
+                    playerHexagonTypesMap.put(player.getId(), realHexagonTypes);
+                } else {
+                    playerAttributeTypeMap.put(player.getId(), "none");
+                    playerHexagonTypesMap.put(player.getId(), realHexagonTypes); // default to real
+                }
+
+                // Use getHexagonAttributesWithValues which prioritizes synthetic over real
+                List<com.elevenof.backoffice.dto.response.PlayerAttributeDTO> hexagonAttrs =
+                        playerAttributeService.getHexagonAttributesWithValues(userId);
+
+                // Convert DTO list to Map<String, Integer>
+                Map<String, Integer> attrs = hexagonAttrs.stream()
+                        .filter(dto -> dto.getAttributeValue() != null)
+                        .collect(java.util.stream.Collectors.toMap(
+                                com.elevenof.backoffice.dto.response.PlayerAttributeDTO::getAttributeKey,
+                                com.elevenof.backoffice.dto.response.PlayerAttributeDTO::getAttributeValue
+                        ));
                 playerAttributesMap.put(player.getId(), attrs);
             }
 
@@ -195,8 +236,9 @@ public class AdminController {
             model.addAttribute("pageSize", size);
             model.addAttribute("frontendUrl", frontendUrl);
             model.addAttribute("provinces", provinces);
-            model.addAttribute("hexagonAttributes", hexagonAttributes);
+            model.addAttribute("playerHexagonTypesMap", playerHexagonTypesMap);
             model.addAttribute("playerAttributesMap", playerAttributesMap);
+            model.addAttribute("playerAttributeTypeMap", playerAttributeTypeMap);
 
             // Preserve filter params
             model.addAttribute("search", search != null ? search : "");
@@ -267,6 +309,12 @@ public class AdminController {
         if (player.getAddress() == null && player.getUser().getAddress() != null) {
             player.setAddress(player.getUser().getAddress().getAddress());
         }
+
+        // Add synthetic attributes status
+        Long userId = player.getUser().getId();
+        model.addAttribute("hasSyntheticAttributes", playerAttributeService.hasSyntheticAttributes(userId));
+        model.addAttribute("hasRealAttributes", playerAttributeService.hasRealAttributes(userId));
+        model.addAttribute("generationTimestamp", playerAttributeService.getGenerationTimestamp(userId));
 
         model.addAttribute("title", "Chỉnh sửa cầu thủ");
         model.addAttribute("player", player);
@@ -898,31 +946,6 @@ public class AdminController {
 
     // ==================== PLAYER ATTRIBUTES MANAGEMENT ====================
 
-    @GetMapping("/players/{playerId}/attributes")
-    public String managePlayerAttributes(@PathVariable Long playerId, Model model) {
-        Player player = playerRepository.findById(playerId)
-            .orElseThrow(() -> new RuntimeException("Player not found"));
-
-        List<com.elevenof.backoffice.model.PlayerAttributeType> allAttributeTypes =
-            playerAttributeTypeService.getAllAttributeTypes();
-
-        List<com.elevenof.backoffice.model.PlayerAttribute> playerAttributes =
-            playerAttributeService.getPlayerAttributes(playerId);
-
-        // Create a map of attribute type ID to current value
-        Map<Long, Integer> attributeValues = new java.util.HashMap<>();
-        playerAttributes.forEach(attr ->
-            attributeValues.put(attr.getAttributeType().getId(), attr.getAttributeValue())
-        );
-
-        model.addAttribute("title", "Quản lý chỉ số cầu thủ");
-        model.addAttribute("player", player);
-        model.addAttribute("allAttributeTypes", allAttributeTypes);
-        model.addAttribute("attributeValues", attributeValues);
-
-        return "admin/player-attributes";
-    }
-
     @PostMapping("/players/{playerId}/attributes/save")
     public String savePlayerAttributes(
             @PathVariable Long playerId,
@@ -1027,5 +1050,160 @@ public class AdminController {
         playerHighlightRepository.save(highlight);
 
         return Map.of("success", true, "approvalStatus", "REJECTED");
+    }
+
+    // ==================== SYNTHETIC ATTRIBUTES MANAGEMENT ====================
+
+    /**
+     * Generate synthetic attributes for individual player
+     */
+    @PostMapping("/players/{id}/attributes/generate")
+    public String generateSyntheticAttributes(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request
+    ) {
+        try {
+            String adminUsername = request.getUserPrincipal().getName();
+            playerAttributeService.generateAndSaveSyntheticAttributes(id, adminUsername);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã tạo synthetic attributes thành công");
+        } catch (Exception e) {
+            System.err.println("Failed to generate synthetic attributes: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi tạo synthetic attributes: " + e.getMessage());
+        }
+        return "redirect:/admin/players/" + id + "/attributes";
+    }
+
+    /**
+     * View player attributes management page
+     */
+    @GetMapping("/players/{id}/attributes")
+    public String viewPlayerAttributes(@PathVariable Long id, Model model) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Player player = playerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        // Get attribute statuses
+        boolean hasSyntheticAttributes = playerAttributeService.hasSyntheticAttributes(id);
+        boolean hasRealAttributes = playerAttributeService.hasRealAttributes(id);
+
+        model.addAttribute("title", "Quản lý Attributes");
+        model.addAttribute("player", player);
+        model.addAttribute("hasSyntheticAttributes", hasSyntheticAttributes);
+        model.addAttribute("hasRealAttributes", hasRealAttributes);
+        model.addAttribute("generationTimestamp", playerAttributeService.getGenerationTimestamp(id));
+
+        // Get real and synthetic attributes separately
+        if (hasRealAttributes) {
+            List<com.elevenof.backoffice.dto.response.PlayerAttributeDTO> realAttrs =
+                    playerAttributeRepository.findByPlayerIdAndIsSynthetic(id, false).stream()
+                            .map(pa -> com.elevenof.backoffice.dto.response.PlayerAttributeDTO.builder()
+                                    .attributeKey(pa.getAttributeType().getAttributeKey())
+                                    .attributeName(pa.getAttributeType().getAttributeName())
+                                    .attributeValue(pa.getAttributeValue())
+                                    .attributeGroup(pa.getAttributeType().getAttributeGroup())
+                                    .isSynthetic(false)
+                                    .build())
+                            .collect(java.util.stream.Collectors.toList());
+            model.addAttribute("realAttributes", realAttrs);
+        }
+
+        if (hasSyntheticAttributes) {
+            List<com.elevenof.backoffice.dto.response.PlayerAttributeDTO> syntheticAttrs =
+                    playerAttributeRepository.findByPlayerIdAndIsSynthetic(id, true).stream()
+                            .map(pa -> com.elevenof.backoffice.dto.response.PlayerAttributeDTO.builder()
+                                    .attributeKey(pa.getAttributeType().getAttributeKey())
+                                    .attributeName(pa.getAttributeType().getAttributeName())
+                                    .attributeValue(pa.getAttributeValue())
+                                    .attributeGroup(pa.getAttributeType().getAttributeGroup())
+                                    .isSynthetic(true)
+                                    .generationTimestamp(pa.getGenerationTimestamp())
+                                    .build())
+                            .collect(java.util.stream.Collectors.toList());
+            model.addAttribute("syntheticAttributes", syntheticAttrs);
+        }
+
+        return "admin/player-attributes";
+    }
+
+    /**
+     * Bulk generate synthetic attributes for players without attributes
+     */
+    @PostMapping("/players/bulk-generate-attributes")
+    public String bulkGenerateSyntheticAttributes(
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request
+    ) {
+        try {
+            String adminUsername = request.getUserPrincipal().getName();
+
+            // Find all players without any attributes
+            List<Player> playersWithoutAttributes = playerRepository.findAll().stream()
+                    .filter(player -> playerAttributeService.getPlayerAttributes(player.getId()).isEmpty())
+                    .toList();
+
+            if (playersWithoutAttributes.isEmpty()) {
+                redirectAttributes.addFlashAttribute("info", "Không có cầu thủ nào cần tạo attributes");
+                return "redirect:/admin/players";
+            }
+
+            List<Long> userIds = playersWithoutAttributes.stream()
+                    .map(player -> player.getUser().getId())
+                    .toList();
+
+            playerAttributeService.bulkGenerateSyntheticAttributes(userIds, adminUsername);
+
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã tạo synthetic attributes cho " + userIds.size() + " cầu thủ");
+        } catch (Exception e) {
+            System.err.println("Failed to bulk generate synthetic attributes: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Lỗi khi tạo bulk synthetic attributes: " + e.getMessage());
+        }
+        return "redirect:/admin/players";
+    }
+
+    /**
+     * Switch player to use synthetic attributes
+     */
+    @PostMapping("/players/{id}/attributes/switch-to-synthetic")
+    public String switchToSyntheticAttributes(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request
+    ) {
+        try {
+            String adminUsername = request.getUserPrincipal().getName();
+            playerAttributeService.switchToSyntheticAttributes(id, adminUsername);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã chuyển sang sử dụng synthetic attributes");
+        } catch (Exception e) {
+            System.err.println("Failed to switch to synthetic attributes: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/admin/players/" + id + "/attributes";
+    }
+
+    /**
+     * Switch player to use real attributes (delete synthetic)
+     */
+    @PostMapping("/players/{id}/attributes/switch-to-real")
+    public String switchToRealAttributes(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            playerAttributeService.switchToRealAttributes(id);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã xóa synthetic attributes, giữ lại real attributes");
+        } catch (Exception e) {
+            System.err.println("Failed to switch to real attributes: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/admin/players/" + id + "/attributes";
     }
 }

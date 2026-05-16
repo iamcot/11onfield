@@ -416,7 +416,7 @@ export default function EditProfileHandler() {
                     );
                   } else {
                     return (
-                      <div className="w-24 h-24 rounded-full bg-green-200 flex items-center justify-center text-2xl font-bold text-green-600">
+                      <div className="w-24 h-24 rounded-full bg-green-700 flex items-center justify-center text-2xl font-bold text-white">
                         {currentUser?.fullName?.charAt(0) || "U"}
                       </div>
                     );

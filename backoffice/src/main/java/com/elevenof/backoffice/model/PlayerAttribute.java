@@ -37,6 +37,13 @@ public class PlayerAttribute {
     @Column(nullable = false)
     private Integer attributeValue; // Value from 0-100 or 0-10 depending on scale
 
+    @Column(name = "is_synthetic", nullable = false)
+    @Builder.Default
+    private Boolean isSynthetic = false; // Whether this attribute is auto-generated or manually entered
+
+    @Column(name = "generation_timestamp")
+    private LocalDateTime generationTimestamp; // When synthetic attribute was last generated
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

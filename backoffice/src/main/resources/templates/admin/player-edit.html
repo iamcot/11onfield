@@ -683,6 +683,36 @@
                 </a>
               </div>
             </form>
+
+            <!-- Quick Link to Attributes Management -->
+            <div class="card mt-3">
+              <div class="card-header bg-info">
+                <h5 class="mb-0 text-white">
+                  <i class="fas fa-chart-line"></i> Quản lý Player Attributes
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <p><strong>Trạng thái hiện tại:</strong></p>
+                    <span th:if="${hasSyntheticAttributes}" class="badge badge-primary badge-lg">
+                      <i class="fas fa-robot"></i> Synthetic Attributes
+                    </span>
+                    <span th:if="${hasRealAttributes && !hasSyntheticAttributes}" class="badge badge-success badge-lg">
+                      <i class="fas fa-user-edit"></i> Real Attributes
+                    </span>
+                    <span th:if="${!hasSyntheticAttributes && !hasRealAttributes}" class="badge badge-secondary badge-lg">
+                      <i class="fas fa-times-circle"></i> Chưa có attributes
+                    </span>
+                  </div>
+                  <div class="col-md-6 text-right">
+                    <a th:href="@{/admin/players/{id}/attributes(id=${player.user.id})}" class="btn btn-info">
+                      <i class="fas fa-cog"></i> Quản lý Attributes
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

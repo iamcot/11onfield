@@ -56,10 +56,8 @@ export default function TopUserCard() {
 
   return (
     <div className="hidden md:block fixed top-0 left-0 right-0 z-50 shadow-lg">
-      {/* Gold Gradient Background - Same as TopBar */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-gold-500 to-gold-300"></div>
-      </div>
+      {/* Gold Background */}
+      <div className="absolute inset-0 bg-gold-500"></div>
 
       <div className="relative flex items-center justify-between px-6 h-16">
         {/* Left: Logo and Navigation */}
@@ -140,7 +138,7 @@ export default function TopUserCard() {
                   className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
                 />
               ) : user?.fullName ? (
-                <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center border-2 border-gray-200">
+                <div className="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center border-2 border-gray-200">
                   <span className="text-white font-semibold text-sm">
                     {user.fullName.charAt(0).toUpperCase()}
                   </span>

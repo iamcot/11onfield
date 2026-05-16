@@ -22,7 +22,7 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
 
   return (
     <header className="md:hidden fixed top-0 left-0 right-0 z-50 h-20">
-      <div className="relative bg-gradient-to-r from-gold-500 to-gold-300 h-16 pb-2">
+      <div className="relative bg-gold-500 h-16 pb-2">
         <div className="flex items-center justify-between h-full px-4">
           {/* Left spacer for centering */}
           <div className="w-20"></div>
