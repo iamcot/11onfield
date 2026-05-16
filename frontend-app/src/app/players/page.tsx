@@ -11,6 +11,7 @@ import PlayerCard from "@/components/PlayerCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { playerService } from "@/services/player.service";
+import { provinceService } from "@/services/province.service";
 import {
   PlayerListItem,
   PlayersFilters,
@@ -29,6 +30,7 @@ function PlayersContent() {
 
   // State
   const [players, setPlayers] = useState<PlayerListItem[]>([]);
+  const [provinces, setProvinces] = useState<Array<{ id: number; name: string }>>([]);
   const [pagination, setPagination] = useState({
     page: 0,
     totalPages: 0,
@@ -54,6 +56,7 @@ function PlayersContent() {
     const search = searchParams.get("search") || "";
     const positions =
       searchParams.get("positions")?.split(",").filter(Boolean) || [];
+    const provinceId = searchParams.get("provinceId") ? parseInt(searchParams.get("provinceId")!) : null;
     const level = searchParams.get("level") || null;
     const preferredFoot = searchParams.get("preferredFoot") || null;
     const sortBy = searchParams.get("sortBy") || null;
@@ -63,6 +66,7 @@ function PlayersContent() {
     setFilters({
       search: search || undefined,
       positions: positions.length > 0 ? positions : undefined,
+      provinceId: provinceId,
       level: level as any,
       preferredFoot: preferredFoot || undefined,
       sortBy: sortBy || undefined,
@@ -81,6 +85,7 @@ function PlayersContent() {
     if (filters.search) params.set("search", filters.search);
     if (filters.positions && filters.positions.length > 0)
       params.set("positions", filters.positions.join(","));
+    if (filters.provinceId) params.set("provinceId", filters.provinceId.toString());
     if (filters.level) params.set("level", filters.level);
     if (filters.preferredFoot)
       params.set("preferredFoot", filters.preferredFoot);
@@ -108,6 +113,19 @@ function PlayersContent() {
 
     return () => clearTimeout(timer);
   }, [searchInput, isInitialized]);
+
+  // Load provinces
+  useEffect(() => {
+    const loadProvinces = async () => {
+      try {
+        const data = await provinceService.getAllProvinces();
+        setProvinces(data);
+      } catch (error) {
+        console.error("Error loading provinces:", error);
+      }
+    };
+    loadProvinces();
+  }, []);
 
   // Fetch players
   useEffect(() => {
@@ -361,6 +379,21 @@ function PlayersContent() {
               </select>
 
               <select
+                value={filters.provinceId || ""}
+                onChange={(e) =>
+                  handleFilterChange("provinceId", e.target.value ? parseInt(e.target.value) : null)
+                }
+                className="flex-shrink-0 px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
+              >
+                <option value="">Tỉnh/TP</option>
+                {provinces.map((province) => (
+                  <option key={province.id} value={province.id}>
+                    {province.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
                 value={filters.level || ""}
                 onChange={(e) =>
                   handleFilterChange("level", e.target.value || null)
@@ -465,7 +498,7 @@ function PlayersContent() {
             </div>
 
             {/* Desktop: Quick Filters */}
-            <div className="hidden md:grid grid-cols-3 gap-3 mb-3">
+            <div className="hidden md:grid grid-cols-4 gap-3 mb-3">
               {/* Position Filter (simplified for now - will add multi-select later) */}
               <select
                 value={filters.positions?.[0] || ""}
@@ -483,6 +516,22 @@ function PlayersContent() {
                 <option value="defender">Hậu vệ</option>
                 <option value="centerback">Trung vệ</option>
                 <option value="goalkeeper">Thủ môn</option>
+              </select>
+
+              {/* Province Filter */}
+              <select
+                value={filters.provinceId || ""}
+                onChange={(e) =>
+                  handleFilterChange("provinceId", e.target.value ? parseInt(e.target.value) : null)
+                }
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+              >
+                <option value="">Tất cả tỉnh/thành phố</option>
+                {provinces.map((province) => (
+                  <option key={province.id} value={province.id}>
+                    {province.name}
+                  </option>
+                ))}
               </select>
 
               {/* Level Filter */}
@@ -518,6 +567,7 @@ function PlayersContent() {
             {/* Clear Filters Button */}
             {(searchInput ||
               filters.positions?.length ||
+              filters.provinceId ||
               filters.level ||
               filters.preferredFoot ||
               filters.sortBy) && (

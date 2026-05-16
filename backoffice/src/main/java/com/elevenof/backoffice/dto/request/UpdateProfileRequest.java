@@ -28,6 +28,8 @@ public class UpdateProfileRequest {
 
     // Player-specific fields (only for PLAYER role)
     private List<String> positions;
+    private String secondaryPosition;
+    private Integer yearsOfExperience;
     private Integer height;
     private Integer weight;
     private String preferredFoot;
@@ -44,6 +46,7 @@ public class UpdateProfileRequest {
     // New collections
     private List<AchievementRequest> individualAchievements;
     private List<AchievementRequest> teamAchievements;
+    private List<AchievementRequest> participantAchievements;
     private List<HighlightRequest> highlights;  // Changed to HighlightRequest to include date
     private List<String> socials;  // Social media URLs
 

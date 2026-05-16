@@ -89,13 +89,14 @@
                     <th>Chiều cao</th>
                     <th>Cân nặng</th>
                     <th>Chân thuận</th>
+                    <th>Xác minh</th>
                     <th>Trạng thái</th>
                     <th>Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr th:if="${#lists.isEmpty(players)}">
-                    <td colspan="10" class="text-center text-muted">
+                    <td colspan="11" class="text-center text-muted">
                       <i class="fas fa-info-circle"></i> Chưa có cầu thủ nào
                     </td>
                   </tr>
@@ -161,6 +162,20 @@
                         >Cả hai</span
                       >
                       <span th:if="${player.preferredFoot == null}">N/A</span>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        class="btn btn-sm"
+                        th:classappend="${player.verified ? 'btn-success' : 'btn-secondary'}"
+                        th:data-player-id="${player.id}"
+                        th:data-verified="${player.verified}"
+                        onclick="toggleVerification(this)"
+                      >
+                        <i class="fas fa-check-circle" th:if="${player.verified}"></i>
+                        <i class="fas fa-times-circle" th:unless="${player.verified}"></i>
+                        <span th:text="${player.verified ? 'Đã xác minh' : 'Chưa xác minh'}"></span>
+                      </button>
                     </td>
                     <td>
                       <span
@@ -305,6 +320,39 @@
             document.body.appendChild(form);
             form.submit();
           }
+        }
+
+        function toggleVerification(button) {
+          var playerId = button.getAttribute('data-player-id');
+          var isVerified = button.getAttribute('data-verified') === 'true';
+          var action = isVerified ? 'unverify' : 'verify';
+
+          fetch('/admin/players/' + playerId + '/' + action, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Toggle button state
+              button.setAttribute('data-verified', data.verified);
+              if (data.verified) {
+                button.className = 'btn btn-sm btn-success';
+                button.innerHTML = '<i class="fas fa-check-circle"></i> Đã xác minh';
+              } else {
+                button.className = 'btn btn-sm btn-secondary';
+                button.innerHTML = '<i class="fas fa-times-circle"></i> Chưa xác minh';
+              }
+            } else {
+              alert('Có lỗi xảy ra khi cập nhật trạng thái xác minh');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi cập nhật trạng thái xác minh');
+          });
         }
       </script>
     </div>

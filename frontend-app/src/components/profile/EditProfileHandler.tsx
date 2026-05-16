@@ -1,14 +1,19 @@
 "use client";
 
+import DynamicAchievementList from "@/components/forms/DynamicAchievementList";
+import DynamicFieldList from "@/components/forms/DynamicFieldList";
+import DynamicHighlightList from "@/components/forms/DynamicHighlightList";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
+import {
+  compressImage,
+  formatFileSize,
+  isValidImageFile,
+  isValidImageSize,
+} from "@/lib/image-utils";
 import { provinceService } from "@/services/province.service";
 import { userService } from "@/services/user.service";
-import { compressImage, formatFileSize, isValidImageFile, isValidImageSize } from "@/lib/image-utils";
-import DynamicFieldList from "@/components/forms/DynamicFieldList";
-import DynamicAchievementList from "@/components/forms/DynamicAchievementList";
-import DynamicHighlightList from "@/components/forms/DynamicHighlightList";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -26,14 +31,25 @@ export default function EditProfileHandler() {
   const avatarPreviewUrlRef = useRef<string | null>(null);
 
   // Keep state for triggering re-renders
-  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(
+    null,
+  );
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string>("");
 
   // New state for collections
-  const [individualAchievements, setIndividualAchievements] = useState<Array<{title: string; date: string}>>([]);
-  const [teamAchievements, setTeamAchievements] = useState<Array<{title: string; date: string}>>([]);
-  const [highlights, setHighlights] = useState<Array<{url: string; date: string}>>([]);
+  const [individualAchievements, setIndividualAchievements] = useState<
+    Array<{ title: string; date: string; approvalStatus?: string }>
+  >([]);
+  const [teamAchievements, setTeamAchievements] = useState<
+    Array<{ title: string; date: string; approvalStatus?: string }>
+  >([]);
+  const [participantAchievements, setParticipantAchievements] = useState<
+    Array<{ title: string; date: string; approvalStatus?: string }>
+  >([]);
+  const [highlights, setHighlights] = useState<
+    Array<{ url: string; date: string; approvalStatus?: string }>
+  >([]);
   const [socials, setSocials] = useState<string[]>([]);
 
   const handleOpenEditModal = useCallback(async () => {
@@ -62,13 +78,19 @@ export default function EditProfileHandler() {
         email: fullProfile.email || "",
         dob: fullProfile.dob || "",
         gender: fullProfile.gender || "",
-        provinceId: fullProfile.address?.province?.id ? String(fullProfile.address.province.id) : "",
+        provinceId: fullProfile.address?.province?.id
+          ? String(fullProfile.address.province.id)
+          : "",
         // Player-specific fields
         ...(fullProfile.role === "PLAYER" && {
           height: fullProfile.height ? String(fullProfile.height) : "",
           weight: fullProfile.weight ? String(fullProfile.weight) : "",
           preferredFoot: fullProfile.preferredFoot || "",
           positions: fullProfile.positions || [],
+          secondaryPosition: fullProfile.secondaryPosition || "",
+          yearsOfExperience: fullProfile.yearsOfExperience
+            ? String(fullProfile.yearsOfExperience)
+            : "",
           level: fullProfile.level || "",
           bio: fullProfile.bio || "",
           // New extended fields
@@ -85,24 +107,32 @@ export default function EditProfileHandler() {
         setIndividualAchievements(
           fullProfile.individualAchievements?.map((a: any) => ({
             title: a.title || "",
-            date: a.date || ""
-          })) || []
+            date: a.date || "",
+            approvalStatus: a.approvalStatus,
+          })) || [],
         );
         setTeamAchievements(
           fullProfile.teamAchievements?.map((a: any) => ({
             title: a.title || "",
-            date: a.date || ""
-          })) || []
+            date: a.date || "",
+            approvalStatus: a.approvalStatus,
+          })) || [],
+        );
+        setParticipantAchievements(
+          fullProfile.participantAchievements?.map((a: any) => ({
+            title: a.title || "",
+            date: a.date || "",
+            approvalStatus: a.approvalStatus,
+          })) || [],
         );
         setHighlights(
           fullProfile.highlights?.map((h: any) => ({
             url: h.url || "",
-            date: h.date || ""
-          })) || []
+            date: h.date || "",
+            approvalStatus: h.approvalStatus,
+          })) || [],
         );
-        setSocials(
-          fullProfile.socials?.map((s: any) => s.url) || []
-        );
+        setSocials(fullProfile.socials?.map((s: any) => s.url) || []);
       }
 
       setEditFormData(formData);
@@ -128,7 +158,9 @@ export default function EditProfileHandler() {
   };
 
   const handleEditFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value } = e.target;
     setEditFormData({
@@ -141,6 +173,30 @@ export default function EditProfileHandler() {
     try {
       setIsSaving(true);
 
+      // Validate required fields for players
+      if (currentUser?.role === "PLAYER") {
+        const requiredFields = [
+          { field: "fullName", label: "Họ và tên" },
+          { field: "dob", label: "Ngày sinh" },
+          { field: "provinceId", label: "Tỉnh/Thành phố" },
+          { field: "height", label: "Chiều cao" },
+          { field: "weight", label: "Cân nặng" },
+          { field: "positions", label: "Vị trí chính" },
+          { field: "preferredFoot", label: "Chân thuận" },
+          { field: "level", label: "Cấp độ" },
+          { field: "yearsOfExperience", label: "Số năm chơi bóng" },
+        ];
+
+        for (const { field, label } of requiredFields) {
+          const value = editFormData[field];
+          if (!value || (Array.isArray(value) && value.length === 0)) {
+            alert(`Vui lòng nhập ${label} (trường bắt buộc cho xét tuyển)`);
+            setIsSaving(false);
+            return;
+          }
+        }
+      }
+
       // Use ref as fallback if state is null (due to remount)
       const fileToUpload = selectedAvatarFile || selectedAvatarFileRef.current;
 
@@ -148,7 +204,11 @@ export default function EditProfileHandler() {
       if (currentUser?.role === "PLAYER") {
         // Check individual achievements
         for (const achievement of individualAchievements) {
-          if (achievement.title && achievement.title.trim() && !achievement.date) {
+          if (
+            achievement.title &&
+            achievement.title.trim() &&
+            !achievement.date
+          ) {
             alert("Vui lòng chọn ngày cho tất cả các thành tích cá nhân");
             setIsSaving(false);
             return;
@@ -157,8 +217,25 @@ export default function EditProfileHandler() {
 
         // Check team achievements
         for (const achievement of teamAchievements) {
-          if (achievement.title && achievement.title.trim() && !achievement.date) {
+          if (
+            achievement.title &&
+            achievement.title.trim() &&
+            !achievement.date
+          ) {
             alert("Vui lòng chọn ngày cho tất cả các thành tích tập thể");
+            setIsSaving(false);
+            return;
+          }
+        }
+
+        // Check participant achievements
+        for (const achievement of participantAchievements) {
+          if (
+            achievement.title &&
+            achievement.title.trim() &&
+            !achievement.date
+          ) {
+            alert("Vui lòng chọn ngày cho tất cả các giải đấu tham gia");
             setIsSaving(false);
             return;
           }
@@ -195,27 +272,34 @@ export default function EditProfileHandler() {
       // Add collections data for players (check if user is a player)
       if (currentUser?.role === "PLAYER") {
         cleanedData.individualAchievements = individualAchievements
-          .filter(a => a.title && a.title.trim() && a.date)
-          .map(a => ({
+          .filter((a) => a.title && a.title.trim() && a.date)
+          .map((a) => ({
             title: a.title,
-            date: a.date
+            date: a.date,
           }));
 
         cleanedData.teamAchievements = teamAchievements
-          .filter(a => a.title && a.title.trim() && a.date)
-          .map(a => ({
+          .filter((a) => a.title && a.title.trim() && a.date)
+          .map((a) => ({
             title: a.title,
-            date: a.date
+            date: a.date,
+          }));
+
+        cleanedData.participantAchievements = participantAchievements
+          .filter((a) => a.title && a.title.trim() && a.date)
+          .map((a) => ({
+            title: a.title,
+            date: a.date,
           }));
 
         cleanedData.highlights = highlights
-          .filter(h => h.url && h.url.trim() && h.date)
-          .map(h => ({
+          .filter((h) => h.url && h.url.trim() && h.date)
+          .map((h) => ({
             url: h.url,
-            date: h.date
+            date: h.date,
           }));
 
-        cleanedData.socials = socials.filter(s => s.trim());
+        cleanedData.socials = socials.filter((s) => s.trim());
       }
 
       await userService.updateProfile(cleanedData);
@@ -256,7 +340,9 @@ export default function EditProfileHandler() {
     }
 
     if (!isValidImageSize(file)) {
-      alert(`Kích thước file không được vượt quá ${formatFileSize(20 * 1024 * 1024)}`);
+      alert(
+        `Kích thước file không được vượt quá ${formatFileSize(20 * 1024 * 1024)}`,
+      );
       return;
     }
 
@@ -312,7 +398,9 @@ export default function EditProfileHandler() {
         <div className="p-6 space-y-6">
           {/* Avatar Upload Section */}
           <div className="border-b pb-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Ảnh đại diện</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">
+              Ảnh đại diện
+            </h4>
             <div className="flex items-center gap-6">
               <div className="relative">
                 {(() => {
@@ -340,13 +428,17 @@ export default function EditProfileHandler() {
                 {selectedAvatarFile ? (
                   <div className="space-y-2">
                     <p className="text-sm text-gray-700">
-                      <span className="font-medium">{selectedAvatarFile.name}</span>
+                      <span className="font-medium">
+                        {selectedAvatarFile.name}
+                      </span>
                       <span className="text-gray-500 ml-2">
                         ({formatFileSize(selectedAvatarFile.size)})
                       </span>
                     </p>
                     {uploadProgress && (
-                      <p className="text-sm text-green-600 font-medium">{uploadProgress}</p>
+                      <p className="text-sm text-green-600 font-medium">
+                        {uploadProgress}
+                      </p>
                     )}
                     <button
                       onClick={handleAvatarClick}
@@ -398,11 +490,13 @@ export default function EditProfileHandler() {
 
           {/* User Info Section */}
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Thông tin cơ bản</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">
+              Thông tin cơ bản
+            </h4>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Họ và tên *
+                  Họ và tên <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -415,7 +509,9 @@ export default function EditProfileHandler() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
                 <input
                   type="email"
                   name="email"
@@ -424,19 +520,24 @@ export default function EditProfileHandler() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
                   placeholder="email@example.com"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Thông tin này sẽ không công khai trên trang cá nhân
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ngày sinh
+                    Ngày sinh {currentUser?.role === "PLAYER" && <span className="text-red-500">*</span>}
                   </label>
                   <DatePicker
-                    selected={editFormData.dob ? new Date(editFormData.dob) : null}
+                    selected={
+                      editFormData.dob ? new Date(editFormData.dob) : null
+                    }
                     onChange={(date: Date | null) => {
                       setEditFormData({
                         ...editFormData,
-                        dob: date ? date.toISOString().split('T')[0] : ""
+                        dob: date ? date.toISOString().split("T")[0] : "",
                       });
                     }}
                     dateFormat="dd/MM/yyyy"
@@ -469,7 +570,7 @@ export default function EditProfileHandler() {
 
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tỉnh/Thành phố
+                  Tỉnh/Thành phố {currentUser?.role === "PLAYER" && <span className="text-red-500">*</span>}
                 </label>
                 <select
                   name="provinceId"
@@ -488,235 +589,311 @@ export default function EditProfileHandler() {
             </div>
           </div>
 
-          {/* Player Info Section - Show if user is a PLAYER */}
-          {currentUser?.role === 'PLAYER' && (
-            <div className="border-t pt-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Thông tin cầu thủ</h4>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Chiều cao (cm)
-                    </label>
-                    <input
-                      type="number"
-                      name="height"
-                      value={editFormData.height || ""}
-                      onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                      placeholder="170"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Cân nặng (kg)
-                    </label>
-                    <input
-                      type="number"
-                      name="weight"
-                      value={editFormData.weight || ""}
-                      onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                      placeholder="65"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vị trí thi đấu
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { value: 'striker', label: 'Tiền đạo' },
-                      { value: 'midfielder', label: 'Tiền vệ' },
-                      { value: 'defender', label: 'Hậu vệ' },
-                      { value: 'goalkeeper', label: 'Thủ môn' }
-                    ].map(position => (
-                      <label key={position.value} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={editFormData.positions?.includes(position.value) || false}
-                          onChange={(e) => {
-                            const positions = editFormData.positions || [];
-                            if (e.target.checked) {
-                              setEditFormData({
-                                ...editFormData,
-                                positions: [...positions, position.value]
-                              });
-                            } else {
-                              setEditFormData({
-                                ...editFormData,
-                                positions: positions.filter((p: string) => p !== position.value)
-                              });
-                            }
-                          }}
-                          className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                        />
-                        <span className="text-sm text-gray-700">{position.label}</span>
+          {/* Player Sections - Show if user is a PLAYER */}
+          {currentUser?.role === "PLAYER" && (
+            <>
+              {/* Section 2: Hồ sơ bóng đá */}
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                  Hồ sơ bóng đá
+                </h4>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Vị trí chính <span className="text-red-500">*</span>
                       </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Chân thuận
-                  </label>
-                  <div className="flex gap-6">
-                    {[
-                      { value: 'left', label: 'Trái' },
-                      { value: 'right', label: 'Phải' },
-                      { value: 'both', label: 'Cả hai' }
-                    ].map(foot => (
-                      <label key={foot.value} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="preferredFoot"
-                          value={foot.value}
-                          checked={editFormData.preferredFoot === foot.value}
-                          onChange={(e) => setEditFormData({
+                      <select
+                        name="positions"
+                        value={editFormData.positions?.[0] || ""}
+                        onChange={(e) =>
+                          setEditFormData({
                             ...editFormData,
-                            preferredFoot: e.target.value
-                          })}
-                          className="w-4 h-4 text-green-600 focus:ring-green-500"
-                        />
-                        <span className="text-sm text-gray-700">{foot.label}</span>
+                            positions: e.target.value ? [e.target.value] : [],
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="">Chọn vị trí chính</option>
+                        <option value="striker">Tiền đạo</option>
+                        <option value="midfielder">Tiền vệ</option>
+                        <option value="defender">Hậu vệ</option>
+                        <option value="goalkeeper">Thủ môn</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Vị trí phụ
                       </label>
-                    ))}
+                      <select
+                        name="secondaryPosition"
+                        value={editFormData.secondaryPosition || ""}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="">Chọn vị trí phụ</option>
+                        <option value="striker">Tiền đạo</option>
+                        <option value="midfielder">Tiền vệ</option>
+                        <option value="defender">Hậu vệ</option>
+                        <option value="goalkeeper">Thủ môn</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Chiều cao (cm) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="height"
+                        value={editFormData.height || ""}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                        placeholder="170"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Cân nặng (kg) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="weight"
+                        value={editFormData.weight || ""}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                        placeholder="65"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Số năm thi đấu <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="yearsOfExperience"
+                        value={editFormData.yearsOfExperience || ""}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                        placeholder="2"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Chân thuận <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex gap-6">
+                      {[
+                        { value: "left", label: "Trái" },
+                        { value: "right", label: "Phải" },
+                        { value: "both", label: "Cả hai" },
+                      ].map((foot) => (
+                        <label
+                          key={foot.value}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <input
+                            type="radio"
+                            name="preferredFoot"
+                            value={foot.value}
+                            checked={editFormData.preferredFoot === foot.value}
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                preferredFoot: e.target.value,
+                              })
+                            }
+                            className="w-4 h-4 text-green-600 focus:ring-green-500"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {foot.label}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Cấp độ <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="level"
+                      value={editFormData.level || ""}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                    >
+                      <option value="">Chọn cấp độ</option>
+                      <option value="CAU_THU_MOI">Cầu thủ mới</option>
+                      <option value="NGHIEP_DU">Nghiệp dư</option>
+                      <option value="TUYEN_TRE">Tuyển trẻ</option>
+                      <option value="CHUYEN_NGHIEP">Chuyên nghiệp</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Giới thiệu
+                    </label>
+                    <textarea
+                      name="bio"
+                      value={editFormData.bio || ""}
+                      onChange={handleEditFormChange}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                      placeholder="Giới thiệu về bản thân..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Số CCCD
+                    </label>
+                    <input
+                      type="text"
+                      name="personalId"
+                      value={editFormData.personalId || ""}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                      placeholder="Nhập số CCCD"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Thông tin này sẽ không công khai trên trang cá nhân
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Địa chỉ thường trú
+                    </label>
+                    <input
+                      type="text"
+                      name="residentialAddress"
+                      value={editFormData.residentialAddress || ""}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                      placeholder="Nhập địa chỉ chi tiết"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Thông tin này sẽ không công khai trên trang cá nhân
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Trường đang học
+                    </label>
+                    <input
+                      type="text"
+                      name="school"
+                      value={editFormData.school || ""}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                      placeholder="Ví dụ: THPT Lê Quý Đôn"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Thông tin này sẽ không công khai trên trang cá nhân
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Học viện đang tập
+                    </label>
+                    <input
+                      type="text"
+                      name="academy"
+                      value={editFormData.academy || ""}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                      placeholder="Ví dụ: PVF, HAGL JMG"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Đội bóng đang thi đấu
+                    </label>
+                    <input
+                      type="text"
+                      name="club"
+                      value={editFormData.club || ""}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
+                      placeholder="Ví dụ: CLB Bóng đá Thanh Hóa U18"
+                    />
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cấp độ</label>
-                  <select
-                    name="level"
-                    value={editFormData.level || ""}
-                    onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                  >
-                    <option value="">Chọn cấp độ</option>
-                    <option value="CAU_THU_MOI">Cầu thủ mới</option>
-                    <option value="NGHIEP_DU">Nghiệp dư</option>
-                    <option value="TUYEN_TRE">Tuyển trẻ</option>
-                    <option value="CHUYEN_NGHIEP">Chuyên nghiệp</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Giới thiệu</label>
-                  <textarea
-                    name="bio"
-                    value={editFormData.bio || ""}
-                    onChange={handleEditFormChange}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                    placeholder="Giới thiệu về bản thân..."
-                  />
-                </div>
-
-                {/* New extended player fields */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Số CCCD
-                  </label>
-                  <input
-                    type="text"
-                    name="personalId"
-                    value={editFormData.personalId || ""}
-                    onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                    placeholder="Nhập số CCCD"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Địa chỉ thường trú
-                  </label>
-                  <input
-                    type="text"
-                    name="residentialAddress"
-                    value={editFormData.residentialAddress || ""}
-                    onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                    placeholder="Nhập địa chỉ chi tiết"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Trường đang học
-                  </label>
-                  <input
-                    type="text"
-                    name="school"
-                    value={editFormData.school || ""}
-                    onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                    placeholder="Ví dụ: THPT Lê Quý Đôn"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Học viện đang tập
-                  </label>
-                  <input
-                    type="text"
-                    name="academy"
-                    value={editFormData.academy || ""}
-                    onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                    placeholder="Ví dụ: PVF, HAGL JMG"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Đội bóng đang thi đấu
-                  </label>
-                  <input
-                    type="text"
-                    name="club"
-                    value={editFormData.club || ""}
-                    onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                    placeholder="Ví dụ: CLB Bóng đá Thanh Hóa U18"
-                  />
-                </div>
-
-                {/* Dynamic collections */}
-                <DynamicAchievementList
-                  label="Thành tích cá nhân"
-                  titlePlaceholder="Ví dụ: Vua phá lưới U18 TP HCM năm 2025"
-                  values={individualAchievements}
-                  onChange={setIndividualAchievements}
-                />
-
-                <DynamicAchievementList
-                  label="Thành tích tập thể"
-                  titlePlaceholder="Ví dụ: HCV với đội trẻ TP HCM"
-                  values={teamAchievements}
-                  onChange={setTeamAchievements}
-                />
-
-                <DynamicHighlightList
-                  label="Video highlights"
-                  urlPlaceholder="Dán URL video (YouTube, Facebook...)"
-                  values={highlights}
-                  onChange={setHighlights}
-                />
-
-                <DynamicFieldList
-                  label="Mạng xã hội"
-                  placeholder="Dán URL profile (Facebook, Instagram...)"
-                  values={socials}
-                  onChange={setSocials}
-                />
               </div>
-            </div>
+
+              {/* Section 3: Kinh nghiệm & thành tích */}
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                  Kinh nghiệm & thành tích
+                </h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Thông tin này sẽ được hiển thị trên trang feed của bạn sau khi
+                  admin duyệt
+                </p>
+                <div className="space-y-4">
+                  <DynamicAchievementList
+                    label="Thành tích cá nhân"
+                    titlePlaceholder="Ví dụ: Vua phá lưới U18 TP HCM năm 2025"
+                    values={individualAchievements}
+                    onChange={setIndividualAchievements}
+                  />
+
+                  <DynamicAchievementList
+                    label="Thành tích tập thể"
+                    titlePlaceholder="Ví dụ: HCV với đội trẻ TP HCM"
+                    values={teamAchievements}
+                    onChange={setTeamAchievements}
+                  />
+
+                  <DynamicAchievementList
+                    label="Các giải đấu từng tham gia"
+                    titlePlaceholder="Ví dụ: Giải bóng đá U15 toàn quốc 2024"
+                    values={participantAchievements}
+                    onChange={setParticipantAchievements}
+                  />
+                </div>
+              </div>
+
+              {/* Section 4: Media & social */}
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                  Media & social
+                </h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Highlights sẽ được hiển thị trên trang feed của bạn sau khi
+                  admin duyệt
+                </p>
+                <div className="space-y-4">
+                  <DynamicHighlightList
+                    label="Video highlights"
+                    urlPlaceholder="Dán URL video (YouTube, Facebook...)"
+                    values={highlights}
+                    onChange={setHighlights}
+                  />
+
+                  <DynamicFieldList
+                    label="Mạng xã hội"
+                    placeholder="Dán URL profile (Facebook, Instagram...)"
+                    helpText="Bằng việc nhập vào liên kết mạng xã hội, bạn đồng ý hiển thị các liên kết này trên trang profile của bạn."
+                    values={socials}
+                    onChange={setSocials}
+                  />
+                </div>
+              </div>
+            </>
           )}
         </div>
 

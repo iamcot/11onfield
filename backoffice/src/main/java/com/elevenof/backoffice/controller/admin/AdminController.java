@@ -298,6 +298,8 @@ public class AdminController {
             String heightStr = request.getParameter("height");
             String weightStr = request.getParameter("weight");
             String preferredFoot = request.getParameter("preferredFoot");
+            String secondaryPosition = request.getParameter("secondaryPosition");
+            String yearsOfExperienceStr = request.getParameter("yearsOfExperience");
             String[] positions = request.getParameterValues("positions");
             String level = request.getParameter("level");
             String bio = request.getParameter("bio");
@@ -306,12 +308,15 @@ public class AdminController {
             String school = request.getParameter("school");
             String academy = request.getParameter("academy");
             String club = request.getParameter("club");
+            String verifiedStr = request.getParameter("verified");
 
             // Parse collections from request parameters
             Map<String, String> individualAchievementsTitles = new java.util.HashMap<>();
             Map<String, String> individualAchievementsDates = new java.util.HashMap<>();
             Map<String, String> teamAchievementsTitles = new java.util.HashMap<>();
             Map<String, String> teamAchievementsDates = new java.util.HashMap<>();
+            Map<String, String> participantAchievementsTitles = new java.util.HashMap<>();
+            Map<String, String> participantAchievementsDates = new java.util.HashMap<>();
             Map<String, String> highlightsUrls = new java.util.HashMap<>();
             Map<String, String> highlightsDates = new java.util.HashMap<>();
             Map<String, String> socials = new java.util.HashMap<>();
@@ -325,6 +330,10 @@ public class AdminController {
                     teamAchievementsTitles.put(key.replace(".title", ""), values[0]);
                 } else if (key.startsWith("teamAchievements[") && key.endsWith(".date") && values.length > 0) {
                     teamAchievementsDates.put(key.replace(".date", ""), values[0]);
+                } else if (key.startsWith("participantAchievements[") && key.endsWith(".title") && values.length > 0) {
+                    participantAchievementsTitles.put(key.replace(".title", ""), values[0]);
+                } else if (key.startsWith("participantAchievements[") && key.endsWith(".date") && values.length > 0) {
+                    participantAchievementsDates.put(key.replace(".date", ""), values[0]);
                 } else if (key.startsWith("highlights[") && key.endsWith(".url") && values.length > 0) {
                     highlightsUrls.put(key.replace(".url", ""), values[0]);
                 } else if (key.startsWith("highlights[") && key.endsWith(".date") && values.length > 0) {
@@ -346,6 +355,7 @@ public class AdminController {
             Long provinceId = (provinceIdStr != null && !provinceIdStr.isEmpty()) ? Long.parseLong(provinceIdStr) : null;
             Integer height = (heightStr != null && !heightStr.isEmpty()) ? Integer.parseInt(heightStr) : null;
             Integer weight = (weightStr != null && !weightStr.isEmpty()) ? Integer.parseInt(weightStr) : null;
+            Integer yearsOfExperience = (yearsOfExperienceStr != null && !yearsOfExperienceStr.isEmpty()) ? Integer.parseInt(yearsOfExperienceStr) : null;
             // Fetch existing player and user
             Player existingPlayer = playerRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Player not found"));
@@ -381,6 +391,8 @@ public class AdminController {
             existingPlayer.setHeight(height);
             existingPlayer.setWeight(weight);
             existingPlayer.setPreferredFoot(preferredFoot);
+            existingPlayer.setSecondaryPosition(secondaryPosition);
+            existingPlayer.setYearsOfExperience(yearsOfExperience);
 
             // Convert List<String> positions to comma-separated string
             if (positions != null && positions.length > 0) {
@@ -400,6 +412,9 @@ public class AdminController {
             existingPlayer.setSchool(school);
             existingPlayer.setAcademy(academy);
             existingPlayer.setClub(club);
+
+            // Update verified status
+            existingPlayer.setVerified(verifiedStr != null && verifiedStr.equals("on"));
 
             // Update achievements - delete from DB first, then recreate
             playerAchievementRepository.deleteByPlayerId(id);
@@ -445,6 +460,30 @@ public class AdminController {
                                 com.elevenof.backoffice.model.PlayerAchievement.builder()
                                         .player(existingPlayer)
                                         .type(com.elevenof.backoffice.model.PlayerAchievement.AchievementType.TEAM)
+                                        .title(title.trim())
+                                        .achievementDate(achievementDate)
+                                        .build();
+                        playerAchievementRepository.save(achievement);
+                    }
+                });
+            }
+            if (participantAchievementsTitles != null) {
+                participantAchievementsTitles.forEach((baseKey, title) -> {
+                    if (title != null && !title.trim().isEmpty()) {
+                        String dateStr = participantAchievementsDates.get(baseKey);
+                        LocalDate achievementDate = null;
+                        if (dateStr != null && !dateStr.trim().isEmpty()) {
+                            try {
+                                achievementDate = LocalDate.parse(dateStr);
+                            } catch (Exception e) {
+                                achievementDate = null;
+                            }
+                        }
+
+                        com.elevenof.backoffice.model.PlayerAchievement achievement =
+                                com.elevenof.backoffice.model.PlayerAchievement.builder()
+                                        .player(existingPlayer)
+                                        .type(com.elevenof.backoffice.model.PlayerAchievement.AchievementType.PARTICIPANT)
                                         .title(title.trim())
                                         .achievementDate(achievementDate)
                                         .build();
@@ -909,5 +948,84 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
             return "redirect:/admin/players/" + playerId + "/attributes";
         }
+    }
+
+    // Player Verification Endpoints
+    @PostMapping("/players/{playerId}/verify")
+    @ResponseBody
+    public Map<String, Object> verifyPlayer(@PathVariable Long playerId) {
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        player.setVerified(true);
+        playerRepository.save(player);
+
+        return Map.of("success", true, "verified", true);
+    }
+
+    @PostMapping("/players/{playerId}/unverify")
+    @ResponseBody
+    public Map<String, Object> unverifyPlayer(@PathVariable Long playerId) {
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        player.setVerified(false);
+        playerRepository.save(player);
+
+        return Map.of("success", true, "verified", false);
+    }
+
+    // Achievement Approval Endpoints
+    @PostMapping("/achievements/{achievementId}/approve")
+    @ResponseBody
+    public Map<String, Object> approveAchievement(@PathVariable Long achievementId) {
+        com.elevenof.backoffice.model.PlayerAchievement achievement =
+                playerAchievementRepository.findById(achievementId)
+                        .orElseThrow(() -> new RuntimeException("Achievement not found"));
+
+        achievement.setApprovalStatus(com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus.APPROVED);
+        playerAchievementRepository.save(achievement);
+
+        return Map.of("success", true, "approvalStatus", "APPROVED");
+    }
+
+    @PostMapping("/achievements/{achievementId}/reject")
+    @ResponseBody
+    public Map<String, Object> rejectAchievement(@PathVariable Long achievementId) {
+        com.elevenof.backoffice.model.PlayerAchievement achievement =
+                playerAchievementRepository.findById(achievementId)
+                        .orElseThrow(() -> new RuntimeException("Achievement not found"));
+
+        achievement.setApprovalStatus(com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus.REJECTED);
+        playerAchievementRepository.save(achievement);
+
+        return Map.of("success", true, "approvalStatus", "REJECTED");
+    }
+
+    // Highlight Approval Endpoints
+    @PostMapping("/highlights/{highlightId}/approve")
+    @ResponseBody
+    public Map<String, Object> approveHighlight(@PathVariable Long highlightId) {
+        com.elevenof.backoffice.model.PlayerHighlight highlight =
+                playerHighlightRepository.findById(highlightId)
+                        .orElseThrow(() -> new RuntimeException("Highlight not found"));
+
+        highlight.setApprovalStatus(com.elevenof.backoffice.model.PlayerHighlight.ApprovalStatus.APPROVED);
+        playerHighlightRepository.save(highlight);
+
+        return Map.of("success", true, "approvalStatus", "APPROVED");
+    }
+
+    @PostMapping("/highlights/{highlightId}/reject")
+    @ResponseBody
+    public Map<String, Object> rejectHighlight(@PathVariable Long highlightId) {
+        com.elevenof.backoffice.model.PlayerHighlight highlight =
+                playerHighlightRepository.findById(highlightId)
+                        .orElseThrow(() -> new RuntimeException("Highlight not found"));
+
+        highlight.setApprovalStatus(com.elevenof.backoffice.model.PlayerHighlight.ApprovalStatus.REJECTED);
+        playerHighlightRepository.save(highlight);
+
+        return Map.of("success", true, "approvalStatus", "REJECTED");
     }
 }

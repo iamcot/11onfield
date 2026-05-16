@@ -27,6 +27,13 @@ export default function RegisterPage() {
   });
 
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [playerConsents, setPlayerConsents] = useState({
+    truthfulInfo: false,
+    contactPermission: false,
+    mediaUsage: false,
+    healthConfirmation: false,
+    availability: false,
+  });
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -106,6 +113,16 @@ export default function RegisterPage() {
     if (!acceptedTerms) {
       setError("Vui lòng đồng ý với điều khoản và điều kiện");
       return;
+    }
+
+    if (formData.role === "PLAYER") {
+      const allConsentsChecked = Object.values(playerConsents).every(
+        (consent) => consent === true,
+      );
+      if (!allConsentsChecked) {
+        setError("Vui lòng xác nhận tất cả các cam kết của cầu thủ");
+        return;
+      }
     }
 
     setError("");
@@ -485,11 +502,116 @@ export default function RegisterPage() {
                 </label>
               </div>
 
+              {/* Player Consents - Only visible for players */}
+              {formData.role === "PLAYER" && (
+                <div className="pt-6 mt-6 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                    Cam kết của cầu thủ *
+                  </h3>
+
+                  <div className="space-y-3">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.truthfulInfo}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            truthfulInfo: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Tôi xác nhận thông tin cung cấp là đúng sự thật.
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.contactPermission}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            contactPermission: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Tôi đồng ý cho BTC liên hệ qua SĐT/email đã đăng ký.
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.mediaUsage}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            mediaUsage: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Tôi đồng ý cho BTC sử dụng hình ảnh/video trong phạm vi
+                        chương trình.
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.healthConfirmation}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            healthConfirmation: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Tôi xác nhận đủ sức khỏe tham gia hoạt động bóng đá.
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.availability}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            availability: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Nếu được chọn, tôi có thể sắp xếp tham gia vòng tuyển
+                        chọn/huấn luyện theo lịch BTC.
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
               {/* Submit Button */}
               <div>
                 <button
                   type="submit"
-                  disabled={isLoading || !acceptedTerms}
+                  disabled={
+                    isLoading ||
+                    !acceptedTerms ||
+                    (formData.role === "PLAYER" &&
+                      !Object.values(playerConsents).every(
+                        (consent) => consent === true,
+                      ))
+                  }
                   className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white btn-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? "Đang đăng ký..." : "Đăng ký"}
@@ -863,11 +985,116 @@ export default function RegisterPage() {
                 </label>
               </div>
 
+              {/* Player Consents - Only visible for players */}
+              {formData.role === "PLAYER" && (
+                <div className="pt-6 mt-6 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                    Cam kết của cầu thủ *
+                  </h3>
+
+                  <div className="space-y-3">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.truthfulInfo}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            truthfulInfo: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Tôi xác nhận thông tin cung cấp là đúng sự thật.
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.contactPermission}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            contactPermission: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Tôi đồng ý cho BTC liên hệ qua SĐT/email đã đăng ký.
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.mediaUsage}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            mediaUsage: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Tôi đồng ý cho BTC sử dụng hình ảnh/video trong phạm vi
+                        chương trình.
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.healthConfirmation}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            healthConfirmation: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Tôi xác nhận đủ sức khỏe tham gia hoạt động bóng đá.
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={playerConsents.availability}
+                        onChange={(e) =>
+                          setPlayerConsents({
+                            ...playerConsents,
+                            availability: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-green-700 focus:ring-green-700 border-gray-300 rounded flex-shrink-0"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">
+                        Nếu được chọn, tôi có thể sắp xếp tham gia vòng tuyển
+                        chọn/huấn luyện theo lịch BTC.
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
               {/* Submit Button */}
               <div>
                 <button
                   type="submit"
-                  disabled={isLoading || !acceptedTerms}
+                  disabled={
+                    isLoading ||
+                    !acceptedTerms ||
+                    (formData.role === "PLAYER" &&
+                      !Object.values(playerConsents).every(
+                        (consent) => consent === true,
+                      ))
+                  }
                   className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white btn-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? "Đang đăng ký..." : "Đăng ký"}

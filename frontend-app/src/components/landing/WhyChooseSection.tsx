@@ -5,25 +5,25 @@ import SectionTitle from "./SectionTitle";
 export default function WhyChooseSection() {
   const reasons = [
     {
-      title: "Huấn luyện\nchuyên nghiệp",
+      title: "Huấn luyện nâng chuẩn\nđá bóng chuyên nghiệp",
       description:
         "Bởi đội ngũ HLV giàu kinh nghiệm, chuyên môn cao và tận tâm phát triển bóng đá trẻ.",
       image: "/images/coach.png",
     },
     {
-      title: "Phát triển\ntoàn diện",
+      title: "Phát triển toàn diện\nkỹ năng ngôi sao",
       description:
         "Rèn luyện toàn diện tài năng đá bóng và kỹ năng trở thành một ngôi sao.",
       image: "/images/development.png",
     },
     {
-      title: "Cơ hội\nra sân",
+      title: "Trao vé đi Mỹ\ntham gia World Cup",
       description:
         "Toả sáng và chạm tới giấc mơ sân cỏ, trở thành cầu thủ chuyên nghiệp.",
       image: "/images/opportunity.png",
     },
     {
-      title: "Hành trình\nbứt phá",
+      title: "Cơ hội ra sân trong Final Match ở SVĐ Mỹ Đình",
       description: "Thay đổi cuộc đời bằng đam mê và nỗ lực không ngừng.",
       image: "/images/journey.png",
     },
@@ -32,7 +32,7 @@ export default function WhyChooseSection() {
   return (
     <section id="why-choose" className="py-8 md:py-10 lg:py-12">
       <div className="w-[90%] max-w-6xl mx-auto px-4">
-        <SectionTitle title="Tại sao chọn 11 on field?" />
+        <SectionTitle title="Bạn nhận được gì khi tham gia?" />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {reasons.map((reason, index) => (
@@ -56,7 +56,7 @@ export default function WhyChooseSection() {
               </h3>
 
               {/* Body */}
-              <p className="p-3 text-gray-700 text-sm">{reason.description}</p>
+              {/* <p className="p-3 text-gray-700 text-sm">{reason.description}</p> */}
 
               {/* Gold divider line (not on last item) */}
               {index < reasons.length - 1 && (

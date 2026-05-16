@@ -24,6 +24,8 @@ public class UserProfileResponse {
 
     // Player profile data (if user is a PLAYER)
     private List<String> positions;
+    private String secondaryPosition;
+    private Integer yearsOfExperience;
     private Integer height;
     private Integer weight;
     private String preferredFoot;
@@ -37,10 +39,12 @@ public class UserProfileResponse {
     private String school;
     private String academy;
     private String club;
+    private Boolean verified;  // Player verification status
 
     // New collections
     private List<AchievementDTO> individualAchievements;
     private List<AchievementDTO> teamAchievements;
+    private List<AchievementDTO> participantAchievements;
     private List<HighlightDTO> highlights;
     private List<SocialDTO> socials;
 
@@ -58,6 +62,7 @@ public class UserProfileResponse {
         private String title;
         private String description;
         private LocalDate date;
+        private String approvalStatus;  // PENDING, APPROVED, REJECTED
     }
 
     /**
@@ -71,6 +76,7 @@ public class UserProfileResponse {
         private String platform;
         private String title;
         private LocalDate date;
+        private String approvalStatus;  // PENDING, APPROVED, REJECTED
     }
 
     /**

@@ -42,6 +42,28 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
   });
 
   const displayName = isOwnProfile ? "Bạn" : fullName;
+  const isPending = highlight.approvalStatus === 'PENDING';
+
+  // Get status badge based on approval status
+  const getStatusBadge = () => {
+    if (!isOwnProfile) return null; // Visitors don't see status
+
+    if (highlight.approvalStatus === 'PENDING') {
+      return (
+        <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+          Chờ duyệt
+        </span>
+      );
+    }
+    if (highlight.approvalStatus === 'APPROVED') {
+      return (
+        <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+          Đã duyệt
+        </span>
+      );
+    }
+    return null;
+  };
 
   const renderContent = () => {
     // YouTube embed
@@ -126,7 +148,7 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div className={`bg-white rounded-lg shadow p-4 ${isPending && isOwnProfile ? 'opacity-50' : ''}`}>
       <div className="flex items-center gap-3 mb-3">
         <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
           <svg
@@ -148,6 +170,7 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
             <span className="font-semibold">{displayName}</span> có một{" "}
             <span className="font-semibold">siêu phẩm</span> vào ngày{" "}
             <span className="font-semibold">{formattedDate}</span>
+            {getStatusBadge()}
           </h4>
         </div>
       </div>

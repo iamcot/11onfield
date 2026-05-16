@@ -116,7 +116,10 @@ export default function StickyNav() {
           {/* Contact boxes (hide on mobile) */}
           <div className="hidden lg:flex flex-col gap-2 ml-6">
             {/* Email box */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-green-700/30 rounded-full">
+            <a
+              href="mailto:11nguoirasan@11onfield.com"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-green-700/30 rounded-full hover:bg-green-50 transition-colors cursor-pointer"
+            >
               <svg
                 className="w-4 h-4 text-green-700"
                 fill="none"
@@ -131,12 +134,15 @@ export default function StickyNav() {
                 />
               </svg>
               <span className="text-xs font-medium text-gray-700">
-                11nguoirasan@gmail.com
+                11nguoirasan@11onfield.com
               </span>
-            </div>
+            </a>
 
             {/* Phone box */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-green-700/30 rounded-full">
+            <a
+              href="tel:+84902383511"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-green-700/30 rounded-full hover:bg-green-50 transition-colors cursor-pointer"
+            >
               <svg
                 className="w-4 h-4 text-green-700"
                 fill="none"
@@ -151,9 +157,9 @@ export default function StickyNav() {
                 />
               </svg>
               <span className="text-xs font-medium text-gray-700">
-                0902 383 511
+                090 2383 511
               </span>
-            </div>
+            </a>
           </div>
 
           {/* Mobile menu button */}

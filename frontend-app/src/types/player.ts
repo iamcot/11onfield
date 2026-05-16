@@ -18,11 +18,14 @@ export interface PlayerListItem {
   height: number | null;
   weight: number | null;
   positions: string[];
+  secondaryPosition: string | null;
+  yearsOfExperience: number | null;
   preferredFoot: string | null;
   level: PlayerLevel | null;
   provinceName: string | null;
   academyId: number | null;
   followerCount: number;
+  verified: boolean;
   attributes?: PlayerAttribute[];
 }
 

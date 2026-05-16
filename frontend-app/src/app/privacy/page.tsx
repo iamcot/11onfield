@@ -1,7 +1,7 @@
 import LandingFooter from "@/components/landing/LandingFooter";
 import StickyNav from "@/components/landing/StickyNav";
 
-export default function TermsPage() {
+export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-white font-[family-name:var(--font-roboto-condensed)]">
       <StickyNav />
@@ -11,7 +11,7 @@ export default function TermsPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-green-700 mb-4">
-              Điều khoản tham gia
+              Chính sách bảo mật thông tin
             </h1>
             <p className="text-gray-600">
               Cập nhật lần cuối: [Ngày tháng năm]
@@ -22,55 +22,64 @@ export default function TermsPage() {
           <div className="prose prose-lg max-w-none">
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                1. Giới thiệu
+                1. Thu thập thông tin
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                [Nội dung về giới thiệu chung về điều khoản tham gia chương trình...]
+                [Nội dung về loại thông tin thu thập từ người dùng...]
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                2. Điều kiện tham gia
+                2. Mục đích sử dụng thông tin
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                [Nội dung về điều kiện tham gia chương trình...]
+                [Nội dung về mục đích sử dụng thông tin cá nhân...]
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                3. Quyền và nghĩa vụ của người tham gia
+                3. Phạm vi chia sẻ thông tin
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                [Nội dung về quyền và nghĩa vụ...]
+                [Nội dung về phạm vi chia sẻ thông tin với bên thứ ba...]
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                4. Quy định về thi đấu và huấn luyện
+                4. Bảo mật thông tin
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                [Nội dung về quy định thi đấu và huấn luyện...]
+                [Nội dung về các biện pháp bảo mật thông tin...]
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                5. Giải thưởng và quyền lợi
+                5. Quyền của người dùng
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                [Nội dung về giải thưởng và quyền lợi...]
+                [Nội dung về quyền truy cập, chỉnh sửa, xóa thông tin cá nhân...]
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                6. Điều khoản chung
+                6. Cookies và công nghệ theo dõi
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                [Nội dung về các điều khoản chung khác...]
+                [Nội dung về việc sử dụng cookies...]
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                7. Thay đổi chính sách
+              </h2>
+              <p className="text-gray-700 leading-relaxed">
+                [Nội dung về cách thông báo khi có thay đổi chính sách...]
               </p>
             </section>
           </div>
@@ -81,7 +90,7 @@ export default function TermsPage() {
               Liên hệ với chúng tôi
             </h3>
             <p className="text-gray-700 mb-2">
-              Nếu bạn có bất kỳ câu hỏi nào về điều khoản tham gia, vui lòng liên hệ:
+              Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật, vui lòng liên hệ:
             </p>
             <ul className="text-gray-700">
               <li>Email: <a href="mailto:11nguoirasan@11onfield.com" className="text-green-700 hover:underline">11nguoirasan@11onfield.com</a></li>
@@ -95,4 +104,3 @@ export default function TermsPage() {
     </div>
   );
 }
-

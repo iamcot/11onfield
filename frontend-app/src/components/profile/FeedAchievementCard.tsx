@@ -19,9 +19,31 @@ export default function FeedAchievementCard({ feed, isOwnProfile }: FeedAchievem
   });
 
   const displayName = isOwnProfile ? "Bạn" : fullName;
+  const isPending = achievement.approvalStatus === 'PENDING';
+
+  // Get status badge based on approval status
+  const getStatusBadge = () => {
+    if (!isOwnProfile) return null; // Visitors don't see status
+
+    if (achievement.approvalStatus === 'PENDING') {
+      return (
+        <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+          Chờ duyệt
+        </span>
+      );
+    }
+    if (achievement.approvalStatus === 'APPROVED') {
+      return (
+        <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+          Đã duyệt
+        </span>
+      );
+    }
+    return null;
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div className={`bg-white rounded-lg shadow p-4 ${isPending && isOwnProfile ? 'opacity-50' : ''}`}>
       <div className="flex items-center gap-3">
         <div className="flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
           <svg
@@ -43,6 +65,7 @@ export default function FeedAchievementCard({ feed, isOwnProfile }: FeedAchievem
             <span className="font-semibold">{displayName}</span> đã đạt được{" "}
             <span className="font-semibold">{achievement.title}</span> vào ngày{" "}
             <span className="font-semibold">{formattedDate}</span>
+            {getStatusBadge()}
           </h4>
         </div>
       </div>

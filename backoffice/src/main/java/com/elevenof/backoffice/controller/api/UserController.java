@@ -88,6 +88,10 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
         User user = getUserFromAuthentication(authentication);
 
         UserResponse response = UserResponse.builder()
@@ -107,6 +111,10 @@ public class UserController {
     @GetMapping("/me/player")
     @PreAuthorize("hasRole('PLAYER')")
     public ResponseEntity<PlayerProfileResponse> getMyPlayerProfile(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
         User user = getUserFromAuthentication(authentication);
 
         Player player = playerService.getPlayerProfile(user.getId())
@@ -126,13 +134,23 @@ public class UserController {
     }
 
     @GetMapping("/{userid}")
-    public ResponseEntity<UserProfileResponse> getUserByUserid(@PathVariable String userid) {
+    public ResponseEntity<UserProfileResponse> getUserByUserid(
+            @PathVariable String userid,
+            Authentication authentication
+    ) {
         User user = userRepository.findByUserid(userid)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
 
         // Check if user is enabled
         if (!user.getEnabled()) {
             throw new ResourceNotFoundException("Cầu thủ không tồn tại hoặc đã bị khoá");
+        }
+
+        // Determine if the current user is viewing their own profile
+        boolean isOwner = false;
+        if (authentication != null && authentication.isAuthenticated()) {
+            User currentUser = getUserFromAuthentication(authentication);
+            isOwner = currentUser.getId().equals(user.getId());
         }
 
         UserProfileResponse.UserProfileResponseBuilder responseBuilder = UserProfileResponse.builder()
@@ -164,9 +182,12 @@ public class UserController {
         // If user is a PLAYER, include player profile data
         if (user.getRole() == User.Role.PLAYER) {
             Optional<Player> playerOpt = playerService.getPlayerProfile(user.getId());
+            final boolean finalIsOwner = isOwner;
             playerOpt.ifPresent(player -> {
                 responseBuilder
                     .positions(player.getPositions() != null ? Arrays.asList(player.getPositions().split(",")) : null)
+                    .secondaryPosition(player.getSecondaryPosition())
+                    .yearsOfExperience(player.getYearsOfExperience())
                     .height(player.getHeight())
                     .weight(player.getWeight())
                     .preferredFoot(player.getPreferredFoot())
@@ -176,43 +197,63 @@ public class UserController {
                     .residentialAddress(user.getAddress() != null ? user.getAddress().getAddress() : null)
                     .school(player.getSchool())
                     .academy(player.getAcademy())
-                    .club(player.getClub());
+                    .club(player.getClub())
+                    .verified(player.getVerified());
 
                 // Load player attributes with left join (always 6 hexagon attributes)
                 List<PlayerAttributeDTO> attributeDTOs = playerAttributeService.getHexagonAttributesWithValues(player.getId());
                 responseBuilder.attributes(attributeDTOs);
 
-                // Load achievements
+                // Load achievements - filter by approval status based on viewer
                 List<UserProfileResponse.AchievementDTO> individualAchs = player.getAchievements().stream()
                     .filter(a -> a.getType() == PlayerAchievement.AchievementType.INDIVIDUAL)
+                    .filter(a -> finalIsOwner || a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.APPROVED)
                     .map(a -> UserProfileResponse.AchievementDTO.builder()
                         .id(a.getId())
                         .title(a.getTitle())
                         .description(a.getDescription())
                         .date(a.getAchievementDate())
+                        .approvalStatus(a.getApprovalStatus().name())
                         .build())
                     .toList();
                 responseBuilder.individualAchievements(individualAchs);
 
                 List<UserProfileResponse.AchievementDTO> teamAchs = player.getAchievements().stream()
                     .filter(a -> a.getType() == PlayerAchievement.AchievementType.TEAM)
+                    .filter(a -> finalIsOwner || a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.APPROVED)
                     .map(a -> UserProfileResponse.AchievementDTO.builder()
                         .id(a.getId())
                         .title(a.getTitle())
                         .description(a.getDescription())
                         .date(a.getAchievementDate())
+                        .approvalStatus(a.getApprovalStatus().name())
                         .build())
                     .toList();
                 responseBuilder.teamAchievements(teamAchs);
 
-                // Load highlights
+                List<UserProfileResponse.AchievementDTO> participantAchs = player.getAchievements().stream()
+                    .filter(a -> a.getType() == PlayerAchievement.AchievementType.PARTICIPANT)
+                    .filter(a -> finalIsOwner || a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.APPROVED)
+                    .map(a -> UserProfileResponse.AchievementDTO.builder()
+                        .id(a.getId())
+                        .title(a.getTitle())
+                        .description(a.getDescription())
+                        .date(a.getAchievementDate())
+                        .approvalStatus(a.getApprovalStatus().name())
+                        .build())
+                    .toList();
+                responseBuilder.participantAchievements(participantAchs);
+
+                // Load highlights - filter by approval status based on viewer
                 List<UserProfileResponse.HighlightDTO> highlights = player.getHighlights().stream()
+                    .filter(h -> finalIsOwner || h.getApprovalStatus() == PlayerHighlight.ApprovalStatus.APPROVED)
                     .map(h -> UserProfileResponse.HighlightDTO.builder()
                         .id(h.getId())
                         .url(h.getUrl())
                         .platform(h.getPlatform())
                         .title(h.getTitle())
                         .date(h.getHighlightDate())
+                        .approvalStatus(h.getApprovalStatus().name())
                         .build())
                     .toList();
                 responseBuilder.highlights(highlights);
@@ -244,6 +285,10 @@ public class UserController {
             Authentication authentication,
             @RequestBody UpdateProfileRequest request
     ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
         User user = getUserFromAuthentication(authentication);
 
         System.out.println("=== UPDATE PROFILE REQUEST ===");
@@ -317,6 +362,12 @@ public class UserController {
             if (request.getPositions() != null) {
                 player.setPositions(String.join(",", request.getPositions()));
             }
+            if (request.getSecondaryPosition() != null) {
+                player.setSecondaryPosition(request.getSecondaryPosition());
+            }
+            if (request.getYearsOfExperience() != null) {
+                player.setYearsOfExperience(request.getYearsOfExperience());
+            }
             if (request.getHeight() != null) {
                 player.setHeight(request.getHeight());
             }
@@ -382,6 +433,23 @@ public class UserController {
                 }
             }
 
+            if (request.getParticipantAchievements() != null) {
+                player.getAchievements().removeIf(a -> a.getType() == PlayerAchievement.AchievementType.PARTICIPANT);
+                entityManager.flush(); // Flush delete before insert
+                for (UpdateProfileRequest.AchievementRequest achReq : request.getParticipantAchievements()) {
+                    if (achReq.getTitle() != null && !achReq.getTitle().trim().isEmpty()) {
+                        PlayerAchievement ach = PlayerAchievement.builder()
+                            .player(player)
+                            .type(PlayerAchievement.AchievementType.PARTICIPANT)
+                            .title(achReq.getTitle())
+                            .description(achReq.getDescription())
+                            .achievementDate(achReq.getDate())
+                            .build();
+                        player.getAchievements().add(ach);
+                    }
+                }
+            }
+
             // Update highlights - clear and recreate
             if (request.getHighlights() != null) {
                 player.getHighlights().clear();
@@ -432,6 +500,10 @@ public class UserController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "removeBackground", required = false, defaultValue = "false") boolean removeBackground
     ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
         User user = getUserFromAuthentication(authentication);
 
         // Validate file
@@ -755,9 +827,19 @@ public class UserController {
 
     @GetMapping("/{userid}/feeds")
     public ResponseEntity<List<FeedItemDTO>> getUserFeeds(
-            @PathVariable String userid
+            @PathVariable String userid,
+            Authentication authentication
     ) {
-        List<FeedItemDTO> feeds = feedService.getUserFeeds(userid);
+        // Determine if the current user is viewing their own profile
+        boolean isOwner = false;
+        if (authentication != null && authentication.isAuthenticated()) {
+            User currentUser = getUserFromAuthentication(authentication);
+            User targetUser = userRepository.findByUserid(userid)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            isOwner = currentUser.getId().equals(targetUser.getId());
+        }
+
+        List<FeedItemDTO> feeds = feedService.getUserFeeds(userid, isOwner);
         return ResponseEntity.ok(feeds);
     }
 }

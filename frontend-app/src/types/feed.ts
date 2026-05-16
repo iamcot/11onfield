@@ -19,6 +19,7 @@ export interface FeedAchievement {
   description?: string;
   achievementType: 'INDIVIDUAL' | 'TEAM';
   achievementDate: string;
+  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 export interface FeedHighlight {
@@ -27,6 +28,7 @@ export interface FeedHighlight {
   platform?: string;
   title?: string;
   highlightDate: string;
+  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 export interface FeedItem {

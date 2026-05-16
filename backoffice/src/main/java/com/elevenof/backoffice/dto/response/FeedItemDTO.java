@@ -59,6 +59,7 @@ public class FeedItemDTO {
         private String description;
         private String achievementType; // "INDIVIDUAL" or "TEAM"
         private LocalDate achievementDate;
+        private String approvalStatus; // "PENDING", "APPROVED", "REJECTED"
     }
 
     @Data
@@ -71,5 +72,6 @@ public class FeedItemDTO {
         private String platform;
         private String title;
         private LocalDate highlightDate;
+        private String approvalStatus; // "PENDING", "APPROVED", "REJECTED"
     }
 }

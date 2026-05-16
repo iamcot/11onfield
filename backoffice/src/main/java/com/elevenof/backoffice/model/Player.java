@@ -34,6 +34,12 @@ public class Player {
     @Column(length = 500)
     private String positions; // Comma-separated: striker,midfielder,defender
 
+    @Column(name = "secondary_position", length = 50)
+    private String secondaryPosition; // Single secondary position
+
+    @Column(name = "years_of_experience")
+    private Integer yearsOfExperience; // Years of playing experience
+
     private Integer height; // in cm
 
     private Integer weight; // in kg
@@ -86,6 +92,10 @@ public class Player {
 
     @Column(length = 200)
     private String club;  // Current football club
+
+    @Column(name = "verified", nullable = false)
+    @Builder.Default
+    private Boolean verified = false;  // Admin verification status
 
     // OneToMany relationships for collections
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)

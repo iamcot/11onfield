@@ -27,7 +27,7 @@ public class FeedService {
     private final PlayerRepository playerRepository;
     private final EventJoinedRepository eventJoinedRepository;
 
-    public List<FeedItemDTO> getUserFeeds(String userid) {
+    public List<FeedItemDTO> getUserFeeds(String userid, boolean isOwner) {
         User user = userRepository.findByUserid(userid)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -41,8 +41,8 @@ public class FeedService {
             Player player = playerRepository.findByUserId(user.getId())
                     .orElse(null);
             if (player != null) {
-                feeds.addAll(getAchievementFeeds(player, user));
-                feeds.addAll(getHighlightFeeds(player, user));
+                feeds.addAll(getAchievementFeeds(player, user, isOwner));
+                feeds.addAll(getHighlightFeeds(player, user, isOwner));
             }
         }
 
@@ -106,10 +106,15 @@ public class FeedService {
         }
     }
 
-    private List<FeedItemDTO> getAchievementFeeds(Player player, User user) {
+    private List<FeedItemDTO> getAchievementFeeds(Player player, User user, boolean isOwner) {
         List<FeedItemDTO> feeds = new ArrayList<>();
 
         for (PlayerAchievement achievement : player.getAchievements()) {
+            // Filter: owners see all, visitors see only APPROVED
+            if (!isOwner && achievement.getApprovalStatus() != PlayerAchievement.ApprovalStatus.APPROVED) {
+                continue;
+            }
+
             FeedItemDTO feed = FeedItemDTO.builder()
                     .type("achievement")
                     .date(achievement.getAchievementDate())
@@ -122,6 +127,7 @@ public class FeedService {
                             .description(achievement.getDescription())
                             .achievementType(achievement.getType().name())
                             .achievementDate(achievement.getAchievementDate())
+                            .approvalStatus(achievement.getApprovalStatus().name())
                             .build())
                     .build();
             feeds.add(feed);
@@ -130,10 +136,15 @@ public class FeedService {
         return feeds;
     }
 
-    private List<FeedItemDTO> getHighlightFeeds(Player player, User user) {
+    private List<FeedItemDTO> getHighlightFeeds(Player player, User user, boolean isOwner) {
         List<FeedItemDTO> feeds = new ArrayList<>();
 
         for (PlayerHighlight highlight : player.getHighlights()) {
+            // Filter: owners see all, visitors see only APPROVED
+            if (!isOwner && highlight.getApprovalStatus() != PlayerHighlight.ApprovalStatus.APPROVED) {
+                continue;
+            }
+
             FeedItemDTO feed = FeedItemDTO.builder()
                     .type("highlight")
                     .date(highlight.getHighlightDate())
@@ -146,6 +157,7 @@ public class FeedService {
                             .platform(highlight.getPlatform())
                             .title(highlight.getTitle())
                             .highlightDate(highlight.getHighlightDate())
+                            .approvalStatus(highlight.getApprovalStatus().name())
                             .build())
                     .build();
             feeds.add(feed);

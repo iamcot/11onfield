@@ -17,8 +17,8 @@ export default function RecruitmentInfoSection() {
               <p className="text-[12px] md:text-sm uppercase font-semibold">
                 Đối tượng
               </p>
-              <p className="text-xs md:text-lg font-bold">18-20 tuổi</p>
-              <p className="text-[8px] md:text-xs">(2006 - 2009)</p>
+              <p className="text-xs md:text-lg font-bold">Nam, 16-21 tuổi</p>
+              <p className="text-[8px] md:text-xs">(2005 - 2010)</p>
             </div>
 
             {/* Divider */}
@@ -40,7 +40,7 @@ export default function RecruitmentInfoSection() {
                 Thời gian
               </p>
               <p className="text-xs md:text-lg font-bold">Nhận hồ sơ</p>
-              <p className="text-[8px] md:text-xs">16/05/2026</p>
+              <p className="text-[8px] md:text-xs">Tháng 05/2026</p>
             </div>
 
             {/* Divider */}
@@ -59,10 +59,10 @@ export default function RecruitmentInfoSection() {
             {/* Text */}
             <div className="md:ml-4 text-center md:text-left">
               <p className="text-[12px] md:text-sm uppercase font-semibold">
-                Tuyển sinh
+                Tuyển trạch
               </p>
-              <p className="text-xs md:text-lg font-bold">Trên toàn quốc</p>
-              <p className="text-[8px] md:text-xs">&nbsp;</p>
+              <p className="text-xs md:text-lg font-bold">Toàn quốc</p>
+              <p className="text-[8px] md:text-xs">Đăng ký miễn phí</p>
             </div>
           </div>
         </div>

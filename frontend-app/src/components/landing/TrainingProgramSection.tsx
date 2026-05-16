@@ -6,27 +6,32 @@ export default function TrainingProgramSection() {
   const programs = [
     {
       title: "Kỹ thuật cá nhân",
-      description: "Rèn luyện kỹ thuật cá nhân, chạm bóng, kiểm soát bóng",
+      description:
+        "Rèn luyện kỹ thuật cá nhân, kiểm soát bóng, xử lý bóng và kỹ năng thi đấu theo vị trí.",
       image: "/images/training1.png",
     },
     {
       title: "Chiến thuật đội hình",
-      description: "Học chiến thuật thi đấu, phối hợp tập thể",
+      description:
+        "Học chiến thuật đội hình, phối hợp tập thể, di chuyển không bóng và kỷ luật thi đấu.",
       image: "/images/training2.png",
     },
     {
       title: "Thể lực",
-      description: "Tăng cường sức bền, tốc độ và sức mạnh",
+      description:
+        "Cải thiện sức bền, tốc độ, sức mạnh và khả năng đáp ứng cường độ thi đấu.",
       image: "/images/training3.png",
     },
     {
       title: "Tư duy bóng đá",
-      description: "Phát triển khả năng đọc trận, ra quyết định",
+      description:
+        "Phát triển khả năng đọc tình huống, ra quyết định và hiểu yêu cầu chiến thuật của Ban huấn luyện.",
       image: "/images/training4.png",
     },
     {
-      title: "Chuyên môn hóa",
-      description: "Huấn luyện theo vị trí chuyên môn",
+      title: "Phân tích dữ liệu",
+      description:
+        "Kết hợp ghi hình, đeo thiết bị GPS, phân tích dữ liệu và cập nhật chỉ số cầu thủ theo thời gian thực.",
       image: "/images/training5.png",
     },
   ];
@@ -35,6 +40,14 @@ export default function TrainingProgramSection() {
     <section id="training-program" className="py-8 md:py-10 lg:py-12">
       <div className="w-[90%] max-w-6xl mx-auto px-4">
         <SectionTitle title="Chương trình huấn luyện" />
+
+        {/* Description */}
+        <p className="text-center text-gray-700 text-sm md:text-base max-w-4xl mx-auto mb-8 md:mb-10">
+          Các cầu thủ được chọn sẽ tham gia quá trình huấn luyện, kiểm tra và
+          đánh giá theo từng giai đoạn, hướng đến việc phát triển kỹ thuật, thể
+          lực, tư duy thi đấu và khả năng thích nghi trong môi trường bóng đá
+          chuyên nghiệp.
+        </p>
 
         {/* Mobile: Horizontal scroll */}
         <div className="lg:hidden overflow-x-auto scrollbar-hide">

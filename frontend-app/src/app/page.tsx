@@ -3,6 +3,7 @@ import RecruitmentInfoSection from '@/components/landing/RecruitmentInfoSection'
 import WhyChooseSection from '@/components/landing/WhyChooseSection';
 import SelectionProcessSection from '@/components/landing/SelectionProcessSection';
 import TrainingProgramSection from '@/components/landing/TrainingProgramSection';
+import FAQSection from '@/components/landing/FAQSection';
 import CTABanner from '@/components/landing/CTABanner';
 import LandingFooter from '@/components/landing/LandingFooter';
 import type { Metadata } from 'next';
@@ -25,6 +26,7 @@ export default function HomePage() {
       <WhyChooseSection />
       <SelectionProcessSection />
       <TrainingProgramSection />
+      <FAQSection />
       <CTABanner />
       <LandingFooter />
     </div>

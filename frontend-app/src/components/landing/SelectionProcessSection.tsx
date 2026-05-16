@@ -7,34 +7,36 @@ export default function SelectionProcessSection() {
     {
       number: 1,
       title: "Đăng ký",
-      description: "Ứng viên đăng ký và nộp hồ sơ theo hướng dẫn",
+      description:
+        "Cầu thủ hoàn thiện hồ sơ cá nhân để đăng ký tham gia chương trình",
       image: "/images/step1.png",
     },
     {
       number: 2,
-      title: "Sơ tuyển",
-      description: "Đánh giá hồ sơ và mời tham dự vòng tuyển trạch",
+      title: "Tuyển trạch toàn quốc",
+      description:
+        "Tham gia các buổi tuyển trạch tại Hà Nội, Đà Nẵng, TPHCM để thể hiện tài năng và giành vé vào Top 30 cầu thủ lên tuyển.",
       image: "/images/step2.png",
     },
     {
       number: 3,
-      title: "Kiểm tra năng lực",
+      title: "Huấn luyện tập trung",
       description:
-        "Thi đấu và kiểm tra thể lực, kỹ thuật, tư duy, hiệu suất, kỹ năng",
+        "Top 30 cầu thủ được tập luyện trong môi trường bóng đá chuyên nghiệp, vượt qua các thử thách của chương trình để giành lấy tấm vé đi World Cup Tour",
       image: "/images/step3.png",
     },
     {
       number: 4,
-      title: "Cơ hội",
+      title: "Huấn luyện quốc tế",
       description:
-        "Top 30 ứng viên được gọi vào đội để tập huấn và vượt qua các thử thách của chương trình",
+        "Đội hình chính được tặng vé đi World Cup Tour, huấn luyện nâng cao, thi đấu cọ sát trong nước và quốc tế.",
       image: "/images/step4.png",
     },
     {
       number: 5,
-      title: "Lựa chọn",
+      title: "Cơ hội sự nghiệp",
       description:
-        "Đội hình chính thức 11 người ra sân trong trận đấu đỉnh cao",
+        "11 cầu thủ chính thức ra sân trong Final Match tại SVĐ quốc gia Mỹ Đình. Cầu thủ đạt đỉnh cao phong độ và có thành tích tốt nhất sẽ được trao giải thưởng của chương trình gồm hiện kim, hiện vật, hợp đồng sự nghiệp và cúp vàng danh giá.",
       image: "/images/step5.png",
     },
   ];
@@ -109,6 +111,75 @@ export default function SelectionProcessSection() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* Timeline Section */}
+        <div className="mt-16">
+          <h3 className="text-2xl md:text-3xl font-bold text-center text-green-700 mb-12">
+            Lộ trình chương trình 2026
+          </h3>
+
+          <div className="relative">
+            {/* Timeline line - hidden on mobile */}
+            <div className="hidden md:block absolute left-0 right-0 top-14 h-1 bg-gradient-to-r from-green-700 via-yellow-500 to-green-700"></div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-4">
+              {[
+                {
+                  month: "6",
+                  title: "Tuyển trạch toàn quốc",
+                  color: "from-green-600 to-green-700",
+                },
+                {
+                  month: "7",
+                  title: "Huấn luyện tập trung và đi World Cup Tour",
+                  color: "from-green-700 to-yellow-600",
+                },
+                {
+                  month: "8-9",
+                  title: "Huấn luyện và thi đấu cọ sát",
+                  color: "from-yellow-600 to-yellow-500",
+                },
+                {
+                  month: "10",
+                  title: "Final Match - SVĐ quốc gia Mỹ Đình",
+                  color: "from-yellow-500 to-green-600",
+                },
+              ].map((item, index) => (
+                <div key={index} className="flex flex-col items-center relative">
+                  {/* Circle marker with month inside */}
+                  <div
+                    className={`w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg z-10 mb-6`}
+                  >
+                    <div className="w-[72px] h-[72px] md:w-20 md:h-20 rounded-full bg-white flex flex-col items-center justify-center gap-0.5">
+                      <span
+                        className="text-[10px] md:text-xs font-semibold leading-none"
+                        style={{ color: "rgb(207, 159, 61)" }}
+                      >
+                        Tháng
+                      </span>
+                      <span
+                        className="text-xl md:text-2xl font-bold leading-none"
+                        style={{ color: "rgb(207, 159, 61)" }}
+                      >
+                        {item.month}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-center text-gray-700 font-medium text-sm md:text-base px-2">
+                    {item.title}
+                  </p>
+
+                  {/* Connecting line for mobile */}
+                  {index < 3 && (
+                    <div className="md:hidden w-1 h-8 bg-gradient-to-b from-green-700 to-yellow-500 mx-auto mt-4"></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

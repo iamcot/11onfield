@@ -63,6 +63,8 @@ export interface UserProfile {
   };
   // Player-specific fields (only present if role is PLAYER)
   positions?: string[];
+  secondaryPosition?: string;
+  yearsOfExperience?: number;
   height?: number;
   weight?: number;
   preferredFoot?: string;
@@ -71,6 +73,7 @@ export interface UserProfile {
   attributes?: PlayerAttribute[];
   followersCount?: number;
   followingCount?: number;
+  verified?: boolean;
 
   // New extended player fields
   personalId?: string;
@@ -82,6 +85,7 @@ export interface UserProfile {
   // New collections
   individualAchievements?: Achievement[];
   teamAchievements?: Achievement[];
+  participantAchievements?: Achievement[];
   highlights?: Highlight[];
   socials?: Social[];
 }

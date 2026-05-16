@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 interface Achievement {
   title: string;
   date: string;
+  approvalStatus?: string;
 }
 
 interface DynamicAchievementListProps {
@@ -52,14 +53,27 @@ export default function DynamicAchievementList({
       <div className="space-y-2">
         {values.map((value, index) => (
           <div key={index} className="flex flex-col md:flex-row gap-2">
-            <input
-              type="text"
-              value={value.title}
-              onChange={(e) => updateField(index, "title", e.target.value)}
-              className="md:flex-1 w-full px-3 py-2 border rounded-md text-sm placeholder:text-gray-400 placeholder:opacity-50"
-              placeholder={titlePlaceholder}
-              required
-            />
+            <div className="flex-1 flex flex-col gap-1">
+              <input
+                type="text"
+                value={value.title}
+                onChange={(e) => updateField(index, "title", e.target.value)}
+                className="w-full px-3 py-2 border rounded-md text-sm placeholder:text-gray-400 placeholder:opacity-50"
+                placeholder={titlePlaceholder}
+                required
+              />
+              {value.approvalStatus && (
+                <span className={`text-xs px-2 py-1 rounded self-start ${
+                  value.approvalStatus === 'PENDING' ? 'bg-gray-100 text-gray-600' :
+                  value.approvalStatus === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {value.approvalStatus === 'PENDING' ? 'Chờ duyệt' :
+                   value.approvalStatus === 'APPROVED' ? 'Đã duyệt' :
+                   'Đã từ chối'}
+                </span>
+              )}
+            </div>
             <div className="flex gap-2">
               <DatePicker
                 selected={value.date ? new Date(value.date) : null}
