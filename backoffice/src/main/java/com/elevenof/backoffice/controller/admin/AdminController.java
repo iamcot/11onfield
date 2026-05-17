@@ -1320,35 +1320,18 @@ public class AdminController {
             @RequestParam(required = false) Boolean inappEnabled,
             @RequestParam(required = false) Boolean znsEnabled
     ) {
-        System.out.println("=== Update Scenario Channels ===");
-        System.out.println("ID: " + id);
-        System.out.println("emailEnabled: " + emailEnabled);
-        System.out.println("inappEnabled: " + inappEnabled);
-        System.out.println("znsEnabled: " + znsEnabled);
-
         try {
             com.elevenof.backoffice.model.NotificationScenario scenario = notificationScenarioRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Scenario not found"));
-
-            System.out.println("Before: email=" + scenario.getEmailEnabled() +
-                             ", inapp=" + scenario.getInappEnabled() +
-                             ", zns=" + scenario.getZnsEnabled());
 
             if (emailEnabled != null) scenario.setEmailEnabled(emailEnabled);
             if (inappEnabled != null) scenario.setInappEnabled(inappEnabled);
             if (znsEnabled != null) scenario.setZnsEnabled(znsEnabled);
 
-            System.out.println("After: email=" + scenario.getEmailEnabled() +
-                             ", inapp=" + scenario.getInappEnabled() +
-                             ", zns=" + scenario.getZnsEnabled());
-
             notificationScenarioRepository.save(scenario);
-            System.out.println("Saved successfully");
 
             return Map.of("success", true, "message", "Cập nhật thành công");
         } catch (Exception e) {
-            System.err.println("Error updating scenario: " + e.getMessage());
-            e.printStackTrace();
             return Map.of("success", false, "message", e.getMessage());
         }
     }

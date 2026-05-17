@@ -43,6 +43,14 @@ spring:
         query:
           plan_cache_max_size: 2048
 
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 15
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    out-of-order: false
+
   # OAuth2 Resource Server configuration removed - using custom JWT implementation
   # security:
   #   oauth2:
@@ -89,6 +97,11 @@ spring:
 
 server:
   port: ${SERVER_PORT:8081}
+
+management:
+  health:
+    mail:
+      enabled: false
 
 jwt:
   secret: ${JWT_SECRET:your-secret-key-must-be-at-least-256-bits-long-for-hs512-algorithm-security}
