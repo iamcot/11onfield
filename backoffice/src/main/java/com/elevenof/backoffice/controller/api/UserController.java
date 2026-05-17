@@ -72,6 +72,7 @@ public class UserController {
     private final FeedService feedService;
     private final jakarta.persistence.EntityManager entityManager;
     private final com.elevenof.backoffice.repository.AddressRepository addressRepository;
+    private final com.elevenof.backoffice.service.NotificationService notificationService;
 
     /**
      * Helper method to get User from userid (String) in JWT token
@@ -308,9 +309,17 @@ public class UserController {
         if (request.getFullName() != null) {
             user.setFullName(request.getFullName());
         }
-        if (request.getEmail() != null) {
+
+        // Check if this is the first time filling email (for welcome notification)
+        boolean isFirstTimeEmail = false;
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            String oldEmail = user.getEmail();
+            if (oldEmail == null || oldEmail.isEmpty()) {
+                isFirstTimeEmail = true;
+            }
             user.setEmail(request.getEmail());
         }
+
         if (request.getAvatar() != null) {
             user.setAvatar(request.getAvatar());
         }
@@ -325,6 +334,16 @@ public class UserController {
             }
         }
         userRepository.save(user);
+
+        // Send welcome notification if this is first time filling email
+        if (isFirstTimeEmail) {
+            Map<String, String> variables = Map.of(
+                "fullName", user.getFullName() != null ? user.getFullName() : "Bạn",
+                "email", request.getEmail()
+            );
+            notificationService.sendNotification(user.getId(), "WELCOME_EMAIL", variables, null);
+            log.info("🎉 Welcome email notification triggered for user: {}", user.getId());
+        }
 
         // Update address if province is provided OR if residentialAddress is provided
         if (request.getProvinceId() != null) {

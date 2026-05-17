@@ -74,10 +74,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
+        // First try to get token from Authorization header
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
+
+        // For SSE endpoints, also check query parameter since EventSource doesn't support headers
+        if (request.getRequestURI().contains("/notifications/stream")) {
+            String tokenParam = request.getParameter("token");
+            if (tokenParam != null) {
+                return tokenParam;
+            }
+        }
+
         return null;
     }
 }

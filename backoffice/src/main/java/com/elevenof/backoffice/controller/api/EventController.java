@@ -33,6 +33,7 @@ public class EventController {
     private final EventRepository eventRepository;
     private final EventService eventService;
     private final UserRepository userRepository;
+    private final com.elevenof.backoffice.service.NotificationService notificationService;
 
     @GetMapping
     public ResponseEntity<Page<EventListDTO>> getEvents(
@@ -138,6 +139,19 @@ public class EventController {
 
         eventService.joinEvent(userId, id);
         log.info("[EventController] joinEvent completed successfully");
+
+        // Send event join confirmation notification
+        Event event = eventRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
+
+        Map<String, String> variables = Map.of(
+            "fullName", user.getFullName(),
+            "eventTitle", event.getTitle(),
+            "eventDate", event.getStartDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        );
+        String data = String.format("{\"eventId\": %d}", event.getId());
+        notificationService.sendNotification(user.getId(), "EVENT_JOINED", variables, data);
+        log.info("🎉 Event join notification triggered for user: {} on event: {}", user.getId(), event.getId());
 
         return ResponseEntity.ok().build();
     }

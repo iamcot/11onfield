@@ -1,5 +1,6 @@
 package com.elevenof.backoffice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,8 +27,9 @@ public class PlayerAttribute {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "player_id", nullable = false)
+    @JsonIgnore
     private Player player;
 
     @ManyToOne(fetch = FetchType.EAGER)

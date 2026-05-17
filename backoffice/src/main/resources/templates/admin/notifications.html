@@ -1,0 +1,176 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout (${title}, ~{::content})}">
+<div th:fragment="content">
+    <div class="container-fluid">
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <!-- Notification Scenarios Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Kịch bản thông báo</h3>
+                <div class="card-tools">
+                    <span class="badge badge-info">Tổng: <span th:text="${#lists.size(scenarios)}">0</span> kịch bản</span>
+                </div>
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover text-nowrap">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Kịch bản</th>
+                            <th>Mô tả</th>
+                            <th style="text-align: center;">
+                                <i class="fas fa-envelope mr-1"></i> Email
+                            </th>
+                            <th style="text-align: center;">
+                                <i class="fas fa-bell mr-1"></i> In-App
+                            </th>
+                            <th style="text-align: center;">
+                                <i class="fab fa-facebook-messenger mr-1"></i> ZNS
+                            </th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(scenarios)}">
+                            <td colspan="7" class="text-center">Không có kịch bản nào</td>
+                        </tr>
+                        <tr th:each="scenario : ${scenarios}">
+                            <td th:text="${scenario.id}">1</td>
+                            <td>
+                                <strong th:text="${scenario.name}">Chào mừng</strong><br/>
+                                <small class="text-muted" th:text="${scenario.scenarioKey}">WELCOME_EMAIL</small>
+                            </td>
+                            <td th:text="${scenario.description}">Gửi email chào mừng</td>
+
+                            <!-- Email Toggle -->
+                            <td style="text-align: center;">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox"
+                                           class="custom-control-input channel-toggle"
+                                           th:id="'email-' + ${scenario.id}"
+                                           th:checked="${scenario.emailEnabled}"
+                                           th:data-scenario-id="${scenario.id}"
+                                           th:data-channel="email">
+                                    <label class="custom-control-label" th:for="'email-' + ${scenario.id}"></label>
+                                </div>
+                            </td>
+
+                            <!-- In-App Toggle -->
+                            <td style="text-align: center;">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox"
+                                           class="custom-control-input channel-toggle"
+                                           th:id="'inapp-' + ${scenario.id}"
+                                           th:checked="${scenario.inappEnabled}"
+                                           th:data-scenario-id="${scenario.id}"
+                                           th:data-channel="inapp">
+                                    <label class="custom-control-label" th:for="'inapp-' + ${scenario.id}"></label>
+                                </div>
+                            </td>
+
+                            <!-- ZNS Toggle -->
+                            <td style="text-align: center;">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox"
+                                           class="custom-control-input channel-toggle"
+                                           th:id="'zns-' + ${scenario.id}"
+                                           th:checked="${scenario.znsEnabled}"
+                                           th:data-scenario-id="${scenario.id}"
+                                           th:data-channel="zns">
+                                    <label class="custom-control-label" th:for="'zns-' + ${scenario.id}"></label>
+                                </div>
+                            </td>
+
+                            <td>
+                                <a th:href="@{/admin/notifications/templates/{id}(id=${scenario.id})}"
+                                   class="btn btn-sm btn-primary"
+                                   title="Chỉnh sửa templates"
+                                   data-toggle="tooltip">
+                                    <i class="fas fa-edit"></i> Templates
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card card-info">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-info-circle"></i> Hướng dẫn</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li><strong>Email:</strong> Gửi email thông báo đến địa chỉ email của người dùng (cần cấu hình SMTP)</li>
+                    <li><strong>In-App:</strong> Hiển thị thông báo trong ứng dụng qua bell icon (real-time via SSE)</li>
+                    <li><strong>ZNS:</strong> Gửi tin nhắn qua Zalo ZNS (cần cấu hình Zalo credentials)</li>
+                    <li>Bật/tắt các kênh bằng cách toggle switch. Thay đổi sẽ áp dụng ngay lập tức.</li>
+                    <li>Click <strong>Templates</strong> để chỉnh sửa nội dung thông báo cho từng kênh.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Handle channel toggle
+            $('.channel-toggle').on('change', function() {
+                const $toggle = $(this);
+                const scenarioId = $toggle.data('scenario-id');
+                const channel = $toggle.data('channel');
+                const enabled = $toggle.is(':checked');
+
+                // Disable toggle while processing
+                $toggle.prop('disabled', true);
+
+                // Build form data
+                const formData = new FormData();
+                formData.append(channel + 'Enabled', enabled);
+
+                fetch(`/admin/notifications/scenarios/${scenarioId}`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success(data.message || 'Cập nhật thành công');
+                    } else {
+                        toastr.error(data.message || 'Cập nhật thất bại');
+                        // Revert toggle on error
+                        $toggle.prop('checked', !enabled);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('Có lỗi xảy ra');
+                    // Revert toggle on error
+                    $toggle.prop('checked', !enabled);
+                })
+                .finally(() => {
+                    // Re-enable toggle
+                    $toggle.prop('disabled', false);
+                });
+            });
+        });
+    </script>
+</div>
+</html>

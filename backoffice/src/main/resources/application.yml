@@ -2,20 +2,46 @@ spring:
   application:
     name: backoffice
 
+  devtools:
+    restart:
+      enabled: true
+      exclude: static/**,public/**,templates/**
+      poll-interval: 2s
+      quiet-period: 1s
+    livereload:
+      enabled: true
+
   datasource:
     url: jdbc:mysql://localhost:3306/elevenof_db?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 8
+      minimum-idle: 2
+      connection-timeout: 5000
+      connection-test-query: SELECT 1
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+      pool-name: ElevenOfHikariPool
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true
+        format_sql: false
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+        query:
+          plan_cache_max_size: 2048
 
   # OAuth2 Resource Server configuration removed - using custom JWT implementation
   # security:
@@ -42,6 +68,24 @@ spring:
     time-zone: Asia/Ho_Chi_Minh
     serialization:
       write-dates-as-timestamps: false
+
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    from: ${MAIL_FROM:noreply@11of.com}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 server:
   port: ${SERVER_PORT:8081}
@@ -80,6 +124,13 @@ app:
 
 logging:
   level:
+    root: INFO
     com.elevenof.backoffice: DEBUG
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.boot.devtools: WARN
     org.springframework.security: DEBUG
     com.elevenof.backoffice.service.ZnsService: DEBUG
+    # Suppress SSE disconnection errors (Broken pipe, Connection reset)
+    "[org.apache.catalina.core.ContainerBase.[Tomcat].[localhost]]": ERROR
+    "[org.apache.coyote.http11.Http11Processor]": ERROR

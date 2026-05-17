@@ -4,17 +4,21 @@ import { EventIcon, HomeIcon, PlayerIcon } from "@/components/icons/nav-icons";
 import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import NotificationDropdown from "./NotificationDropdown";
 
 export default function TopUserCard() {
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
   const { openEditProfile } = useEditProfile();
   const router = useRouter();
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   const handleLogout = () => {
@@ -103,26 +107,38 @@ export default function TopUserCard() {
         {/* Right: Notifications and User */}
         <div className="flex items-center gap-4">
           {/* Bell Icon */}
-          <button
-            className="relative p-2 text-white hover:bg-white/10 rounded-full transition"
-            aria-label="Notifications"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-2 text-white hover:bg-white/10 rounded-full transition"
+              aria-label="Notifications"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
-            </svg>
-            {/* Notification badge */}
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+              {/* Notification badge */}
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification Dropdown */}
+            {showNotifications && (
+              <NotificationDropdown onClose={() => setShowNotifications(false)} />
+            )}
+          </div>
 
           {/* User Avatar with dropdown */}
           <div className="relative">

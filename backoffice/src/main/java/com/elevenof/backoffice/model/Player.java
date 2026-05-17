@@ -26,7 +26,7 @@ public class Player {
     @Id
     private Long id; // Same as User.id
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @MapsId
     @JoinColumn(name = "id")
     private User user;

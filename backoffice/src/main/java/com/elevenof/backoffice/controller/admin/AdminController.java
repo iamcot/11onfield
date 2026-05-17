@@ -60,6 +60,9 @@ public class AdminController {
     private final PlayerAchievementRepository playerAchievementRepository;
     private final PlayerHighlightRepository playerHighlightRepository;
     private final PlayerSocialRepository playerSocialRepository;
+    private final com.elevenof.backoffice.service.NotificationService notificationService;
+    private final com.elevenof.backoffice.repository.NotificationScenarioRepository notificationScenarioRepository;
+    private final com.elevenof.backoffice.service.NotificationTemplateService notificationTemplateService;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -1028,6 +1031,7 @@ public class AdminController {
     // Achievement Approval Endpoints
     @PostMapping("/achievements/{achievementId}/approve")
     @ResponseBody
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, Object> approveAchievement(@PathVariable Long achievementId) {
         com.elevenof.backoffice.model.PlayerAchievement achievement =
                 playerAchievementRepository.findById(achievementId)
@@ -1036,11 +1040,26 @@ public class AdminController {
         achievement.setApprovalStatus(com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus.APPROVED);
         playerAchievementRepository.save(achievement);
 
+        // Send notification to player
+        Player player = achievement.getPlayer();
+        Map<String, String> variables = Map.of(
+            "fullName", player.getUser().getFullName(),
+            "achievementTitle", achievement.getTitle()
+        );
+        String data = String.format("{\"achievementId\": %d}", achievement.getId());
+        notificationService.sendNotification(
+            player.getUser().getId(),
+            "ACHIEVEMENT_APPROVED",
+            variables,
+            data
+        );
+
         return Map.of("success", true, "approvalStatus", "APPROVED");
     }
 
     @PostMapping("/achievements/{achievementId}/reject")
     @ResponseBody
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, Object> rejectAchievement(@PathVariable Long achievementId) {
         com.elevenof.backoffice.model.PlayerAchievement achievement =
                 playerAchievementRepository.findById(achievementId)
@@ -1055,6 +1074,7 @@ public class AdminController {
     // Highlight Approval Endpoints
     @PostMapping("/highlights/{highlightId}/approve")
     @ResponseBody
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, Object> approveHighlight(@PathVariable Long highlightId) {
         com.elevenof.backoffice.model.PlayerHighlight highlight =
                 playerHighlightRepository.findById(highlightId)
@@ -1063,11 +1083,26 @@ public class AdminController {
         highlight.setApprovalStatus(com.elevenof.backoffice.model.PlayerHighlight.ApprovalStatus.APPROVED);
         playerHighlightRepository.save(highlight);
 
+        // Send notification to player
+        Player player = highlight.getPlayer();
+        Map<String, String> variables = Map.of(
+            "fullName", player.getUser().getFullName(),
+            "highlightDescription", highlight.getTitle() != null ? highlight.getTitle() : "Video highlight"
+        );
+        String data = String.format("{\"highlightId\": %d}", highlight.getId());
+        notificationService.sendNotification(
+            player.getUser().getId(),
+            "HIGHLIGHT_APPROVED",
+            variables,
+            data
+        );
+
         return Map.of("success", true, "approvalStatus", "APPROVED");
     }
 
     @PostMapping("/highlights/{highlightId}/reject")
     @ResponseBody
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, Object> rejectHighlight(@PathVariable Long highlightId) {
         com.elevenof.backoffice.model.PlayerHighlight highlight =
                 playerHighlightRepository.findById(highlightId)
@@ -1232,5 +1267,85 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
         }
         return "redirect:/admin/players/" + id + "/attributes";
+    }
+
+    // ==================== NOTIFICATION MANAGEMENT ====================
+
+    /**
+     * Notification scenarios management page
+     */
+    @GetMapping("/notifications")
+    public String notificationScenarios(Model model) {
+        model.addAttribute("title", "Quản lý thông báo");
+        model.addAttribute("scenarios", notificationScenarioRepository.findAll());
+        return "admin/notifications";
+    }
+
+    /**
+     * Update notification scenario channel toggles
+     */
+    @PostMapping("/notifications/scenarios/{id}")
+    @ResponseBody
+    public Map<String, Object> updateScenarioChannels(
+            @PathVariable Long id,
+            @RequestParam(required = false) Boolean emailEnabled,
+            @RequestParam(required = false) Boolean inappEnabled,
+            @RequestParam(required = false) Boolean znsEnabled
+    ) {
+        try {
+            com.elevenof.backoffice.model.NotificationScenario scenario = notificationScenarioRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Scenario not found"));
+
+            if (emailEnabled != null) scenario.setEmailEnabled(emailEnabled);
+            if (inappEnabled != null) scenario.setInappEnabled(inappEnabled);
+            if (znsEnabled != null) scenario.setZnsEnabled(znsEnabled);
+
+            notificationScenarioRepository.save(scenario);
+            return Map.of("success", true, "message", "Cập nhật thành công");
+        } catch (Exception e) {
+            return Map.of("success", false, "message", e.getMessage());
+        }
+    }
+
+    /**
+     * Template management page for a scenario
+     */
+    @GetMapping("/notifications/templates/{scenarioId}")
+    public String notificationTemplates(@PathVariable Long scenarioId, Model model) {
+        com.elevenof.backoffice.model.NotificationScenario scenario = notificationScenarioRepository.findById(scenarioId)
+                .orElseThrow(() -> new RuntimeException("Scenario not found"));
+
+        model.addAttribute("title", "Quản lý template - " + scenario.getName());
+        model.addAttribute("scenario", scenario);
+        model.addAttribute("templates", notificationTemplateService.getTemplatesByScenario(scenarioId));
+        return "admin/notification-templates";
+    }
+
+    /**
+     * Update notification template
+     */
+    @PostMapping("/notifications/templates/{id}")
+    public String updateTemplate(
+            @PathVariable Long id,
+            @RequestParam String subject,
+            @RequestParam String bodyTemplate,
+            @RequestParam Boolean active,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            com.elevenof.backoffice.model.NotificationTemplate template = notificationTemplateService.getTemplateById(id)
+                    .orElseThrow(() -> new RuntimeException("Template not found"));
+
+            template.setSubject(subject);
+            template.setBodyTemplate(bodyTemplate);
+            template.setActive(active);
+            notificationTemplateService.saveTemplate(template);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật template thành công");
+            return "redirect:/admin/notifications/templates/" + template.getScenario().getId();
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            return "redirect:/admin/notifications";
+        }
     }
 }

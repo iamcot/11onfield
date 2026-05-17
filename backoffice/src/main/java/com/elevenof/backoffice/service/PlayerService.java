@@ -75,6 +75,14 @@ public class PlayerService {
         return playerRepository.findByUserId(userId);
     }
 
+    /**
+     * Get player profile with all lazy collections eagerly loaded
+     * Use this when you need to access achievements, highlights, or socials
+     */
+    public Optional<Player> getPlayerProfileWithCollections(Long userId) {
+        return playerRepository.findByUserIdWithCollections(userId);
+    }
+
     @Transactional
     public Player updatePlayerProfile(Long userId, Player updatedData) {
         Player player = playerRepository.findByUserId(userId)

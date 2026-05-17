@@ -1,0 +1,165 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout (${title}, ~{::content})}">
+<div th:fragment="content">
+    <div class="container-fluid">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/admin/notifications}">Thông báo</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${scenario.name}">Templates</li>
+            </ol>
+        </nav>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <!-- Scenario Info -->
+        <div class="card card-primary card-outline">
+            <div class="card-body">
+                <h5><strong th:text="${scenario.name}">Chào mừng</strong></h5>
+                <p class="text-muted mb-2" th:text="${scenario.description}">Gửi email chào mừng</p>
+                <div class="d-flex gap-2">
+                    <span th:if="${scenario.emailEnabled}" class="badge badge-info">
+                        <i class="fas fa-envelope"></i> Email
+                    </span>
+                    <span th:if="${scenario.inappEnabled}" class="badge badge-success">
+                        <i class="fas fa-bell"></i> In-App
+                    </span>
+                    <span th:if="${scenario.znsEnabled}" class="badge badge-primary">
+                        <i class="fab fa-facebook-messenger"></i> ZNS
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Templates -->
+        <div th:each="template : ${templates}" class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i th:if="${template.channel.name() == 'EMAIL'}" class="fas fa-envelope text-info"></i>
+                    <i th:if="${template.channel.name() == 'INAPP'}" class="fas fa-bell text-success"></i>
+                    <i th:if="${template.channel.name() == 'ZNS'}" class="fab fa-facebook-messenger text-primary"></i>
+                    <span th:text="${template.channel.name()}">EMAIL</span> Template
+                </h3>
+                <div class="card-tools">
+                    <span th:if="${template.active}" class="badge badge-success">Active</span>
+                    <span th:unless="${template.active}" class="badge badge-secondary">Inactive</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/notifications/templates/{id}(id=${template.id})}" method="post">
+                    <!-- Subject (for EMAIL and INAPP only) -->
+                    <div th:if="${template.channel.name() == 'EMAIL' or template.channel.name() == 'INAPP'}"
+                         class="form-group">
+                        <label>Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text"
+                               name="subject"
+                               class="form-control"
+                               th:value="${template.subject}"
+                               required>
+                        <small class="form-text text-muted">
+                            Tiêu đề thông báo (có thể sử dụng biến: <code th:text="${template.variables}"></code>)
+                        </small>
+                    </div>
+
+                    <!-- Body Template -->
+                    <div class="form-group">
+                        <label>Nội dung <span class="text-danger">*</span></label>
+                        <textarea name="bodyTemplate"
+                                  class="form-control"
+                                  rows="8"
+                                  required
+                                  th:text="${template.bodyTemplate}"></textarea>
+                        <small class="form-text text-muted">
+                            <strong>Biến có thể dùng:</strong> <code th:text="${template.variables}"></code>
+                            <br/>
+                            Sử dụng cú pháp: <code>{{variableName}}</code>
+                            <br/>
+                            <span th:if="${template.channel.name() == 'EMAIL'}">
+                                <i class="fas fa-info-circle text-info"></i> Email hỗ trợ HTML
+                            </span>
+                            <span th:if="${template.channel.name() == 'ZNS'}">
+                                <i class="fas fa-info-circle text-info"></i> ZNS chỉ hỗ trợ text thuần, không dấu
+                            </span>
+                        </small>
+                    </div>
+
+                    <!-- Variables Reference -->
+                    <div class="alert alert-info">
+                        <strong><i class="fas fa-lightbulb"></i> Hướng dẫn sử dụng biến:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li th:each="var : ${template.variables}">
+                                <code th:text="'{{' + ${var} + '}}'"></code> -
+                                <span th:text="${var}"></span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Active Toggle -->
+                    <div class="form-group">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox"
+                                   name="active"
+                                   value="true"
+                                   class="custom-control-input"
+                                   th:id="'active-' + ${template.id}"
+                                   th:checked="${template.active}">
+                            <label class="custom-control-label" th:for="'active-' + ${template.id}">
+                                Kích hoạt template này
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">
+                            Chỉ template active mới được sử dụng để gửi thông báo
+                        </small>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="form-group mb-0">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu thay đổi
+                        </button>
+                        <a th:href="@{/admin/notifications}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Preview Card (Optional) -->
+        <div class="card card-secondary">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-eye"></i> Ví dụ render</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    Sau khi lưu, template sẽ được render với các biến thực tế khi gửi thông báo.
+                    Ví dụ: <code>{{fullName}}</code> sẽ được thay thế bằng tên người dùng.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            // Auto-dismiss alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+    </script>
+</div>
+</html>

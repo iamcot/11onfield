@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Roboto_Condensed } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 import { EditProfileProvider } from '@/contexts/EditProfileContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import EditProfileHandler from '@/components/profile/EditProfileHandler';
@@ -64,13 +65,15 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} ${robotoCondensed.variable}`}>
         <AuthProvider>
-          <SidebarProvider>
-            <EditProfileProvider>
-              {children}
-              <EditProfileHandler />
-              <SafariLightModeWrapper />
-            </EditProfileProvider>
-          </SidebarProvider>
+          <NotificationProvider>
+            <SidebarProvider>
+              <EditProfileProvider>
+                {children}
+                <EditProfileHandler />
+                <SafariLightModeWrapper />
+              </EditProfileProvider>
+            </SidebarProvider>
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

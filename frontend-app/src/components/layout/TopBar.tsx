@@ -1,9 +1,11 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import NotificationDropdown from "./NotificationDropdown";
 
 interface TopBarProps {
   onMenuToggle?: () => void;
@@ -11,7 +13,9 @@ interface TopBarProps {
 
 export default function TopBar({ onMenuToggle }: TopBarProps) {
   const [showRightNav, setShowRightNav] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
 
   const handleAvatarClick = () => {
     setShowRightNav(!showRightNav);
@@ -41,9 +45,10 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
           </div>
 
           {/* Right Icons Container */}
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
+          <div className="relative flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
             {/* Bell Icon */}
             <button
+              onClick={() => setShowNotifications(!showNotifications)}
               className="relative p-1 text-white hover:bg-white/20 rounded-full transition"
               aria-label="Notifications"
             >
@@ -61,8 +66,17 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
                 />
               </svg>
               {/* Notification badge */}
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
             </button>
+
+            {/* Notification Dropdown */}
+            {showNotifications && (
+              <NotificationDropdown onClose={() => setShowNotifications(false)} />
+            )}
 
             {/* User Avatar */}
             <button

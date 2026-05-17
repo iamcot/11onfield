@@ -1,5 +1,6 @@
 package com.elevenof.backoffice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,8 +20,9 @@ public class PlayerAchievement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "player_id", nullable = false)
+    @JsonIgnore
     private Player player;
 
     @Enumerated(EnumType.STRING)

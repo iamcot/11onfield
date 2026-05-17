@@ -19,6 +19,7 @@ public class FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void followUser(Long followerId, String targetUserid) {
@@ -46,6 +47,20 @@ public class FollowService {
 
         followRepository.save(follow);
         log.info("User {} started following user {}", followerId, targetUserid);
+
+        // Send notification to the followed user about new follower
+        java.util.Map<String, String> variables = java.util.Map.of(
+            "followerName", follower.getFullName(),
+            "followerUserid", follower.getUserid()
+        );
+        String data = String.format("{\"followerId\": %d}", follower.getId());
+        notificationService.sendNotification(
+            followed.getId(),
+            "NEW_FOLLOWER",
+            variables,
+            data
+        );
+        log.info("👥 New follower notification triggered for user: {} (followed by: {})", followed.getId(), follower.getId());
     }
 
     @Transactional
