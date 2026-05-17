@@ -395,9 +395,20 @@ export default function UserProfilePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <Link href="/profile" className="text-green-600 hover:text-green-500">
-            Quay lại trang cá nhân của bạn
-          </Link>
+          <div className="flex flex-col gap-3">
+            <Link href="/profile" className="text-green-600 hover:text-green-500">
+              Quay lại trang cá nhân của bạn
+            </Link>
+            <button
+              onClick={() => {
+                logout();
+                router.push("/auth/login");
+              }}
+              className="text-red-600 hover:text-red-500 underline"
+            >
+              Đăng xuất
+            </button>
+          </div>
         </div>
       </div>
     );
