@@ -2,7 +2,7 @@
 <html
   xmlns:th="http://www.thymeleaf.org"
   xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-  th:fragment="layout (title, content)"
+  th:fragment="layout (title, content, scripts)"
 >
   <head>
     <meta charset="utf-8" />
@@ -286,5 +286,8 @@
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
     <!-- Custom JS -->
     <script th:src="@{/admin/js/custom.js}"></script>
+
+    <!-- Page-specific scripts -->
+    <th:block th:replace="${scripts} ?: ~{}" />
   </body>
 </html>

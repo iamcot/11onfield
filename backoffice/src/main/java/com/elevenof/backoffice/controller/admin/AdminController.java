@@ -3,6 +3,8 @@ package com.elevenof.backoffice.controller.admin;
 import com.elevenof.backoffice.model.Address;
 import com.elevenof.backoffice.model.Event;
 import com.elevenof.backoffice.model.Player;
+import com.elevenof.backoffice.model.PlayerAchievement;
+import com.elevenof.backoffice.model.PlayerHighlight;
 import com.elevenof.backoffice.model.Province;
 import com.elevenof.backoffice.model.User;
 import com.elevenof.backoffice.repository.AddressRepository;
@@ -184,6 +186,7 @@ public class AdminController {
             Map<Long, Map<String, Integer>> playerAttributesMap = new java.util.HashMap<>();
             Map<Long, String> playerAttributeTypeMap = new java.util.HashMap<>(); // "synthetic", "real", or "none"
             Map<Long, List<com.elevenof.backoffice.model.PlayerAttributeType>> playerHexagonTypesMap = new java.util.HashMap<>();
+            Map<Long, Boolean> playerHasPendingItemsMap = new java.util.HashMap<>(); // Track pending achievements/highlights
 
             // Load synthetic and real hexagon types once
             List<com.elevenof.backoffice.model.PlayerAttributeType> syntheticTypes = new ArrayList<>();
@@ -229,6 +232,15 @@ public class AdminController {
                                 com.elevenof.backoffice.dto.response.PlayerAttributeDTO::getAttributeValue
                         ));
                 playerAttributesMap.put(player.getId(), attrs);
+
+                // Check if player has pending achievements or highlights (with null safety)
+                boolean hasPendingAchievements = player.getAchievements() != null &&
+                        player.getAchievements().stream()
+                                .anyMatch(achievement -> achievement.getApprovalStatus() == PlayerAchievement.ApprovalStatus.PENDING);
+                boolean hasPendingHighlights = player.getHighlights() != null &&
+                        player.getHighlights().stream()
+                                .anyMatch(highlight -> highlight.getApprovalStatus() == PlayerHighlight.ApprovalStatus.PENDING);
+                playerHasPendingItemsMap.put(player.getId(), hasPendingAchievements || hasPendingHighlights);
             }
 
             model.addAttribute("title", "Cầu thủ");
@@ -242,6 +254,7 @@ public class AdminController {
             model.addAttribute("playerHexagonTypesMap", playerHexagonTypesMap);
             model.addAttribute("playerAttributesMap", playerAttributesMap);
             model.addAttribute("playerAttributeTypeMap", playerAttributeTypeMap);
+            model.addAttribute("playerHasPendingItemsMap", playerHasPendingItemsMap);
 
             // Preserve filter params
             model.addAttribute("search", search != null ? search : "");
@@ -464,8 +477,22 @@ public class AdminController {
             existingPlayer.setAcademy(academy);
             existingPlayer.setClub(club);
 
-            // Update verified status
-            existingPlayer.setVerified(verifiedStr != null && verifiedStr.equals("on"));
+            // Update verified status and send notification if changed
+            boolean wasVerified = existingPlayer.getVerified();
+            boolean isNowVerified = verifiedStr != null && verifiedStr.equals("on");
+            existingPlayer.setVerified(isNowVerified);
+
+            // Send notification if player just got verified
+            if (!wasVerified && isNowVerified) {
+                try {
+                    java.util.Map<String, String> variables = new java.util.HashMap<>();
+                    variables.put("fullName", existingUser.getFullName());
+                    notificationService.sendNotification(existingUser.getId(), "ACCOUNT_VERIFIED", variables, null);
+                } catch (Exception e) {
+                    // Log but don't fail the update
+                    System.err.println("Failed to send verification notification: " + e.getMessage());
+                }
+            }
 
             // Update achievements - delete from DB first, then recreate
             playerAchievementRepository.deleteByPlayerId(id);
@@ -1286,23 +1313,42 @@ public class AdminController {
      */
     @PostMapping("/notifications/scenarios/{id}")
     @ResponseBody
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, Object> updateScenarioChannels(
             @PathVariable Long id,
             @RequestParam(required = false) Boolean emailEnabled,
             @RequestParam(required = false) Boolean inappEnabled,
             @RequestParam(required = false) Boolean znsEnabled
     ) {
+        System.out.println("=== Update Scenario Channels ===");
+        System.out.println("ID: " + id);
+        System.out.println("emailEnabled: " + emailEnabled);
+        System.out.println("inappEnabled: " + inappEnabled);
+        System.out.println("znsEnabled: " + znsEnabled);
+
         try {
             com.elevenof.backoffice.model.NotificationScenario scenario = notificationScenarioRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Scenario not found"));
+
+            System.out.println("Before: email=" + scenario.getEmailEnabled() +
+                             ", inapp=" + scenario.getInappEnabled() +
+                             ", zns=" + scenario.getZnsEnabled());
 
             if (emailEnabled != null) scenario.setEmailEnabled(emailEnabled);
             if (inappEnabled != null) scenario.setInappEnabled(inappEnabled);
             if (znsEnabled != null) scenario.setZnsEnabled(znsEnabled);
 
+            System.out.println("After: email=" + scenario.getEmailEnabled() +
+                             ", inapp=" + scenario.getInappEnabled() +
+                             ", zns=" + scenario.getZnsEnabled());
+
             notificationScenarioRepository.save(scenario);
+            System.out.println("Saved successfully");
+
             return Map.of("success", true, "message", "Cập nhật thành công");
         } catch (Exception e) {
+            System.err.println("Error updating scenario: " + e.getMessage());
+            e.printStackTrace();
             return Map.of("success", false, "message", e.getMessage());
         }
     }

@@ -1,6 +1,6 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout (${title}, ~{::content})}">
+      th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{::scripts})}">
 <div th:fragment="content">
     <div class="container-fluid">
         <!-- Success/Error Messages -->
@@ -125,7 +125,9 @@
             </div>
         </div>
     </div>
+</div>
 
+<th:block th:fragment="scripts">
     <script th:inline="javascript">
         $(document).ready(function() {
             // Initialize tooltips
@@ -141,27 +143,47 @@
                 // Disable toggle while processing
                 $toggle.prop('disabled', true);
 
-                // Build form data
-                const formData = new FormData();
-                formData.append(channel + 'Enabled', enabled);
+                // Build URL search params
+                const params = new URLSearchParams();
+                params.append(channel + 'Enabled', enabled);
 
                 fetch(`/admin/notifications/scenarios/${scenarioId}`, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: params
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
-                        toastr.success(data.message || 'Cập nhật thành công');
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success(data.message || 'Cập nhật thành công');
+                        } else {
+                            alert(data.message || 'Cập nhật thành công');
+                        }
                     } else {
-                        toastr.error(data.message || 'Cập nhật thất bại');
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(data.message || 'Cập nhật thất bại');
+                        } else {
+                            alert(data.message || 'Cập nhật thất bại');
+                        }
                         // Revert toggle on error
                         $toggle.prop('checked', !enabled);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    toastr.error('Có lỗi xảy ra');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Có lỗi xảy ra: ' + error.message);
+                    } else {
+                        alert('Có lỗi xảy ra: ' + error.message);
+                    }
                     // Revert toggle on error
                     $toggle.prop('checked', !enabled);
                 })
@@ -172,5 +194,5 @@
             });
         });
     </script>
-</div>
+</th:block>
 </html>

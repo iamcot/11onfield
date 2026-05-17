@@ -116,8 +116,22 @@
                     </td>
                   </tr>
                   <tr th:each="player : ${players}">
-                    <td th:text="${player.id}">1</td>
-                    <td style="text-align: center; vertical-align: middle;">
+                    <td style="text-align: center; vertical-align: middle; position: relative;">
+                      <!-- Pending Items Warning Badge -->
+                      <span
+                        th:if="${playerHasPendingItemsMap.get(player.id)}"
+                        class=""
+                        style="position: absolute; top: 5px; right: 5px; z-index: 10; font-size: 0.6rem; padding: 2px 5px;"
+                        title="Có thành tích hoặc highlight đang chờ duyệt"
+                        data-toggle="tooltip"
+                      >
+                        <i class="fas fa-exclamation-circle text-danger"></i>
+                      </span>
+                      <div th:text="${player.id}">1</div>
+                    </td>
+                    <td style="text-align: center; vertical-align: middle; position: relative;">
+                      
+
                       <div th:replace="~{fragments/hexagon-chart :: hexagon-chart(
                         ${player.id},
                         ${player.user.fullName},
