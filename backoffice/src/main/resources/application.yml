@@ -147,3 +147,5 @@ logging:
     # Suppress SSE disconnection errors (Broken pipe, Connection reset)
     "[org.apache.catalina.core.ContainerBase.[Tomcat].[localhost]]": ERROR
     "[org.apache.coyote.http11.Http11Processor]": ERROR
+    # Suppress SSE exception handler warnings (HttpMessageNotWritableException with text/event-stream)
+    "[org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver]": ERROR

@@ -33,11 +33,30 @@ public class NotificationSseController {
      */
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamNotifications(Authentication authentication) {
-        String userid = authentication.getName();
-        User user = userRepository.findByUserid(userid)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            if (authentication == null) {
+                log.error("❌ SSE connection failed: Authentication is null");
+                throw new RuntimeException("Authentication required");
+            }
 
-        log.info("📡 SSE connection established for user: {} ({})", user.getId(), userid);
-        return sseService.createEmitter(user.getId());
+            String userid = authentication.getName();
+            if (userid == null) {
+                log.error("❌ SSE connection failed: User ID is null");
+                throw new RuntimeException("User ID not found in authentication");
+            }
+
+            log.debug("🔍 Looking up user: {}", userid);
+            User user = userRepository.findByUserid(userid)
+                .orElseThrow(() -> {
+                    log.error("❌ SSE connection failed: User not found for userid: {}", userid);
+                    return new RuntimeException("User not found: " + userid);
+                });
+
+            log.info("📡 SSE connection established for user: {} ({})", user.getId(), userid);
+            return sseService.createEmitter(user.getId());
+        } catch (Exception e) {
+            log.error("❌ SSE stream error: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 }
