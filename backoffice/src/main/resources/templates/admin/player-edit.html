@@ -12,10 +12,48 @@
         <div class="col-12">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Chỉnh sửa thông tin cầu thủ</h3>
+              <div class="d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">Chỉnh sửa thông tin cầu thủ</h3>
+                <div class="d-flex align-items-center">
+                  <!-- Action Buttons -->
+                  <button type="button" class="btn btn-primary mr-2" onclick="document.getElementById('playerEditForm').submit()">
+                    <i class="fas fa-save"></i> Lưu thay đổi
+                  </button>
+                  <a th:href="${returnUrl != null ? returnUrl : '/admin/players'}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Hủy
+                  </a>
+                </div>
+              </div>
             </div>
-            <form id="playerEditForm" th:action="@{/admin/players/edit/{id}(id=${player.id})}" method="post">
+            <form id="playerEditForm" th:action="@{/admin/players/edit/{id}(id=${player.id}, returnUrl=${returnUrl})}" method="post">
               <div class="card-body">
+                <!-- Verification Status Section -->
+                <h5 class="mb-3">Trạng thái xác minh</h5>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <div class="d-flex align-items-center">
+                        <div class="custom-control custom-switch" style="transform: scale(1.8); margin-left: 20px; margin-right: 30px;">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="verifiedToggle"
+                            name="verified"
+                            th:checked="${player.verified}"
+                            onchange="toggleVerifiedAndSave(this)"
+                          />
+                          <label class="custom-control-label" for="verifiedToggle"></label>
+                        </div>
+                        <div>
+                          <strong id="verifiedStatusText" th:text="${player.verified ? 'Đã xác minh' : 'Chưa xác minh'}">Chưa xác minh</strong>
+                          <br/>
+                          <small class="text-muted">Cấp badge xác minh cho cầu thủ này trên profile công khai</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- User Information Section -->
                 <h5 class="mb-3">Thông tin cơ bản</h5>
                 <div class="row">
@@ -119,26 +157,6 @@
 
                 <!-- Player Information Section -->
                 <h5 class="mt-4 mb-3">Thông tin cầu thủ</h5>
-                <div class="row">
-                  <div class="col-md-12">
-                    <div class="form-group">
-                      <div class="custom-control custom-checkbox">
-                        <input
-                          type="checkbox"
-                          class="custom-control-input"
-                          id="verified"
-                          name="verified"
-                          th:checked="${player.verified}"
-                        />
-                        <label class="custom-control-label" for="verified">
-                          <strong>Đã xác minh</strong>
-                          <small class="text-muted d-block">Cấp badge xác minh cho cầu thủ này trên profile công khai</small>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <div class="row">
                   <div class="col-md-4">
                     <div class="form-group">
@@ -678,7 +696,7 @@
                 <button type="submit" class="btn btn-primary">
                   <i class="fas fa-save"></i> Lưu thay đổi
                 </button>
-                <a th:href="@{/admin/players}" class="btn btn-secondary">
+                <a th:href="${returnUrl != null ? returnUrl : '/admin/players'}" class="btn btn-secondary">
                   <i class="fas fa-times"></i> Hủy
                 </a>
               </div>
@@ -959,6 +977,49 @@
           .catch(error => {
             console.error('Error:', error);
             alert('Có lỗi xảy ra khi từ chối highlight');
+          });
+        }
+
+        // Toggle verified status and auto-save via AJAX
+        function toggleVerifiedAndSave(checkbox) {
+          const isVerified = checkbox.checked;
+          const playerId = [[${player.id}]];
+          const statusText = document.getElementById('verifiedStatusText');
+          const originalText = statusText.innerText;
+
+          // Show loading state
+          checkbox.disabled = true;
+          statusText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+
+          // Call dedicated endpoint for toggling verified status
+          const url = '/admin/players/' + playerId + '/toggle-verified?verified=' + isVerified;
+
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Success
+              statusText.innerHTML = '<i class="fas fa-check text-success"></i> ' + data.message;
+              setTimeout(() => {
+                statusText.innerText = data.message;
+                checkbox.disabled = false;
+              }, 1500);
+            } else {
+              throw new Error(data.message || 'Unknown error');
+            }
+          })
+          .catch(error => {
+            console.error('Error saving verified status:', error);
+            alert('Có lỗi xảy ra khi cập nhật trạng thái xác minh: ' + error.message);
+            // Revert checkbox and text
+            checkbox.checked = !isVerified;
+            statusText.innerText = originalText;
+            checkbox.disabled = false;
           });
         }
       </script>

@@ -67,6 +67,21 @@
                   </select>
                 </div>
 
+                <div class="form-group mr-2 mb-2">
+                  <select name="verified" class="form-control form-control-sm" style="width: 150px;">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="true" th:selected="${verified != null && verified}">Đã xác minh</option>
+                    <option value="false" th:selected="${verified != null && !verified}">Chưa xác minh</option>
+                  </select>
+                </div>
+
+                <div class="form-group mr-2 mb-2">
+                  <select name="hasPendingItems" class="form-control form-control-sm" style="width: 180px;">
+                    <option value="">Tất cả</option>
+                    <option value="true" th:selected="${hasPendingItems != null && hasPendingItems}">Có nội dung chờ duyệt</option>
+                  </select>
+                </div>
+
                 <button type="submit" class="btn btn-primary btn-sm mr-2 mb-2">
                   <i class="fas fa-search"></i> Tìm kiếm
                 </button>
@@ -345,7 +360,7 @@
                 >
                   <a
                     class="page-link"
-                    th:href="@{/admin/players(page=${currentPage - 1}, size=${pageSize}, search=${search}, position=${position}, provinceId=${provinceId}, level=${level})}"
+                    th:href="@{/admin/players(page=${currentPage - 1}, size=${pageSize}, search=${search}, position=${position}, provinceId=${provinceId}, level=${level}, verified=${verified}, hasPendingItems=${hasPendingItems})}"
                     th:if="${currentPage > 0}"
                   >
                     &laquo;
@@ -364,7 +379,7 @@
                 >
                   <a
                     class="page-link"
-                    th:href="@{/admin/players(page=${i}, size=${pageSize}, search=${search}, position=${position}, provinceId=${provinceId}, level=${level})}"
+                    th:href="@{/admin/players(page=${i}, size=${pageSize}, search=${search}, position=${position}, provinceId=${provinceId}, level=${level}, verified=${verified}, hasPendingItems=${hasPendingItems})}"
                     th:text="${i + 1}"
                     >1</a
                   >
@@ -377,7 +392,7 @@
                 >
                   <a
                     class="page-link"
-                    th:href="@{/admin/players(page=${currentPage + 1}, size=${pageSize}, search=${search}, position=${position}, provinceId=${provinceId}, level=${level})}"
+                    th:href="@{/admin/players(page=${currentPage + 1}, size=${pageSize}, search=${search}, position=${position}, provinceId=${provinceId}, level=${level}, verified=${verified}, hasPendingItems=${hasPendingItems})}"
                     th:if="${currentPage < totalPages - 1}"
                   >
                     &raquo;
@@ -407,7 +422,10 @@
         }
 
         function editPlayer(playerId) {
-          window.location.href = '/admin/players/edit/' + playerId;
+          // Build return URL with all current filters
+          const params = new URLSearchParams(window.location.search);
+          const returnUrl = '/admin/players?' + params.toString();
+          window.location.href = '/admin/players/edit/' + playerId + '?returnUrl=' + encodeURIComponent(returnUrl);
         }
 
         function manageAttributes(playerId) {
@@ -419,6 +437,16 @@
           var form = document.createElement('form');
           form.method = 'POST';
           form.action = '/admin/players/delete/' + playerId;
+
+          // Add returnUrl hidden input
+          const params = new URLSearchParams(window.location.search);
+          const returnUrl = '/admin/players?' + params.toString();
+          var returnUrlInput = document.createElement('input');
+          returnUrlInput.type = 'hidden';
+          returnUrlInput.name = 'returnUrl';
+          returnUrlInput.value = returnUrl;
+          form.appendChild(returnUrlInput);
+
           document.body.appendChild(form);
           form.submit();
         }
@@ -428,6 +456,16 @@
           var form = document.createElement('form');
           form.method = 'POST';
           form.action = '/admin/players/activate/' + playerId;
+
+          // Add returnUrl hidden input
+          const params = new URLSearchParams(window.location.search);
+          const returnUrl = '/admin/players?' + params.toString();
+          var returnUrlInput = document.createElement('input');
+          returnUrlInput.type = 'hidden';
+          returnUrlInput.name = 'returnUrl';
+          returnUrlInput.value = returnUrl;
+          form.appendChild(returnUrlInput);
+
           document.body.appendChild(form);
           form.submit();
         }

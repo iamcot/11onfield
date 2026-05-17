@@ -91,15 +91,13 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Spring Boot DevTools - Temporarily disabled due to classloader issues with mail dependency -->
-        <!--
+        <!-- Spring Boot DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
-        -->
 
         <!-- Spring Boot Actuator -->
         <dependency>

@@ -110,9 +110,15 @@ public class AdminController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String position,
             @RequestParam(required = false) Long provinceId,
-            @RequestParam(required = false) String level
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) Boolean verified,
+            @RequestParam(required = false) Boolean hasPendingItems
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        // Sort by active users first (user.enabled DESC), then by creation time (createdAt DESC)
+        Pageable pageable = PageRequest.of(page, size, Sort.by(
+            Sort.Order.desc("user.enabled"),
+            Sort.Order.desc("createdAt")
+        ));
 
         // Convert level string to enum - must be final for lambda
         Player.PlayerLevel tempLevel = null;
@@ -130,7 +136,9 @@ public class AdminController {
         if ((search != null && !search.trim().isEmpty()) ||
             (position != null && !position.trim().isEmpty()) ||
             provinceId != null ||
-            playerLevel != null) {
+            playerLevel != null ||
+            verified != null ||
+            (hasPendingItems != null && hasPendingItems)) {
 
             // Use specification for filtering
             org.springframework.data.jpa.domain.Specification<Player> spec =
@@ -169,6 +177,47 @@ public class AdminController {
                         // Filter by level
                         if (playerLevel != null) {
                             predicates.add(cb.equal(root.get("level"), playerLevel));
+                        }
+
+                        // Filter by verification status
+                        if (verified != null) {
+                            predicates.add(cb.equal(root.get("verified"), verified));
+                        }
+
+                        // Filter by pending achievements/highlights
+                        // Use EXISTS subquery to avoid duplicate rows (no need for DISTINCT which causes MySQL ORDER BY issues)
+                        if (hasPendingItems != null && hasPendingItems) {
+                            // Subquery for pending achievements
+                            jakarta.persistence.criteria.Subquery<Long> achievementSubquery = query.subquery(Long.class);
+                            jakarta.persistence.criteria.Root<com.elevenof.backoffice.model.PlayerAchievement> achievementRoot =
+                                achievementSubquery.from(com.elevenof.backoffice.model.PlayerAchievement.class);
+                            achievementSubquery.select(achievementRoot.get("player").get("id"));
+                            achievementSubquery.where(
+                                cb.and(
+                                    cb.equal(achievementRoot.get("player").get("id"), root.get("id")),
+                                    cb.equal(achievementRoot.get("approvalStatus"),
+                                        com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus.PENDING)
+                                )
+                            );
+
+                            // Subquery for pending highlights
+                            jakarta.persistence.criteria.Subquery<Long> highlightSubquery = query.subquery(Long.class);
+                            jakarta.persistence.criteria.Root<com.elevenof.backoffice.model.PlayerHighlight> highlightRoot =
+                                highlightSubquery.from(com.elevenof.backoffice.model.PlayerHighlight.class);
+                            highlightSubquery.select(highlightRoot.get("player").get("id"));
+                            highlightSubquery.where(
+                                cb.and(
+                                    cb.equal(highlightRoot.get("player").get("id"), root.get("id")),
+                                    cb.equal(highlightRoot.get("approvalStatus"),
+                                        com.elevenof.backoffice.model.PlayerHighlight.ApprovalStatus.PENDING)
+                                )
+                            );
+
+                            // Player must have either pending achievements OR pending highlights
+                            predicates.add(cb.or(
+                                cb.exists(achievementSubquery),
+                                cb.exists(highlightSubquery)
+                            ));
                         }
 
                         return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
@@ -261,6 +310,8 @@ public class AdminController {
             model.addAttribute("position", position != null ? position : "");
             model.addAttribute("provinceId", provinceId);
             model.addAttribute("level", level != null ? level : "");
+            model.addAttribute("verified", verified);
+            model.addAttribute("hasPendingItems", hasPendingItems);
 
             return "admin/players";
     }
@@ -315,7 +366,11 @@ public class AdminController {
      * Show player edit form
      */
     @GetMapping("/players/edit/{id}")
-    public String editPlayer(@PathVariable Long id, Model model) {
+    public String editPlayer(
+            @PathVariable Long id,
+            @RequestParam(required = false) String returnUrl,
+            Model model
+    ) {
         Player player = playerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Player not found"));
 
@@ -336,6 +391,7 @@ public class AdminController {
         model.addAttribute("player", player);
         model.addAttribute("user", player.getUser());
         model.addAttribute("provinces", provinces);
+        model.addAttribute("returnUrl", returnUrl);
 
         return "admin/player-edit";
     }
@@ -347,6 +403,7 @@ public class AdminController {
     @org.springframework.transaction.annotation.Transactional
     public String updatePlayer(
             @PathVariable Long id,
+            @RequestParam(required = false) String returnUrl,
             HttpServletRequest request,
             RedirectAttributes redirectAttributes
     ) {
@@ -494,7 +551,18 @@ public class AdminController {
                 }
             }
 
-            // Update achievements - delete from DB first, then recreate
+            // Update achievements - preserve approval status from existing achievements
+            // First, build a map of existing achievements by (type + title) to preserve their approval status
+            java.util.Map<String, com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus> existingApprovalMap =
+                new java.util.HashMap<>();
+            if (existingPlayer.getAchievements() != null) {
+                for (com.elevenof.backoffice.model.PlayerAchievement existingAch : existingPlayer.getAchievements()) {
+                    String key = existingAch.getType() + ":" + existingAch.getTitle().trim().toLowerCase();
+                    existingApprovalMap.put(key, existingAch.getApprovalStatus());
+                }
+            }
+
+            // Now delete all and recreate
             playerAchievementRepository.deleteByPlayerId(id);
 
             if (individualAchievementsTitles != null) {
@@ -510,12 +578,18 @@ public class AdminController {
                             }
                         }
 
+                        // Check if this achievement existed before and preserve its approval status
+                        String key = "INDIVIDUAL:" + title.trim().toLowerCase();
+                        com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus approvalStatus =
+                            existingApprovalMap.getOrDefault(key, com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus.PENDING);
+
                         com.elevenof.backoffice.model.PlayerAchievement achievement =
                                 com.elevenof.backoffice.model.PlayerAchievement.builder()
                                         .player(existingPlayer)
                                         .type(com.elevenof.backoffice.model.PlayerAchievement.AchievementType.INDIVIDUAL)
                                         .title(title.trim())
                                         .achievementDate(achievementDate)
+                                        .approvalStatus(approvalStatus)
                                         .build();
                         playerAchievementRepository.save(achievement);
                     }
@@ -534,12 +608,18 @@ public class AdminController {
                             }
                         }
 
+                        // Check if this achievement existed before and preserve its approval status
+                        String key = "TEAM:" + title.trim().toLowerCase();
+                        com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus approvalStatus =
+                            existingApprovalMap.getOrDefault(key, com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus.PENDING);
+
                         com.elevenof.backoffice.model.PlayerAchievement achievement =
                                 com.elevenof.backoffice.model.PlayerAchievement.builder()
                                         .player(existingPlayer)
                                         .type(com.elevenof.backoffice.model.PlayerAchievement.AchievementType.TEAM)
                                         .title(title.trim())
                                         .achievementDate(achievementDate)
+                                        .approvalStatus(approvalStatus)
                                         .build();
                         playerAchievementRepository.save(achievement);
                     }
@@ -558,19 +638,36 @@ public class AdminController {
                             }
                         }
 
+                        // Check if this achievement existed before and preserve its approval status
+                        String key = "PARTICIPANT:" + title.trim().toLowerCase();
+                        com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus approvalStatus =
+                            existingApprovalMap.getOrDefault(key, com.elevenof.backoffice.model.PlayerAchievement.ApprovalStatus.PENDING);
+
                         com.elevenof.backoffice.model.PlayerAchievement achievement =
                                 com.elevenof.backoffice.model.PlayerAchievement.builder()
                                         .player(existingPlayer)
                                         .type(com.elevenof.backoffice.model.PlayerAchievement.AchievementType.PARTICIPANT)
                                         .title(title.trim())
                                         .achievementDate(achievementDate)
+                                        .approvalStatus(approvalStatus)
                                         .build();
                         playerAchievementRepository.save(achievement);
                     }
                 });
             }
 
-            // Update highlights - delete from DB first, then recreate
+            // Update highlights - preserve approval status from existing highlights
+            // First, build a map of existing highlights by URL to preserve their approval status
+            java.util.Map<String, com.elevenof.backoffice.model.PlayerHighlight.ApprovalStatus> existingHighlightApprovalMap =
+                new java.util.HashMap<>();
+            if (existingPlayer.getHighlights() != null) {
+                for (com.elevenof.backoffice.model.PlayerHighlight existingHl : existingPlayer.getHighlights()) {
+                    String urlKey = existingHl.getUrl().trim().toLowerCase();
+                    existingHighlightApprovalMap.put(urlKey, existingHl.getApprovalStatus());
+                }
+            }
+
+            // Now delete all and recreate
             playerHighlightRepository.deleteByPlayerId(id);
 
             if (highlightsUrls != null) {
@@ -586,12 +683,18 @@ public class AdminController {
                             }
                         }
 
+                        // Check if this highlight existed before and preserve its approval status
+                        String urlKey = url.trim().toLowerCase();
+                        com.elevenof.backoffice.model.PlayerHighlight.ApprovalStatus approvalStatus =
+                            existingHighlightApprovalMap.getOrDefault(urlKey, com.elevenof.backoffice.model.PlayerHighlight.ApprovalStatus.PENDING);
+
                         com.elevenof.backoffice.model.PlayerHighlight highlight =
                                 com.elevenof.backoffice.model.PlayerHighlight.builder()
                                         .player(existingPlayer)
                                         .url(url.trim())
                                         .platform(com.elevenof.backoffice.util.PlatformDetector.detectPlatform(url))
                                         .highlightDate(highlightDate)
+                                        .approvalStatus(approvalStatus)
                                         .build();
                         playerHighlightRepository.save(highlight);
                     }
@@ -626,6 +729,10 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật: " + e.getMessage());
         }
 
+        // Return to list with preserved state
+        if (returnUrl != null && !returnUrl.isEmpty()) {
+            return "redirect:" + returnUrl;
+        }
         return "redirect:/admin/players";
     }
 
@@ -633,7 +740,11 @@ public class AdminController {
      * Soft delete player (set enabled = false)
      */
     @PostMapping("/players/delete/{id}")
-    public String deletePlayer(@PathVariable Long id) {
+    public String deletePlayer(
+            @PathVariable Long id,
+            @RequestParam(required = false) String returnUrl,
+            RedirectAttributes redirectAttributes
+    ) {
         Player player = playerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Player not found"));
 
@@ -641,6 +752,12 @@ public class AdminController {
         user.setEnabled(false);
         userRepository.save(user);
 
+        redirectAttributes.addFlashAttribute("successMessage", "Vô hiệu hóa cầu thủ thành công!");
+
+        // Return to list with preserved state
+        if (returnUrl != null && !returnUrl.isEmpty()) {
+            return "redirect:" + returnUrl;
+        }
         return "redirect:/admin/players";
     }
 
@@ -648,7 +765,11 @@ public class AdminController {
      * Activate player (set enabled = true)
      */
     @PostMapping("/players/activate/{id}")
-    public String activatePlayer(@PathVariable Long id) {
+    public String activatePlayer(
+            @PathVariable Long id,
+            @RequestParam(required = false) String returnUrl,
+            RedirectAttributes redirectAttributes
+    ) {
         Player player = playerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Player not found"));
 
@@ -656,7 +777,56 @@ public class AdminController {
         user.setEnabled(true);
         userRepository.save(user);
 
+        redirectAttributes.addFlashAttribute("successMessage", "Kích hoạt cầu thủ thành công!");
+
+        // Return to list with preserved state
+        if (returnUrl != null && !returnUrl.isEmpty()) {
+            return "redirect:" + returnUrl;
+        }
         return "redirect:/admin/players";
+    }
+
+    /**
+     * Toggle player verified status (AJAX endpoint)
+     */
+    @PostMapping("/players/{id}/toggle-verified")
+    @ResponseBody
+    public java.util.Map<String, Object> togglePlayerVerified(
+            @PathVariable Long id,
+            @RequestParam boolean verified
+    ) {
+        try {
+            Player player = playerRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Player not found"));
+
+            boolean wasVerified = player.getVerified();
+            player.setVerified(verified);
+            playerRepository.save(player);
+
+            // Send notification if player just got verified
+            if (!wasVerified && verified) {
+                try {
+                    User user = player.getUser();
+                    java.util.Map<String, String> variables = new java.util.HashMap<>();
+                    variables.put("fullName", user.getFullName());
+                    notificationService.sendNotification(user.getId(), "ACCOUNT_VERIFIED", variables, null);
+                } catch (Exception e) {
+                    System.err.println("Failed to send verification notification: " + e.getMessage());
+                }
+            }
+
+            return java.util.Map.of(
+                "success", true,
+                "verified", verified,
+                "message", verified ? "Đã xác minh" : "Chưa xác minh"
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return java.util.Map.of(
+                "success", false,
+                "message", "Lỗi: " + e.getMessage()
+            );
+        }
     }
 
     // ==================== EVENTS MANAGEMENT ====================
@@ -1028,31 +1198,6 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
             return "redirect:/admin/players/" + playerId + "/attributes";
         }
-    }
-
-    // Player Verification Endpoints
-    @PostMapping("/players/{playerId}/verify")
-    @ResponseBody
-    public Map<String, Object> verifyPlayer(@PathVariable Long playerId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new RuntimeException("Player not found"));
-
-        player.setVerified(true);
-        playerRepository.save(player);
-
-        return Map.of("success", true, "verified", true);
-    }
-
-    @PostMapping("/players/{playerId}/unverify")
-    @ResponseBody
-    public Map<String, Object> unverifyPlayer(@PathVariable Long playerId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new RuntimeException("Player not found"));
-
-        player.setVerified(false);
-        playerRepository.save(player);
-
-        return Map.of("success", true, "verified", false);
     }
 
     // Achievement Approval Endpoints
