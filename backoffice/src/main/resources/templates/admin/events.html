@@ -117,11 +117,26 @@
                                     <span th:if="${event.status.name() == 'DELETED'}" class="badge badge-dark">Đã xóa</span>
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning" th:onclick="'editEvent(' + ${event.id} + ')'">
+                                    <button class="btn btn-sm btn-warning"
+                                            th:onclick="'editEvent(' + ${event.id} + ')'"
+                                            title="Chỉnh sửa"
+                                            data-toggle="tooltip">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-danger" th:onclick="'deleteEvent(' + ${event.id} + ')'">
+                                    <!-- Delete/Activate button based on status -->
+                                    <button th:if="${event.status.name() != 'DELETED'}"
+                                            class="btn btn-sm btn-danger"
+                                            th:onclick="'deleteEvent(' + ${event.id} + ')'"
+                                            title="Vô hiệu hóa"
+                                            data-toggle="tooltip">
                                         <i class="fas fa-trash"></i>
+                                    </button>
+                                    <button th:if="${event.status.name() == 'DELETED'}"
+                                            class="btn btn-sm btn-success"
+                                            th:onclick="'activateEvent(' + ${event.id} + ')'"
+                                            title="Kích hoạt"
+                                            data-toggle="tooltip">
+                                        <i class="fas fa-check"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -165,13 +180,21 @@
             }
 
             function deleteEvent(id) {
-                if (confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '/admin/events/delete/' + id;
-                    document.body.appendChild(form);
-                    form.submit();
-                }
+                // Create form and submit (confirmation will be handled by global handler)
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/events/delete/' + id;
+                document.body.appendChild(form);
+                form.submit();
+            }
+
+            function activateEvent(id) {
+                // Create form and submit
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/admin/events/activate/' + id;
+                document.body.appendChild(form);
+                form.submit();
             }
         </script>
     </div>

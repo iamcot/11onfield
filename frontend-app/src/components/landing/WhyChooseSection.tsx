@@ -60,7 +60,7 @@ export default function WhyChooseSection() {
 
               {/* Gold divider line (not on last item) */}
               {index < reasons.length - 1 && (
-                <div className="hidden lg:block absolute top-5 bottom-5 -right-4 w-0.5 bg-gold-400"></div>
+                <div className="hidden lg:block absolute top-5 bottom-5 -right-4 w-0.5 bg-gold-600"></div>
               )}
             </div>
           ))}

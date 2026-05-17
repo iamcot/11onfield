@@ -614,6 +614,21 @@ public class AdminController {
         return "redirect:/admin/players";
     }
 
+    /**
+     * Activate player (set enabled = true)
+     */
+    @PostMapping("/players/activate/{id}")
+    public String activatePlayer(@PathVariable Long id) {
+        Player player = playerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Player not found"));
+
+        User user = player.getUser();
+        user.setEnabled(true);
+        userRepository.save(user);
+
+        return "redirect:/admin/players";
+    }
+
     // ==================== EVENTS MANAGEMENT ====================
 
     @GetMapping("/events")
@@ -823,6 +838,18 @@ public class AdminController {
             .orElseThrow(() -> new RuntimeException("Event not found"));
 
         event.setStatus(Event.EventStatus.DELETED);
+        eventRepository.save(event);
+
+        return "redirect:/admin/events";
+    }
+
+    @PostMapping("/events/activate/{id}")
+    public String activateEvent(@PathVariable Long id) {
+        Event event = eventRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Restore to PLAN status when activating
+        event.setStatus(Event.EventStatus.PLAN);
         eventRepository.save(event);
 
         return "redirect:/admin/events";

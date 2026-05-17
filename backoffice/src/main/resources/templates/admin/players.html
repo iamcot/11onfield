@@ -91,25 +91,27 @@
             </div>
 
             <div class="card-body">
-              <table class="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th style="width: 50px;">ID</th>
-                    <th style="width: 90px; text-align: center;">Chỉ số</th>
-                    <th>Họ và tên</th>
-                    <th>Số điện thoại</th>
-                    <th>Vị trí</th>
-                    <th>Chiều cao</th>
-                    <th>Cân nặng</th>
-                    <th>Chân thuận</th>
-                    <th>Xác minh</th>
-                    <th>Trạng thái</th>
-                    <th>Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px;">ID</th>
+                      <th style="width: 90px; text-align: center;">Chỉ số</th>
+                      <th>Họ và tên</th>
+                      <th>SDT</th>
+                      <th>Email</th>
+                      <th>Ngày sinh</th>
+                      <th>Kinh nghiệm</th>
+                      <th>Tỉnh/TP</th>
+                      <th>Vị trí</th>
+                      <th>Cao / Nặng</th>
+                      <th>Chân thuận</th>
+                      <th>Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                   <tr th:if="${#lists.isEmpty(players)}">
-                    <td colspan="11" class="text-center text-muted">
+                    <td colspan="12" class="text-center text-muted">
                       <i class="fas fa-info-circle"></i> Chưa có cầu thủ nào
                     </td>
                   </tr>
@@ -156,10 +158,75 @@
                         >
                           <span class="text-white font-weight-bold" style="font-size: 12px;" th:text="${#strings.substring(player.user.fullName, 0, 1)}">N</span>
                         </div>
-                        <span th:text="${player.user.fullName}">Nguyễn Văn A</span>
+                        <div>
+                          <div>
+                            <span th:text="${player.user.fullName}">Nguyễn Văn A</span>
+                            <!-- Gender Icon -->
+                            <i th:if="${player.user.gender != null and player.user.gender.name() == 'MALE'}"
+                               class="fas fa-mars text-info ml-1"
+                               title="Nam"
+                               data-toggle="tooltip"></i>
+                            <i th:if="${player.user.gender != null and player.user.gender.name() == 'FEMALE'}"
+                               class="fas fa-venus text-danger ml-1"
+                               title="Nữ"
+                               data-toggle="tooltip"></i>
+                            <i th:if="${player.user.gender != null and player.user.gender.name() == 'OTHER'}"
+                               class="fas fa-transgender text-secondary ml-1"
+                               title="Khác"
+                               data-toggle="tooltip"></i>
+                          </div>
+                          <div class="mt-1">
+                            <!-- Verification Badge -->
+                            <span
+                              th:if="${player.verified}"
+                              class="badge badge-success badge-sm mr-1"
+                              style="font-size: 0.7rem;"
+                            >
+                              <i class="fas fa-check-circle"></i> Đã xác minh
+                            </span>
+                            <span
+                              th:unless="${player.verified}"
+                              class="badge badge-secondary badge-sm mr-1"
+                              style="font-size: 0.7rem;"
+                            >
+                              <i class="fas fa-times-circle"></i> Chưa xác minh
+                            </span>
+                            <!-- Status Badge -->
+                            <span
+                              th:if="${player.user.enabled}"
+                              class="badge badge-success badge-sm"
+                              style="font-size: 0.7rem;"
+                            >
+                              Hoạt động
+                            </span>
+                            <span
+                              th:unless="${player.user.enabled}"
+                              class="badge badge-danger badge-sm"
+                              style="font-size: 0.7rem;"
+                            >
+                              Vô hiệu hóa
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </td>
                     <td th:text="${player.user.phone}">0123456789</td>
+                    <td>
+                      <span th:if="${player.user.email != null and !#strings.isEmpty(player.user.email)}" th:text="${player.user.email}">user@example.com</span>
+                      <span th:if="${player.user.email == null or #strings.isEmpty(player.user.email)}" class="badge badge-secondary">N/A</span>
+                    </td>
+                    <td>
+                      <span th:if="${player.user.dob != null}" th:text="${#temporals.format(player.user.dob, 'dd/MM/yyyy')}">01/01/2000</span>
+                      <span th:if="${player.user.dob == null}" class="badge badge-secondary">N/A</span>
+                    </td>
+                    <td>
+                      <span th:if="${player.yearsOfExperience != null}" th:text="${player.yearsOfExperience} + ' năm'">5 năm</span>
+                      <span th:if="${player.yearsOfExperience == null}" class="badge badge-secondary">N/A</span>
+                    </td>
+                    <td>
+                      <span th:if="${player.user.address != null and player.user.address.province != null}" th:text="${player.user.address.province.name}">Hà Nội</span>
+                      <span th:if="${player.user.address == null or player.user.address.province == null}" class="badge badge-secondary">N/A</span>
+                    </td>
                     <td>
                       <span th:if="${player.positions == null or #strings.isEmpty(player.positions)}" class="badge badge-secondary">N/A</span>
                       <th:block th:if="${player.positions != null and !#strings.isEmpty(player.positions)}">
@@ -171,15 +238,14 @@
                         >Tiền đạo</span>
                       </th:block>
                     </td>
-                    <td
-                      th:text="${player.height != null ? player.height + ' cm' : 'N/A'}"
-                    >
-                      175 cm
-                    </td>
-                    <td
-                      th:text="${player.weight != null ? player.weight + ' kg' : 'N/A'}"
-                    >
-                      70 kg
+                    <td>
+                      <span th:if="${player.height != null and player.weight != null}"
+                            th:text="${player.height} + ' cm / ' + ${player.weight} + ' kg'">175 cm / 70 kg</span>
+                      <span th:if="${player.height != null and player.weight == null}"
+                            th:text="${player.height} + ' cm / N/A'">175 cm / N/A</span>
+                      <span th:if="${player.height == null and player.weight != null}"
+                            th:text="'N/A / ' + ${player.weight} + ' kg'">N/A / 70 kg</span>
+                      <span th:if="${player.height == null and player.weight == null}" class="badge badge-secondary">N/A / N/A</span>
                     </td>
                     <td>
                       <span th:if="${player.preferredFoot == 'left'}"
@@ -191,63 +257,56 @@
                       <span th:if="${player.preferredFoot == 'both'}"
                         >Cả hai</span
                       >
-                      <span th:if="${player.preferredFoot == null}">N/A</span>
+                      <span th:if="${player.preferredFoot == null}" class="badge badge-secondary">N/A</span>
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        class="btn btn-sm"
-                        th:classappend="${player.verified ? 'btn-success' : 'btn-secondary'}"
-                        th:data-player-id="${player.id}"
-                        th:data-verified="${player.verified}"
-                        onclick="toggleVerification(this)"
-                      >
-                        <i class="fas fa-check-circle" th:if="${player.verified}"></i>
-                        <i class="fas fa-times-circle" th:unless="${player.verified}"></i>
-                        <span th:text="${player.verified ? 'Đã xác minh' : 'Chưa xác minh'}"></span>
-                      </button>
-                    </td>
-                    <td>
-                      <span
-                        th:if="${player.user.enabled}"
-                        class="badge badge-success"
-                      >
-                        Hoạt động
-                      </span>
-                      <span
-                        th:unless="${player.user.enabled}"
-                        class="badge badge-danger"
-                      >
-                        Vô hiệu hóa
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        class="btn btn-sm btn-info"
-                        th:attr="data-userid=${player.user.userid}"
-                        th:onclick="'viewPlayer(this.getAttribute(\'data-userid\'))'"
-                      >
-                        <i class="fas fa-eye"></i>
-                      </button>
-                      <button
-                        class="btn btn-sm btn-primary"
-                        th:onclick="'manageAttributes(' + ${player.id} + ')'"
-                        title="Quản lý chỉ số"
-                      >
-                        <i class="fas fa-chart-line"></i>
-                      </button>
-                      <button
-                        class="btn btn-sm btn-warning"
-                        th:onclick="'editPlayer(' + ${player.id} + ')'"
-                      >
-                        <i class="fas fa-edit"></i>
-                      </button>
-                      <button
-                        class="btn btn-sm btn-danger"
-                        th:onclick="'deletePlayer(' + ${player.id} + ')'"
-                      >
-                        <i class="fas fa-trash"></i>
-                      </button>
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 120px;">
+                        <button
+                          class="btn btn-sm btn-warning"
+                          th:onclick="'editPlayer(' + ${player.id} + ')'"
+                          title="Chỉnh sửa"
+                          data-toggle="tooltip"
+                        >
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button
+                          class="btn btn-sm btn-primary"
+                          th:onclick="'manageAttributes(' + ${player.id} + ')'"
+                          title="Quản lý chỉ số"
+                          data-toggle="tooltip"
+                        >
+                          <i class="fas fa-chart-line"></i>
+                        </button>
+                        
+                        <!-- Delete/Activate button based on user status -->
+                        <button
+                          th:if="${player.user.enabled}"
+                          class="btn btn-sm btn-danger"
+                          th:onclick="'deletePlayer(' + ${player.id} + ')'"
+                          title="Vô hiệu hóa"
+                          data-toggle="tooltip"
+                        >
+                          <i class="fas fa-trash"></i>
+                        </button>
+                        <button
+                          th:unless="${player.user.enabled}"
+                          class="btn btn-sm btn-success"
+                          th:onclick="'activatePlayer(' + ${player.id} + ')'"
+                          title="Kích hoạt"
+                          data-toggle="tooltip"
+                        >
+                          <i class="fas fa-check"></i>
+                        </button>
+                        <button
+                          class="btn btn-sm btn-info"
+                          th:attr="data-userid=${player.user.userid}"
+                          th:onclick="'viewPlayer(this.getAttribute(\'data-userid\'))'"
+                          title="Xem hồ sơ"
+                          data-toggle="tooltip"
+                        >
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -342,47 +401,21 @@
         }
 
         function deletePlayer(playerId) {
-          if (confirm('Bạn có chắc chắn muốn xóa cầu thủ này? (Đặt về trạng thái không hoạt động)')) {
-            // Create form and submit
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/admin/players/delete/' + playerId;
-            document.body.appendChild(form);
-            form.submit();
-          }
+          // Create form and submit (confirmation will be handled by global handler)
+          var form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/admin/players/delete/' + playerId;
+          document.body.appendChild(form);
+          form.submit();
         }
 
-        function toggleVerification(button) {
-          var playerId = button.getAttribute('data-player-id');
-          var isVerified = button.getAttribute('data-verified') === 'true';
-          var action = isVerified ? 'unverify' : 'verify';
-
-          fetch('/admin/players/' + playerId + '/' + action, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              // Toggle button state
-              button.setAttribute('data-verified', data.verified);
-              if (data.verified) {
-                button.className = 'btn btn-sm btn-success';
-                button.innerHTML = '<i class="fas fa-check-circle"></i> Đã xác minh';
-              } else {
-                button.className = 'btn btn-sm btn-secondary';
-                button.innerHTML = '<i class="fas fa-times-circle"></i> Chưa xác minh';
-              }
-            } else {
-              alert('Có lỗi xảy ra khi cập nhật trạng thái xác minh');
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('Có lỗi xảy ra khi cập nhật trạng thái xác minh');
-          });
+        function activatePlayer(playerId) {
+          // Create form and submit
+          var form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/admin/players/activate/' + playerId;
+          document.body.appendChild(form);
+          form.submit();
         }
       </script>
     </div>

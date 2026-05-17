@@ -57,7 +57,7 @@ export default function TopUserCard() {
   return (
     <div className="hidden md:block fixed top-0 left-0 right-0 z-50 shadow-lg">
       {/* Gold Background */}
-      <div className="absolute inset-0 bg-gold-500"></div>
+      <div className="absolute inset-0 bg-gold-600"></div>
 
       <div className="relative flex items-center justify-between px-6 h-16">
         {/* Left: Logo and Navigation */}

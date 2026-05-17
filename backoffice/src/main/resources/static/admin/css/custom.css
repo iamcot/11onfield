@@ -1,19 +1,41 @@
 /* Custom styles for 11of Admin */
 
-/* Brand customization */
+/* Brand customization - Gold background */
 .brand-link {
-    background-color: #2563eb !important;
+    background-color: #ffb600 !important;
     color: white !important;
-    border-bottom: 1px solid #1d4ed8;
+    border-bottom: 1px solid #e6a500;
 }
 
 .brand-link:hover {
-    background-color: #1d4ed8 !important;
+    background-color: #e6a500 !important;
 }
 
-/* Sidebar active menu item */
+/* Sidebar green background */
+.main-sidebar {
+    background-color: #007357 !important;
+}
+
+/* Sidebar menu items */
+.nav-sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Sidebar hover state - light green */
+.nav-sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+}
+
+/* Sidebar active menu item - light green */
 .nav-sidebar .nav-link.active {
-    background-color: #2563eb !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+/* Nav icons */
+.nav-sidebar .nav-icon {
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
 /* Card header styling */

@@ -144,8 +144,8 @@ export default function HexagonChart({
       {hexagonAttrs.length > 0 && (
         <polygon
           points={dataPoints}
-          fill="rgba(34, 197, 94, 0.2)"
-          stroke="#16a34a"
+          fill="rgba(0, 115, 87, 0.2)"
+          stroke="#007357"
           strokeWidth="2.5"
         />
       )}

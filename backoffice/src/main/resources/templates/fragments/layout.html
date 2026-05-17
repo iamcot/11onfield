@@ -86,12 +86,14 @@
       </nav>
 
       <!-- Main Sidebar Container -->
-      <aside class="main-sidebar sidebar-dark-primary elevation-4">
+      <aside class="main-sidebar elevation-4" style="background-color: #007357;">
         <!-- Brand Logo -->
-        <a th:href="@{/admin/dashboard}" class="brand-link">
-          <span class="brand-text font-weight-light"
-            ><strong>11of</strong> Admin</span
-          >
+        <a th:href="@{/admin/dashboard}" class="brand-link" style="background-color: #ffb600 !important; padding: 8px 0.5rem; display: flex; align-items: center; justify-content: center; height: 57px;">
+          <img
+            th:src="@{/admin/img/logo-full.png}"
+            alt="11of Logo"
+            style="width: auto; height: 35px; opacity: 1; object-fit: contain;"
+          />
         </a>
 
         <!-- Sidebar -->

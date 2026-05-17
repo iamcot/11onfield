@@ -3,6 +3,9 @@
 $(document).ready(function() {
     console.log('11of Admin initialized');
 
+    // Initialize Bootstrap tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+
     // Initialize TinyMCE for textareas with class 'tinymce'
     if (typeof tinymce !== 'undefined') {
         tinymce.init({

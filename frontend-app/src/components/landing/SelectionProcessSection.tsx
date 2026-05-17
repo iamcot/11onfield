@@ -81,7 +81,7 @@ export default function SelectionProcessSection() {
                   {/* Right arrow for desktop */}
                   <div className="hidden lg:block absolute -right-2 top-16">
                     <svg
-                      className="w-8 h-8 text-gold-400"
+                      className="w-8 h-8 text-gold-600"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -96,7 +96,7 @@ export default function SelectionProcessSection() {
                   {/* Down arrow for mobile */}
                   <div className="lg:hidden flex justify-center mt-4">
                     <svg
-                      className="w-6 h-6 text-gold-400"
+                      className="w-6 h-6 text-gold-600"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
