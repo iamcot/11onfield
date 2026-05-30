@@ -224,6 +224,12 @@ jobs:
           ZALO_APP_SECRET=${{ secrets.ZALO_APP_SECRET }}
           ZALO_OTP_TEMPLATE_ID=${{ secrets.ZALO_OTP_TEMPLATE_ID }}
           ZALO_REDIRECT_URI=${{ secrets.ZALO_REDIRECT_URI }}
+          MAIL_ENABLED=${{ secrets.MAIL_ENABLED }}
+          MAIL_HOST=${{ secrets.MAIL_HOST }}
+          MAIL_PORT=${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM=${{ secrets.MAIL_FROM }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
           sg 11of-deploy -c "chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env" || true

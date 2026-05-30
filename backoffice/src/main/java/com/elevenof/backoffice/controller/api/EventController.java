@@ -33,7 +33,7 @@ public class EventController {
     private final EventRepository eventRepository;
     private final EventService eventService;
     private final UserRepository userRepository;
-    private final com.elevenof.backoffice.service.NotificationService notificationService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @GetMapping
     public ResponseEntity<Page<EventListDTO>> getEvents(
@@ -150,8 +150,10 @@ public class EventController {
             "eventDate", event.getStartDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
         );
         String data = String.format("{\"eventId\": %d}", event.getId());
-        notificationService.sendNotification(user.getId(), "EVENT_JOINED", variables, data);
-        log.info("🎉 Event join notification triggered for user: {} on event: {}", user.getId(), event.getId());
+        eventPublisher.publishEvent(new com.elevenof.backoffice.event.NotificationEvent(
+            this, user.getId(), "EVENT_JOINED", variables, data
+        ));
+        log.info("🎉 Event join notification event published for user: {} on event: {}", user.getId(), event.getId());
 
         return ResponseEntity.ok().build();
     }

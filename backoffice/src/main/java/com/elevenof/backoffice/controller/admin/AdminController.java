@@ -62,7 +62,7 @@ public class AdminController {
     private final PlayerAchievementRepository playerAchievementRepository;
     private final PlayerHighlightRepository playerHighlightRepository;
     private final PlayerSocialRepository playerSocialRepository;
-    private final com.elevenof.backoffice.service.NotificationService notificationService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final com.elevenof.backoffice.repository.NotificationScenarioRepository notificationScenarioRepository;
     private final com.elevenof.backoffice.service.NotificationTemplateService notificationTemplateService;
 
@@ -544,7 +544,9 @@ public class AdminController {
                 try {
                     java.util.Map<String, String> variables = new java.util.HashMap<>();
                     variables.put("fullName", existingUser.getFullName());
-                    notificationService.sendNotification(existingUser.getId(), "ACCOUNT_VERIFIED", variables, null);
+                    eventPublisher.publishEvent(new com.elevenof.backoffice.event.NotificationEvent(
+                        this, existingUser.getId(), "ACCOUNT_VERIFIED", variables, null
+                    ));
                 } catch (Exception e) {
                     // Log but don't fail the update
                     System.err.println("Failed to send verification notification: " + e.getMessage());
@@ -809,7 +811,9 @@ public class AdminController {
                     User user = player.getUser();
                     java.util.Map<String, String> variables = new java.util.HashMap<>();
                     variables.put("fullName", user.getFullName());
-                    notificationService.sendNotification(user.getId(), "ACCOUNT_VERIFIED", variables, null);
+                    eventPublisher.publishEvent(new com.elevenof.backoffice.event.NotificationEvent(
+                        this, user.getId(), "ACCOUNT_VERIFIED", variables, null
+                    ));
                 } catch (Exception e) {
                     System.err.println("Failed to send verification notification: " + e.getMessage());
                 }
@@ -1219,12 +1223,9 @@ public class AdminController {
             "achievementTitle", achievement.getTitle()
         );
         String data = String.format("{\"achievementId\": %d}", achievement.getId());
-        notificationService.sendNotification(
-            player.getUser().getId(),
-            "ACHIEVEMENT_APPROVED",
-            variables,
-            data
-        );
+        eventPublisher.publishEvent(new com.elevenof.backoffice.event.NotificationEvent(
+            this, player.getUser().getId(), "ACHIEVEMENT_APPROVED", variables, data
+        ));
 
         return Map.of("success", true, "approvalStatus", "APPROVED");
     }
@@ -1262,12 +1263,9 @@ public class AdminController {
             "highlightDescription", highlight.getTitle() != null ? highlight.getTitle() : "Video highlight"
         );
         String data = String.format("{\"highlightId\": %d}", highlight.getId());
-        notificationService.sendNotification(
-            player.getUser().getId(),
-            "HIGHLIGHT_APPROVED",
-            variables,
-            data
-        );
+        eventPublisher.publishEvent(new com.elevenof.backoffice.event.NotificationEvent(
+            this, player.getUser().getId(), "HIGHLIGHT_APPROVED", variables, data
+        ));
 
         return Map.of("success", true, "approvalStatus", "APPROVED");
     }

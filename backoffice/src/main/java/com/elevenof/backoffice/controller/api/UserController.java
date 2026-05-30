@@ -72,7 +72,7 @@ public class UserController {
     private final FeedService feedService;
     private final jakarta.persistence.EntityManager entityManager;
     private final com.elevenof.backoffice.repository.AddressRepository addressRepository;
-    private final com.elevenof.backoffice.service.NotificationService notificationService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     /**
      * Helper method to get User from userid (String) in JWT token
@@ -341,8 +341,11 @@ public class UserController {
                 "fullName", user.getFullName() != null ? user.getFullName() : "Bạn",
                 "email", request.getEmail()
             );
-            notificationService.sendNotification(user.getId(), "WELCOME_EMAIL", variables, null);
-            log.info("🎉 Welcome email notification triggered for user: {}", user.getId());
+            // Publish event that will be handled AFTER transaction commits
+            eventPublisher.publishEvent(new com.elevenof.backoffice.event.NotificationEvent(
+                this, user.getId(), "WELCOME_EMAIL", variables, null
+            ));
+            log.info("🎉 Welcome email notification event published for user: {}", user.getId());
         }
 
         // Update address if province is provided OR if residentialAddress is provided

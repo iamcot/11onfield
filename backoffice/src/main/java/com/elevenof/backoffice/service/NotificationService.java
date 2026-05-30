@@ -61,7 +61,14 @@ public class NotificationService {
 
             // Email Notification
             if (scenario.getEmailEnabled() && user.getEmail() != null && !user.getEmail().isEmpty()) {
+                log.info("📧 Attempting to send email notification to: {} for scenario: {}", user.getEmail(), scenarioKey);
                 sendEmailNotification(user, scenario, variables);
+            } else {
+                if (!scenario.getEmailEnabled()) {
+                    log.info("⏭️ Email notification skipped: email channel disabled for scenario: {}", scenarioKey);
+                } else if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                    log.info("⏭️ Email notification skipped: user {} has no email address", userId);
+                }
             }
 
             // ZNS Notification
@@ -124,6 +131,7 @@ public class NotificationService {
     private void sendEmailNotification(User user, NotificationScenario scenario,
                                        Map<String, String> variables) {
         try {
+            log.info("📧 Looking for EMAIL template for scenario: {}", scenario.getScenarioKey());
             Optional<NotificationTemplate> templateOpt = templateService.getActiveTemplate(
                 scenario, NotificationTemplate.Channel.EMAIL
             );
@@ -133,14 +141,16 @@ public class NotificationService {
                 return;
             }
 
+            log.info("✅ Found EMAIL template for scenario: {}", scenario.getScenarioKey());
             NotificationTemplate template = templateOpt.get();
             String subject = templateService.renderTemplate(template.getSubject(), variables);
             String body = templateService.renderTemplate(template.getBodyTemplate(), variables);
 
+            log.info("📤 Calling emailService.sendEmail() to: {}", user.getEmail());
             emailService.sendEmail(user.getEmail(), subject, body);
             log.info("📧 Email notification sent to: {}", user.getEmail());
         } catch (Exception e) {
-            log.error("❌ Failed to send email notification", e);
+            log.error("❌ Failed to send email notification to: {}", user.getEmail(), e);
         }
     }
 
