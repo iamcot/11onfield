@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import LandingFooter from "@/components/landing/LandingFooter";
 import MobileNav from "@/components/layout/MobileNav";
 import RightNavigator from "@/components/layout/RightNavigator";

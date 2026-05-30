@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { authService } from "@/services/auth.service";
 import Image from "next/image";
 import Link from "next/link";

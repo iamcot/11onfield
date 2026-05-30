@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import HexagonChart from "@/components/HexagonChart";
 import LandingFooter from "@/components/landing/LandingFooter";
 import MobileNav from "@/components/layout/MobileNav";

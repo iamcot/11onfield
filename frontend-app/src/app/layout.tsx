@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, Roboto_Condensed } from 'next/font/google';
+import { Suspense } from 'react';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
@@ -68,7 +69,9 @@ export default function RootLayout({
       <body className={`${inter.className} ${robotoCondensed.variable}`}>
         <AuthProvider>
           <AnalyticsProvider>
-            <PageViewTracker />
+            <Suspense fallback={null}>
+              <PageViewTracker />
+            </Suspense>
             <NotificationProvider>
               <SidebarProvider>
                 <EditProfileProvider>
