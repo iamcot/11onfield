@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,7 +14,8 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  const { track } = useAnalytics();
   const router = useRouter();
 
   // Check for success message from password change
@@ -39,8 +41,23 @@ export default function LoginPage() {
 
     try {
       await login({ phone, password });
+
+      // Track successful login
+      track('user_login', {
+        method: 'phone_password',
+        role: user?.role || 'unknown'
+      });
+
       router.push("/profile");
     } catch (err: any) {
+      // Track login error
+      track('api_error', {
+        endpoint: '/auth/login',
+        status_code: 401,
+        error_message: err.message || 'Login failed',
+        user_action: 'login_attempt'
+      });
+
       setError(
         err.message ||
           "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.",

@@ -3,6 +3,7 @@
 import { Toggle } from "@/components/ui/Toggle";
 import { registerConfig } from "@/config/register.config";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,6 +40,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { register } = useAuth();
+  const { track } = useAnalytics();
   const router = useRouter();
 
   const handleChange = (
@@ -108,7 +110,17 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Track form validation errors
+      const errorFields = Object.keys(fieldErrors);
+      if (errorFields.length > 0) {
+        track('form_validation_error', {
+          form_name: 'registration',
+          fields_with_errors: errorFields
+        });
+      }
+      return;
+    }
 
     if (!acceptedTerms) {
       setError("Vui lòng đồng ý với điều khoản và điều kiện");
@@ -137,8 +149,23 @@ export default function RegisterPage() {
       };
 
       await register(registrationData);
+
+      // Track successful registration
+      track('user_register', {
+        role: formData.role,
+        has_player_profile: formData.role === 'PLAYER'
+      });
+
       router.push("/profile");
     } catch (err: any) {
+      // Track registration error
+      track('api_error', {
+        endpoint: '/auth/register',
+        status_code: 400,
+        error_message: err.message || 'Registration failed',
+        user_action: 'registration_attempt'
+      });
+
       setError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);

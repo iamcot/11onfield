@@ -7,6 +7,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { eventService } from "@/services/event.service";
 import {
@@ -21,6 +22,7 @@ import { Suspense, useEffect, useState } from "react";
 
 function EventsContent() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { track } = useAnalytics();
   const { isCollapsed } = useSidebar();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -89,6 +91,14 @@ function EventsContent() {
 
     const timer = setTimeout(() => {
       if (searchInput !== (filters.search || "")) {
+        // Track search query
+        if (searchInput) {
+          track('event_search', {
+            query: searchInput,
+            query_length: searchInput.length
+          });
+        }
+
         setFilters((prev) => ({ ...prev, search: searchInput }));
         setPagination((prev) => ({ ...prev, page: 0 })); // Reset to first page
       }
@@ -114,6 +124,18 @@ function EventsContent() {
             totalPages: response.totalPages,
             total: response.total,
           }));
+
+          // Track events page view with filters
+          track('events_page_viewed', {
+            applied_filters: {
+              search: filters.search,
+              status: filters.status
+            },
+            sort_by: filters.sortBy,
+            sort_order: filters.sortOrder,
+            results_count: response.total,
+            page: pagination.page
+          });
         } catch (error) {
           console.error("Error fetching events:", error);
         } finally {
@@ -126,11 +148,27 @@ function EventsContent() {
   }, [authLoading, filters, pagination.page, isInitialized]);
 
   const handleFilterChange = (key: keyof EventsFilters, value: any) => {
+    // Track filter changes
+    track('event_filter_applied', {
+      filter_type: key,
+      filter_value: value
+    });
+
     setFilters((prev) => ({ ...prev, [key]: value }));
     setPagination((prev) => ({ ...prev, page: 0 })); // Reset to first page
   };
 
   const handleSortChange = (sortBy: string, sortOrder: "asc" | "desc") => {
+    // Track sort changes
+    if (sortBy) {
+      track('event_filter_applied', {
+        filter_type: 'sort',
+        filter_value: `${sortBy}_${sortOrder}`,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      });
+    }
+
     if (sortBy === "") {
       // Clear sort
       setFilters((prev) => {
@@ -155,6 +193,13 @@ function EventsContent() {
   };
 
   const handleRowClick = (eventId: number) => {
+    // Track event card click
+    track('event_card_clicked', {
+      event_id: eventId,
+      from_page: pagination.page,
+      has_filters: filters.search || filters.status || filters.sortBy
+    });
+
     router.push(`/events/${eventId}`);
   };
 

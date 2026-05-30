@@ -5,8 +5,10 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { EditProfileProvider } from '@/contexts/EditProfileContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
+import { AnalyticsProvider } from '@/contexts/AnalyticsContext';
 import EditProfileHandler from '@/components/profile/EditProfileHandler';
 import SafariLightModeWrapper from '@/components/forms/SafariLightModeWrapper';
+import PageViewTracker from '@/components/analytics/PageViewTracker';
 
 const inter = Inter({ subsets: ['latin'] });
 const robotoCondensed = Roboto_Condensed({
@@ -65,15 +67,18 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} ${robotoCondensed.variable}`}>
         <AuthProvider>
-          <NotificationProvider>
-            <SidebarProvider>
-              <EditProfileProvider>
-                {children}
-                <EditProfileHandler />
-                <SafariLightModeWrapper />
-              </EditProfileProvider>
-            </SidebarProvider>
-          </NotificationProvider>
+          <AnalyticsProvider>
+            <PageViewTracker />
+            <NotificationProvider>
+              <SidebarProvider>
+                <EditProfileProvider>
+                  {children}
+                  <EditProfileHandler />
+                  <SafariLightModeWrapper />
+                </EditProfileProvider>
+              </SidebarProvider>
+            </NotificationProvider>
+          </AnalyticsProvider>
         </AuthProvider>
       </body>
     </html>

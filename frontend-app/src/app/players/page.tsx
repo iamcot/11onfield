@@ -9,6 +9,7 @@ import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
 import PlayerCard from "@/components/PlayerCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { playerService } from "@/services/player.service";
 import { provinceService } from "@/services/province.service";
@@ -24,6 +25,7 @@ import { Suspense, useEffect, useState } from "react";
 
 function PlayersContent() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { track } = useAnalytics();
   const { isCollapsed } = useSidebar();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -106,6 +108,14 @@ function PlayersContent() {
 
     const timer = setTimeout(() => {
       if (searchInput !== (filters.search || "")) {
+        // Track search query
+        if (searchInput) {
+          track('player_search', {
+            query: searchInput,
+            query_length: searchInput.length
+          });
+        }
+
         setFilters((prev) => ({ ...prev, search: searchInput }));
         setPagination((prev) => ({ ...prev, page: 0 })); // Reset to first page
       }
@@ -144,6 +154,22 @@ function PlayersContent() {
             totalPages: response.totalPages,
             total: response.total,
           }));
+
+          // Track players page view with filters
+          track('players_page_viewed', {
+            applied_filters: {
+              search: filters.search,
+              positions: filters.positions,
+              province_id: filters.provinceId,
+              level: filters.level,
+              preferred_foot: filters.preferredFoot
+            },
+            sort_by: filters.sortBy,
+            sort_order: filters.sortOrder,
+            results_count: response.total,
+            page: pagination.page,
+            view_mode: viewMode
+          });
         } catch (error) {
           console.error("Error fetching players:", error);
         } finally {
@@ -156,11 +182,28 @@ function PlayersContent() {
   }, [authLoading, filters, pagination.page, isInitialized]);
 
   const handleFilterChange = (key: keyof PlayersFilters, value: any) => {
+    // Track filter changes
+    track('player_filter_applied', {
+      filter_type: key,
+      filter_value: value,
+      filters_count: Object.keys(filters).filter(k => filters[k as keyof PlayersFilters] !== undefined).length + 1
+    });
+
     setFilters((prev) => ({ ...prev, [key]: value }));
     setPagination((prev) => ({ ...prev, page: 0 })); // Reset to first page
   };
 
   const handleSortChange = (sortBy: string, sortOrder: "asc" | "desc") => {
+    // Track sort changes
+    if (sortBy) {
+      track('player_filter_applied', {
+        filter_type: 'sort',
+        filter_value: `${sortBy}_${sortOrder}`,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      });
+    }
+
     if (sortBy === "") {
       // Clear sort
       setFilters((prev) => {
@@ -185,6 +228,14 @@ function PlayersContent() {
   };
 
   const handleRowClick = (userid: string) => {
+    // Track player card click
+    track('player_card_clicked', {
+      player_userid: userid,
+      view_mode: viewMode,
+      from_page: pagination.page,
+      has_filters: Object.keys(filters).some(k => filters[k as keyof PlayersFilters] !== undefined)
+    });
+
     router.push(`/profile/${userid}?from=players`);
   };
 

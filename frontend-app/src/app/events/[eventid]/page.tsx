@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { eventService } from "@/services/event.service";
 import { EventDetail, getStatusDisplayName, getStatusBadgeColor } from "@/types/event";
 import Sidebar from "@/components/layout/Sidebar";
@@ -11,6 +12,7 @@ import { formatDateOnly } from "@/utils/timezone";
 
 export default function EventDetailPage() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { track } = useAnalytics();
   const router = useRouter();
   const params = useParams();
   const eventId = parseInt(params.eventid as string);
@@ -34,6 +36,16 @@ export default function EventDetailPage() {
         setError(null);
         const eventData = await eventService.getEventById(eventId);
         setEvent(eventData);
+
+        // Track event view
+        track('event_viewed', {
+          event_id: eventId,
+          event_title: eventData.title,
+          event_status: eventData.status,
+          participant_count: eventData.participantCount,
+          has_picture: !!eventData.picture,
+          start_date: eventData.startDate
+        });
 
         // Check if user joined (only if authenticated)
         if (isAuthenticated) {
@@ -73,6 +85,13 @@ export default function EventDetailPage() {
       if (isJoined) {
         await eventService.leaveEvent(eventId);
         setIsJoined(false);
+
+        // Track event registration cancelled
+        track('event_registration_cancelled', {
+          event_id: eventId,
+          event_title: event?.title || ''
+        });
+
         // Update participant count
         if (event) {
           setEvent({
@@ -83,6 +102,14 @@ export default function EventDetailPage() {
       } else {
         await eventService.joinEvent(eventId);
         setIsJoined(true);
+
+        // Track event registration completed
+        track('event_registration_completed', {
+          event_id: eventId,
+          event_title: event?.title || '',
+          participant_count_after: (event?.participantCount || 0) + 1
+        });
+
         // Update participant count
         if (event) {
           setEvent({

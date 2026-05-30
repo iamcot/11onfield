@@ -12,6 +12,7 @@ import FeedList from "@/components/profile/FeedList";
 import { appConfig } from "@/config/app.config";
 import { profileCompletionConfig } from "@/config/profile-completion.config";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useEditProfile } from "@/contexts/EditProfileContext";
 import { getMockUserByPhone } from "@/mocks/user.mock";
 import { eventService } from "@/services/event.service";
@@ -64,6 +65,7 @@ export default function UserProfilePage() {
     shouldCheckProfileCompletion,
     setProfileCompletionChecked,
   } = useAuth();
+  const { track } = useAnalytics();
   const { openEditProfile } = useEditProfile();
   const router = useRouter();
   const params = useParams();
@@ -132,6 +134,14 @@ export default function UserProfilePage() {
       if (isFollowing) {
         await followService.unfollowUser(userid);
         setIsFollowing(false);
+
+        // Track unfollow
+        track('user_unfollowed', {
+          unfollowed_userid: userid,
+          unfollowed_name: profileUser?.fullName,
+          from: searchParams.get('from') || 'profile'
+        });
+
         // Update local follower count
         if (profileUser) {
           setProfileUser({
@@ -142,6 +152,14 @@ export default function UserProfilePage() {
       } else {
         await followService.followUser(userid);
         setIsFollowing(true);
+
+        // Track follow
+        track('user_followed', {
+          followed_userid: userid,
+          followed_name: profileUser?.fullName,
+          from: searchParams.get('from') || 'profile'
+        });
+
         // Update local follower count
         if (profileUser) {
           setProfileUser({
@@ -245,6 +263,17 @@ export default function UserProfilePage() {
 
             setProfileUser(transformedUser);
             setIsLoading(false);
+
+            // Track profile view
+            track('profile_viewed', {
+              viewed_userid: userid,
+              viewer_userid: currentUser?.userid,
+              is_own_profile: currentUser?.userid === userid,
+              from: searchParams.get('from') || undefined,
+              profile_has_avatar: !!apiUser.avatar,
+              profile_role: apiUser.role,
+              profile_is_player: apiUser.role === 'PLAYER'
+            });
           } catch (err: any) {
             console.error("Error fetching user profile:", err);
             setError(err.message || "Không tìm thấy người dùng");
@@ -255,7 +284,7 @@ export default function UserProfilePage() {
         fetchUserProfile();
       }
     }
-  }, [authLoading, isAuthenticated, userid, router]);
+  }, [authLoading, isAuthenticated, userid, router, currentUser, track, searchParams]);
 
   // Determine if viewing own profile
   const isOwnProfile = currentUser?.userid === profileUser?.userid;
