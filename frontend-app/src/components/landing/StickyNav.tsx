@@ -69,12 +69,12 @@ export default function StickyNav() {
               </button>
             ))}
 
-            {/* Players list link */}
+            {/* Competition link */}
             <Link
-              href="/players"
+              href="/competitions"
               className="text-base font-medium text-gray-700 hover:text-green-700 transition-colors"
             >
-              Danh sách cầu thủ
+              11 Người Ra Sân 2026
             </Link>
 
             {isAuthenticated && user ? (
@@ -211,12 +211,12 @@ export default function StickyNav() {
               </button>
             ))}
 
-            {/* Players list link */}
+            {/* Competition link */}
             <Link
-              href="/players"
+              href="/competitions"
               className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
             >
-              Danh sách cầu thủ
+              11 Người Ra Sân 2026
             </Link>
 
             {isAuthenticated && user ? (

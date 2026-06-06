@@ -1,0 +1,425 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{::scripts})}"
+>
+  <head>
+    <title>Kết quả vòng thi</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <!-- Competition & Stage Info -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h4 class="mb-1" th:text="${competition.title}">11 of - Mùa 1</h4>
+              <p class="text-muted mb-0">
+                <strong>Vòng <span th:text="${stage.stageNumber}">1</span>:</strong>
+                <span th:text="${stage.title}">Vòng tuyển trạch Hà Nội</span>
+              </p>
+              <p class="text-muted mb-0">
+                <span th:text="${#temporals.format(stage.stageDate, 'dd/MM/yyyy')}">01/06/2026</span>
+                <span th:if="${stage.stageTime != null}" th:text="' - ' + ${stage.stageTime}"></span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="btn-group" role="group">
+            <a th:href="@{/admin/competitions/{id}/stages(id=${competition.id})}" class="btn btn-secondary">
+              <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+            <a th:href="@{/admin/competitions/{cid}/stages/{snum}/assessment-structure(cid=${competition.id},snum=${stage.stageNumber})}" class="btn btn-info">
+              <i class="fas fa-cog"></i> Cấu trúc đánh giá
+            </a>
+          </div>
+          <div class="float-right">
+            <button class="btn btn-warning" onclick="recalculateAll()" id="recalculateBtn">
+              <i class="fas fa-calculator"></i> Tính lại tất cả
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Entry -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Nhập kết quả thí sinh</h3>
+            </div>
+            <div class="card-body">
+              <!-- Participant Selector -->
+              <div class="form-group">
+                <label><strong>Chọn thí sinh:</strong></label>
+                <select class="form-control" id="participantSelector" onchange="loadParticipantResults()">
+                  <option value="">-- Chọn thí sinh --</option>
+                </select>
+              </div>
+
+              <!-- Participant Card -->
+                <div id="participantCard" style="display: none;" class="card border-primary mb-3">
+                  <div class="card-header bg-primary text-white">
+                    <div class="d-flex align-items-center">
+                      <img id="participantAvatar" src="" alt="" class="img-circle mr-3" style="width: 50px; height: 50px; object-fit: cover; display: none;" />
+                      <div>
+                        <h5 class="mb-0" id="participantName">Nguyễn Văn A</h5>
+                        <small id="participantRegion">Hà Nội & Phía Bắc</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body" id="assessmentStructure">
+                    <div class="text-center py-3">
+                      <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <strong>Điểm tổng kết:</strong>
+                        <span id="totalScore" class="badge badge-success badge-lg">-</span>
+                      </div>
+                      <div class="col-md-6 text-right">
+                        <button class="btn btn-success" onclick="calculateStageScore()">
+                          <i class="fas fa-calculator"></i> Tính điểm tổng kết
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <th:block th:fragment="scripts">
+      <script th:inline="javascript">
+        const competitionId = /*[[${competition.id}]]*/ 1;
+        const stageNumber = /*[[${stage.stageNumber}]]*/ 1;
+        const apiBase = `/admin/api/competitions/${competitionId}/stages/${stageNumber}`;
+        let participantsData = [];
+
+        let currentParticipantId = null;
+        let assessmentStructure = null;
+
+        // Load participants on page load
+        $(document).ready(function() {
+          $.get(`${apiBase}/participants`)
+            .done(function(data) {
+              participantsData = data;
+              populateParticipantSelector();
+            })
+            .fail(function() {
+              alert('Không thể tải danh sách thí sinh');
+            });
+        });
+
+        function populateParticipantSelector() {
+          const selector = $('#participantSelector');
+          selector.empty();
+          selector.append('<option value="">-- Chọn thí sinh --</option>');
+          participantsData.forEach(p => {
+            selector.append(`<option value="${p.id}">${p.fullName} - ${p.phone}</option>`);
+          });
+        }
+
+        function loadParticipantResults() {
+          const participantId = $('#participantSelector').val();
+          if (!participantId) {
+            $('#participantCard').hide();
+            return;
+          }
+
+          currentParticipantId = participantId;
+
+          // Find participant info
+          const participant = participantsData.find(p => p.id == participantId);
+          if (participant) {
+            $('#participantName').text(participant.fullName);
+            $('#participantRegion').text(getRegionLabel(participant.selectedRegion));
+            if (participant.avatar) {
+              $('#participantAvatar').attr('src', participant.avatar).show();
+            } else {
+              $('#participantAvatar').hide();
+            }
+          }
+
+          $('#participantCard').show();
+
+          // Load assessment structure
+          loadAssessmentStructure();
+        }
+
+        function getRegionLabel(region) {
+          if (!region) return '-';
+          const labels = {
+            'HANOI_NORTH': 'Hà Nội & Phía Bắc',
+            'DANANG_CENTRAL': 'Đà Nẵng & Miền Trung',
+            'HCMC_SOUTH': 'TP HCM & Miền Nam'
+          };
+          return labels[region] || region;
+        }
+
+        function loadAssessmentStructure() {
+          $('#assessmentStructure').html('<div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>');
+
+          $.get(`${apiBase}/assessment-structure`)
+            .done(function(data) {
+              assessmentStructure = data;
+              if (data.length === 0) {
+                $('#assessmentStructure').html('<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Chưa có cấu trúc đánh giá. Hãy thiết lập cấu trúc trước.</div>');
+              } else {
+                renderAssessmentStructure(data);
+              }
+            })
+            .fail(function() {
+              $('#assessmentStructure').html('<div class="alert alert-danger"><i class="fas fa-times"></i> Không thể tải cấu trúc đánh giá</div>');
+            });
+        }
+
+        function renderAssessmentStructure(days) {
+          let html = '';
+
+          days.forEach(day => {
+            html += `
+              <div class="card mb-3 border-primary">
+                <div class="card-header bg-light">
+                  <h5 class="mb-0"><i class="fas fa-calendar"></i> ${day.title}</h5>
+                </div>
+                <div class="card-body">
+                  ${renderSteps(day.assessmentSteps)}
+                </div>
+              </div>
+            `;
+          });
+
+          $('#assessmentStructure').html(html);
+        }
+
+        function renderSteps(steps) {
+          if (!steps || steps.length === 0) {
+            return '<p class="text-muted">Chưa có bước đánh giá</p>';
+          }
+
+          let html = '';
+          steps.forEach(step => {
+            console.log('Rendering step:', step.id, 'hasRatingScale:', step.hasRatingScale);
+            html += `
+              <div class="card mb-2 border-info">
+                <div class="card-header bg-light">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-tasks"></i> ${step.title}</h6>
+                    <button class="btn btn-sm btn-primary" onclick="calculateStepScore(${step.id})">
+                      <i class="fas fa-calculator"></i> Tính điểm bước
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  ${renderAssessments(step.assessments)}
+                  <div id="stepScore-${step.id}" class="alert alert-info mt-2" style="display: none;">
+                    <strong>Điểm bước:</strong> <span id="stepScoreValue-${step.id}">-</span>
+                     | <strong>Xếp loại:</strong> <span id="stepRating-${step.id}">-</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          return html;
+        }
+
+        function renderAssessments(assessments) {
+          if (!assessments || assessments.length === 0) {
+            return '<p class="text-muted small">Chưa có bài đánh giá</p>';
+          }
+
+          let html = '<table class="table table-bordered table-sm">';
+          html += '<thead><tr><th>Bài đánh giá</th><th>Nhập kết quả</th><th>Điểm cuối</th></tr></thead><tbody>';
+
+          assessments.forEach(assessment => {
+            html += `
+              <tr>
+                <td>
+                  <strong>${assessment.title}</strong><br>
+                  <small class="text-muted">${assessment.unit} | ${getScoringMethodLabel(assessment.scoringMethod)}</small>
+                </td>
+                <td>
+                  ${renderAttemptInputs(assessment)}
+                </td>
+                <td>
+                  <span id="finalScore-${assessment.id}" class="badge badge-secondary">-</span>
+                </td>
+              </tr>
+            `;
+          });
+
+          html += '</tbody></table>';
+          return html;
+        }
+
+        function renderAttemptInputs(assessment) {
+          let html = '<div class="form-inline">';
+          for (let i = 1; i <= assessment.attemptsCount; i++) {
+            html += `
+              <div class="input-group input-group-sm mr-2 mb-1" style="width: 100px;">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">Lần ${i}</span>
+                </div>
+                <input type="number" class="form-control" step="0.1"
+                       id="attempt-${assessment.id}-${i}"
+                       onchange="saveAttempt(${assessment.id}, ${i})"
+                       placeholder="0.0">
+              </div>
+            `;
+          }
+          html += '</div>';
+          return html;
+        }
+
+        function getScoringMethodLabel(method) {
+          const labels = {
+            'BEST_OF': 'Tốt nhất',
+            'SUM': 'Tổng',
+            'AVERAGE': 'Trung bình'
+          };
+          return labels[method] || method;
+        }
+
+        function saveAttempt(assessmentId, attemptNumber) {
+          const value = $(`#attempt-${assessmentId}-${attemptNumber}`).val();
+          if (!value) return;
+
+          const data = {
+            resultValue: parseFloat(value),
+            notes: null
+          };
+
+          $.ajax({
+            url: `${apiBase}/assessments/${assessmentId}/participants/${currentParticipantId}/attempts/${attemptNumber}`,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function() {
+              // Calculate final score for this assessment
+              calculateAssessmentFinalScore(assessmentId);
+            },
+            error: function(xhr) {
+              alert('Lỗi: ' + (xhr.responseJSON?.message || 'Không thể lưu kết quả'));
+            }
+          });
+        }
+
+        function calculateAssessmentFinalScore(assessmentId) {
+          // Get the assessment from structure
+          let assessment = null;
+          assessmentStructure.forEach(day => {
+            day.assessmentSteps.forEach(step => {
+              step.assessments.forEach(a => {
+                if (a.id === assessmentId) assessment = a;
+              });
+            });
+          });
+
+          if (!assessment) return;
+
+          // Collect all attempt values
+          let values = [];
+          for (let i = 1; i <= assessment.attemptsCount; i++) {
+            const val = $(`#attempt-${assessmentId}-${i}`).val();
+            if (val) values.push(parseFloat(val));
+          }
+
+          if (values.length !== assessment.attemptsCount) {
+            $(`#finalScore-${assessmentId}`).text('-').removeClass('badge-success').addClass('badge-secondary');
+            return;
+          }
+
+          // Calculate based on scoring method
+          let finalScore = 0;
+          switch (assessment.scoringMethod) {
+            case 'BEST_OF':
+              finalScore = Math.max(...values);
+              break;
+            case 'SUM':
+              finalScore = values.reduce((a, b) => a + b, 0);
+              break;
+            case 'AVERAGE':
+              finalScore = values.reduce((a, b) => a + b, 0) / values.length;
+              break;
+          }
+
+          $(`#finalScore-${assessmentId}`).text(finalScore.toFixed(2)).removeClass('badge-secondary').addClass('badge-success');
+        }
+
+        function calculateStepScore(stepId) {
+          $.ajax({
+            url: `${apiBase}/assessment-steps/${stepId}/participants/${currentParticipantId}/calculate`,
+            method: 'POST',
+            success: function(data) {
+              console.log('Step score response:', data);
+              $(`#stepScoreValue-${stepId}`).text(data.totalScore.toFixed(2));
+              if (data.ratingLevel !== null && data.ratingLevel !== undefined) {
+                let ratingText = 'Bậc ' + data.ratingLevel;
+                if (data.ratingDescription && data.ratingDescription.trim() !== '') {
+                  ratingText += ' (' + data.ratingDescription + ')';
+                }
+                console.log('Setting rating text:', ratingText);
+                $(`#stepRating-${stepId}`).text(ratingText);
+              } else {
+                console.log('No rating level in response');
+                $(`#stepRating-${stepId}`).text('-');
+              }
+              $(`#stepScore-${stepId}`).show();
+            },
+            error: function(xhr) {
+              console.error('Calculate step score error:', xhr);
+              alert('Lỗi: Chưa nhập đủ kết quả hoặc có lỗi xảy ra');
+            }
+          });
+        }
+
+        function calculateStageScore() {
+          $.ajax({
+            url: `${apiBase}/participants/${currentParticipantId}/calculate-stage-score`,
+            method: 'POST',
+            success: function(data) {
+              $('#totalScore').text(data.score.toFixed(2));
+              alert('Đã tính điểm tổng kết thành công!');
+            },
+            error: function(xhr) {
+              alert('Lỗi: Chưa nhập đủ kết quả hoặc có lỗi xảy ra');
+            }
+          });
+        }
+
+        function recalculateAll() {
+          if (!confirm('Tính lại điểm cho tất cả thí sinh? Quá trình này có thể mất vài phút.')) return;
+
+          $('#recalculateBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang tính...');
+
+          $.ajax({
+            url: `${apiBase}/recalculate`,
+            method: 'POST',
+            success: function() {
+              alert('Đã tính lại tất cả điểm thành công!');
+              $('#recalculateBtn').prop('disabled', false).html('<i class="fas fa-calculator"></i> Tính lại tất cả');
+              if (currentParticipantId) {
+                loadParticipantResults();
+              }
+            },
+            error: function() {
+              alert('Có lỗi xảy ra khi tính lại điểm');
+              $('#recalculateBtn').prop('disabled', false).html('<i class="fas fa-calculator"></i> Tính lại tất cả');
+            }
+          });
+        }
+      </script>
+    </th:block>
+  </body>
+</html>

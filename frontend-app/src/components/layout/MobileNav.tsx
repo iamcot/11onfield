@@ -1,6 +1,6 @@
 "use client";
 
-import { EventIcon, HomeIcon, PlayerIcon } from "@/components/icons/nav-icons";
+import { CompetitionIcon, HomeIcon, PlayerIcon } from "@/components/icons/nav-icons";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -61,15 +61,15 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
         </Link>
 
         <Link
-          href="/events"
+          href="/competitions"
           className={`flex flex-col items-center justify-center flex-1 transition ${
-            pathname === "/events" || pathname.startsWith("/events/")
+            pathname.startsWith("/competitions")
               ? "text-white font-semibold"
               : "text-white/80 hover:text-white"
           }`}
         >
-          <EventIcon className="w-6 h-6 drop-shadow-md" />
-          <span className="text-xs mt-1 px-2 py-0.5 bg-black/30 rounded backdrop-blur-sm">Sự kiện</span>
+          <CompetitionIcon className="w-6 h-6 drop-shadow-md" />
+          <span className="text-xs mt-1 px-2 py-0.5 bg-black/30 rounded backdrop-blur-sm">11 Người Ra Sân 2026</span>
         </Link>
       </div>
     </nav>

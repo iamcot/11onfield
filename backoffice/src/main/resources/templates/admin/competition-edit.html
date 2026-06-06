@@ -1,0 +1,228 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{})}"
+>
+  <head>
+    <title>Chỉnh sửa cuộc thi</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <!-- Competition Info -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h4 class="mb-0" th:text="${competition.title}">11 of - Mùa 1</h4>
+              <p class="text-muted mb-0">Mùa <span th:text="${competition.season}">1</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <a th:href="@{/admin/competitions}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+          </a>
+        </div>
+      </div>
+
+      <!-- Edit Form -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Thông tin cuộc thi</h3>
+            </div>
+            <div class="card-body">
+              <form th:action="@{/admin/competitions/{id}/edit(id=${competition.id})}" method="post">
+                <div class="form-group">
+                  <label for="title">Tên cuộc thi <span class="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="title"
+                    name="title"
+                    th:value="${competition.title}"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="description">Mô tả</label>
+                  <textarea
+                    class="form-control"
+                    id="description"
+                    name="description"
+                    rows="3"
+                    th:text="${competition.description}"
+                  ></textarea>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="status">Trạng thái</label>
+                      <select class="form-control" id="status" name="status">
+                        <option value="DRAFT" th:selected="${competition.status.name() == 'DRAFT'}">DRAFT - Nháp</option>
+                        <option value="REGISTRATION_OPEN" th:selected="${competition.status.name() == 'REGISTRATION_OPEN'}">REGISTRATION_OPEN - Đang mở đăng ký</option>
+                        <option value="REGIONAL_AUDITION" th:if="${competition.status.name() == 'REGIONAL_AUDITION'}" th:selected="true" disabled>REGIONAL_AUDITION - Vòng tuyển trạch (tự động)</option>
+                        <option value="SELECTING_TOP30" th:if="${competition.status.name() == 'SELECTING_TOP30'}" th:selected="true" disabled>SELECTING_TOP30 - Chọn TOP 30 (tự động)</option>
+                        <option value="TRAINING_PHASE" th:if="${competition.status.name() == 'TRAINING_PHASE'}" th:selected="true" disabled>TRAINING_PHASE - Giai đoạn huấn luyện (tự động)</option>
+                        <option value="FINAL_PHASE" th:if="${competition.status.name() == 'FINAL_PHASE'}" th:selected="true" disabled>FINAL_PHASE - Vòng chung kết (tự động)</option>
+                        <option value="COMPLETED" th:selected="${competition.status.name() == 'COMPLETED'}">COMPLETED - Hoàn thành</option>
+                      </select>
+                      <small class="form-text text-muted">Các trạng thái stage sẽ được tự động cập nhật khi kích hoạt vòng thi</small>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="currentPhase">Giai đoạn hiện tại</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="currentPhase"
+                        th:value="${competition.currentPhase}"
+                        readonly
+                        disabled
+                      />
+                      <small class="form-text text-muted">Tự động cập nhật khi kích hoạt vòng thi</small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Date fields - editable based on status -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="registrationStartDate">Ngày bắt đầu đăng ký</label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="registrationStartDate"
+                        name="registrationStartDate"
+                        th:value="${competition.registrationStartDate}"
+                        th:readonly="${competition.status.name() != 'DRAFT' && competition.status.name() != 'REGISTRATION_OPEN'}"
+                        th:disabled="${competition.status.name() != 'DRAFT' && competition.status.name() != 'REGISTRATION_OPEN'}"
+                      />
+                      <small class="form-text text-muted" th:if="${competition.status.name() != 'DRAFT' && competition.status.name() != 'REGISTRATION_OPEN'}">
+                        Không thể sửa (đã bắt đầu)
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="registrationEndDate">Ngày kết thúc đăng ký</label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="registrationEndDate"
+                        name="registrationEndDate"
+                        th:value="${competition.registrationEndDate}"
+                        th:readonly="${competition.status.name() != 'DRAFT' && competition.status.name() != 'REGISTRATION_OPEN'}"
+                        th:disabled="${competition.status.name() != 'DRAFT' && competition.status.name() != 'REGISTRATION_OPEN'}"
+                      />
+                      <small class="form-text text-muted" th:if="${competition.status.name() != 'DRAFT' && competition.status.name() != 'REGISTRATION_OPEN'}">
+                        Không thể sửa (đã bắt đầu)
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="competitionStartDate">Ngày bắt đầu cuộc thi</label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="competitionStartDate"
+                        name="competitionStartDate"
+                        th:value="${competition.competitionStartDate}"
+                        th:readonly="${competition.status.name() != 'DRAFT' && competition.status.name() != 'REGISTRATION_OPEN'}"
+                        th:disabled="${competition.status.name() != 'DRAFT' && competition.status.name() != 'REGISTRATION_OPEN'}"
+                      />
+                      <small class="form-text text-muted" th:if="${competition.status.name() != 'DRAFT' && competition.status.name() != 'REGISTRATION_OPEN'}">
+                        Không thể sửa (đã bắt đầu)
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="competitionEndDate">Ngày kết thúc cuộc thi</label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="competitionEndDate"
+                        name="competitionEndDate"
+                        th:value="${competition.competitionEndDate}"
+                      />
+                      <small class="form-text text-muted">Luôn có thể chỉnh sửa</small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Lưu thay đổi
+                  </button>
+                  <a th:href="@{/admin/competitions}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Hủy
+                  </a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="row mt-3">
+        <div class="col-md-3">
+          <div class="info-box">
+            <span class="info-box-icon bg-info"><i class="fas fa-users"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Tổng thí sinh</span>
+              <span class="info-box-number" th:text="${competition.participants != null ? competition.participants.size() : 0}">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="info-box">
+            <span class="info-box-icon bg-primary"><i class="fas fa-tasks"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Tổng vòng thi</span>
+              <span class="info-box-number" th:text="${competition.stages != null ? competition.stages.size() : 0}">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="info-box">
+            <span class="info-box-icon bg-success"><i class="fas fa-newspaper"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Tin tức</span>
+              <span class="info-box-number" th:text="${competition.news != null ? competition.news.size() : 0}">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="info-box">
+            <span class="info-box-icon bg-warning"><i class="fas fa-handshake"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">Nhà tài trợ</span>
+              <span class="info-box-number" th:text="${competition.sponsors != null ? competition.sponsors.size() : 0}">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

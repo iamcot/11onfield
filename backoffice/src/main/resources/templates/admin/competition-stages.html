@@ -1,0 +1,298 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{::scripts})}"
+>
+  <head>
+    <title>Vòng thi</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <!-- Competition Info -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h4 class="mb-0" th:text="${competition.title}">11 of - Mùa 1</h4>
+              <p class="text-muted mb-0" th:text="${competition.status}">
+                DRAFT
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="btn-group" role="group">
+            <a th:href="@{/admin/competitions}" class="btn btn-secondary">
+              <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+            <a
+              th:href="@{/admin/competitions/{id}/participants(id=${competition.id})}"
+              class="btn btn-info"
+            >
+              <i class="fas fa-users"></i> Thí sinh
+            </a>
+            <a
+              th:href="@{/admin/competitions/{id}/news(id=${competition.id})}"
+              class="btn btn-success"
+            >
+              <i class="fas fa-newspaper"></i> Tin tức
+            </a>
+            <a
+              th:href="@{/admin/competitions/{id}/sponsors(id=${competition.id})}"
+              class="btn btn-warning"
+            >
+              <i class="fas fa-handshake"></i> Nhà tài trợ
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stages table -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Danh sách vòng thi</h3>
+            </div>
+            <div class="card-body">
+              <div th:if="${stages.isEmpty()}" class="text-center py-5">
+                <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Chưa có vòng thi nào</p>
+              </div>
+
+              <table
+                th:if="${!stages.isEmpty()}"
+                class="table table-bordered table-striped"
+              >
+                <thead>
+                  <tr>
+                    <th style="width: 80px">Vòng</th>
+                    <th>Tên vòng thi</th>
+                    <th style="width: 150px">Loại vòng</th>
+                    <th style="width: 150px">Khu vực</th>
+                    <th style="width: 150px">Ngày thi</th>
+                    <th style="width: 120px">Trạng thái</th>
+                    <th style="width: 150px">Hiện điểm</th>
+                    <th style="width: 150px" class="text-center">Bài thi</th>
+                    <th style="width: 150px">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="stage : ${stages}">
+                    <td class="text-center">
+                      <strong th:text="${stage.stageNumber}">1</strong>
+                    </td>
+                    <td>
+                      <strong th:text="${stage.title}"
+                        >Vòng tuyển trạch Hà Nội</strong
+                      >
+                      <br />
+                      <small class="text-muted" th:text="${stage.description}"
+                        >Mô tả...</small
+                      >
+                    </td>
+                    <td>
+                      <span
+                        th:class="${'badge badge-' + (stage.stageType.name() == 'REGIONAL_AUDITION' ? 'primary' : (stage.stageType.name() == 'TRAINING_EPISODE' ? 'warning' : (stage.stageType.name() == 'FINAL_MATCH' ? 'danger' : 'secondary')))}"
+                        th:text="${stage.stageType.name() == 'REGIONAL_AUDITION' ? 'Vòng tuyển trạch' : (stage.stageType.name() == 'TRAINING_EPISODE' ? 'Đào tạo' : (stage.stageType.name() == 'FINAL_MATCH' ? 'Chung kết' : stage.stageType))}"
+                      >
+                        Vòng tuyển trạch
+                      </span>
+                    </td>
+                    <td>
+                      <span
+                        th:if="${stage.region != null}"
+                        th:class="${'badge badge-' + (stage.region.name() == 'HANOI_NORTH' ? 'danger' : (stage.region.name() == 'DANANG_CENTRAL' ? 'warning' : (stage.region.name() == 'HCMC_SOUTH' ? 'info' : 'secondary')))}"
+                        th:text="${stage.region.name() == 'HANOI_NORTH' ? 'Hà Nội & Bắc' : (stage.region.name() == 'DANANG_CENTRAL' ? 'Đà Nẵng & Trung' : (stage.region.name() == 'HCMC_SOUTH' ? 'TP HCM & Nam' : stage.region))}"
+                      >
+                        Hà Nội
+                      </span>
+                      <span th:if="${stage.region == null}" class="text-muted"
+                        >-</span
+                      >
+                    </td>
+                    <td>
+                      <span
+                        th:text="${#temporals.format(stage.stageDate, 'dd/MM/yyyy')}"
+                        >01/06/2026</span
+                      >
+                      <br />
+                      <small class="text-muted" th:text="${stage.stageTime}"
+                        >14:00</small
+                      >
+                    </td>
+                    <td>
+                      <div
+                        class="d-flex align-items-center justify-content-between"
+                      >
+                        <span
+                          th:class="${'badge badge-' + (stage.status.name() == 'UPCOMING' ? 'secondary' : (stage.status.name() == 'LIVE' ? 'success' : (stage.status.name() == 'COMPLETED' ? 'info' : 'secondary')))}"
+                          th:text="${stage.status}"
+                        >
+                          UPCOMING
+                        </span>
+                        <!-- Activation button -->
+                        <button
+                          th:if="${stage.status.name() == 'LIVE' || (stage.status.name() == 'UPCOMING' && nextUpcomingStageNumber != null && stage.stageNumber == nextUpcomingStageNumber) || (stage.status.name() == 'COMPLETED' && previousStageNumber != null && stage.stageNumber == previousStageNumber)}"
+                          type="button"
+                          th:class="${'activate-stage-btn btn btn-sm ' + (stage.status.name() == 'UPCOMING' ? 'btn-success' : (stage.status.name() == 'LIVE' ? 'btn-warning' : 'btn-info'))}"
+                          th:title="${stage.status.name() == 'UPCOMING' ? 'Kích hoạt vòng thi này' : (stage.status.name() == 'LIVE' ? 'Kích hoạt lại (hiện đang live)' : 'Rollback về vòng này')}"
+                          th:attr="data-competition-id=${competition.id},data-stage-number=${stage.stageNumber},data-status=${stage.status.name()}"
+                        >
+                          <i
+                            th:class="${stage.status.name() == 'UPCOMING' ? 'fas fa-play' : (stage.status.name() == 'LIVE' ? 'fas fa-redo' : 'fas fa-undo')}"
+                          ></i>
+                        </button>
+                      </div>
+                    </td>
+                    <td>
+                      <span
+                        th:if="${stage.isPublicScoring}"
+                        class="badge badge-success"
+                      >
+                        <i class="fas fa-eye"></i> Công khai
+                      </span>
+                      <span
+                        th:if="${!stage.isPublicScoring}"
+                        class="badge badge-warning"
+                      >
+                        <i class="fas fa-eye-slash"></i> Nội bộ
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <div th:with="counts=${structureCounts[stage.id]}">
+                        <div th:if="${counts != null && counts.daysCount > 0}">
+                          <small class="text-muted">
+                            <i class="fas fa-calendar"></i>
+                            [[${counts.daysCount}]] |
+                            <i class="fas fa-tasks"></i>
+                            [[${counts.stepsCount}]] |
+                            <i class="fas fa-clipboard-list"></i>
+                            [[${counts.assessmentsCount}]]
+                          </small>
+                          <div class="mt-1">
+                            <a
+                              th:href="@{/admin/competitions/{compId}/stages/{stageNum}/assessment-structure(compId=${competition.id},stageNum=${stage.stageNumber})}"
+                              class="btn btn-sm btn-warning"
+                              title="Cấu trúc đánh giá"
+                            >
+                              <i class="fas fa-cog"></i>
+                            </a>
+                          </div>
+                        </div>
+                        <div th:if="${counts == null || counts.daysCount == 0}">
+                          <span class="text-muted">-</span>
+                          <div class="mt-1">
+                            <a
+                              th:href="@{/admin/competitions/{compId}/stages/{stageNum}/assessment-structure(compId=${competition.id},stageNum=${stage.stageNumber})}"
+                              class="btn btn-sm btn-outline-warning"
+                              title="Thiết lập cấu trúc"
+                            >
+                              <i class="fas fa-cog"></i>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="btn-group">
+                        <a
+                          th:href="@{/admin/competitions/{compId}/stages/{stageNum}/edit(compId=${competition.id},stageNum=${stage.stageNumber})}"
+                          class="btn btn-sm btn-info"
+                          title="Chỉnh sửa thông tin vòng"
+                        >
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        <a
+                          th:href="@{/admin/competitions/{compId}/stages/{stageNum}/results(compId=${competition.id},stageNum=${stage.stageNumber})}"
+                          class="btn btn-sm btn-primary"
+                          title="Nhập kết quả"
+                        >
+                          <i class="fas fa-clipboard-list"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript for stage activation -->
+    <th:block th:fragment="scripts">
+      <script>
+        (function () {
+          console.log("Stage activation script loaded");
+
+          function attachClickHandlers() {
+            const buttons = document.querySelectorAll(".activate-stage-btn");
+            console.log("Found buttons:", buttons.length);
+
+            buttons.forEach(function (button) {
+              button.addEventListener("click", function () {
+                console.log("Button clicked");
+                const competitionId = this.getAttribute("data-competition-id");
+                const stageNumber = this.getAttribute("data-stage-number");
+                const currentStatus = this.getAttribute("data-status");
+
+                console.log(
+                  "Competition ID:",
+                  competitionId,
+                  "Stage:",
+                  stageNumber,
+                  "Status:",
+                  currentStatus,
+                );
+
+                activateStage(competitionId, stageNumber, currentStatus);
+              });
+            });
+          }
+
+          // Try both DOMContentLoaded and immediate execution
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", attachClickHandlers);
+          } else {
+            attachClickHandlers();
+          }
+        })();
+
+        function activateStage(competitionId, stageNumber, currentStatus) {
+          let message = "";
+          let endpoint = "/activate";
+
+          if (currentStatus === "UPCOMING") {
+            message = "Kích hoạt vòng " + stageNumber + "?\n\nHành động này sẽ:\n- Đóng vòng trước (nếu có)\n- Mở vòng hiện tại\n- Cập nhật trạng thái cuộc thi";
+          } else if (currentStatus === "LIVE") {
+            message = "Đặt vòng " + stageNumber + " về UPCOMING?\n\nHành động này sẽ:\n- Vòng hiện tại chuyển về UPCOMING" + (stageNumber == 1 ? "\n- Cuộc thi chuyển về REGISTRATION_OPEN" : "\n- Cập nhật trạng thái cuộc thi về vòng trước");
+            endpoint = "/deactivate";
+          } else if (currentStatus === "COMPLETED") {
+            message = "ROLLBACK về vòng " + stageNumber + "?\n\nHành động này sẽ:\n- Mở lại vòng " + stageNumber + "\n- Đóng vòng sau (chuyển về UPCOMING)\n- Cập nhật trạng thái cuộc thi";
+          }
+
+          if (!confirm(message)) return;
+
+          fetch("/admin/competitions/" + competitionId + "/stages/" + stageNumber + endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          })
+            .then((response) => {
+              if (response.ok) {
+                response.text().then((text) => { alert(text); location.reload(); });
+              } else {
+                response.text().then((text) => { alert("Lỗi: " + text); });
+              }
+            })
+            .catch((error) => { alert("Lỗi kết nối: " + error); });
+        }
+      </script>
+    </th:block>
+  </body>
+</html>

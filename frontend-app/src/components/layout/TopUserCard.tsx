@@ -1,6 +1,6 @@
 "use client";
 
-import { EventIcon, HomeIcon, PlayerIcon } from "@/components/icons/nav-icons";
+import { CompetitionIcon, HomeIcon, PlayerIcon } from "@/components/icons/nav-icons";
 import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
@@ -51,10 +51,10 @@ export default function TopUserCard() {
       isActive: pathname === "/players",
     },
     {
-      icon: EventIcon,
-      label: "Sự kiện",
-      href: "/events",
-      isActive: pathname === "/events" || pathname.startsWith("/events/"),
+      icon: CompetitionIcon,
+      label: "11 Người Ra Sân 2026",
+      href: "/competitions",
+      isActive: pathname.startsWith("/competitions"),
     },
   ];
 

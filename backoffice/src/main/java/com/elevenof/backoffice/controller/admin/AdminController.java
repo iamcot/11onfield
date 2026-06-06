@@ -65,6 +65,13 @@ public class AdminController {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final com.elevenof.backoffice.repository.NotificationScenarioRepository notificationScenarioRepository;
     private final com.elevenof.backoffice.service.NotificationTemplateService notificationTemplateService;
+    private final com.elevenof.backoffice.repository.CompetitionRepository competitionRepository;
+    private final com.elevenof.backoffice.repository.CompetitionNewsRepository competitionNewsRepository;
+    private final com.elevenof.backoffice.repository.CompetitionSponsorRepository competitionSponsorRepository;
+    private final com.elevenof.backoffice.repository.CompetitionStageRepository competitionStageRepository;
+    private final com.elevenof.backoffice.repository.CompetitionAssessmentDayRepository assessmentDayRepository;
+    private final com.elevenof.backoffice.repository.CompetitionAssessmentStepRepository assessmentStepRepository;
+    private final com.elevenof.backoffice.repository.CompetitionAssessmentRepository assessmentRepository;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -97,6 +104,461 @@ public class AdminController {
         model.addAttribute("upcomingEvents", upcomingEvents);
 
         return "admin/dashboard";
+    }
+
+    /**
+     * Competitions management page
+     */
+    @GetMapping("/competitions")
+    public String competitions(Model model) {
+        List<com.elevenof.backoffice.model.Competition> competitions =
+            competitionRepository.findAllWithParticipants();
+
+        model.addAttribute("title", "Quản lý cuộc thi");
+        model.addAttribute("competitions", competitions);
+        model.addAttribute("frontendUrl", frontendUrl);
+
+        return "admin/competitions";
+    }
+
+    /**
+     * Competition participants management page
+     */
+    @GetMapping("/competitions/{id}/participants")
+    public String competitionParticipants(@PathVariable Long id, Model model) {
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findByIdWithParticipants(id)
+            .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+        // Calculate statistics
+        java.util.List<com.elevenof.backoffice.model.CompetitionParticipant> participants = competition.getParticipants();
+        long totalCount = participants.size();
+        long registeredCount = participants.stream()
+            .filter(p -> p.getStatus() == com.elevenof.backoffice.model.ParticipantStatus.REGISTERED)
+            .count();
+        long top30Count = participants.stream()
+            .filter(p -> p.getStatus() == com.elevenof.backoffice.model.ParticipantStatus.SELECTED_TOP30)
+            .count();
+        long top11Count = participants.stream()
+            .filter(p -> p.getStatus() == com.elevenof.backoffice.model.ParticipantStatus.SELECTED_TOP11)
+            .count();
+
+        model.addAttribute("title", "Thí sinh - " + competition.getTitle());
+        model.addAttribute("competition", competition);
+        model.addAttribute("participants", participants);
+        model.addAttribute("totalCount", totalCount);
+        model.addAttribute("registeredCount", registeredCount);
+        model.addAttribute("top30Count", top30Count);
+        model.addAttribute("top11Count", top11Count);
+        model.addAttribute("frontendUrl", frontendUrl);
+
+        return "admin/competition-participants";
+    }
+
+    /**
+     * Competition stages management page
+     */
+    @GetMapping("/competitions/{id}/stages")
+    public String competitionStages(@PathVariable Long id, Model model) {
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findByIdWithStages(id)
+            .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+        // Find current live stage number and determine which stages can be activated
+        Integer liveStageNumber = null;
+        Integer previousStageNumber = null;
+        Integer nextUpcomingStageNumber = null;
+
+        for (com.elevenof.backoffice.model.CompetitionStage stage : competition.getStages()) {
+            if (stage.getStatus() == com.elevenof.backoffice.model.StageStatus.LIVE) {
+                liveStageNumber = stage.getStageNumber();
+                previousStageNumber = liveStageNumber > 1 ? liveStageNumber - 1 : null;
+                // Find the next upcoming stage after LIVE
+                for (com.elevenof.backoffice.model.CompetitionStage nextStage : competition.getStages()) {
+                    if (nextStage.getStageNumber() > liveStageNumber &&
+                        nextStage.getStatus() == com.elevenof.backoffice.model.StageStatus.UPCOMING) {
+                        nextUpcomingStageNumber = nextStage.getStageNumber();
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        // If no LIVE stage, find the first UPCOMING stage
+        if (liveStageNumber == null) {
+            for (com.elevenof.backoffice.model.CompetitionStage stage : competition.getStages()) {
+                if (stage.getStatus() == com.elevenof.backoffice.model.StageStatus.UPCOMING) {
+                    nextUpcomingStageNumber = stage.getStageNumber();
+                    break;
+                }
+            }
+        }
+
+        // Calculate structure counts for each stage
+        java.util.Map<Long, com.elevenof.backoffice.dto.StructureCountDTO> structureCounts = new java.util.HashMap<>();
+        for (com.elevenof.backoffice.model.CompetitionStage stage : competition.getStages()) {
+            int daysCount = (int) assessmentDayRepository.countByStageId(stage.getId());
+            int stepsCount = 0;
+            int assessmentsCount = 0;
+
+            java.util.List<com.elevenof.backoffice.model.CompetitionAssessmentDay> days =
+                assessmentDayRepository.findByStageIdOrderByDisplayOrderAsc(stage.getId());
+            for (com.elevenof.backoffice.model.CompetitionAssessmentDay day : days) {
+                stepsCount += assessmentStepRepository.countByAssessmentDayId(day.getId());
+                java.util.List<com.elevenof.backoffice.model.CompetitionAssessmentStep> steps =
+                    assessmentStepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(day.getId());
+                for (com.elevenof.backoffice.model.CompetitionAssessmentStep step : steps) {
+                    assessmentsCount += assessmentRepository.countByAssessmentStepId(step.getId());
+                }
+            }
+
+            structureCounts.put(stage.getId(), com.elevenof.backoffice.dto.StructureCountDTO.builder()
+                .daysCount(daysCount)
+                .stepsCount(stepsCount)
+                .assessmentsCount(assessmentsCount)
+                .build());
+        }
+
+        model.addAttribute("title", "Vòng thi - " + competition.getTitle());
+        model.addAttribute("competition", competition);
+        model.addAttribute("stages", competition.getStages());
+        model.addAttribute("liveStageNumber", liveStageNumber);
+        model.addAttribute("previousStageNumber", previousStageNumber);
+        model.addAttribute("nextUpcomingStageNumber", nextUpcomingStageNumber);
+        model.addAttribute("structureCounts", structureCounts);
+        model.addAttribute("frontendUrl", frontendUrl);
+
+        return "admin/competition-stages";
+    }
+
+    /**
+     * Competition edit form page
+     */
+    @GetMapping("/competitions/{id}/edit")
+    public String competitionEdit(@PathVariable Long id, Model model) {
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+        model.addAttribute("title", "Chỉnh sửa cuộc thi - " + competition.getTitle());
+        model.addAttribute("competition", competition);
+
+        return "admin/competition-edit";
+    }
+
+    /**
+     * Competition edit form submission
+     */
+    @PostMapping("/competitions/{id}/edit")
+    public String competitionEditSubmit(
+            @PathVariable Long id,
+            @RequestParam String title,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String registrationStartDate,
+            @RequestParam(required = false) String registrationEndDate,
+            @RequestParam(required = false) String competitionStartDate,
+            @RequestParam(required = false) String competitionEndDate,
+            RedirectAttributes redirectAttributes) {
+
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+        competition.setTitle(title);
+        competition.setDescription(description);
+
+        // Allow admin to manually set status
+        if (status != null && !status.isEmpty()) {
+            try {
+                competition.setStatus(com.elevenof.backoffice.model.CompetitionStatus.valueOf(status));
+            } catch (IllegalArgumentException ignored) {}
+        }
+
+        // Parse and update dates based on competition status
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        // Check current status (before save) to determine if started
+        boolean isNotStarted = competition.getStatus() == com.elevenof.backoffice.model.CompetitionStatus.DRAFT ||
+                               competition.getStatus() == com.elevenof.backoffice.model.CompetitionStatus.REGISTRATION_OPEN;
+
+        // Only allow editing start dates if not started yet
+        if (isNotStarted) {
+            if (registrationStartDate != null && !registrationStartDate.isEmpty()) {
+                competition.setRegistrationStartDate(java.time.LocalDate.parse(registrationStartDate, formatter));
+            }
+            if (registrationEndDate != null && !registrationEndDate.isEmpty()) {
+                competition.setRegistrationEndDate(java.time.LocalDate.parse(registrationEndDate, formatter));
+            }
+            if (competitionStartDate != null && !competitionStartDate.isEmpty()) {
+                competition.setCompetitionStartDate(java.time.LocalDate.parse(competitionStartDate, formatter));
+            }
+        }
+
+        // Always allow editing end date
+        if (competitionEndDate != null && !competitionEndDate.isEmpty()) {
+            competition.setCompetitionEndDate(java.time.LocalDate.parse(competitionEndDate, formatter));
+        }
+
+        competitionRepository.save(competition);
+
+        redirectAttributes.addFlashAttribute("success", "Đã cập nhật thông tin cuộc thi thành công!");
+        return "redirect:/admin/competitions";
+    }
+
+    /**
+     * Activate a competition stage
+     * - If UPCOMING: Marks previous stage as COMPLETED, current as LIVE
+     * - If LIVE: Re-activate (no change, just confirmation)
+     * - If COMPLETED (rollback): Marks current as LIVE, next stage as UPCOMING
+     * - Updates competition status and currentPhase accordingly
+     */
+    @PostMapping("/competitions/{competitionId}/stages/{stageNumber}/activate")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<String> activateStage(
+            @PathVariable Long competitionId,
+            @PathVariable Integer stageNumber) {
+
+        try {
+            // Find competition
+            com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(competitionId)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+            // Find current stage
+            com.elevenof.backoffice.model.CompetitionStage currentStage =
+                competitionStageRepository.findByCompetitionIdAndStageNumber(competitionId, stageNumber)
+                    .orElseThrow(() -> new RuntimeException("Stage not found"));
+
+            com.elevenof.backoffice.model.StageStatus currentStatus = currentStage.getStatus();
+
+            // Handle different scenarios based on current status
+            if (currentStatus == com.elevenof.backoffice.model.StageStatus.UPCOMING) {
+                // Normal activation: Close previous, open current
+                if (stageNumber > 1) {
+                    com.elevenof.backoffice.model.CompetitionStage previousStage =
+                        competitionStageRepository.findByCompetitionIdAndStageNumber(competitionId, stageNumber - 1)
+                            .orElse(null);
+                    if (previousStage != null && previousStage.getStatus() == com.elevenof.backoffice.model.StageStatus.LIVE) {
+                        previousStage.setStatus(com.elevenof.backoffice.model.StageStatus.COMPLETED);
+                        competitionStageRepository.save(previousStage);
+                    }
+                }
+
+                currentStage.setStatus(com.elevenof.backoffice.model.StageStatus.LIVE);
+                competitionStageRepository.save(currentStage);
+
+            } else if (currentStatus == com.elevenof.backoffice.model.StageStatus.COMPLETED) {
+                // ROLLBACK: Reopen this stage, close next stage (set to UPCOMING)
+                com.elevenof.backoffice.model.CompetitionStage nextStage =
+                    competitionStageRepository.findByCompetitionIdAndStageNumber(competitionId, stageNumber + 1)
+                        .orElse(null);
+
+                if (nextStage == null || nextStage.getStatus() != com.elevenof.backoffice.model.StageStatus.LIVE) {
+                    return org.springframework.http.ResponseEntity
+                        .badRequest()
+                        .body("Không thể rollback: vòng sau không đang ở trạng thái LIVE");
+                }
+
+                // Set next stage back to UPCOMING
+                nextStage.setStatus(com.elevenof.backoffice.model.StageStatus.UPCOMING);
+                competitionStageRepository.save(nextStage);
+
+                // Reopen current stage
+                currentStage.setStatus(com.elevenof.backoffice.model.StageStatus.LIVE);
+                competitionStageRepository.save(currentStage);
+
+            } else if (currentStatus == com.elevenof.backoffice.model.StageStatus.LIVE) {
+                // Already LIVE - just allow re-activation (no-op)
+                // Do nothing, just proceed to update competition status below
+            }
+
+            // Update competition status and currentPhase based on stage type
+            com.elevenof.backoffice.model.StageType stageType = currentStage.getStageType();
+            switch (stageType) {
+                case REGIONAL_AUDITION:
+                    competition.setStatus(com.elevenof.backoffice.model.CompetitionStatus.REGIONAL_AUDITION);
+                    String regionName = currentStage.getRegion() != null ?
+                        currentStage.getRegion().name() : "";
+                    String regionText = "";
+                    if (regionName.equals("HANOI_NORTH")) {
+                        regionText = "Hà Nội & Phía Bắc";
+                    } else if (regionName.equals("DANANG_CENTRAL")) {
+                        regionText = "Đà Nẵng & Miền Trung";
+                    } else if (regionName.equals("HCMC_SOUTH")) {
+                        regionText = "TP HCM & Miền Nam";
+                    }
+                    competition.setCurrentPhase("Vòng tuyển trạch - " + regionText);
+                    break;
+                case TRAINING_EPISODE:
+                    competition.setStatus(com.elevenof.backoffice.model.CompetitionStatus.TRAINING_PHASE);
+                    competition.setCurrentPhase("Đào tạo - Tập " + (stageNumber - 3)); // Stages 1-3 are regional
+                    break;
+                case FINAL_MATCH:
+                    competition.setStatus(com.elevenof.backoffice.model.CompetitionStatus.FINAL_PHASE);
+                    competition.setCurrentPhase("Chung kết");
+                    break;
+            }
+
+            competitionRepository.save(competition);
+
+            return org.springframework.http.ResponseEntity.ok("Đã kích hoạt vòng " + stageNumber);
+
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity
+                .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Lỗi: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/competitions/{competitionId}/stages/{stageNumber}/deactivate")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<String> deactivateStage(
+            @PathVariable Long competitionId,
+            @PathVariable Integer stageNumber) {
+        try {
+            com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(competitionId)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+            com.elevenof.backoffice.model.CompetitionStage stage =
+                competitionStageRepository.findByCompetitionIdAndStageNumber(competitionId, stageNumber)
+                    .orElseThrow(() -> new RuntimeException("Stage not found"));
+
+            if (stage.getStatus() != com.elevenof.backoffice.model.StageStatus.LIVE) {
+                return org.springframework.http.ResponseEntity.badRequest().body("Vòng thi không đang ở trạng thái LIVE");
+            }
+
+            stage.setStatus(com.elevenof.backoffice.model.StageStatus.UPCOMING);
+            competitionStageRepository.save(stage);
+
+            // Update competition status
+            if (stageNumber == 1) {
+                competition.setStatus(com.elevenof.backoffice.model.CompetitionStatus.REGISTRATION_OPEN);
+                competition.setCurrentPhase("REGISTRATION");
+            } else {
+                // Revert to previous stage's phase
+                com.elevenof.backoffice.model.CompetitionStage prevStage =
+                    competitionStageRepository.findByCompetitionIdAndStageNumber(competitionId, stageNumber - 1)
+                        .orElse(null);
+                if (prevStage != null) {
+                    com.elevenof.backoffice.model.StageType prevType = prevStage.getStageType();
+                    switch (prevType) {
+                        case REGIONAL_AUDITION:
+                            competition.setStatus(com.elevenof.backoffice.model.CompetitionStatus.REGIONAL_AUDITION);
+                            break;
+                        case TRAINING_EPISODE:
+                            competition.setStatus(com.elevenof.backoffice.model.CompetitionStatus.TRAINING_PHASE);
+                            break;
+                        case FINAL_MATCH:
+                            competition.setStatus(com.elevenof.backoffice.model.CompetitionStatus.FINAL_PHASE);
+                            break;
+                    }
+                }
+            }
+            competitionRepository.save(competition);
+
+            return org.springframework.http.ResponseEntity.ok("Đã đặt vòng " + stageNumber + " về UPCOMING");
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity
+                .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Lỗi: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Stage edit page
+     */
+    @GetMapping("/competitions/{competitionId}/stages/{stageNumber}/edit")
+    public String stageEdit(
+            @PathVariable Long competitionId,
+            @PathVariable Integer stageNumber,
+            Model model) {
+
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(competitionId)
+            .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+        com.elevenof.backoffice.model.CompetitionStage stage =
+            competitionStageRepository.findByCompetitionIdAndStageNumber(competitionId, stageNumber)
+                .orElseThrow(() -> new RuntimeException("Stage not found"));
+
+        model.addAttribute("title", "Chỉnh sửa vòng thi - " + stage.getTitle());
+        model.addAttribute("competition", competition);
+        model.addAttribute("stage", stage);
+
+        return "admin/stage-edit";
+    }
+
+    /**
+     * Stage edit form submission
+     */
+    @PostMapping("/competitions/{competitionId}/stages/{stageNumber}/edit")
+    public String stageEditSubmit(
+            @PathVariable Long competitionId,
+            @PathVariable Integer stageNumber,
+            @RequestParam String title,
+            @RequestParam(required = false) String description,
+            @RequestParam String stageDate,
+            @RequestParam(required = false) String stageTime,
+            @RequestParam boolean isPublicScoring,
+            RedirectAttributes redirectAttributes) {
+
+        com.elevenof.backoffice.model.CompetitionStage stage =
+            competitionStageRepository.findByCompetitionIdAndStageNumber(competitionId, stageNumber)
+                .orElseThrow(() -> new RuntimeException("Stage not found"));
+
+        stage.setTitle(title);
+        stage.setDescription(description);
+        stage.setStageDate(java.time.LocalDate.parse(stageDate));
+        stage.setStageTime(stageTime);
+        stage.setIsPublicScoring(isPublicScoring);
+
+        competitionStageRepository.save(stage);
+
+        redirectAttributes.addFlashAttribute("success", "Đã cập nhật thông tin vòng thi thành công!");
+        return "redirect:/admin/competitions/" + competitionId + "/stages";
+    }
+
+    /**
+     * Assessment structure management page
+     */
+    @GetMapping("/competitions/{competitionId}/stages/{stageNumber}/assessment-structure")
+    public String stageAssessmentStructure(
+            @PathVariable Long competitionId,
+            @PathVariable Integer stageNumber,
+            Model model) {
+
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(competitionId)
+            .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+        com.elevenof.backoffice.model.CompetitionStage stage =
+            competitionStageRepository.findByCompetitionIdAndStageNumber(competitionId, stageNumber)
+                .orElseThrow(() -> new RuntimeException("Stage not found"));
+
+        model.addAttribute("title", "Cấu trúc đánh giá - " + stage.getTitle());
+        model.addAttribute("competition", competition);
+        model.addAttribute("stage", stage);
+
+        return "admin/stage-assessment-structure";
+    }
+
+    /**
+     * Stage results entry page
+     */
+    @GetMapping("/competitions/{competitionId}/stages/{stageNumber}/results")
+    public String stageResults(
+            @PathVariable Long competitionId,
+            @PathVariable Integer stageNumber,
+            Model model) {
+
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(competitionId)
+            .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+        com.elevenof.backoffice.model.CompetitionStage stage =
+            competitionStageRepository.findByCompetitionIdAndStageNumber(competitionId, stageNumber)
+                .orElseThrow(() -> new RuntimeException("Stage not found"));
+
+        model.addAttribute("title", "Kết quả - " + stage.getTitle());
+        model.addAttribute("competition", competition);
+        model.addAttribute("stage", stage);
+        // Don't pass participants through Thymeleaf - load via API instead
+
+        return "admin/stage-results";
     }
 
     /**
@@ -1518,6 +1980,376 @@ public class AdminController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
             return "redirect:/admin/notifications";
+        }
+    }
+
+    // ==================== COMPETITION NEWS MANAGEMENT ====================
+
+    @GetMapping("/competitions/{id}/news")
+    public String competitionNews(@PathVariable Long id, Model model) {
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+        java.util.List<com.elevenof.backoffice.model.CompetitionNews> newsList =
+                competitionNewsRepository.findByCompetitionIdOrderByCreatedAtDesc(id);
+        model.addAttribute("title", "Quản lý tin tức - " + competition.getTitle());
+        model.addAttribute("competition", competition);
+        model.addAttribute("newsList", newsList);
+        return "admin/competition-news";
+    }
+
+    @GetMapping("/competitions/{id}/news/new")
+    public String competitionNewsNew(@PathVariable Long id, Model model) {
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+        java.util.List<com.elevenof.backoffice.model.Competition> allCompetitions = competitionRepository.findAll();
+        model.addAttribute("title", "Tạo tin tức mới");
+        model.addAttribute("competition", competition);
+        model.addAttribute("allCompetitions", allCompetitions);
+        model.addAttribute("news", null);
+        return "admin/competition-news-edit";
+    }
+
+    @PostMapping("/competitions/{id}/news/new")
+    public String competitionNewsCreate(
+            @PathVariable Long id,
+            @RequestParam String title,
+            @RequestParam(required = false) String shortContent,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) String authorByline,
+            @RequestParam(required = false) MultipartFile thumbnailFile,
+            @RequestParam(required = false) String thumbnailUrl,
+            @RequestParam(defaultValue = "false") boolean isFeatured,
+            @RequestParam(defaultValue = "DRAFT") String status,
+            @RequestParam Long competitionId,
+            RedirectAttributes redirectAttributes) {
+
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(competitionId)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+        String adminUsername = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+        com.elevenof.backoffice.model.User author = userRepository.findByPhone(adminUsername).orElse(null);
+
+        com.elevenof.backoffice.model.CompetitionNews news = new com.elevenof.backoffice.model.CompetitionNews();
+        news.setCompetition(competition);
+        news.setTitle(title);
+        news.setShortContent(shortContent);
+        news.setContent(content != null ? content : "");
+        news.setAuthorByline(authorByline != null && !authorByline.isBlank() ? authorByline : null);
+        news.setAuthor(author);
+        news.setIsFeatured(isFeatured);
+        news.setStatus(com.elevenof.backoffice.model.NewsStatus.valueOf(status));
+        if (status.equals("PUBLISHED")) {
+            news.setPublishedAt(java.time.LocalDateTime.now());
+        }
+
+        com.elevenof.backoffice.model.CompetitionNews saved = competitionNewsRepository.save(news);
+
+        // Handle thumbnail upload
+        String finalThumbnail = thumbnailUrl;
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            try {
+                finalThumbnail = s3Service.uploadNewsImage(thumbnailFile, saved.getId());
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("warning", "Không thể upload ảnh: " + e.getMessage());
+            }
+        }
+        if (finalThumbnail != null && !finalThumbnail.isBlank()) {
+            saved.setThumbnail(finalThumbnail);
+            competitionNewsRepository.save(saved);
+        }
+
+        redirectAttributes.addFlashAttribute("success", "Đã tạo tin tức thành công!");
+        return "redirect:/admin/competitions/" + id + "/news";
+    }
+
+    @GetMapping("/competitions/{id}/news/{newsId}/edit")
+    public String competitionNewsEdit(@PathVariable Long id, @PathVariable Long newsId, Model model) {
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+        com.elevenof.backoffice.model.CompetitionNews news = competitionNewsRepository.findById(newsId)
+                .orElseThrow(() -> new RuntimeException("News not found"));
+        java.util.List<com.elevenof.backoffice.model.Competition> allCompetitions = competitionRepository.findAll();
+        model.addAttribute("title", "Chỉnh sửa tin tức");
+        model.addAttribute("competition", competition);
+        model.addAttribute("allCompetitions", allCompetitions);
+        model.addAttribute("news", news);
+        return "admin/competition-news-edit";
+    }
+
+    @PostMapping("/competitions/{id}/news/{newsId}/edit")
+    public String competitionNewsUpdate(
+            @PathVariable Long id,
+            @PathVariable Long newsId,
+            @RequestParam String title,
+            @RequestParam(required = false) String shortContent,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) String authorByline,
+            @RequestParam(required = false) MultipartFile thumbnailFile,
+            @RequestParam(required = false) String thumbnailUrl,
+            @RequestParam(defaultValue = "false") boolean isFeatured,
+            @RequestParam(defaultValue = "DRAFT") String status,
+            @RequestParam Long competitionId,
+            RedirectAttributes redirectAttributes) {
+
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(competitionId)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+        com.elevenof.backoffice.model.CompetitionNews news = competitionNewsRepository.findById(newsId)
+                .orElseThrow(() -> new RuntimeException("News not found"));
+
+        news.setCompetition(competition);
+        news.setTitle(title);
+        news.setShortContent(shortContent);
+        news.setContent(content != null ? content : "");
+        news.setAuthorByline(authorByline != null && !authorByline.isBlank() ? authorByline : null);
+        news.setIsFeatured(isFeatured);
+
+        com.elevenof.backoffice.model.NewsStatus newStatus = com.elevenof.backoffice.model.NewsStatus.valueOf(status);
+        if (newStatus == com.elevenof.backoffice.model.NewsStatus.PUBLISHED && news.getPublishedAt() == null) {
+            news.setPublishedAt(java.time.LocalDateTime.now());
+        }
+        news.setStatus(newStatus);
+
+        if (thumbnailFile != null && !thumbnailFile.isEmpty()) {
+            try {
+                String oldThumbnail = news.getThumbnail();
+                String newUrl = s3Service.uploadNewsImage(thumbnailFile, newsId);
+                news.setThumbnail(newUrl);
+                if (oldThumbnail != null && !oldThumbnail.isBlank()) {
+                    s3Service.deleteEventImage(oldThumbnail);
+                }
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("warning", "Không thể upload ảnh: " + e.getMessage());
+            }
+        } else if (thumbnailUrl != null && !thumbnailUrl.isBlank()) {
+            news.setThumbnail(thumbnailUrl);
+        }
+
+        competitionNewsRepository.save(news);
+        redirectAttributes.addFlashAttribute("success", "Đã cập nhật tin tức thành công!");
+        return "redirect:/admin/competitions/" + id + "/news";
+    }
+
+    @PostMapping("/competitions/{id}/news/{newsId}/delete")
+    public String competitionNewsDelete(
+            @PathVariable Long id,
+            @PathVariable Long newsId,
+            RedirectAttributes redirectAttributes) {
+        com.elevenof.backoffice.model.CompetitionNews news = competitionNewsRepository.findById(newsId)
+                .orElseThrow(() -> new RuntimeException("News not found"));
+        news.setStatus(com.elevenof.backoffice.model.NewsStatus.DRAFT);
+        news.setPublishedAt(null);
+        competitionNewsRepository.save(news);
+        redirectAttributes.addFlashAttribute("success", "Đã chuyển tin tức về DRAFT!");
+        return "redirect:/admin/competitions/" + id + "/news";
+    }
+
+    @PostMapping("/competitions/{id}/news/{newsId}/toggle-featured")
+    public String competitionNewsToggleFeatured(
+            @PathVariable Long id,
+            @PathVariable Long newsId,
+            RedirectAttributes redirectAttributes) {
+        com.elevenof.backoffice.model.CompetitionNews news = competitionNewsRepository.findById(newsId)
+                .orElseThrow(() -> new RuntimeException("News not found"));
+        news.setIsFeatured(!news.getIsFeatured());
+        competitionNewsRepository.save(news);
+        return "redirect:/admin/competitions/" + id + "/news";
+    }
+
+    @PostMapping("/competitions/{id}/news/{newsId}/publish")
+    public String competitionNewsPublish(
+            @PathVariable Long id,
+            @PathVariable Long newsId,
+            RedirectAttributes redirectAttributes) {
+        com.elevenof.backoffice.model.CompetitionNews news = competitionNewsRepository.findById(newsId)
+                .orElseThrow(() -> new RuntimeException("News not found"));
+        news.setStatus(com.elevenof.backoffice.model.NewsStatus.PUBLISHED);
+        if (news.getPublishedAt() == null) {
+            news.setPublishedAt(java.time.LocalDateTime.now());
+        }
+        competitionNewsRepository.save(news);
+        redirectAttributes.addFlashAttribute("success", "Đã xuất bản tin tức!");
+        return "redirect:/admin/competitions/" + id + "/news";
+    }
+
+    @PostMapping("/news/upload-image")
+    @ResponseBody
+    public java.util.Map<String, String> uploadNewsEditorImage(
+            @RequestParam("file") MultipartFile file) {
+        try {
+            if (!s3Service.isValidImageFile(file)) {
+                return java.util.Map.of("error", "Invalid image file");
+            }
+            String url = s3Service.uploadNewsImage(file, 0L);
+            return java.util.Map.of("location", url);
+        } catch (Exception e) {
+            return java.util.Map.of("error", e.getMessage());
+        }
+    }
+
+    // ==================== COMPETITION SPONSORS MANAGEMENT ====================
+
+    @GetMapping("/competitions/{id}/sponsors")
+    public String competitionSponsors(@PathVariable Long id, Model model) {
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+        java.util.List<com.elevenof.backoffice.model.CompetitionSponsor> sponsors =
+                competitionSponsorRepository.findByCompetitionIdOrderByDisplayOrderAsc(id);
+        model.addAttribute("title", "Quản lý nhà tài trợ - " + competition.getTitle());
+        model.addAttribute("competition", competition);
+        model.addAttribute("sponsors", sponsors);
+        return "admin/competition-sponsors";
+    }
+
+    @GetMapping("/competitions/{id}/sponsors/new")
+    public String competitionSponsorNew(@PathVariable Long id, Model model) {
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+        model.addAttribute("title", "Thêm nhà tài trợ");
+        model.addAttribute("competition", competition);
+        model.addAttribute("sponsor", null);
+        return "admin/competition-sponsors-edit";
+    }
+
+    @PostMapping("/competitions/{id}/sponsors/new")
+    public String competitionSponsorCreate(
+            @PathVariable Long id,
+            @RequestParam String name,
+            @RequestParam(required = false) String websiteUrl,
+            @RequestParam(required = false) MultipartFile logoFile,
+            @RequestParam(required = false) String logoUrl,
+            @RequestParam(required = false) MultipartFile bannerFile,
+            @RequestParam(required = false) String bannerImageUrl,
+            @RequestParam(required = false) String adPosition,
+            @RequestParam(defaultValue = "0") Integer displayOrder,
+            @RequestParam(defaultValue = "true") boolean isActive,
+            RedirectAttributes redirectAttributes) {
+
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+
+        com.elevenof.backoffice.model.CompetitionSponsor sponsor = new com.elevenof.backoffice.model.CompetitionSponsor();
+        sponsor.setCompetition(competition);
+        sponsor.setName(name);
+        sponsor.setWebsiteUrl(websiteUrl);
+        sponsor.setDisplayOrder(displayOrder);
+        sponsor.setIsActive(isActive);
+        sponsor.setAdPosition(adPosition != null && !adPosition.isBlank() ? adPosition : null);
+
+        com.elevenof.backoffice.model.CompetitionSponsor saved = competitionSponsorRepository.save(sponsor);
+
+        // Logo upload
+        String finalLogoUrl = logoUrl;
+        if (logoFile != null && !logoFile.isEmpty()) {
+            try { finalLogoUrl = s3Service.uploadSponsorImage(logoFile, saved.getId()); }
+            catch (Exception e) { redirectAttributes.addFlashAttribute("warning", "Không thể upload logo: " + e.getMessage()); }
+        }
+        if (finalLogoUrl != null && !finalLogoUrl.isBlank()) saved.setLogoUrl(finalLogoUrl);
+
+        // Banner upload
+        String finalBannerUrl = bannerImageUrl;
+        if (bannerFile != null && !bannerFile.isEmpty()) {
+            try { finalBannerUrl = s3Service.uploadSponsorImage(bannerFile, saved.getId()); }
+            catch (Exception e) { redirectAttributes.addFlashAttribute("warning", "Không thể upload banner: " + e.getMessage()); }
+        }
+        if (finalBannerUrl != null && !finalBannerUrl.isBlank()) saved.setBannerImageUrl(finalBannerUrl);
+
+        competitionSponsorRepository.save(saved);
+        redirectAttributes.addFlashAttribute("success", "Đã thêm nhà tài trợ thành công!");
+        return "redirect:/admin/competitions/" + id + "/sponsors";
+    }
+
+    @GetMapping("/competitions/{id}/sponsors/{sId}/edit")
+    public String competitionSponsorEdit(@PathVariable Long id, @PathVariable Long sId, Model model) {
+        com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Competition not found"));
+        com.elevenof.backoffice.model.CompetitionSponsor sponsor = competitionSponsorRepository.findById(sId)
+                .orElseThrow(() -> new RuntimeException("Sponsor not found"));
+        model.addAttribute("title", "Chỉnh sửa nhà tài trợ");
+        model.addAttribute("competition", competition);
+        model.addAttribute("sponsor", sponsor);
+        return "admin/competition-sponsors-edit";
+    }
+
+    @PostMapping("/competitions/{id}/sponsors/{sId}/edit")
+    public String competitionSponsorUpdate(
+            @PathVariable Long id,
+            @PathVariable Long sId,
+            @RequestParam String name,
+            @RequestParam(required = false) String websiteUrl,
+            @RequestParam(required = false) MultipartFile logoFile,
+            @RequestParam(required = false) String logoUrl,
+            @RequestParam(required = false) MultipartFile bannerFile,
+            @RequestParam(required = false) String bannerImageUrl,
+            @RequestParam(required = false) String adPosition,
+            @RequestParam(defaultValue = "0") Integer displayOrder,
+            @RequestParam(defaultValue = "true") boolean isActive,
+            RedirectAttributes redirectAttributes) {
+
+        com.elevenof.backoffice.model.CompetitionSponsor sponsor = competitionSponsorRepository.findById(sId)
+                .orElseThrow(() -> new RuntimeException("Sponsor not found"));
+        sponsor.setName(name);
+        sponsor.setWebsiteUrl(websiteUrl);
+        sponsor.setDisplayOrder(displayOrder);
+        sponsor.setIsActive(isActive);
+        sponsor.setAdPosition(adPosition != null && !adPosition.isBlank() ? adPosition : null);
+
+        if (logoFile != null && !logoFile.isEmpty()) {
+            try {
+                String old = sponsor.getLogoUrl();
+                sponsor.setLogoUrl(s3Service.uploadSponsorImage(logoFile, sId));
+                if (old != null && !old.isBlank()) s3Service.deleteEventImage(old);
+            } catch (Exception e) { redirectAttributes.addFlashAttribute("warning", "Không thể upload logo: " + e.getMessage()); }
+        } else if (logoUrl != null && !logoUrl.isBlank()) {
+            sponsor.setLogoUrl(logoUrl);
+        }
+
+        if (bannerFile != null && !bannerFile.isEmpty()) {
+            try {
+                String old = sponsor.getBannerImageUrl();
+                sponsor.setBannerImageUrl(s3Service.uploadSponsorImage(bannerFile, sId));
+                if (old != null && !old.isBlank()) s3Service.deleteEventImage(old);
+            } catch (Exception e) { redirectAttributes.addFlashAttribute("warning", "Không thể upload banner: " + e.getMessage()); }
+        } else if (bannerImageUrl != null && !bannerImageUrl.isBlank()) {
+            sponsor.setBannerImageUrl(bannerImageUrl);
+        }
+
+        competitionSponsorRepository.save(sponsor);
+        redirectAttributes.addFlashAttribute("success", "Đã cập nhật nhà tài trợ!");
+        return "redirect:/admin/competitions/" + id + "/sponsors";
+    }
+
+    @PostMapping("/competitions/{id}/sponsors/{sId}/toggle")
+    public String competitionSponsorToggle(@PathVariable Long id, @PathVariable Long sId,
+            RedirectAttributes redirectAttributes) {
+        com.elevenof.backoffice.model.CompetitionSponsor sponsor = competitionSponsorRepository.findById(sId)
+                .orElseThrow(() -> new RuntimeException("Sponsor not found"));
+        sponsor.setIsActive(!sponsor.getIsActive());
+        competitionSponsorRepository.save(sponsor);
+        return "redirect:/admin/competitions/" + id + "/sponsors";
+    }
+
+    @PostMapping("/competitions/{id}/sponsors/{sId}/delete")
+    public String competitionSponsorDelete(@PathVariable Long id, @PathVariable Long sId,
+            RedirectAttributes redirectAttributes) {
+        com.elevenof.backoffice.model.CompetitionSponsor sponsor = competitionSponsorRepository.findById(sId)
+                .orElseThrow(() -> new RuntimeException("Sponsor not found"));
+        try { if (sponsor.getLogoUrl() != null) s3Service.deleteEventImage(sponsor.getLogoUrl()); } catch (Exception ignored) {}
+        try { if (sponsor.getBannerImageUrl() != null) s3Service.deleteEventImage(sponsor.getBannerImageUrl()); } catch (Exception ignored) {}
+        competitionSponsorRepository.delete(sponsor);
+        redirectAttributes.addFlashAttribute("success", "Đã xóa nhà tài trợ!");
+        return "redirect:/admin/competitions/" + id + "/sponsors";
+    }
+
+    @PostMapping("/sponsor/upload-image")
+    @ResponseBody
+    public java.util.Map<String, String> uploadSponsorEditorImage(@RequestParam("file") MultipartFile file) {
+        try {
+            if (!s3Service.isValidImageFile(file)) return java.util.Map.of("error", "Invalid image file");
+            String url = s3Service.uploadSponsorImage(file, 0L);
+            return java.util.Map.of("location", url);
+        } catch (Exception e) {
+            return java.util.Map.of("error", e.getMessage());
         }
     }
 }

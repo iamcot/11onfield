@@ -74,7 +74,8 @@ export default function UserProfilePage() {
   const fromPlayers = searchParams.get("from") === "players";
   const fromFollowers = searchParams.get("from") === "followers";
   const fromFollowing = searchParams.get("from") === "following";
-  const showBackButton = fromPlayers || fromFollowers || fromFollowing;
+  const fromLeaderboard = searchParams.get("from") === "leaderboard";
+  const showBackButton = fromPlayers || fromFollowers || fromFollowing || fromLeaderboard;
 
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -1,0 +1,174 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{::scripts})}"
+>
+  <head>
+    <title>Tin tức cuộc thi</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <!-- Back navigation -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <a th:href="@{/admin/competitions/{id}/news(id=${competition.id})}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách tin tức
+          </a>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" th:text="${news == null ? 'Tạo tin tức mới' : 'Chỉnh sửa tin tức'}">Tạo tin tức mới</h3>
+            </div>
+            <div class="card-body">
+              <form th:action="${news == null
+                    ? '/admin/competitions/' + competition.id + '/news/new'
+                    : '/admin/competitions/' + competition.id + '/news/' + news.id + '/edit'}"
+                    method="post"
+                    enctype="multipart/form-data">
+
+                <!-- Competition selector -->
+                <div class="form-group">
+                  <label for="competitionId">Cuộc thi <span class="text-danger">*</span></label>
+                  <select class="form-control" id="competitionId" name="competitionId" required>
+                    <option th:each="c : ${allCompetitions}"
+                            th:value="${c.id}"
+                            th:text="${c.title + ' (Mùa ' + c.season + ')' }"
+                            th:selected="${news != null ? news.competition.id == c.id : competition.id == c.id}">
+                    </option>
+                  </select>
+                  <small class="form-text text-muted">Mặc định là cuộc thi hiện tại</small>
+                </div>
+
+                <!-- Title -->
+                <div class="form-group">
+                  <label for="title">Tiêu đề <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="title" name="title"
+                         th:value="${news != null ? news.title : ''}"
+                         required maxlength="300" />
+                </div>
+
+                <!-- Short content -->
+                <div class="form-group">
+                  <label for="shortContent">Nội dung ngắn</label>
+                  <textarea class="form-control" id="shortContent" name="shortContent"
+                            rows="2" maxlength="500"
+                            placeholder="Tóm tắt ngắn gọn nội dung bài viết..."
+                            th:text="${news != null ? news.shortContent : ''}"></textarea>
+                </div>
+
+                <!-- Thumbnail -->
+                <div class="form-group">
+                  <label>Ảnh đại diện</label>
+                  <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="thumbnailUrl" name="thumbnailUrl"
+                           th:value="${news != null ? news.thumbnail : ''}"
+                           placeholder="URL ảnh (hoặc upload bên dưới)" readonly />
+                    <div class="input-group-append">
+                      <button type="button" class="btn btn-outline-secondary"
+                              onclick="document.getElementById('thumbnailFileInput').click()">
+                        <i class="fas fa-upload"></i> Upload
+                      </button>
+                    </div>
+                  </div>
+                  <input type="file" id="thumbnailFileInput" name="thumbnailFile"
+                         accept="image/jpeg,image/png,image/webp" style="display:none"
+                         onchange="previewThumbnail(this)" />
+                  <div id="thumbnailPreview" class="mt-2">
+                    <img th:if="${news != null and news.thumbnail != null}"
+                         th:src="${news.thumbnail}" id="thumbnailImg"
+                         style="max-height:150px;max-width:300px;border-radius:6px;border:1px solid #dee2e6;" />
+                  </div>
+                </div>
+
+                <!-- Rich text content -->
+                <div class="form-group">
+                  <label for="contentEditor">Nội dung <span class="text-danger">*</span></label>
+                  <textarea class="tinymce-news" id="contentEditor" name="content"
+                            th:text="${news != null ? news.content : ''}"></textarea>
+                </div>
+
+                <!-- Author byline -->
+                <div class="form-group">
+                  <label for="authorByline">Bút danh (tùy chọn)</label>
+                  <input type="text" class="form-control" id="authorByline" name="authorByline"
+                         th:value="${news != null ? news.authorByline : ''}"
+                         maxlength="200"
+                         placeholder="Để trống để dùng tên tài khoản admin" />
+                  <small class="form-text text-muted">Dùng khi admin đăng bài thay cho người khác</small>
+                </div>
+
+                <!-- Featured + Status row -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Trạng thái</label>
+                      <select class="form-control" name="status">
+                        <option value="DRAFT" th:selected="${news == null or news.status.name() == 'DRAFT'}">DRAFT - Nháp</option>
+                        <option value="PUBLISHED" th:selected="${news != null and news.status.name() == 'PUBLISHED'}">PUBLISHED - Xuất bản</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Nổi bật</label>
+                      <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" id="isFeatured" name="isFeatured"
+                               th:checked="${news != null and news.isFeatured}" />
+                        <label class="form-check-label" for="isFeatured">Đánh dấu bài viết nổi bật</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="form-group mt-3">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    <span th:text="${news == null ? 'Tạo tin tức' : 'Lưu thay đổi'}">Lưu</span>
+                  </button>
+                  <a th:href="@{/admin/competitions/{id}/news(id=${competition.id})}" class="btn btn-secondary ml-2">
+                    <i class="fas fa-times"></i> Hủy
+                  </a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <th:block th:fragment="scripts">
+    <script>
+      function previewThumbnail(input) {
+        if (input.files && input.files[0]) {
+          var file = input.files[0];
+          if (file.size > 20 * 1024 * 1024) {
+            alert('File quá lớn. Tối đa 20MB.');
+            input.value = '';
+            return;
+          }
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            var preview = document.getElementById('thumbnailPreview');
+            var img = document.getElementById('thumbnailImg');
+            if (!img) {
+              img = document.createElement('img');
+              img.id = 'thumbnailImg';
+              img.style = 'max-height:150px;max-width:300px;border-radius:6px;border:1px solid #dee2e6;';
+              preview.appendChild(img);
+            }
+            img.src = e.target.result;
+            document.getElementById('thumbnailUrl').value = '';
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    </script>
+  </th:block>
+  </body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{::scripts})}"
+>
+  <head><title>Nhà tài trợ</title></head>
+  <body>
+    <div th:fragment="content">
+      <div class="row mb-3">
+        <div class="col-12">
+          <a th:href="@{/admin/competitions/{id}/sponsors(id=${competition.id})}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách
+          </a>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" th:text="${sponsor == null ? 'Thêm nhà tài trợ' : 'Chỉnh sửa nhà tài trợ'}">Nhà tài trợ</h3>
+            </div>
+            <div class="card-body">
+              <form th:action="${sponsor == null
+                    ? '/admin/competitions/' + competition.id + '/sponsors/new'
+                    : '/admin/competitions/' + competition.id + '/sponsors/' + sponsor.id + '/edit'}"
+                    method="post" enctype="multipart/form-data">
+
+                <div class="form-group">
+                  <label>Tên nhà tài trợ <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" name="name"
+                         th:value="${sponsor != null ? sponsor.name : ''}" required maxlength="200" />
+                </div>
+
+                <div class="form-group">
+                  <label>Website</label>
+                  <input type="url" class="form-control" name="websiteUrl"
+                         th:value="${sponsor != null ? sponsor.websiteUrl : ''}"
+                         placeholder="https://..." maxlength="500" />
+                </div>
+
+                <!-- Logo upload -->
+                <div class="form-group">
+                  <label>Logo thương hiệu</label>
+                  <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="logoUrl" name="logoUrl"
+                           th:value="${sponsor != null ? sponsor.logoUrl : ''}"
+                           placeholder="URL logo (hoặc upload bên dưới)" readonly />
+                    <div class="input-group-append">
+                      <button type="button" class="btn btn-outline-secondary"
+                              onclick="document.getElementById('logoFileInput').click()">
+                        <i class="fas fa-upload"></i> Upload
+                      </button>
+                    </div>
+                  </div>
+                  <input type="file" id="logoFileInput" name="logoFile"
+                         accept="image/jpeg,image/png,image/webp" style="display:none"
+                         onchange="previewImage(this, 'logoPreview', 'logoImg', 'logoUrl')" />
+                  <div id="logoPreview">
+                    <img th:if="${sponsor != null and sponsor.logoUrl != null}"
+                         th:src="${sponsor.logoUrl}" id="logoImg"
+                         style="max-height:80px;max-width:200px;object-fit:contain;border:1px solid #dee2e6;border-radius:4px;" />
+                  </div>
+                  <small class="form-text text-muted">Logo nhỏ hiển thị cạnh tên thương hiệu</small>
+                </div>
+
+                <!-- Banner upload -->
+                <div class="form-group">
+                  <label>Ảnh banner quảng cáo</label>
+                  <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="bannerImageUrl" name="bannerImageUrl"
+                           th:value="${sponsor != null ? sponsor.bannerImageUrl : ''}"
+                           placeholder="URL banner (hoặc upload bên dưới)" readonly />
+                    <div class="input-group-append">
+                      <button type="button" class="btn btn-outline-secondary"
+                              onclick="document.getElementById('bannerFileInput').click()">
+                        <i class="fas fa-upload"></i> Upload
+                      </button>
+                    </div>
+                  </div>
+                  <input type="file" id="bannerFileInput" name="bannerFile"
+                         accept="image/jpeg,image/png,image/webp" style="display:none"
+                         onchange="previewImage(this, 'bannerPreview', 'bannerImg', 'bannerImageUrl')" />
+                  <div id="bannerPreview">
+                    <img th:if="${sponsor != null and sponsor.bannerImageUrl != null}"
+                         th:src="${sponsor.bannerImageUrl}" id="bannerImg"
+                         style="max-height:120px;max-width:400px;object-fit:contain;border:1px solid #dee2e6;border-radius:4px;" />
+                  </div>
+                  <small class="form-text text-muted">Ảnh banner hiển thị theo vị trí quảng cáo</small>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Vị trí quảng cáo</label>
+                      <select class="form-control" name="adPosition">
+                        <option value="" th:selected="${sponsor == null or sponsor.adPosition == null}">— Không thiết lập —</option>
+                        <option value="SIDEBAR_FEATURED" th:selected="${sponsor != null and sponsor.adPosition == 'SIDEBAR_FEATURED'}">[1] Sidebar nổi bật (max 1)</option>
+                        <option value="BANNER_BELOW_STAGES" th:selected="${sponsor != null and sponsor.adPosition == 'BANNER_BELOW_STAGES'}">[2] Banner dưới lịch trình (max 2)</option>
+                        <option value="INLINE_NEWS" th:selected="${sponsor != null and sponsor.adPosition == 'INLINE_NEWS'}">[3] Xen kẽ tin tức (ngẫu nhiên)</option>
+                        <option value="SIDEBAR_AD" th:selected="${sponsor != null and sponsor.adPosition == 'SIDEBAR_AD'}">[4] Sidebar quảng cáo (max 3)</option>
+                        <option value="BANNER_BOTTOM" th:selected="${sponsor != null and sponsor.adPosition == 'BANNER_BOTTOM'}">[5] Banner cuối trang (max 3)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label>Thứ tự hiển thị</label>
+                      <input type="number" class="form-control" name="displayOrder"
+                             th:value="${sponsor != null ? sponsor.displayOrder : 0}" min="0" />
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label>Trạng thái</label>
+                      <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" id="isActive" name="isActive"
+                               th:checked="${sponsor == null or sponsor.isActive}" />
+                        <label class="form-check-label" for="isActive">Đang hoạt động</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group mt-3">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    <span th:text="${sponsor == null ? 'Thêm nhà tài trợ' : 'Lưu thay đổi'}">Lưu</span>
+                  </button>
+                  <a th:href="@{/admin/competitions/{id}/sponsors(id=${competition.id})}" class="btn btn-secondary ml-2">
+                    <i class="fas fa-times"></i> Hủy
+                  </a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <th:block th:fragment="scripts">
+      <script>
+        function previewImage(input, previewId, imgId, urlInputId) {
+          if (input.files && input.files[0]) {
+            var file = input.files[0];
+            if (file.size > 20 * 1024 * 1024) {
+              alert('File quá lớn. Tối đa 20MB.');
+              input.value = '';
+              return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(e) {
+              var preview = document.getElementById(previewId);
+              var img = document.getElementById(imgId);
+              if (!img) {
+                img = document.createElement('img');
+                img.id = imgId;
+                img.style = 'max-height:120px;max-width:400px;object-fit:contain;border:1px solid #dee2e6;border-radius:4px;';
+                preview.appendChild(img);
+              }
+              img.src = e.target.result;
+              document.getElementById(urlInputId).value = '';
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      </script>
+    </th:block>
+  </body>
+</html>

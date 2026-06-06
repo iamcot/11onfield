@@ -1,0 +1,120 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{})}"
+>
+  <head>
+    <title>Quản lý cuộc thi</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <!-- Action buttons -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <a th:href="@{/admin/competitions/create}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Tạo cuộc thi mới
+          </a>
+        </div>
+      </div>
+
+      <!-- Competitions table -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Danh sách cuộc thi</h3>
+            </div>
+            <div class="card-body">
+              <div th:if="${competitions.isEmpty()}" class="text-center py-5">
+                <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Chưa có cuộc thi nào</p>
+              </div>
+
+              <table th:if="${!competitions.isEmpty()}" class="table table-bordered table-striped">
+                <thead>
+                  <tr>
+                    <th style="width: 80px;">Mùa</th>
+                    <th>Tên cuộc thi</th>
+                    <th style="width: 150px;">Trạng thái</th>
+                    <th style="width: 150px;">Giai đoạn</th>
+                    <th style="width: 150px;">Ngày bắt đầu</th>
+                    <th style="width: 120px;">Thí sinh</th>
+                    <th style="width: 200px;">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="competition : ${competitions}">
+                    <td class="text-center">
+                      <strong class="text-success" th:text="'Mùa ' + ${competition.season}">Mùa 1</strong>
+                    </td>
+                    <td>
+                      <strong th:text="${competition.title}">11 of - Mùa 1</strong>
+                      <br/>
+                      <small class="text-muted" th:text="${competition.description}">Mùa đầu tiên...</small>
+                    </td>
+                    <td>
+                      <span
+                        th:class="|badge badge-${competition.status.name() == 'DRAFT' ? 'secondary' : (competition.status.name() == 'REGISTRATION_OPEN' ? 'info' : (competition.status.name() == 'REGIONAL_AUDITION' ? 'warning' : (competition.status.name() == 'SELECTING_TOP30' ? 'warning' : (competition.status.name() == 'TRAINING_PHASE' ? 'primary' : (competition.status.name() == 'FINAL_PHASE' ? 'danger' : (competition.status.name() == 'COMPLETED' ? 'success' : 'secondary'))))))}|"
+                        th:text="${competition.status}"
+                      >
+                        DRAFT
+                      </span>
+                    </td>
+                    <td>
+                      <span class="text-sm" th:text="${competition.currentPhase ?: '-'}">REGISTRATION</span>
+                    </td>
+                    <td th:text="${competition.competitionStartDate != null ? #temporals.format(competition.competitionStartDate, 'dd/MM/yyyy') : '-'}">
+                      01/06/2026
+                    </td>
+                    <td class="text-center">
+                      <strong th:text="${competition.participants != null ? competition.participants.size() : 0}">0</strong>
+                    </td>
+                    <td>
+                      <div class="btn-group btn-group-sm">
+                        <a
+                          th:href="@{/admin/competitions/{id}/edit(id=${competition.id})}"
+                          class="btn btn-secondary"
+                          title="Chỉnh sửa"
+                        >
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        <a
+                          th:href="@{/admin/competitions/{id}/participants(id=${competition.id})}"
+                          class="btn btn-info"
+                          title="Thí sinh"
+                        >
+                          <i class="fas fa-users"></i>
+                        </a>
+                        <a
+                          th:href="@{/admin/competitions/{id}/stages(id=${competition.id})}"
+                          class="btn btn-primary"
+                          title="Vòng thi"
+                        >
+                          <i class="fas fa-tasks"></i>
+                        </a>
+                        <a
+                          th:href="@{/admin/competitions/{id}/news(id=${competition.id})}"
+                          class="btn btn-success"
+                          title="Tin tức"
+                        >
+                          <i class="fas fa-newspaper"></i>
+                        </a>
+                        <a
+                          th:href="@{/admin/competitions/{id}/sponsors(id=${competition.id})}"
+                          class="btn btn-warning"
+                          title="Nhà tài trợ"
+                        >
+                          <i class="fas fa-handshake"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

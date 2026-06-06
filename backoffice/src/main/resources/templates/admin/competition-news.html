@@ -1,0 +1,151 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{})}"
+>
+  <head>
+    <title>Quản lý tin tức</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <!-- Competition Info -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h4 class="mb-0" th:text="${competition.title}">11 of - Mùa 1</h4>
+              <p class="text-muted mb-0" th:text="${competition.status}">DRAFT</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="btn-group" role="group">
+              <a th:href="@{/admin/competitions}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+              </a>
+              <a th:href="@{/admin/competitions/{id}/participants(id=${competition.id})}" class="btn btn-info">
+                <i class="fas fa-users"></i> Thí sinh
+              </a>
+              <a th:href="@{/admin/competitions/{id}/stages(id=${competition.id})}" class="btn btn-primary">
+                <i class="fas fa-tasks"></i> Vòng thi
+              </a>
+              <a th:href="@{/admin/competitions/{id}/sponsors(id=${competition.id})}" class="btn btn-warning">
+                <i class="fas fa-handshake"></i> Nhà tài trợ
+              </a>
+            </div>
+            <a th:href="@{/admin/competitions/{id}/news/new(id=${competition.id})}" class="btn btn-success">
+              <i class="fas fa-plus"></i> Tạo tin tức mới
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flash messages -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+      </div>
+      <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+        <span th:text="${warning}"></span>
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+      </div>
+
+      <!-- News List -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Danh sách tin tức</h3>
+              <div class="card-tools">
+                <span class="badge badge-primary" th:text="${newsList != null ? newsList.size() : 0} + ' bài viết'"></span>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div th:if="${newsList == null or #lists.isEmpty(newsList)}" class="text-center py-5">
+                <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Chưa có tin tức nào</p>
+              </div>
+              <div th:if="${newsList != null and not #lists.isEmpty(newsList)}">
+                <table class="table table-hover table-striped mb-0">
+                  <thead>
+                    <tr>
+                      <th style="width:60px">Ảnh</th>
+                      <th>Tiêu đề</th>
+                      <th style="width:120px">Bút danh</th>
+                      <th style="width:100px">Trạng thái</th>
+                      <th style="width:80px">Nổi bật</th>
+                      <th style="width:140px">Ngày tạo</th>
+                      <th style="width:160px">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="article : ${newsList}">
+                      <td>
+                        <img th:if="${article.thumbnail != null}"
+                             th:src="${article.thumbnail}"
+                             style="width:50px;height:35px;object-fit:cover;border-radius:4px;" />
+                        <span th:if="${article.thumbnail == null}" class="text-muted">—</span>
+                      </td>
+                      <td>
+                        <strong th:text="${article.title}"></strong>
+                        <br/>
+                        <small class="text-muted" th:if="${article.shortContent != null}"
+                               th:text="${#strings.abbreviate(article.shortContent, 80)}"></small>
+                      </td>
+                      <td>
+                        <span th:if="${article.authorByline != null}" th:text="${article.authorByline}" class="text-info"></span>
+                        <span th:if="${article.authorByline == null}" class="text-muted">—</span>
+                      </td>
+                      <td>
+                        <span th:if="${article.status.name() == 'PUBLISHED'}" class="badge badge-success">PUBLISHED</span>
+                        <span th:if="${article.status.name() == 'DRAFT'}" class="badge badge-secondary">DRAFT</span>
+                      </td>
+                      <td class="text-center">
+                        <form th:action="@{/admin/competitions/{id}/news/{newsId}/toggle-featured(id=${competition.id},newsId=${article.id})}"
+                              method="post" style="display:inline">
+                          <button type="submit" class="btn btn-link p-0" title="Toggle nổi bật">
+                            <i th:if="${article.isFeatured}" class="fas fa-star text-warning fa-lg"></i>
+                            <i th:if="${!article.isFeatured}" class="far fa-star text-muted fa-lg"></i>
+                          </button>
+                        </form>
+                      </td>
+                      <td>
+                        <small th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
+                      </td>
+                      <td>
+                        <a th:href="@{/admin/competitions/{id}/news/{newsId}/edit(id=${competition.id},newsId=${article.id})}"
+                           class="btn btn-xs btn-info">
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        <form th:if="${article.status.name() == 'DRAFT'}"
+                              th:action="@{/admin/competitions/{id}/news/{newsId}/publish(id=${competition.id},newsId=${article.id})}"
+                              method="post" style="display:inline">
+                          <button type="submit" class="btn btn-xs btn-success" title="Xuất bản">
+                            <i class="fas fa-check"></i>
+                          </button>
+                        </form>
+                        <form th:if="${article.status.name() == 'PUBLISHED'}"
+                              th:action="@{/admin/competitions/{id}/news/{newsId}/delete(id=${competition.id},newsId=${article.id})}"
+                              method="post" style="display:inline"
+                              onsubmit="return confirm('Chuyển tin tức này về DRAFT?')">
+                          <button type="submit" class="btn btn-xs btn-warning" title="Về DRAFT">
+                            <i class="fas fa-undo"></i>
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

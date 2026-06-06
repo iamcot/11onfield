@@ -17,6 +17,7 @@ public class AuthenticationService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CompetitionService competitionService;
 
     @Transactional
     public User createUser(User user) {
@@ -25,6 +26,9 @@ public class AuthenticationService {
 
         User savedUser = userRepository.save(user);
         log.info("Created user with phone: {} and role: {}", savedUser.getPhone(), savedUser.getRole());
+
+        // Auto-enroll in Season 1 competition if eligible
+        competitionService.autoEnrollInSeason1IfEligible(savedUser);
 
         return savedUser;
     }

@@ -54,6 +54,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/events/{id}").permitAll() // Allow anonymous access to event details
                 .requestMatchers("/api/events/{id}/participants").permitAll() // Allow anonymous access to participants list
                 .requestMatchers("/api/events/user/{userid}/joined").permitAll() // Allow anonymous access to user's joined events
+                .requestMatchers("/api/competitions/current").permitAll()
+                .requestMatchers("/api/competitions/{id}").permitAll()
+                .requestMatchers("/api/competitions/{id}/leaderboard").permitAll()
+                .requestMatchers("/api/competitions/{id}/news").permitAll()
+                .requestMatchers("/api/competitions/{id}/news/{newsId}").permitAll()
+                .requestMatchers("/api/competitions/{id}/sponsors").permitAll()
+                .requestMatchers("/api/competitions/{id}/stages").permitAll()
                 .anyRequest().authenticated()
             )
             .logout(logout -> logout.disable())

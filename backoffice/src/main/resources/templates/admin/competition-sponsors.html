@@ -1,0 +1,112 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{})}"
+>
+  <head><title>Quản lý nhà tài trợ</title></head>
+  <body>
+    <div th:fragment="content">
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h4 class="mb-0" th:text="${competition.title}"></h4>
+              <p class="text-muted mb-0" th:text="${competition.status}"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="btn-group" role="group">
+              <a th:href="@{/admin/competitions}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Quay lại</a>
+              <a th:href="@{/admin/competitions/{id}/participants(id=${competition.id})}" class="btn btn-info"><i class="fas fa-users"></i> Thí sinh</a>
+              <a th:href="@{/admin/competitions/{id}/stages(id=${competition.id})}" class="btn btn-primary"><i class="fas fa-tasks"></i> Vòng thi</a>
+              <a th:href="@{/admin/competitions/{id}/news(id=${competition.id})}" class="btn btn-success"><i class="fas fa-newspaper"></i> Tin tức</a>
+            </div>
+            <a th:href="@{/admin/competitions/{id}/sponsors/new(id=${competition.id})}" class="btn btn-warning">
+              <i class="fas fa-plus"></i> Thêm nhà tài trợ
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">Danh sách nhà tài trợ</h3></div>
+            <div class="card-body p-0">
+              <div th:if="${sponsors == null or #lists.isEmpty(sponsors)}" class="text-center py-5">
+                <i class="fas fa-handshake fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Chưa có nhà tài trợ nào</p>
+              </div>
+              <table th:if="${sponsors != null and not #lists.isEmpty(sponsors)}" class="table table-hover table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th style="width:70px">Logo</th>
+                    <th style="width:70px">Banner</th>
+                    <th>Tên</th>
+                    <th style="width:180px">Vị trí</th>
+                    <th style="width:60px">Thứ tự</th>
+                    <th style="width:80px">Trạng thái</th>
+                    <th style="width:140px">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="sp : ${sponsors}">
+                    <td>
+                      <img th:if="${sp.logoUrl != null}" th:src="${sp.logoUrl}"
+                           style="width:50px;height:35px;object-fit:contain;" />
+                      <span th:if="${sp.logoUrl == null}" class="text-muted">—</span>
+                    </td>
+                    <td>
+                      <img th:if="${sp.bannerImageUrl != null}" th:src="${sp.bannerImageUrl}"
+                           style="width:60px;height:35px;object-fit:cover;border-radius:3px;" />
+                      <span th:if="${sp.bannerImageUrl == null}" class="text-muted">—</span>
+                    </td>
+                    <td>
+                      <strong th:text="${sp.name}"></strong><br/>
+                      <small th:if="${sp.websiteUrl != null}" class="text-muted" th:text="${sp.websiteUrl}"></small>
+                    </td>
+                    <td>
+                      <span th:if="${sp.adPosition == 'SIDEBAR_FEATURED'}" class="badge badge-primary">[1] Sidebar nổi bật</span>
+                      <span th:if="${sp.adPosition == 'BANNER_BELOW_STAGES'}" class="badge badge-info">[2] Banner lịch trình</span>
+                      <span th:if="${sp.adPosition == 'INLINE_NEWS'}" class="badge badge-secondary">[3] Xen kẽ tin tức</span>
+                      <span th:if="${sp.adPosition == 'SIDEBAR_AD'}" class="badge badge-warning">[4] Sidebar quảng cáo</span>
+                      <span th:if="${sp.adPosition == 'BANNER_BOTTOM'}" class="badge badge-dark">[5] Banner cuối trang</span>
+                      <span th:if="${sp.adPosition == null}" class="text-muted">—</span>
+                    </td>
+                    <td class="text-center" th:text="${sp.displayOrder}"></td>
+                    <td class="text-center">
+                      <form th:action="@{/admin/competitions/{id}/sponsors/{sId}/toggle(id=${competition.id},sId=${sp.id})}"
+                            method="post" style="display:inline">
+                        <button type="submit" class="btn btn-xs" th:classappend="${sp.isActive ? 'btn-success' : 'btn-secondary'}"
+                                th:text="${sp.isActive ? 'Active' : 'Inactive'}"></button>
+                      </form>
+                    </td>
+                    <td>
+                      <a th:href="@{/admin/competitions/{id}/sponsors/{sId}/edit(id=${competition.id},sId=${sp.id})}"
+                         class="btn btn-xs btn-info"><i class="fas fa-edit"></i></a>
+                      <form th:action="@{/admin/competitions/{id}/sponsors/{sId}/delete(id=${competition.id},sId=${sp.id})}"
+                            method="post" style="display:inline"
+                            onsubmit="return confirm('Xóa nhà tài trợ này?')">
+                        <button type="submit" class="btn btn-xs btn-danger"><i class="fas fa-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

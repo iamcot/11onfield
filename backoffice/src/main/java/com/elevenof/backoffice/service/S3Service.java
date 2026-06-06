@@ -241,6 +241,56 @@ public class S3Service {
         }
     }
 
+    public String uploadNewsImage(MultipartFile file, Long newsId) throws IOException {
+        if (!isValidImageFile(file)) {
+            throw new IllegalArgumentException("Invalid image file");
+        }
+        String extension = getFileExtension(file.getOriginalFilename());
+        String fileName = String.format("news_%s_%d_%s.%s",
+                newsId, System.currentTimeMillis(),
+                UUID.randomUUID().toString().substring(0, 8), extension);
+        String key = eventImageFolder + fileName;
+        try {
+            byte[] compressed = compressImage(file, 1920, 1080, 0.85f);
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(compressed.length);
+            metadata.setContentType("image/jpeg");
+            amazonS3.putObject(new PutObjectRequest(bucketName, key,
+                    new ByteArrayInputStream(compressed), metadata));
+            URL url = amazonS3.getUrl(bucketName, key);
+            log.info("Uploaded news image for news {} to S3: {}", newsId, url);
+            return url.toString();
+        } catch (Exception e) {
+            log.error("Failed to upload news image for news {}", newsId, e);
+            throw new IOException("Failed to upload news image: " + e.getMessage(), e);
+        }
+    }
+
+    public String uploadSponsorImage(MultipartFile file, Long sponsorId) throws IOException {
+        if (!isValidImageFile(file)) {
+            throw new IllegalArgumentException("Invalid image file");
+        }
+        String extension = getFileExtension(file.getOriginalFilename());
+        String fileName = String.format("sponsor_%s_%d_%s.%s",
+                sponsorId, System.currentTimeMillis(),
+                UUID.randomUUID().toString().substring(0, 8), extension);
+        String key = eventImageFolder + fileName;
+        try {
+            byte[] compressed = compressImage(file, 1920, 1080, 0.85f);
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(compressed.length);
+            metadata.setContentType("image/jpeg");
+            amazonS3.putObject(new PutObjectRequest(bucketName, key,
+                    new ByteArrayInputStream(compressed), metadata));
+            URL url = amazonS3.getUrl(bucketName, key);
+            log.info("Uploaded sponsor image for sponsor {} to S3: {}", sponsorId, url);
+            return url.toString();
+        } catch (Exception e) {
+            log.error("Failed to upload sponsor image for sponsor {}", sponsorId, e);
+            throw new IOException("Failed to upload sponsor image: " + e.getMessage(), e);
+        }
+    }
+
     /**
      * Delete event image from S3 using the full URL
      *
@@ -275,10 +325,13 @@ public class S3Service {
      * @throws IOException If compression fails
      */
     private byte[] compressImage(MultipartFile file, int maxWidth, int maxHeight, float quality) throws IOException {
+        byte[] fileBytes = file.getBytes();
         // Read original image
-        BufferedImage originalImage = ImageIO.read(file.getInputStream());
+        BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(fileBytes));
         if (originalImage == null) {
-            throw new IOException("Failed to read image file");
+            // Format not supported by ImageIO (e.g. WEBP) — return raw bytes as-is
+            log.warn("ImageIO could not decode image (possibly WEBP), uploading raw bytes");
+            return fileBytes;
         }
 
         // Calculate new dimensions while maintaining aspect ratio

@@ -1,0 +1,169 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{})}"
+>
+  <head>
+    <title>Chỉnh sửa vòng thi</title>
+  </head>
+  <body>
+    <div th:fragment="content">
+      <!-- Competition & Stage Info -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h4 class="mb-1" th:text="${competition.title}">11 of - Mùa 1</h4>
+              <p class="text-muted mb-0">
+                <strong>Vòng <span th:text="${stage.stageNumber}">1</span></strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="row mb-3">
+        <div class="col-12">
+          <a th:href="@{/admin/competitions/{id}/stages(id=${competition.id})}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+          </a>
+        </div>
+      </div>
+
+      <!-- Edit Form -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Thông tin vòng thi</h3>
+            </div>
+            <div class="card-body">
+              <form th:action="@{/admin/competitions/{compId}/stages/{stageNum}/edit(compId=${competition.id},stageNum=${stage.stageNumber})}" method="post">
+                <div class="form-group">
+                  <label for="title">Tên vòng thi <span class="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="title"
+                    name="title"
+                    th:value="${stage.title}"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="description">Mô tả</label>
+                  <textarea
+                    class="form-control"
+                    id="description"
+                    name="description"
+                    rows="3"
+                    th:text="${stage.description}"
+                  ></textarea>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="stageDate">Ngày thi <span class="text-danger">*</span></label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="stageDate"
+                        name="stageDate"
+                        th:value="${stage.stageDate}"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="stageTime">Giờ thi</label>
+                      <input
+                        type="time"
+                        class="form-control"
+                        id="stageTime"
+                        name="stageTime"
+                        th:value="${stage.stageTime}"
+                      />
+                      <small class="form-text text-muted">Ví dụ: 14:00</small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="custom-control custom-switch">
+                    <input
+                      type="checkbox"
+                      class="custom-control-input"
+                      id="isPublicScoring"
+                      name="isPublicScoring"
+                      th:checked="${stage.isPublicScoring}"
+                    />
+                    <label class="custom-control-label" for="isPublicScoring">
+                      Công khai điểm số
+                    </label>
+                    <small class="form-text text-muted">
+                      Nếu bật, điểm số vòng này sẽ hiển thị trên bảng xếp hạng công khai.
+                      Nếu tắt, chỉ admin có thể xem điểm (dùng cho vòng đào tạo nội bộ).
+                    </small>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Lưu thay đổi
+                  </button>
+                  <a th:href="@{/admin/competitions/{id}/stages(id=${competition.id})}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Hủy
+                  </a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info boxes -->
+      <div class="row mt-3">
+        <div class="col-md-4">
+          <div class="info-box">
+            <span class="info-box-icon bg-info">
+              <i class="fas fa-hashtag"></i>
+            </span>
+            <div class="info-box-content">
+              <span class="info-box-text">Số vòng</span>
+              <span class="info-box-number" th:text="${stage.stageNumber}">1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="info-box">
+            <span class="info-box-icon bg-success" th:classappend="${stage.status.name() == 'UPCOMING' ? 'bg-secondary' : (stage.status.name() == 'LIVE' ? 'bg-success' : 'bg-info')}">
+              <i class="fas fa-flag"></i>
+            </span>
+            <div class="info-box-content">
+              <span class="info-box-text">Trạng thái</span>
+              <span class="info-box-number" th:text="${stage.status}">UPCOMING</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="info-box">
+            <span class="info-box-icon bg-warning">
+              <i class="fas fa-layer-group"></i>
+            </span>
+            <div class="info-box-content">
+              <span class="info-box-text">Loại vòng</span>
+              <span class="info-box-number" style="font-size: 16px;" th:text="${stage.stageType.name() == 'REGIONAL_AUDITION' ? 'Vòng tuyển trạch' : (stage.stageType.name() == 'TRAINING_EPISODE' ? 'Đào tạo' : 'Chung kết')}">Vòng tuyển trạch</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
