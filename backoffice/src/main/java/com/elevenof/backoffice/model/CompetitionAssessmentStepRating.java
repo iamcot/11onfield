@@ -31,7 +31,7 @@ public class CompetitionAssessmentStepRating {
     private Integer level;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20, columnDefinition = "varchar(20)")
+    @Column(nullable = false, length = 20)
     private ThresholdType thresholdType;
 
     @Column(precision = 10, scale = 2)
