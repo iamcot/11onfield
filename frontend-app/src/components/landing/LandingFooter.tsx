@@ -4,21 +4,6 @@ import Image from "next/image";
 import { ChevronRightIcon } from "../icons/nav-icons";
 
 export default function LandingFooter() {
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const quickLinks = [
-    { label: "Trang chủ", id: "home" },
-    { label: "Về chúng tôi", id: "why-choose" },
-    { label: "Quy trình tuyển chọn", id: "selection-process" },
-    { label: "Chương trình", id: "training-program" },
-    { label: "Đăng ký", href: "/auth/register" },
-  ];
-
   const policyLinks = [
     { label: "Điều khoản tham gia", href: "/terms" },
     { label: "Chính sách bảo mật thông tin", href: "/privacy" },
@@ -35,7 +20,7 @@ export default function LandingFooter() {
       ></div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr_1fr_1fr_0.8fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-6">
           {/* Column 1: Logo */}
           <div className="flex flex-col items-center md:items-start relative md:pr-8">
             <Image
@@ -43,50 +28,8 @@ export default function LandingFooter() {
               alt="11 on Field"
               width={320}
               height={100}
-              className="mb-4 w-48 md:w-80"
+              className="mb-4 w-36 md:w-52"
             />
-            {/* Gold divider line on desktop */}
-            <div
-              className="hidden md:block absolute right-0 top-8 bottom-8"
-              style={{ width: "0.5px", backgroundColor: "rgb(207, 159, 61)" }}
-            ></div>
-          </div>
-
-          {/* Column 2: Quick Links */}
-          <div className="relative md:px-3">
-            <h4
-              className="font-bold text-base mb-4 uppercase"
-              style={{ color: "rgb(207, 159, 61)" }}
-            >
-              Liên kết nhanh
-            </h4>
-            <ul className="space-y-2">
-              {quickLinks.map((link, index) => (
-                <li key={index}>
-                  {link.href ? (
-                    <a
-                      href={link.href}
-                      className="text-green-100 hover:text-white flex items-center gap-2 transition-colors text-sm"
-                    >
-                      <span style={{ color: "rgb(207, 159, 61)" }}>
-                        <ChevronRightIcon className="w-3 h-3" />
-                      </span>
-                      {link.label}
-                    </a>
-                  ) : (
-                    <button
-                      onClick={() => scrollToSection(link.id!)}
-                      className="text-green-100 hover:text-white flex items-center gap-2 transition-colors text-sm"
-                    >
-                      <span style={{ color: "rgb(207, 159, 61)" }}>
-                        <ChevronRightIcon className="w-3 h-3" />
-                      </span>
-                      {link.label}
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
             {/* Gold divider line on desktop */}
             <div
               className="hidden md:block absolute right-0 top-8 bottom-8"

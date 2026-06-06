@@ -4,23 +4,32 @@ import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function StickyNav() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+  const isHomePage = pathname === "/";
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
-    handleScroll(); // Check on mount
+    handleScroll();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToSection = (sectionId: string) => {
+    if (!isHomePage) {
+      router.push(`/#${sectionId}`);
+      setIsMobileMenuOpen(false);
+      return;
+    }
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
@@ -31,9 +40,9 @@ export default function StickyNav() {
   const navLinks = [
     { label: "Trang chủ", id: "home" },
     { label: "Đối tượng", id: "recruitment-info" },
-    { label: "Lý do", id: "why-choose" },
-    { label: "Quy trình", id: "selection-process" },
-    { label: "Chương trình", id: "training-program" },
+    { label: "Quyền lợi", id: "why-choose" },
+    { label: "Tuyển chọn", id: "selection-process" },
+    { label: "Huấn luyện", id: "training-program" },
   ];
 
   return (
@@ -46,15 +55,16 @@ export default function StickyNav() {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex-shrink-0">
+            <Link href="/">
             <Image
               src="/images/logo-color-full.png"
               alt="11 on Field"
               width={150}
               height={50}
               className="cursor-pointer"
-              onClick={() => scrollToSection("home")}
               priority
             />
+            </Link>
           </div>
 
           {/* Desktop navigation */}
