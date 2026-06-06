@@ -53,17 +53,27 @@ function SponsorBanner({ sponsor }: { sponsor: CompetitionSponsor }) {
   );
 }
 
-function CountdownBadge({ stages }: { stages: CompetitionDetail["stages"] }) {
-  const now = Date.now();
-  // Find stage that is ACTIVE by DB or whose date has passed (most recent)
-  const activeStage =
-    stages.find((s) => s.status === "ACTIVE") ??
-    [...stages]
-      .filter((s) => new Date(s.stageDate).getTime() <= now)
-      .sort((a, b) => new Date(b.stageDate).getTime() - new Date(a.stageDate).getTime())[0] ??
-    null;
+const COMPETITION_STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  DRAFT:            { label: "Nháp",                className: "bg-white/10" },
+  REGISTRATION_OPEN:{ label: "Đang mở đăng ký",    className: "bg-blue-500/30 border border-blue-400" },
+  REGIONAL_AUDITION:{ label: "Vòng tuyển trạch",   className: "bg-yellow-500/30 border border-yellow-400" },
+  SELECTING_TOP30:  { label: "Chọn TOP 30",         className: "bg-orange-500/30 border border-orange-400" },
+  TRAINING_PHASE:   { label: "Giai đoạn huấn luyện",className: "bg-purple-500/30 border border-purple-400" },
+  FINAL_PHASE:      { label: "Chung kết",           className: "bg-red-500/30 border border-red-400" },
+  COMPLETED:        { label: "Đã hoàn thành",       className: "bg-white/10 border border-white/30" },
+};
 
-  const nextStage = !activeStage
+function CountdownBadge({ stages, competitionStatus }: { stages: CompetitionDetail["stages"]; competitionStatus: string }) {
+  const now = Date.now();
+
+  // For registration/draft/completed — show status directly, skip stage logic
+  const statusOverride = ["REGISTRATION_OPEN", "DRAFT", "COMPLETED"].includes(competitionStatus);
+
+  const activeStage = statusOverride
+    ? null
+    : stages.find((s) => s.status === "ACTIVE") ?? null;
+
+  const nextStage = (!activeStage && !statusOverride)
     ? [...stages]
         .filter((s) => s.status === "UPCOMING" && new Date(s.stageDate).getTime() > now)
         .sort((a, b) => new Date(a.stageDate).getTime() - new Date(b.stageDate).getTime())[0]
@@ -101,6 +111,14 @@ function CountdownBadge({ stages }: { stages: CompetitionDetail["stages"] }) {
       <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded">
         <span className="font-mono font-bold text-lg">{countdown}</span>
         <span className="text-white/80">đến {nextStage.title}</span>
+      </div>
+    );
+  }
+  const statusInfo = COMPETITION_STATUS_LABELS[competitionStatus];
+  if (statusInfo) {
+    return (
+      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded ${statusInfo.className}`}>
+        <span className="font-semibold">{statusInfo.label}</span>
       </div>
     );
   }
@@ -218,7 +236,7 @@ export default function CompetitionDetailPage() {
             <div className="bg-white/20 px-4 py-2 rounded">
               <span className="font-semibold">{competition.stages.length} giai đoạn</span>
             </div>
-            <CountdownBadge stages={competition.stages} />
+            <CountdownBadge stages={competition.stages} competitionStatus={competition.status} />
           </div>
         </div>
       </div>
