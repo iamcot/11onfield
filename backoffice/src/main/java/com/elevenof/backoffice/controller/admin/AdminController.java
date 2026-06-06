@@ -66,6 +66,7 @@ public class AdminController {
     private final com.elevenof.backoffice.repository.NotificationScenarioRepository notificationScenarioRepository;
     private final com.elevenof.backoffice.service.NotificationTemplateService notificationTemplateService;
     private final com.elevenof.backoffice.repository.CompetitionRepository competitionRepository;
+    private final com.elevenof.backoffice.repository.CompetitionParticipantRepository competitionParticipantRepository;
     private final com.elevenof.backoffice.repository.CompetitionNewsRepository competitionNewsRepository;
     private final com.elevenof.backoffice.repository.CompetitionSponsorRepository competitionSponsorRepository;
     private final com.elevenof.backoffice.repository.CompetitionStageRepository competitionStageRepository;
@@ -238,8 +239,17 @@ public class AdminController {
         com.elevenof.backoffice.model.Competition competition = competitionRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Competition not found"));
 
+        long participantCount = competitionParticipantRepository.countByCompetitionId(id);
+        long stageCount = competitionStageRepository.countByCompetitionId(id);
+        long newsCount = competitionNewsRepository.countByCompetitionId(id);
+        long sponsorCount = competitionSponsorRepository.countByCompetitionId(id);
+
         model.addAttribute("title", "Chỉnh sửa cuộc thi - " + competition.getTitle());
         model.addAttribute("competition", competition);
+        model.addAttribute("participantCount", participantCount);
+        model.addAttribute("stageCount", stageCount);
+        model.addAttribute("newsCount", newsCount);
+        model.addAttribute("sponsorCount", sponsorCount);
 
         return "admin/competition-edit";
     }

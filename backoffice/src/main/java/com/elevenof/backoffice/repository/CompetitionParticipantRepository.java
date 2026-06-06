@@ -30,6 +30,8 @@ public interface CompetitionParticipantRepository extends JpaRepository<Competit
      */
     long countByCompetitionIdAndStatus(Long competitionId, ParticipantStatus status);
 
+    long countByCompetitionId(Long competitionId);
+
     /**
      * Find participants by competition ID and status
      */

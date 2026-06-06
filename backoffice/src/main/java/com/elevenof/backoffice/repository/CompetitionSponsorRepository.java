@@ -19,4 +19,6 @@ public interface CompetitionSponsorRepository extends JpaRepository<CompetitionS
      * Find all sponsors for a competition, ordered by display order
      */
     List<CompetitionSponsor> findByCompetitionIdOrderByDisplayOrderAsc(Long competitionId);
+
+    long countByCompetitionId(Long competitionId);
 }

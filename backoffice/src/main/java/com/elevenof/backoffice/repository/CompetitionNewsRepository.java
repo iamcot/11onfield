@@ -25,4 +25,6 @@ public interface CompetitionNewsRepository extends JpaRepository<CompetitionNews
     List<CompetitionNews> findByCompetitionIdOrderByCreatedAtDesc(@Param("competitionId") Long competitionId);
 
     List<CompetitionNews> findByCompetitionIdAndIsFeaturedTrueOrderByPublishedAtDesc(Long competitionId);
+
+    long countByCompetitionId(Long competitionId);
 }

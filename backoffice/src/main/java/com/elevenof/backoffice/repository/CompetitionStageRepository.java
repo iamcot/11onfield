@@ -37,4 +37,6 @@ public interface CompetitionStageRepository extends JpaRepository<CompetitionSta
      * Find stages by competition ID and stage type, ordered by stage number
      */
     List<CompetitionStage> findByCompetitionIdAndStageTypeOrderByStageNumberAsc(Long competitionId, StageType stageType);
+
+    long countByCompetitionId(Long competitionId);
 }
