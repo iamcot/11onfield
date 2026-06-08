@@ -80,7 +80,8 @@ public class SecurityConfig {
             .securityMatcher("/admin/**")
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/login", "/admin/css/**", "/admin/js/**", "/admin/img/**").permitAll()
-                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_USER")
+                .requestMatchers("/admin/users", "/admin/users/**").hasRole("SUPER_USER")
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_USER", "EDITOR")
             )
             .formLogin(form -> form
                 .loginPage("/admin/login")
@@ -102,6 +103,12 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    request.getSession().setAttribute("errorMessage", "Bạn không có quyền truy cập trang này.");
+                    response.sendRedirect("/admin/dashboard");
+                })
             )
             .csrf(csrf -> csrf.disable()); // TODO: Enable CSRF later with proper token handling
 

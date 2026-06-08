@@ -6,6 +6,14 @@
 </head>
 <body>
 <div th:fragment="content">
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+    </div>
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -30,7 +38,8 @@
                                 window.location.href = '/admin/users?showAllUsers=' + checkbox.checked + '&page=0&size=' + pageSize;
                             }
                         </script>
-                        <button type="button" class="btn btn-primary btn-sm">
+                        <button type="button" class="btn btn-primary btn-sm"
+                                onclick="window.location='/admin/users/new'">
                             <i class="fas fa-plus"></i> Thêm tài khoản
                         </button>
                     </div>
@@ -75,18 +84,27 @@
                             </td>
                             <td th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm')}">01/03/2024</td>
                             <td>
-                                <button class="btn btn-sm btn-info" th:onclick="'viewUser(' + ${user.id} + ')'">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-warning" th:onclick="'editUser(' + ${user.id} + ')'">
+                                <a th:href="@{/admin/users/{id}/edit(id=${user.id})}" class="btn btn-sm btn-warning">
                                     <i class="fas fa-edit"></i>
-                                </button>
-                                <button th:if="${user.enabled}" class="btn btn-sm btn-danger" th:onclick="'lockUser(' + ${user.id} + ')'">
-                                    <i class="fas fa-ban"></i>
-                                </button>
-                                <button th:if="${!user.enabled}" class="btn btn-sm btn-success" th:onclick="'unlockUser(' + ${user.id} + ')'">
-                                    <i class="fas fa-unlock"></i>
-                                </button>
+                                </a>
+                                <form th:if="${user.accountNonLocked}"
+                                      th:action="@{/admin/users/{id}/lock(id=${user.id})}"
+                                      method="post" style="display:inline"
+                                      onsubmit="return confirm('Khóa tài khoản này?')">
+                                    <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-ban"></i></button>
+                                </form>
+                                <form th:if="${!user.accountNonLocked}"
+                                      th:action="@{/admin/users/{id}/unlock(id=${user.id})}"
+                                      method="post" style="display:inline">
+                                    <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-unlock"></i></button>
+                                </form>
+                                <form th:action="@{/admin/users/{id}/reset-password(id=${user.id})}"
+                                      method="post" style="display:inline"
+                                      onsubmit="return confirm('Reset mật khẩu về 123456?')">
+                                    <button type="submit" class="btn btn-sm btn-secondary" title="Reset mật khẩu">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         </tbody>

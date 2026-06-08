@@ -62,6 +62,10 @@ public class AdminController {
     private final PlayerAchievementRepository playerAchievementRepository;
     private final PlayerHighlightRepository playerHighlightRepository;
     private final PlayerSocialRepository playerSocialRepository;
+    private final com.elevenof.backoffice.service.AuthenticationService authenticationService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final com.elevenof.backoffice.service.CompetitionAssessmentResultService assessmentResultService;
+    private final com.elevenof.backoffice.repository.CompetitionAssessmentResultRepository assessmentResultRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final com.elevenof.backoffice.repository.NotificationScenarioRepository notificationScenarioRepository;
     private final com.elevenof.backoffice.service.NotificationTemplateService notificationTemplateService;
@@ -81,7 +85,12 @@ public class AdminController {
      * Admin dashboard homepage
      */
     @GetMapping({"/", "/dashboard"})
-    public String dashboard(Model model) {
+    public String dashboard(Model model, jakarta.servlet.http.HttpSession session) {
+        String errorMsg = (String) session.getAttribute("errorMessage");
+        if (errorMsg != null) {
+            model.addAttribute("errorMessage", errorMsg);
+            session.removeAttribute("errorMessage");
+        }
         // Count statistics from database
         long totalPlayers = playerRepository.count();
         long totalUsers = userRepository.count();
@@ -113,10 +122,16 @@ public class AdminController {
     @GetMapping("/competitions")
     public String competitions(Model model) {
         List<com.elevenof.backoffice.model.Competition> competitions =
-            competitionRepository.findAllWithParticipants();
+            competitionRepository.findAll();
+
+        java.util.Map<Long, Long> counts = new java.util.HashMap<>();
+        for (com.elevenof.backoffice.model.Competition c : competitions) {
+            counts.put(c.getId(), competitionParticipantRepository.countByCompetitionId(c.getId()));
+        }
 
         model.addAttribute("title", "Quản lý cuộc thi");
         model.addAttribute("competitions", competitions);
+        model.addAttribute("competitionParticipantCounts", counts);
         model.addAttribute("frontendUrl", frontendUrl);
 
         return "admin/competitions";
@@ -834,9 +849,97 @@ public class AdminController {
         return "admin/users";
     }
 
-    /**
-     * Show player edit form
-     */
+    @GetMapping("/users/new")
+    public String userNew(Model model) {
+        model.addAttribute("title", "Tạo tài khoản mới");
+        model.addAttribute("editUser", null);
+        model.addAttribute("allRoles", User.Role.values());
+        return "admin/user-edit";
+    }
+
+    @PostMapping("/users/new")
+    public String userCreate(
+            @RequestParam String phone,
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String email,
+            @RequestParam String role,
+            @RequestParam String password,
+            RedirectAttributes redirectAttributes) {
+        try {
+            if (userRepository.existsByPhone(phone)) {
+                redirectAttributes.addFlashAttribute("error", "Số điện thoại đã tồn tại");
+                return "redirect:/admin/users/new";
+            }
+            String userid = "u" + System.currentTimeMillis() + (int)(Math.random() * 1000);
+            if (userid.length() > 16) userid = userid.substring(0, 16);
+            User newUser = User.builder()
+                .phone(phone).userid(userid).fullName(fullName).email(email)
+                .password(password).role(User.Role.valueOf(role))
+                .enabled(true).accountNonExpired(true).accountNonLocked(true).credentialsNonExpired(true)
+                .build();
+            authenticationService.createUser(newUser);
+            redirectAttributes.addFlashAttribute("success", "Đã tạo tài khoản thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
+    @GetMapping("/users/{id}/edit")
+    public String userEdit(@PathVariable Long id, Model model) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        model.addAttribute("title", "Chỉnh sửa tài khoản");
+        model.addAttribute("editUser", user);
+        model.addAttribute("allRoles", User.Role.values());
+        return "admin/user-edit";
+    }
+
+    @PostMapping("/users/{id}/edit")
+    public String userUpdate(
+            @PathVariable Long id,
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String email,
+            @RequestParam String role,
+            @RequestParam(defaultValue = "false") boolean enabled,
+            RedirectAttributes redirectAttributes) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setFullName(fullName);
+        user.setEmail(email);
+        user.setRole(User.Role.valueOf(role));
+        user.setEnabled(enabled);
+        userRepository.save(user);
+        redirectAttributes.addFlashAttribute("success", "Đã cập nhật tài khoản!");
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/users/{id}/lock")
+    public String userLock(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setAccountNonLocked(false);
+        userRepository.save(user);
+        redirectAttributes.addFlashAttribute("success", "Đã khóa tài khoản!");
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/users/{id}/unlock")
+    public String userUnlock(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setAccountNonLocked(true);
+        user.setEnabled(true);
+        userRepository.save(user);
+        redirectAttributes.addFlashAttribute("success", "Đã mở khóa tài khoản!");
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/users/{id}/reset-password")
+    public String userResetPassword(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setPassword("123456");
+        // encode manually
+        user.setPassword(passwordEncoder.encode("123456"));
+        redirectAttributes.addFlashAttribute("success", "Đã reset mật khẩu về: 123456");
+        return "redirect:/admin/users";
+    }
     @GetMapping("/players/edit/{id}")
     public String editPlayer(
             @PathVariable Long id,
@@ -2361,5 +2464,208 @@ public class AdminController {
         } catch (Exception e) {
             return java.util.Map.of("error", e.getMessage());
         }
+    }
+
+    // ==================== FIELD SCORING ====================
+
+    @GetMapping("/field-scoring")
+    public String fieldScoring(
+            @RequestParam(required = false) Long stageId,
+            @RequestParam(required = false) Long dayId,
+            @RequestParam(required = false) Long stepId,
+            @RequestParam(required = false) String sbd,
+            @RequestParam(required = false) Long participantId,
+            @RequestParam(defaultValue = "0") int historyPage,
+            Model model) {
+
+        // Find current active competition
+        java.util.List<com.elevenof.backoffice.model.Competition> activeComps =
+            competitionRepository.findByStatusNotInOrderBySeasonDesc(
+                java.util.List.of(
+                    com.elevenof.backoffice.model.CompetitionStatus.DRAFT,
+                    com.elevenof.backoffice.model.CompetitionStatus.COMPLETED
+                )
+            );
+
+        com.elevenof.backoffice.model.Competition competition = activeComps.isEmpty() ? null : activeComps.get(0);
+        model.addAttribute("competition", competition);
+
+        if (competition == null) {
+            model.addAttribute("title", "Nhập điểm hiện trường");
+            return "admin/field-scoring";
+        }
+
+        // Find LIVE stage
+        com.elevenof.backoffice.model.CompetitionStage liveStage = null;
+        if (stageId != null) {
+            liveStage = competitionStageRepository.findById(stageId).orElse(null);
+        } else {
+            java.util.List<com.elevenof.backoffice.model.CompetitionStage> stages =
+                competitionStageRepository.findByCompetitionIdOrderByStageNumberAsc(competition.getId());
+            for (com.elevenof.backoffice.model.CompetitionStage s : stages) {
+                if (s.getStatus() == com.elevenof.backoffice.model.StageStatus.LIVE) {
+                    liveStage = s;
+                    break;
+                }
+            }
+        }
+
+        model.addAttribute("title", "Nhập điểm hiện trường");
+        model.addAttribute("liveStage", liveStage);
+
+        if (liveStage == null) {
+            return "admin/field-scoring";
+        }
+
+        // Load assessment days for stage
+        java.util.List<com.elevenof.backoffice.model.CompetitionAssessmentDay> days =
+            assessmentDayRepository.findByStageIdOrderByDisplayOrderAsc(liveStage.getId());
+        model.addAttribute("days", days);
+
+        com.elevenof.backoffice.model.CompetitionAssessmentDay selectedDay = null;
+        if (dayId != null) {
+            for (com.elevenof.backoffice.model.CompetitionAssessmentDay d : days) {
+                if (d.getId().equals(dayId)) { selectedDay = d; break; }
+            }
+        }
+        model.addAttribute("selectedDay", selectedDay);
+
+        java.util.List<com.elevenof.backoffice.model.CompetitionAssessmentStep> steps = java.util.Collections.emptyList();
+        com.elevenof.backoffice.model.CompetitionAssessmentStep selectedStep = null;
+        if (selectedDay != null) {
+            steps = assessmentStepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(selectedDay.getId());
+            if (stepId != null) {
+                for (com.elevenof.backoffice.model.CompetitionAssessmentStep st : steps) {
+                    if (st.getId().equals(stepId)) { selectedStep = st; break; }
+                }
+            }
+        }
+        model.addAttribute("steps", steps);
+        model.addAttribute("selectedStep", selectedStep);
+
+        java.util.List<com.elevenof.backoffice.model.CompetitionAssessment> assessments = java.util.Collections.emptyList();
+        if (selectedStep != null) {
+            assessments = assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(selectedStep.getId());
+        }
+        model.addAttribute("assessments", assessments);
+
+        // Participant lookup by SBD
+        com.elevenof.backoffice.model.CompetitionParticipant selectedParticipant = null;
+        String resolvedSbd = sbd;
+        java.util.List<com.elevenof.backoffice.model.CompetitionParticipant> allParticipants =
+            competitionParticipantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competition.getId());
+
+        if (participantId != null) {
+            for (int i = 0; i < allParticipants.size(); i++) {
+                if (allParticipants.get(i).getId().equals(participantId)) {
+                    selectedParticipant = allParticipants.get(i);
+                    resolvedSbd = String.valueOf(i + 1);
+                    break;
+                }
+            }
+        } else if (sbd != null && !sbd.isBlank()) {
+            try {
+                int sbdNum = Integer.parseInt(sbd.trim());
+                if (sbdNum >= 1 && sbdNum <= allParticipants.size()) {
+                    selectedParticipant = allParticipants.get(sbdNum - 1);
+                } else {
+                    model.addAttribute("sbdError", "Không tìm thấy thí sinh với SBD: " + sbd);
+                }
+            } catch (NumberFormatException e) {
+                model.addAttribute("sbdError", "SBD không hợp lệ");
+            }
+        }
+        model.addAttribute("sbd", resolvedSbd);
+        model.addAttribute("selectedParticipant", selectedParticipant);
+
+        // Load existing scores if participant + step selected
+        if (selectedParticipant != null && !assessments.isEmpty()) {
+            java.util.Map<String, java.math.BigDecimal> scoreValues = new java.util.HashMap<>();
+            for (com.elevenof.backoffice.model.CompetitionAssessment a : assessments) {
+                java.util.List<com.elevenof.backoffice.model.CompetitionAssessmentResult> results =
+                    assessmentResultRepository.findByAssessmentIdAndParticipantIdOrderByAttemptNumberAsc(
+                        a.getId(), selectedParticipant.getId());
+                for (com.elevenof.backoffice.model.CompetitionAssessmentResult r : results) {
+                    scoreValues.put(a.getId() + "_" + r.getAttemptNumber(), r.getResultValue());
+                }
+            }
+            model.addAttribute("scoreValues", scoreValues);
+        }
+
+        // History: participants who already have scores for this step
+        if (selectedStep != null) {
+            int historySize = 10;
+            org.springframework.data.domain.Pageable historyPageable =
+                org.springframework.data.domain.PageRequest.of(historyPage, historySize);
+            java.util.List<Long> historyParticipantIds =
+                assessmentResultRepository.findDistinctParticipantIdsByStepId(selectedStep.getId(), historyPageable);
+            long historyTotal = assessmentResultRepository.countDistinctParticipantsByStepId(selectedStep.getId());
+            long totalAssessmentsInStep = assessments.stream()
+                .mapToLong(a -> a.getAttemptsCount())
+                .sum();
+
+            java.util.List<java.util.Map<String, Object>> historyList = new java.util.ArrayList<>();
+            for (int i = 0; i < historyParticipantIds.size(); i++) {
+                Long pid = historyParticipantIds.get(i);
+                com.elevenof.backoffice.model.CompetitionParticipant hp =
+                    allParticipants.stream().filter(p -> p.getId().equals(pid)).findFirst().orElse(null);
+                if (hp == null) continue;
+                int sbdPos = allParticipants.indexOf(hp) + 1;
+                long filled = assessmentResultRepository.countFilledAssessmentsByStepAndParticipant(selectedStep.getId(), pid);
+                java.util.Map<String, Object> entry = new java.util.HashMap<>();
+                entry.put("sbd", sbdPos);
+                entry.put("participantId", pid);
+                entry.put("fullName", hp.getUser().getFullName());
+                entry.put("filled", filled);
+                entry.put("total", totalAssessmentsInStep);
+                historyList.add(entry);
+            }
+            model.addAttribute("historyList", historyList);
+            model.addAttribute("historyPage", historyPage);
+            model.addAttribute("historyTotalPages", (int) Math.ceil((double) historyTotal / historySize));
+        }
+
+        return "admin/field-scoring";
+    }
+
+    @PostMapping("/field-scoring/save")
+    public String fieldScoringSave(
+            @RequestParam Long stageId,
+            @RequestParam Long dayId,
+            @RequestParam Long stepId,
+            @RequestParam Long participantId,
+            @RequestParam java.util.Map<String, String> allParams,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            java.util.List<com.elevenof.backoffice.model.CompetitionAssessment> assessments =
+                assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId);
+
+            for (com.elevenof.backoffice.model.CompetitionAssessment assessment : assessments) {
+                for (int attempt = 1; attempt <= assessment.getAttemptsCount(); attempt++) {
+                    String key = "score_" + assessment.getId() + "_" + attempt;
+                    String val = allParams.get(key);
+                    if (val != null && !val.isBlank()) {
+                        try {
+                            java.math.BigDecimal value = new java.math.BigDecimal(val.trim());
+                            assessmentResultService.recordAttemptResult(assessment.getId(), participantId, attempt, value, null);
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }
+                // Calculate final score for this assessment
+                try { assessmentResultService.calculateAssessmentFinalScore(assessment.getId(), participantId); }
+                catch (Exception ignored) {}
+            }
+
+            // Calculate step score
+            try { assessmentResultService.calculateStepScore(stepId, participantId); }
+            catch (Exception ignored) {}
+
+            redirectAttributes.addFlashAttribute("success", "Đã lưu kết quả thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi khi lưu: " + e.getMessage());
+        }
+
+        return "redirect:/admin/field-scoring?stageId=" + stageId + "&dayId=" + dayId + "&stepId=" + stepId + "&participantId=" + participantId;
     }
 }

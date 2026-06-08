@@ -1,6 +1,7 @@
 <!doctype html>
 <html
   xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
   th:replace="~{fragments/layout :: layout (${title}, ~{::content}, ~{})}"
 >
   <head>
@@ -10,9 +11,13 @@
     <div th:fragment="content">
       <!-- Action buttons -->
       <div class="row mb-3">
-        <div class="col-12">
-          <a th:href="@{/admin/competitions/create}" class="btn btn-primary">
+        <div class="col-12 d-flex gap-2 flex-wrap">
+          <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
+             th:href="@{/admin/competitions/create}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Tạo cuộc thi mới
+          </a>
+          <a href="/admin/field-scoring" class="btn btn-warning">
+            <i class="fas fa-clipboard-list"></i> Nhập điểm hiện trường
           </a>
         </div>
       </div>
@@ -67,43 +72,33 @@
                       01/06/2026
                     </td>
                     <td class="text-center">
-                      <strong th:text="${competition.participants != null ? competition.participants.size() : 0}">0</strong>
+                      <strong th:text="${competitionParticipantCounts != null and competitionParticipantCounts[competition.id] != null ? competitionParticipantCounts[competition.id] : 0}">0</strong>
                     </td>
                     <td>
                       <div class="btn-group btn-group-sm">
-                        <a
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
                           th:href="@{/admin/competitions/{id}/edit(id=${competition.id})}"
-                          class="btn btn-secondary"
-                          title="Chỉnh sửa"
-                        >
+                          class="btn btn-secondary" title="Chỉnh sửa">
                           <i class="fas fa-edit"></i>
                         </a>
-                        <a
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
                           th:href="@{/admin/competitions/{id}/participants(id=${competition.id})}"
-                          class="btn btn-info"
-                          title="Thí sinh"
-                        >
+                          class="btn btn-info" title="Thí sinh">
                           <i class="fas fa-users"></i>
                         </a>
-                        <a
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
                           th:href="@{/admin/competitions/{id}/stages(id=${competition.id})}"
-                          class="btn btn-primary"
-                          title="Vòng thi"
-                        >
+                          class="btn btn-primary" title="Vòng thi">
                           <i class="fas fa-tasks"></i>
                         </a>
-                        <a
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
                           th:href="@{/admin/competitions/{id}/news(id=${competition.id})}"
-                          class="btn btn-success"
-                          title="Tin tức"
-                        >
+                          class="btn btn-success" title="Tin tức">
                           <i class="fas fa-newspaper"></i>
                         </a>
-                        <a
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
                           th:href="@{/admin/competitions/{id}/sponsors(id=${competition.id})}"
-                          class="btn btn-warning"
-                          title="Nhà tài trợ"
-                        >
+                          class="btn btn-warning" title="Nhà tài trợ">
                           <i class="fas fa-handshake"></i>
                         </a>
                       </div>

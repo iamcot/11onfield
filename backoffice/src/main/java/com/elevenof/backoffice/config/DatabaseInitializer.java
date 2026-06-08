@@ -29,7 +29,7 @@ public class DatabaseInitializer {
                         .fullName("Administrator")
                         .email("admin@11of.com")
                         .password("123456") // Will be encoded by the service
-                        .role(User.Role.ADMIN)
+                        .role(User.Role.SUPER_USER)
                         .enabled(true)
                         .accountNonExpired(true)
                         .accountNonLocked(true)

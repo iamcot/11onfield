@@ -17,7 +17,7 @@ export const profileCompletionConfig = {
     { key: 'height', label: 'Chiều cao', required: false },
     { key: 'weight', label: 'Cân nặng', required: false },
     { key: 'preferredFoot', label: 'Chân thuận', required: false },
-    { key: 'email', label: 'Email', required: false },
+    { key: 'email', label: 'Email', required: true },
   ] as ProfileCompletionField[],
 
   // Check if player profile is incomplete

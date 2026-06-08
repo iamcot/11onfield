@@ -63,7 +63,7 @@ export default function TermsPage() {
                 <li>
                   <strong>Sức khỏe:</strong> Có giấy khám sức khỏe đủ điều kiện
                   tham gia hoạt động bóng đá đối kháng cường độ cao do cơ quan y
-                  tế cấp quận/huyện trở lên cấp trong vòng 03 tháng gần nhất.
+                  tế cấp xã/phường trở lên cấp trong vòng 03 tháng gần nhất.
                 </li>
                 <li>
                   <strong>Tình trạng tư pháp:</strong> Không trong thời gian bị
@@ -269,11 +269,11 @@ export default function TermsPage() {
                   <strong>Mục đích chia sẻ:</strong> Các dữ liệu chuyên môn này
                   sẽ được số hóa và đồng bộ vào hệ thống dữ liệu tuyển trạch của
                   chương trình nhằm gửi tới các Câu lạc bộ chuyên nghiệp, Học
-                  viện bóng đá và các nhà môi giới để tìm kiếm cơ hội chuyển
-                  nhượng.
+                  viện bóng đá và cơ hội chuyển nhượng cho cầu thủ tham gia
+                  chương trình.
                 </li>
                 <li>
-                  <strong>Bảo vệ quyền riêng tư:</strong> Các thông tin nhạy cảm
+                  <strong>Bảo vệ quyền riêng tư:</strong> Các thông tin nhạy cả m
                   khác (số CCCD, địa chỉ, số điện thoại) được cam kết bảo mật
                   theo quy định của pháp luật về Bảo vệ dữ liệu cá nhân.
                 </li>

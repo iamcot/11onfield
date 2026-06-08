@@ -226,6 +226,7 @@ jobs:
           ZALO_APP_SECRET=${{ secrets.ZALO_APP_SECRET }}
           ZALO_OTP_TEMPLATE_ID=${{ secrets.ZALO_OTP_TEMPLATE_ID }}
           ZALO_REDIRECT_URI=${{ secrets.ZALO_REDIRECT_URI }}
+          ZALO_TEST_MODE=${{ secrets.ZALO_TEST_MODE }}
           MAIL_ENABLED=${{ secrets.MAIL_ENABLED }}
           MAIL_HOST=${{ secrets.MAIL_HOST }}
           MAIL_PORT=${{ secrets.MAIL_PORT }}
