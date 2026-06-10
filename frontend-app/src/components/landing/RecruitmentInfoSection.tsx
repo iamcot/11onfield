@@ -40,7 +40,7 @@ export default function RecruitmentInfoSection() {
                 Thời gian
               </p>
               <p className="text-xs md:text-lg font-bold">Nhận hồ sơ</p>
-              <p className="text-[8px] md:text-xs">Tháng 05/2026</p>
+              <p className="text-[8px] md:text-xs">11/06/2026</p>
             </div>
 
             {/* Divider */}

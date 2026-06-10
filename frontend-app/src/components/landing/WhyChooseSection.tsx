@@ -17,7 +17,7 @@ export default function WhyChooseSection() {
       image: "/images/development.png",
     },
     {
-      title: "Trao vé đi Mỹ\ntham gia World Cup",
+      title: "Xây dựng\nthương hiệu cá nhân",
       description:
         "Toả sáng và chạm tới giấc mơ sân cỏ, trở thành cầu thủ chuyên nghiệp.",
       image: "/images/opportunity.png",
@@ -51,7 +51,7 @@ export default function WhyChooseSection() {
               </div>
 
               {/* Header */}
-              <h3 className="text-green-700 font-bold text-base md:text-lg uppercase mb-2 whitespace-pre-line">
+              <h3 className="text-green-700 font-bold text-xs md:text-lg uppercase mb-2 whitespace-pre-line">
                 {reason.title}
               </h3>
 
