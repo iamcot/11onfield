@@ -121,32 +121,35 @@ export default function SelectionProcessSection() {
 
           <div className="relative">
             {/* Timeline line - hidden on mobile */}
-            <div className="hidden md:block absolute left-0 right-0 top-14 h-1 bg-gradient-to-r from-green-700 via-yellow-500 to-green-700"></div>
+            <div className="hidden md:block absolute left-0 right-0 top-12 h-1 bg-gradient-to-r from-green-700 via-yellow-500 to-green-700"></div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-4">
               {[
                 {
-                  month: "6",
-                  title: "Tuyển trạch toàn quốc",
+                  month: "7",
+                  title: "Tuyển trạch toàn quốc & Sản xuất chương trình",
                   color: "from-green-600 to-green-700",
                 },
                 {
-                  month: "7",
-                  title: "Huấn luyện tập trung và đi World Cup Tour",
+                  month: "8",
+                  title: "Huấn luyện tập trung, đi World cup Tour",
                   color: "from-green-700 to-yellow-600",
                 },
                 {
-                  month: "8-9",
-                  title: "Huấn luyện và thi đấu cọ sát",
+                  month: "9-10",
+                  title: "Phát sóng truyền hình và truyền thông số",
                   color: "from-yellow-600 to-yellow-500",
                 },
                 {
-                  month: "10",
-                  title: "Final Match - SVĐ quốc gia Mỹ Đình",
+                  month: "11",
+                  title: "Final Match - Chung kết trao giải",
                   color: "from-yellow-500 to-green-600",
                 },
               ].map((item, index) => (
-                <div key={index} className="flex flex-col items-center relative">
+                <div
+                  key={index}
+                  className="flex flex-col items-center relative"
+                >
                   {/* Circle marker with month inside */}
                   <div
                     className={`w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg z-10 mb-6`}

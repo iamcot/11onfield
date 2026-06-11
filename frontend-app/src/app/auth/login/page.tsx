@@ -105,10 +105,10 @@ export default function LoginPage() {
               </p>
               <p className="mt-2 text-center text-sm text-gray-600">
                 <Link
-                  href="/players"
+                  href="/competitions"
                   className="font-medium text-green-700 hover:text-green-600"
                 >
-                  Xem danh sách cầu thủ
+                  Chương trình 11 người ra sân 2026
                 </Link>
               </p>
             </div>
@@ -256,10 +256,10 @@ export default function LoginPage() {
               </p>
               <p className="mt-2 text-center text-sm text-gray-600">
                 <Link
-                  href="/players"
+                  href="/competitions"
                   className="font-medium text-green-700 hover:text-green-600"
                 >
-                  Xem danh sách cầu thủ
+                  Chương trình 11 người ra sân 2026
                 </Link>
               </p>
             </div>

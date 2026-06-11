@@ -11,23 +11,13 @@ import {
   CompetitionNews,
   competitionService,
   CompetitionSponsor,
-  LeaderboardEntry,
 } from "@/services/competition.service";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-const ITEMS_PER_PAGE = 10;
-
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+import PlayersSection from "@/components/players/PlayersSection";
 
 const REGION_LABELS: Record<string, string> = {
   HANOI_NORTH: "Hà Nội & Miền Bắc",
@@ -44,23 +34,6 @@ const STAGE_STATUS_LABELS: Record<
   COMPLETED: { label: "Đã kết thúc", className: "bg-gray-100 text-gray-600" },
 };
 
-function SponsorBanner({ sponsor }: { sponsor: CompetitionSponsor }) {
-  const img = sponsor.bannerImageUrl || sponsor.logoUrl;
-  if (!img) return null;
-  return (
-    <a
-      href={sponsor.websiteUrl || "#"}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block"
-    >
-      <div className="relative w-full h-24 md:h-32">
-        <Image src={img} alt={sponsor.name} fill className="object-cover" />
-      </div>
-    </a>
-  );
-}
-
 const COMPETITION_STATUS_LABELS: Record<
   string,
   { label: string; className: string }
@@ -68,7 +41,7 @@ const COMPETITION_STATUS_LABELS: Record<
   DRAFT: { label: "Nháp", className: "bg-white/10" },
   REGISTRATION_OPEN: {
     label: "Đang mở đăng ký",
-    className: "bg-blue-500/30 border border-blue-400",
+    className: "bg-white/20",
   },
   REGIONAL_AUDITION: {
     label: "Vòng tuyển trạch",
@@ -180,35 +153,22 @@ export default function CompetitionDetailPage() {
   const params = useParams();
   const competitionId = parseInt(params.id as string);
 
-  const [competition, setCompetition] = useState<CompetitionDetail | null>(
-    null,
-  );
+  const [competition, setCompetition] = useState<CompetitionDetail | null>(null);
   const [news, setNews] = useState<CompetitionNews[]>([]);
   const [sponsors, setSponsors] = useState<CompetitionSponsor[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [inlineSponsors, setInlineSponsors] = useState<CompetitionSponsor[]>(
-    [],
-  );
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [competitionData, newsData, sponsorsData, leaderboardData] =
-          await Promise.all([
-            competitionService.getCompetitionById(competitionId),
-            competitionService.getNews(competitionId),
-            competitionService.getSponsors(competitionId),
-            competitionService.getLeaderboard(competitionId).catch(() => []),
-          ]);
+        const [competitionData, newsData, sponsorsData] = await Promise.all([
+          competitionService.getCompetitionById(competitionId),
+          competitionService.getNews(competitionId),
+          competitionService.getSponsors(competitionId),
+        ]);
         setCompetition(competitionData);
         setNews(newsData);
         setSponsors(sponsorsData);
-        setLeaderboard(leaderboardData.slice(0, 10));
-        setInlineSponsors(
-          shuffle(sponsorsData.filter((s) => s.adPosition === "INLINE_NEWS")),
-        );
       } catch (error) {
         console.error("Error fetching competition:", error);
       } finally {
@@ -217,14 +177,6 @@ export default function CompetitionDetailPage() {
     };
     fetchData();
   }, [competitionId]);
-
-  const reshuffleInline = useCallback(() => {
-    setInlineSponsors((prev) => shuffle(prev));
-  }, []);
-
-  useEffect(() => {
-    reshuffleInline();
-  }, [currentPage, reshuffleInline]);
 
   if (loading) {
     return (
@@ -247,19 +199,12 @@ export default function CompetitionDetailPage() {
     sponsors.filter((s) => s.adPosition === pos && s.isActive !== false);
   const sidebarFeatured = sp("SIDEBAR_FEATURED")[0] ?? null;
   const bannersBelow = sp("BANNER_BELOW_STAGES").slice(0, 2);
-  const sidebarAds = sp("SIDEBAR_AD").slice(0, 3);
-  const bannersBottom = sp("BANNER_BOTTOM").slice(0, 3);
 
   // News sections
   const featuredNews = news.filter((n) => n.isFeatured);
   const latestFeatured = featuredNews[0] ?? null;
   const moreFeatured = featuredNews.slice(1, 4);
-  const allNews = news;
-  const totalPages = Math.ceil(allNews.length / ITEMS_PER_PAGE);
-  const pageNews = allNews.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+  const recentNews = news.slice(0, 3);
 
   // Stages — active stage first, then next 2 upcoming
   const activeStage =
@@ -277,36 +222,6 @@ export default function CompetitionDetailPage() {
     <div className="min-h-screen bg-gray-50 pt-16">
       <TopBar />
       <TopUserCard />
-
-      {/* Sub-nav */}
-      <div className="bg-white border-b sticky top-16 z-40">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center space-x-8 overflow-x-auto">
-            <span className="py-4 px-2 font-bold text-gray-900 whitespace-nowrap shrink-0">
-              {competition.title}
-            </span>
-            <div className="w-px h-6 bg-gray-300 shrink-0" />
-            <Link
-              href={`/competitions/${competitionId}`}
-              className="py-4 px-2 border-b-2 border-green-700 text-green-700 font-medium whitespace-nowrap"
-            >
-              Trang chủ
-            </Link>
-            <Link
-              href={`/competitions/${competitionId}/news`}
-              className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
-            >
-              Tin tức
-            </Link>
-            <Link
-              href={`/competitions/${competitionId}/leaderboard`}
-              className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
-            >
-              Bảng xếp hạng
-            </Link>
-          </div>
-        </div>
-      </div>
 
       {/* Hero */}
       <div className="bg-gradient-to-r from-green-700 to-green-900 text-white py-12">
@@ -333,7 +248,13 @@ export default function CompetitionDetailPage() {
             {competition.status === "REGISTRATION_OPEN" && (
               <Link
                 href="/auth/register"
-                className="inline-flex items-center gap-2 bg-white text-green-700 font-bold px-5 py-2 rounded hover:bg-green-50 transition"
+                className="inline-flex items-center gap-2 font-bold px-6 py-2.5 rounded-md text-white transition-all duration-200 hover:scale-105"
+                style={{
+                  background: "rgb(5, 30, 15)",
+                  border: "2px solid #00ff50",
+                  boxShadow: "0 0 14px 4px rgba(0,255,80,0.65), inset 0 0 8px rgba(0,255,80,0.15)",
+                  textShadow: "0 0 8px rgba(0,255,80,0.8)",
+                }}
               >
                 Đăng ký ngay →
               </Link>
@@ -516,197 +437,44 @@ export default function CompetitionDetailPage() {
           </div>
         )}
 
-        {/* News list + Sidebar */}
-        {allNews.length > 0 && (
-          <div className="flex flex-col md:flex-row gap-6 mb-8">
-            {/* News list */}
-            <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold mb-4">Tin tức mới nhất</h3>
-              <div className="space-y-3">
-                {pageNews.map((article, idx) => (
-                  <div key={article.id}>
-                    <Link
-                      href={`/competitions/${competitionId}/news/${article.id}`}
-                      className="block"
-                    >
-                      <div className="flex gap-3 hover:opacity-80 transition overflow-hidden">
-                        <div className="relative w-[30%] shrink-0 aspect-video rounded-lg overflow-hidden">
-                          {article.thumbnail ? (
-                            <Image
-                              src={article.thumbnail}
-                              alt={article.title}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-100" />
-                          )}
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between py-1">
-                          <div>
-                            <h4 className="font-semibold mb-1 line-clamp-2">
-                              {article.title}
-                            </h4>
-                            {article.shortContent && (
-                              <p className="text-gray-500 text-sm line-clamp-2">
-                                {article.shortContent}
-                              </p>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {formatDate(article.publishedAt)}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                    {/* Inline sponsor [3] after every 5 articles */}
-                    {(idx + 1) % 5 === 0 && inlineSponsors.length > 0 && (
-                      <div className="my-3">
-                        <SponsorBanner
-                          sponsor={
-                            inlineSponsors[
-                              Math.floor((idx + 1) / 5 - 1) %
-                                inlineSponsors.length
-                            ]
-                          }
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+        {/* Players section */}
+        <div className="mb-12">
+          <PlayersSection />
+        </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-2 mt-6">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 rounded bg-white border hover:bg-gray-50 disabled:opacity-40"
-                  >
-                    ‹
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (p) => (
-                      <button
-                        key={p}
-                        onClick={() => setCurrentPage(p)}
-                        className={`px-3 py-1 rounded border ${p === currentPage ? "bg-green-700 text-white border-green-700" : "bg-white hover:bg-gray-50"}`}
-                      >
-                        {p}
-                      </button>
-                    ),
-                  )}
-                  <button
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded bg-white border hover:bg-gray-50 disabled:opacity-40"
-                  >
-                    ›
-                  </button>
-                </div>
-              )}
+        {/* Tin tức mới nhất */}
+        {recentNews.length > 0 && (
+          <div className="mb-12">
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">Tin tức mới nhất</h3>
+                <p className="text-sm text-gray-500 mt-1">Cập nhật lịch tuyển trạch, hậu trường chương trình và câu chuyện cầu thủ</p>
+              </div>
+              <Link href={`/competitions/${competitionId}/news`} className="text-green-700 hover:underline text-sm font-bold whitespace-nowrap ml-4 mt-1">
+                Xem tất cả tin tức →
+              </Link>
             </div>
-
-            {/* Sidebar — hidden on mobile */}
-            <div className="hidden md:block md:w-[30%] shrink-0 space-y-4">
-              {/* Top 10 */}
-              <div className="bg-white rounded-lg shadow p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-bold">🏆 Top 10</h4>
-                  <Link
-                    href={`/competitions/${competitionId}/leaderboard`}
-                    className="text-xs text-green-700 hover:underline"
-                  >
-                    Xem tất cả
-                  </Link>
-                </div>
-                {leaderboard.length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-4">
-                    Chưa có kết quả
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {leaderboard.map((entry) => (
-                      <Link
-                        key={entry.userId}
-                        href={`/profile/${entry.userProfileId}?from=leaderboard`}
-                        className="flex items-center gap-2 hover:bg-gray-50 rounded p-1 transition"
-                      >
-                        <span className="text-xs font-bold text-gray-500 w-5 text-center">
-                          {entry.rank}
-                        </span>
-                        {entry.avatar ? (
-                          <div className="relative w-7 h-7 rounded-full overflow-hidden shrink-0">
-                            <Image
-                              src={entry.avatar}
-                              alt={entry.fullName}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-7 h-7 rounded-full bg-gray-200 shrink-0" />
-                        )}
-                        <span className="text-sm truncate flex-1">
-                          {entry.fullName}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Sidebar ads [4] */}
-              {sidebarAds.map((sp4) => (
-                <a
-                  key={sp4.id}
-                  href={sp4.websiteUrl || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition"
-                >
-                  <div className="relative w-full h-32">
-                    {(sp4.bannerImageUrl || sp4.logoUrl) && (
-                      <Image
-                        src={sp4.bannerImageUrl || sp4.logoUrl}
-                        alt={sp4.name}
-                        fill
-                        className="object-cover"
-                      />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {recentNews.map((article) => (
+                <Link key={article.id} href={`/competitions/${competitionId}/news/${article.id}`} className="block bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition">
+                  <div className="aspect-video relative">
+                    {article.thumbnail ? (
+                      <Image src={article.thumbnail} alt={article.title} fill className="object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200" />
                     )}
                   </div>
-                </a>
+                  <div className="p-4">
+                    <p className="text-xs text-gray-400 mb-2">{formatDate(article.publishedAt)}</p>
+                    <h4 className="font-bold mb-2 line-clamp-2">{article.title}</h4>
+                    {article.shortContent && (
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-3">{article.shortContent}</p>
+                    )}
+                    <span className="text-green-700 text-sm font-bold">Đọc tiếp →</span>
+                  </div>
+                </Link>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Banner bottom [5] */}
-        {bannersBottom.length > 0 && (
-          <div className="space-y-3 mb-8">
-            {bannersBottom.map((sp5) => (
-              <a
-                key={sp5.id}
-                href={sp5.websiteUrl || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition"
-              >
-                <div className="relative w-full h-24 md:h-32">
-                  {(sp5.bannerImageUrl || sp5.logoUrl) && (
-                    <Image
-                      src={sp5.bannerImageUrl || sp5.logoUrl}
-                      alt={sp5.name}
-                      fill
-                      className="object-cover"
-                    />
-                  )}
-                </div>
-              </a>
-            ))}
           </div>
         )}
       </div>

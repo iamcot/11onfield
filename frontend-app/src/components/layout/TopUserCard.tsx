@@ -1,14 +1,15 @@
 "use client";
 
-import { CompetitionIcon, HomeIcon, PlayerIcon } from "@/components/icons/nav-icons";
+import { CompetitionIcon, EventIcon, HomeIcon } from "@/components/icons/nav-icons";
 import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { competitionService } from "@/services/competition.service";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NotificationDropdown from "./NotificationDropdown";
 
 export default function TopUserCard() {
@@ -20,6 +21,13 @@ export default function TopUserCard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [newsHref, setNewsHref] = useState("/competitions");
+
+  useEffect(() => {
+    competitionService.getCurrentCompetition().then((c) => {
+      if (c) setNewsHref(`/competitions/${c.id}/news`);
+    });
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -45,23 +53,21 @@ export default function TopUserCard() {
       isActive: pathname === "/" || pathname.startsWith("/profile"),
     },
     {
-      icon: PlayerIcon,
-      label: "Danh sách Cầu thủ",
-      href: "/players",
-      isActive: pathname === "/players",
+      icon: CompetitionIcon,
+      label: "Chương trình",
+      href: "/competitions",
+      isActive: pathname.startsWith("/competitions") && !pathname.includes("/news"),
     },
     {
-      icon: CompetitionIcon,
-      label: "11 Người Ra Sân 2026",
-      href: "/competitions",
-      isActive: pathname.startsWith("/competitions"),
+      icon: EventIcon,
+      label: "Tin tức",
+      href: newsHref,
+      isActive: pathname.includes("/news"),
     },
   ];
 
   return (
-    <div className="hidden md:block fixed top-0 left-0 right-0 z-50 shadow-lg">
-      {/* Gold Background */}
-      <div className="absolute inset-0 bg-gold-600"></div>
+    <div className="hidden md:block fixed top-0 left-0 right-0 z-50 shadow-sm bg-white">
 
       <div className="relative flex items-center justify-between px-6 h-16">
         {/* Left: Logo and Navigation */}
@@ -79,24 +85,31 @@ export default function TopUserCard() {
           </Link>
 
           {/* Navigation Items */}
-          <nav className="flex gap-1">
+          <nav className="flex h-16">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition relative ${
+                  className={`flex items-center gap-2 px-4 relative transition ${
                     item.isActive
-                      ? "text-white font-semibold"
-                      : "text-white/80 hover:text-white hover:bg-white/10"
+                      ? "text-green-800 font-semibold"
+                      : "text-gray-800 hover:text-green-700"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span>{item.label}</span>
-                  {/* Active indicator line */}
+                  {/* Active indicator — trapezoid bottom */}
                   {item.isActive && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"></div>
+                    <div
+                      className="absolute bottom-0 left-0 right-0"
+                      style={{
+                        height: "5px",
+                        background: "#1a5c2a",
+                        clipPath: "polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)",
+                      }}
+                    />
                   )}
                 </Link>
               );
@@ -110,7 +123,7 @@ export default function TopUserCard() {
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-white hover:bg-white/10 rounded-full transition"
+              className="relative p-2 text-gray-700 hover:bg-gray-100 rounded-full transition"
               aria-label="Notifications"
             >
               <svg
@@ -144,7 +157,7 @@ export default function TopUserCard() {
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 hover:bg-white/10 rounded-lg px-3 py-2 transition"
+              className="flex items-center gap-2 hover:bg-gray-100 rounded-lg px-3 py-2 transition"
               aria-label="User menu"
             >
               {user?.avatar ? (
@@ -173,11 +186,11 @@ export default function TopUserCard() {
 
               {/* User name and chevron */}
               <div className="hidden lg:flex items-center gap-2">
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-gray-800">
                   {user?.fullName || "User"}
                 </span>
                 <svg
-                  className={`w-4 h-4 text-white transition-transform ${showUserMenu ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 text-gray-500 transition-transform ${showUserMenu ? "rotate-180" : ""}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

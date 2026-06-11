@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Roboto_Condensed } from 'next/font/google';
+import { Be_Vietnam_Pro } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -11,11 +11,10 @@ import EditProfileHandler from '@/components/profile/EditProfileHandler';
 import SafariLightModeWrapper from '@/components/forms/SafariLightModeWrapper';
 import PageViewTracker from '@/components/analytics/PageViewTracker';
 
-const inter = Inter({ subsets: ['latin'] });
-const robotoCondensed = Roboto_Condensed({
-  subsets: ['latin'],
-  weight: ['300', '400', '700'],
-  variable: '--font-roboto-condensed',
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-be-vietnam-pro',
 });
 
 export const metadata: Metadata = {
@@ -66,7 +65,7 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="light only" />
       </head>
-      <body className={`${inter.className} ${robotoCondensed.variable}`}>
+      <body className={`${beVietnamPro.className} ${beVietnamPro.variable}`}>
         <AuthProvider>
           <AnalyticsProvider>
             <Suspense fallback={null}>

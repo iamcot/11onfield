@@ -52,6 +52,9 @@ public class PlayerSpecification {
             // Join to Player entity - INNER JOIN to ensure player profile exists
             Join<User, Player> playerJoin = root.join("player", JoinType.INNER);
 
+            // Only show verified players
+            predicates.add(cb.equal(playerJoin.get("verified"), true));
+
             // Filter by positions (contains any)
             if (positions != null && !positions.isEmpty()) {
                 List<Predicate> positionPredicates = new ArrayList<>();

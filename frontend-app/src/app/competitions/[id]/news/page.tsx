@@ -69,35 +69,6 @@ export default function NewsPage() {
     <div className="min-h-screen bg-gray-50 pt-16">
       <TopBar />
       <TopUserCard />
-      {/* Sub-navigation */}
-      <div className="bg-white border-b sticky top-16 z-40">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center space-x-8 overflow-x-auto">
-            <span className="py-4 px-2 font-bold text-gray-900 whitespace-nowrap shrink-0">
-              {competition?.title}
-            </span>
-            <div className="w-px h-6 bg-gray-300 shrink-0" />
-            <Link
-              href={`/competitions/${competitionId}`}
-              className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
-            >
-              Trang chủ
-            </Link>
-            <Link
-              href={`/competitions/${competitionId}/news`}
-              className="py-4 px-2 border-b-2 border-green-700 text-green-700 font-medium whitespace-nowrap"
-            >
-              Tin tức
-            </Link>
-            <Link
-              href={`/competitions/${competitionId}/leaderboard`}
-              className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
-            >
-              Bảng xếp hạng
-            </Link>
-          </div>
-        </div>
-      </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Tin tức</h1>

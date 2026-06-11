@@ -3,7 +3,7 @@ import StickyNav from "@/components/landing/StickyNav";
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-white font-[family-name:var(--font-roboto-condensed)]">
+    <div className="min-h-screen bg-white font-[family-name:var(--font-be-vietnam-pro)]">
       <StickyNav />
 
       <main className="pt-24 pb-16">

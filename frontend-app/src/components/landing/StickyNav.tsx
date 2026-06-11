@@ -3,8 +3,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function StickyNav() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -38,8 +38,6 @@ export default function StickyNav() {
   };
 
   const navLinks = [
-    { label: "Trang chủ", id: "home" },
-    { label: "Đối tượng", id: "recruitment-info" },
     { label: "Quyền lợi", id: "why-choose" },
     { label: "Tuyển chọn", id: "selection-process" },
     { label: "Huấn luyện", id: "training-program" },
@@ -56,14 +54,14 @@ export default function StickyNav() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/">
-            <Image
-              src="/images/logo-color-full.png"
-              alt="11 on Field"
-              width={150}
-              height={50}
-              className="cursor-pointer"
-              priority
-            />
+              <Image
+                src="/images/logo-color-full.png"
+                alt="11 on Field"
+                width={150}
+                height={50}
+                className="cursor-pointer"
+                priority
+              />
             </Link>
           </div>
 

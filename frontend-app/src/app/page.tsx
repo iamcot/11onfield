@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white font-[family-name:var(--font-roboto-condensed)]">
+    <div className="min-h-screen bg-white font-[family-name:var(--font-be-vietnam-pro)]">
       <HeroSection />
       <RecruitmentInfoSection />
       <WhyChooseSection />
