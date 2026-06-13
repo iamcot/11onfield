@@ -23,7 +23,7 @@ export default function WhyChooseSection() {
       image: "/images/opportunity.png",
     },
     {
-      title: "Cơ hội ra sân trong Final Match ở SVĐ Mỹ Đình",
+      title: "Cơ hội ra sân trong Final Match ở SVĐ Quốc Gia",
       description: "Thay đổi cuộc đời bằng đam mê và nỗ lực không ngừng.",
       image: "/images/journey.png",
     },

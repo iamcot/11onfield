@@ -30,7 +30,7 @@ export default function FAQSection() {
     {
       question: "Top 30 và Top 11 sẽ nhận được gì?",
       answer:
-        "Top 30 sẽ được tham gia chương trình huấn luyện tập trung chuyên nghiệp, cơ hội đi World Cup Tour và thi đấu cọ sát. Top 11 chính thức sẽ thi đấu tại SVĐ quốc gia Mỹ Đình, nhận giải thưởng giá trị bao gồm tiền mặt, hiện vật, hợp đồng sự nghiệp và cúp vàng danh giá.",
+        "Top 30 sẽ được tham gia chương trình huấn luyện tập trung chuyên nghiệp, cơ hội đi World Cup Tour và thi đấu cọ sát. Top 11 chính thức sẽ thi đấu tại SVĐ Quốc Gia, nhận giải thưởng giá trị bao gồm tiền mặt, hiện vật, hợp đồng sự nghiệp và cúp vàng danh giá.",
     },
     {
       question:

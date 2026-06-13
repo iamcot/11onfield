@@ -159,6 +159,43 @@ public class CompetitionService {
     }
 
     /**
+     * Auto-enroll user in current active competition (called during user registration)
+     * Enrolls in any competition with REGISTRATION_OPEN or REGIONAL_AUDITION status
+     */
+    public void autoEnrollInCurrentCompetitionIfEligible(User user) {
+        if (user.getRole() != User.Role.PLAYER) {
+            return;
+        }
+
+        Optional<Competition> currentOpt = getCurrentCompetition();
+        if (currentOpt.isEmpty()) {
+            return;
+        }
+
+        Competition competition = currentOpt.get();
+
+        if (competition.getStatus() != CompetitionStatus.REGISTRATION_OPEN &&
+            competition.getStatus() != CompetitionStatus.REGIONAL_AUDITION) {
+            return;
+        }
+
+        if (participantRepository.existsByCompetitionIdAndUserId(competition.getId(), user.getId())) {
+            return;
+        }
+
+        CompetitionParticipant participant = CompetitionParticipant.builder()
+            .competition(competition)
+            .user(user)
+            .enrollmentType(EnrollmentType.AUTO_ENROLLED)
+            .status(ParticipantStatus.REGISTERED)
+            .registrationDate(LocalDateTime.now())
+            .build();
+
+        participantRepository.save(participant);
+        log.info("Auto-enrolled user {} in competition {} (season {})", user.getId(), competition.getId(), competition.getSeason());
+    }
+
+    /**
      * Auto-enroll user in Season 1 competition (called during user registration)
      * Only for Season 1 during REGISTRATION or REGIONAL_AUDITION phase
      */

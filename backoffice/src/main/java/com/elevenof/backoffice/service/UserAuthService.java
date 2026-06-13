@@ -34,6 +34,7 @@ public class UserAuthService {
     private final PlayerService playerService;
     private final PlayerAttributeService playerAttributeService;
     private final AddressService addressService;
+    private final CompetitionService competitionService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final Random random = new SecureRandom();
@@ -128,6 +129,14 @@ public class UserAuthService {
             } catch (Exception e) {
                 log.warn("Failed to generate synthetic attributes for player: {}", savedUser.getId(), e);
                 // Don't fail registration if attribute generation fails
+            }
+
+            // Auto-enroll in current active competition if eligible
+            try {
+                competitionService.autoEnrollInCurrentCompetitionIfEligible(savedUser);
+            } catch (Exception e) {
+                log.warn("Failed to auto-enroll player {} in competition: {}", savedUser.getId(), e.getMessage());
+                // Don't fail registration if competition enrollment fails
             }
         }
 
