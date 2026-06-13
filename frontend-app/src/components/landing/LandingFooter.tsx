@@ -1,18 +1,29 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronRightIcon } from "../icons/nav-icons";
+import { competitionService } from "@/services/competition.service";
 
 export default function LandingFooter() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const [newsHref, setNewsHref] = useState<string>("#");
+
+  useEffect(() => {
+    competitionService.getCurrentCompetition().then((competition) => {
+      if (competition?.id) {
+        setNewsHref(`/competitions/${competition.id}/news`);
+      }
+    });
+  }, []);
 
   const policyLinks = [
     { label: "Điều khoản tham gia", href: "/terms" },
     { label: "Chính sách bảo mật thông tin", href: "/privacy" },
     { label: "Chính sách sử dụng hình ảnh/video", href: "/media-policy" },
-    { label: "Liên hệ BTC", href: "mailto:11nguoirasan@11onfield.com" },
+    { label: "Tin tức", href: newsHref },
   ];
 
   return (
@@ -24,9 +35,9 @@ export default function LandingFooter() {
       ></div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-0">
           {/* Column 1: Logo */}
-          <div className="flex flex-col items-center md:items-start relative md:pr-8">
+          <div className="flex flex-col items-center md:items-start relative md:pr-6">
             <Image
               src="/images/footer-logo.png"
               alt="11 on Field"
@@ -42,7 +53,7 @@ export default function LandingFooter() {
           </div>
 
           {/* Column 3: Policy Links */}
-          <div className="relative md:px-3">
+          <div className="relative md:px-6">
             <h4
               className="font-bold text-base mb-4 uppercase"
               style={{ color: "rgb(207, 159, 61)" }}
@@ -72,7 +83,7 @@ export default function LandingFooter() {
           </div>
 
           {/* Column 4: Contact Info */}
-          <div className="relative md:px-3">
+          <div className="relative md:px-6">
             <h4
               className="font-bold text-base mb-4 uppercase"
               style={{ color: "rgb(207, 159, 61)" }}
@@ -170,7 +181,7 @@ export default function LandingFooter() {
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                <span className="text-sm">Tuyển trạch trên toàn quốc</span>
+                <a href="/competitions" className="text-sm hover:text-white transition-colors">Tuyển trạch trên toàn quốc</a>
               </div>
 
               {/* Social icons */}

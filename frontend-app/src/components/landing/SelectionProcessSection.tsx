@@ -36,7 +36,7 @@ export default function SelectionProcessSection() {
       number: 5,
       title: "Cơ hội sự nghiệp",
       description:
-        "11 cầu thủ chính thức ra sân trong Final Match tại SVĐ quốc gia Mỹ Đình. Cầu thủ đạt đỉnh cao phong độ và có thành tích tốt nhất sẽ được trao giải thưởng của chương trình gồm hiện kim, hiện vật, hợp đồng sự nghiệp và cúp vàng danh giá.",
+        "11 cầu thủ chính thức ra sân trong Final Match tại SVĐ Quốc Gia. Cầu thủ đạt đỉnh cao phong độ và có thành tích tốt nhất sẽ được trao giải thưởng của chương trình gồm hiện kim, hiện vật, hợp đồng sự nghiệp và cúp vàng danh giá.",
       image: "/images/step5.png",
     },
   ];

@@ -226,9 +226,9 @@ export default function CompetitionDetailPage() {
       {/* Hero */}
       <div className="bg-gradient-to-r from-green-700 to-green-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-3">{competition.title}</h1>
+          <h1 className="text-xl md:text-2xl font-bold mb-3 md:whitespace-nowrap">{competition.title}</h1>
           {competition.description && (
-            <p className="text-lg mb-4 text-white/80 max-w-2xl">
+            <p className="text-base mb-4 text-white/80 md:whitespace-nowrap md:overflow-hidden md:text-ellipsis">
               {competition.description}
             </p>
           )}
