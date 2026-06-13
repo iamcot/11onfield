@@ -17,7 +17,7 @@ export interface FeedAchievement {
   id: number;
   title: string;
   description?: string;
-  achievementType: 'INDIVIDUAL' | 'TEAM';
+  achievementType: 'INDIVIDUAL' | 'TEAM' | 'PARTICIPANT';
   achievementDate: string;
   approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
 }

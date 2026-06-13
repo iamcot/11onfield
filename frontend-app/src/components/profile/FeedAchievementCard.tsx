@@ -21,7 +21,7 @@ export default function FeedAchievementCard({ feed, isOwnProfile }: FeedAchievem
   const displayName = isOwnProfile ? "Bạn" : fullName;
   const isPending = achievement.approvalStatus === 'PENDING';
 
-  // Get status badge based on approval status
+  const verb = achievement.achievementType === "PARTICIPANT" ? "đã tham dự" : "đã đạt được";
   const getStatusBadge = () => {
     if (!isOwnProfile) return null; // Visitors don't see status
 
@@ -55,7 +55,7 @@ export default function FeedAchievementCard({ feed, isOwnProfile }: FeedAchievem
         </div>
         <div className="flex-1">
           <h4 className="text-sm font-medium text-gray-900">
-            <span className="font-semibold">{displayName}</span> đã đạt được{" "}
+            <span className="font-semibold">{displayName}</span> {verb}{" "}
             <span className="font-semibold">{achievement.title}</span> vào ngày{" "}
             <span className="font-semibold">{formattedDate}</span>
             {getStatusBadge()}
