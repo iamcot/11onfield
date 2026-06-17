@@ -12,8 +12,8 @@ import FeedList from "@/components/profile/FeedList";
 import { appConfig } from "@/config/app.config";
 import { profileCompletionConfig } from "@/config/profile-completion.config";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAnalytics } from "@/hooks/useAnalytics";
 import { useEditProfile } from "@/contexts/EditProfileContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { getMockUserByPhone } from "@/mocks/user.mock";
 import { eventService } from "@/services/event.service";
 import { feedService } from "@/services/feed.service";
@@ -75,7 +75,8 @@ export default function UserProfilePage() {
   const fromFollowers = searchParams.get("from") === "followers";
   const fromFollowing = searchParams.get("from") === "following";
   const fromLeaderboard = searchParams.get("from") === "leaderboard";
-  const showBackButton = fromPlayers || fromFollowers || fromFollowing || fromLeaderboard;
+  const showBackButton =
+    fromPlayers || fromFollowers || fromFollowing || fromLeaderboard;
 
   const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -137,10 +138,10 @@ export default function UserProfilePage() {
         setIsFollowing(false);
 
         // Track unfollow
-        track('user_unfollowed', {
+        track("user_unfollowed", {
           unfollowed_userid: userid,
           unfollowed_name: profileUser?.fullName,
-          from: searchParams.get('from') || 'profile'
+          from: searchParams.get("from") || "profile",
         });
 
         // Update local follower count
@@ -155,10 +156,10 @@ export default function UserProfilePage() {
         setIsFollowing(true);
 
         // Track follow
-        track('user_followed', {
+        track("user_followed", {
           followed_userid: userid,
           followed_name: profileUser?.fullName,
-          from: searchParams.get('from') || 'profile'
+          from: searchParams.get("from") || "profile",
         });
 
         // Update local follower count
@@ -266,14 +267,14 @@ export default function UserProfilePage() {
             setIsLoading(false);
 
             // Track profile view
-            track('profile_viewed', {
+            track("profile_viewed", {
               viewed_userid: userid,
               viewer_userid: currentUser?.userid,
               is_own_profile: currentUser?.userid === userid,
-              from: searchParams.get('from') || undefined,
+              from: searchParams.get("from") || undefined,
               profile_has_avatar: !!apiUser.avatar,
               profile_role: apiUser.role,
-              profile_is_player: apiUser.role === 'PLAYER'
+              profile_is_player: apiUser.role === "PLAYER",
             });
           } catch (err: any) {
             console.error("Error fetching user profile:", err);
@@ -285,7 +286,15 @@ export default function UserProfilePage() {
         fetchUserProfile();
       }
     }
-  }, [authLoading, isAuthenticated, userid, router, currentUser, track, searchParams]);
+  }, [
+    authLoading,
+    isAuthenticated,
+    userid,
+    router,
+    currentUser,
+    track,
+    searchParams,
+  ]);
 
   // Determine if viewing own profile
   const isOwnProfile = currentUser?.userid === profileUser?.userid;
@@ -426,7 +435,10 @@ export default function UserProfilePage() {
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <div className="flex flex-col gap-3">
-            <Link href="/profile" className="text-green-600 hover:text-green-500">
+            <Link
+              href="/profile"
+              className="text-green-600 hover:text-green-500"
+            >
               Quay lại trang cá nhân của bạn
             </Link>
             <button
@@ -616,8 +628,16 @@ export default function UserProfilePage() {
                       <>
                         {profileUser.verified ? (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            <svg
+                              className="w-3 h-3"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                             Đã xác minh
                           </span>
@@ -996,7 +1016,7 @@ export default function UserProfilePage() {
                     <div className="bg-white p-4 md:p-6 rounded-lg shadow ">
                       <div className="">
                         <h3 className="text-lg font-semibold mb-4">Tiểu sử</h3>
-                        <p className="text-sm font-medium text-gray-900 leading-relaxed whitespace-pre-wrap">
+                        <p className="text-sm font-medium text-gray-900 leading-relaxed whitespace-pre-wrap text-justify">
                           {profileUser.bio}
                         </p>
                       </div>
@@ -1199,7 +1219,9 @@ export default function UserProfilePage() {
                               profileUser.attributes.length > 0 &&
                               profileUser.attributes[0]?.isSynthetic && (
                                 <button
-                                  onClick={() => setShowSyntheticInfoModal(true)}
+                                  onClick={() =>
+                                    setShowSyntheticInfoModal(true)
+                                  }
                                   className="text-blue-500 hover:text-blue-600 transition-colors"
                                   title="Thông tin về chỉ số tự động"
                                 >
@@ -1345,7 +1367,7 @@ export default function UserProfilePage() {
                       <EventCard
                         key={event.id}
                         event={event}
-                        userName={profileUser.fullName || ''}
+                        userName={profileUser.fullName || ""}
                         showJoinButton={!isOwnProfile}
                         onJoinClick={() => handleJoinEvent(event.id)}
                         isJoining={joiningEventId === event.id}
@@ -1413,7 +1435,11 @@ export default function UserProfilePage() {
                 onClick={() => setShowSyntheticInfoModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -1444,26 +1470,28 @@ export default function UserProfilePage() {
                     level cầu thủ
                   </li>
                   <li>
-                    <strong>Kỹ năng (SKL):</strong> Số vị trí có thể chơi và chân
-                    thuận
+                    <strong>Kỹ năng (SKL):</strong> Số vị trí có thể chơi và
+                    chân thuận
                   </li>
                   <li>
-                    <strong>Hoàn thiện profile (PRF):</strong> % các trường thông
-                    tin đã điền
+                    <strong>Hoàn thiện profile (PRF):</strong> % các trường
+                    thông tin đã điền
                   </li>
                   <li>
-                    <strong>Thành tích (ACH):</strong> Số thành tích đã được duyệt
-                  </li>
-                  <li>
-                    <strong>Highlights (HLT):</strong> Số video highlights đã được
+                    <strong>Thành tích (ACH):</strong> Số thành tích đã được
                     duyệt
+                  </li>
+                  <li>
+                    <strong>Highlights (HLT):</strong> Số video highlights đã
+                    được duyệt
                   </li>
                 </ul>
               </div>
 
               <p className="text-gray-600 text-xs">
                 💡 <strong>Lưu ý:</strong> Chỉ số này chỉ mang tính tham khảo.
-                Chỉ số thực tế sẽ được đánh giá bởi huấn luyện viên hoặc admin.
+                Chỉ số thực tế sẽ được đánh giá bởi huấn luyện viên hoặc Chuyên
+                viên 11 On Field.
               </p>
             </div>
           </div>

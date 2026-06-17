@@ -44,24 +44,11 @@ export default function NewsDetailPage() {
       hour: "2-digit", minute: "2-digit",
     });
 
-  const SubNav = () => (
-    <div className="bg-white border-b sticky top-16 z-40">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex space-x-8 overflow-x-auto">
-          <Link href={`/competitions/${competitionId}`} className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap">Trang chủ</Link>
-          <Link href={`/competitions/${competitionId}/news`} className="py-4 px-2 border-b-2 border-green-700 text-green-700 font-medium whitespace-nowrap">Tin tức</Link>
-          <Link href={`/competitions/${competitionId}/leaderboard`} className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap">Bảng xếp hạng</Link>
-        </div>
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pt-16">
         <TopBar />
         <TopUserCard />
-        <SubNav />
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700" />
         </div>
@@ -74,7 +61,6 @@ export default function NewsDetailPage() {
       <div className="min-h-screen bg-gray-50 pt-16">
         <TopBar />
         <TopUserCard />
-        <SubNav />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <p className="text-gray-500">Không tìm thấy tin tức</p>
@@ -91,7 +77,6 @@ export default function NewsDetailPage() {
     <div className="min-h-screen bg-gray-50 pt-16 pb-20 md:pb-0">
       <TopBar />
       <TopUserCard />
-      <SubNav />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-6">
@@ -113,7 +98,7 @@ export default function NewsDetailPage() {
                   {news.authorName && <span>Bởi {news.authorName}</span>}
                   <span>{formatDate(news.publishedAt)}</span>
                 </div>
-                <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: news.content }} />
+                <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-a:text-green-700" dangerouslySetInnerHTML={{ __html: news.content }} />
               </div>
             </article>
           </div>

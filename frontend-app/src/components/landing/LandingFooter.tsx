@@ -92,9 +92,9 @@ export default function LandingFooter() {
             </h4>
             <div className="space-y-3">
               {/* Organization */}
-              <div className="flex items-center gap-2 text-green-100">
+              <div className="flex items-start gap-2 text-green-100">
                 <svg
-                  className="w-4 h-4 flex-shrink-0"
+                  className="w-4 h-4 flex-shrink-0 mt-0.5"
                   style={{ color: "rgb(207, 159, 61)" }}
                   fill="none"
                   stroke="currentColor"
@@ -107,12 +107,48 @@ export default function LandingFooter() {
                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                   />
                 </svg>
+                <div className="text-sm leading-snug">
+                  <p className="font-semibold">Công ty CP ĐT&amp;GD anyLEARN</p>
+                  <p className="text-green-200 text-xs">MST: 0316363793</p>
+                </div>
+              </div>
+
+              {/* Đơn vị bản quyền */}
+              <div className="flex items-center gap-2 text-green-100">
+                <svg
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color: "rgb(207, 159, 61)" }}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
                 <a
-                  href="https://www.binhanmedia.com/"
+                  href="http://anylearn.vn"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-semibold text-sm hover:text-white transition-colors"
-                >Đơn vị tổ chức</a>
+                  className="text-sm hover:text-white transition-colors"
+                >Đơn vị bản quyền</a>
+              </div>
+
+              {/* Đơn vị sản xuất */}
+              <div className="flex items-center gap-2 text-green-100">
+                <svg
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color: "rgb(207, 159, 61)" }}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+                </svg>
+                <a
+                  href="https://www.binhanmedia.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm hover:text-white transition-colors"
+                >Đơn vị sản xuất</a>
               </div>
 
               {/* Email */}
@@ -252,23 +288,32 @@ export default function LandingFooter() {
                 className="w-64 h-64 object-contain"
               />
             ) : (
-              <a href="/auth/register" className="block w-full max-w-[200px]">
-                <div className="relative overflow-hidden">
-                  <img
-                    src="/images/btn-register.png"
-                    alt="Đăng ký ngay"
-                    className="w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                  />
-                  <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 45%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.3) 55%, transparent 100%)",
-                      animation: "shine 3s infinite",
-                      animationDelay: "1s",
-                    }}
-                  />
-                </div>
-              </a>
+              <div className="relative flex flex-col items-center justify-center w-full gap-2">
+                <a href="/auth/register" className="block w-full max-w-[200px]">
+                  <div className="relative overflow-hidden">
+                    <img
+                      src="/images/btn-register.png"
+                      alt="Đăng ký ngay"
+                      className="w-full h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                    />
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 45%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.3) 55%, transparent 100%)",
+                        animation: "shine 3s infinite",
+                        animationDelay: "1s",
+                      }}
+                    />
+                  </div>
+                </a>
+                <Image
+                  src="/images/traibanh.png"
+                  alt=""
+                  width={200}
+                  height={200}
+                  className="w-40 h-40 object-contain opacity-80"
+                />
+              </div>
             )}
           </div>
 

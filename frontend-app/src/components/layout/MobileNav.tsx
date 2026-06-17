@@ -56,7 +56,7 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
         <Link
           href="/competitions"
           className={`flex flex-col items-center justify-center flex-1 transition ${
-            pathname.startsWith("/competitions")
+            pathname.startsWith("/competitions") && !pathname.includes("/news")
               ? "text-white font-semibold"
               : "text-white/80 hover:text-white"
           }`}
