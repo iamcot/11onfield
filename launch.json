@@ -1,0 +1,51 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Launch Backoffice (Java)",
+      "request": "launch",
+      "mainClass": "com.elevenof.backoffice.BackofficeApplication",
+      "projectName": "backoffice",
+      "cwd": "${workspaceFolder}/backoffice",
+      "envFile": "${workspaceFolder}/backoffice/.env",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "javaExec": "/Library/Java/JavaVirtualMachines/sapmachine-21.jdk/Contents/Home/bin/java",
+      "vmArgs": "-Xmx2g -XX:+UseG1GC",
+      "args": "",
+      "stopOnEntry": false
+    },
+    {
+      "type": "node",
+      "name": "Launch Frontend (Next.js)",
+      "request": "launch",
+      "runtimeExecutable": "${env:HOME}/.nvm/versions/node/v22.13.0/bin/npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/frontend-app",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "NEXT_PUBLIC_API_URL": "http://localhost:8081/api"
+      },
+      "skipFiles": ["<node_internals>/**"],
+      "restart": true,
+      "timeout": 60000
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch All (Backoffice + Frontend)",
+      "configurations": [
+        "Launch Backoffice (Java)",
+        "Launch Frontend (Next.js)"
+      ],
+      "presentation": {
+        "hidden": false,
+        "group": "11of",
+        "order": 1
+      },
+      "stopAll": true
+    }
+  ]
+}
