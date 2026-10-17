@@ -4,9 +4,9 @@ set -e
 echo "Running health checks..."
 
 # Backend health check
-echo "Checking backend on port 8081..."
+echo "Checking backend on port 7071..."
 for i in {1..30}; do
-    if curl -f -s http://localhost:8081/actuator/health | grep -q "UP"; then
+    if curl -f -s http://localhost:7071/actuator/health | grep -q "UP"; then
         echo "✓ Backend is healthy"
         break
     fi
@@ -18,9 +18,9 @@ for i in {1..30}; do
 done
 
 # Frontend health check
-echo "Checking frontend on port 8080..."
+echo "Checking frontend on port 7070..."
 for i in {1..30}; do
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 || echo "000")
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7070 || echo "000")
     if [ "$HTTP_CODE" = "200" ]; then
         echo "✓ Frontend is healthy"
         break

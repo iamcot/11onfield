@@ -328,16 +328,16 @@ jobs:
         run: |
           echo "Checking backend service status..."
           sudo systemctl status 11of-backend.service --no-pager || true
-          echo "Checking if port 8081 is listening..."
-          sudo netstat -tlnp | grep 8081 || echo "Port 8081 not listening"
+          echo "Checking if port 7071 is listening..."
+          sudo netstat -tlnp | grep 7071 || echo "Port 7071 not listening"
 
       - name: Check frontend service status
         if: needs.deploy-frontend.result == 'success'
         run: |
           echo "Checking frontend service status..."
           sudo systemctl status 11of-frontend.service --no-pager || true
-          echo "Checking if port 8080 is listening..."
-          sudo netstat -tlnp | grep 8080 || echo "Port 8080 not listening"
+          echo "Checking if port 7070 is listening..."
+          sudo netstat -tlnp | grep 7070 || echo "Port 7070 not listening"
 
       - name: Run comprehensive health check
         run: |
@@ -347,8 +347,8 @@ jobs:
         if: success()
         run: |
           echo "✅ Production deployment completed successfully!"
-          echo "Backend: http://11onfield.com:8081"
-          echo "Frontend: http://11onfield.com:8080"
+          echo "Backend: http://11onfield.com:7071"
+          echo "Frontend: http://11onfield.com:7070"
           echo "Deployed commit: ${{ github.sha }}"
 
   rollback:

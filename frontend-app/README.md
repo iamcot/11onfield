@@ -20,16 +20,16 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser.
+Open [http://localhost:7070](http://localhost:7070) with your browser.
 
 ## API Configuration
 
-The app connects to the backend API at `http://localhost:8080/api`
+The app connects to the backend API at `http://localhost:7071/api`
 
 Update API endpoint in environment variables:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
+NEXT_PUBLIC_API_URL=http://localhost:7071/api
 ```
 
 ## Project Structure

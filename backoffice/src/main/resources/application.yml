@@ -98,7 +98,7 @@ spring:
           writetimeout: 5000
 
 server:
-  port: ${SERVER_PORT:8081}
+  port: ${SERVER_PORT:7071}
   servlet:
     session:
       timeout: 1d # Admin session timeout: 1 day
@@ -138,7 +138,7 @@ zalo:
 
 app:
   frontend:
-    url: ${FRONTEND_URL:http://localhost}
+    url: ${FRONTEND_URL:http://localhost:7070}
 
 logging:
   level:

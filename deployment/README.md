@@ -5,8 +5,8 @@ This directory contains all deployment configurations for the 11of application.
 ## Overview
 
 The deployment setup includes:
-- **Backend**: Spring Boot Java application (Port 8081)
-- **Frontend**: Next.js application (Port 8080)
+- **Backend**: Spring Boot Java application (Port 7071)
+- **Frontend**: Next.js application (Port 7070)
 - **Process Management**: Systemd services
 - **Deployment Strategy**: Blue-green deployment with zero downtime
 - **CI/CD**: GitHub Actions with self-hosted runner
@@ -82,14 +82,14 @@ Add the following (replace with your values):
 ```env
 DB_USERNAME=elevenof
 DB_PASSWORD=your-password
-JWT_ISSUER_URI=https://yourdomain.com:8081
-JWT_JWK_SET_URI=https://yourdomain.com:8081/.well-known/jwks.json
+JWT_ISSUER_URI=https://yourdomain.com:7071
+JWT_JWK_SET_URI=https://yourdomain.com:7071/.well-known/jwks.json
 JWT_SECRET=<256-bit-secret-generated-with-openssl-rand-base64-32>
 AWS_ACCESS_KEY_ID=your-aws-key
 AWS_SECRET_ACCESS_KEY=your-aws-secret
 AWS_REGION=ap-southeast-1
 AWS_S3_BUCKET=11of
-FRONTEND_URL=https://yourdomain.com:8080
+FRONTEND_URL=https://yourdomain.com:7070
 SPRING_PROFILES_ACTIVE=prod
 ```
 
@@ -100,7 +100,7 @@ sudo nano /opt/11of/frontend/.env.production
 
 Add:
 ```env
-NEXT_PUBLIC_API_URL=https://yourdomain.com:8081/api
+NEXT_PUBLIC_API_URL=https://yourdomain.com:7071/api
 ```
 
 ### 4. Set Up GitHub Actions Runner
@@ -250,7 +250,7 @@ server {
 
     # Backend API
     location /api {
-        proxy_pass http://localhost:8081;
+        proxy_pass http://localhost:7071;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -259,7 +259,7 @@ server {
 
     # Frontend
     location / {
-        proxy_pass http://localhost:8080;
+        proxy_pass http://localhost:7070;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -279,7 +279,7 @@ journalctl -u 11of-frontend.service -n 50
 
 # Common issues:
 # - Database connection failed → Check DB credentials
-# - Port already in use → Check if another process is using 8080/8081
+# - Port already in use → Check if another process is using 7070/7071
 # - Permission denied → Check file ownership and permissions
 ```
 
@@ -287,8 +287,8 @@ journalctl -u 11of-frontend.service -n 50
 
 ```bash
 # Test endpoints manually
-curl http://localhost:8081/actuator/health
-curl http://localhost:8080
+curl http://localhost:7071/actuator/health
+curl http://localhost:7070
 
 # Check if services are running
 sudo systemctl status 11of-backend.service

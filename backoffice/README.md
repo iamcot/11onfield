@@ -16,12 +16,12 @@ Spring Boot application serving both REST API and admin UI for the 11of platform
 ### 1. REST API
 - OAuth2 authentication with JWT tokens
 - RESTful endpoints for frontend app
-- Base URL: `http://localhost:8080/api`
+- Base URL: `http://localhost:7071/api`
 
 ### 2. Admin UI
 - Server-side rendered Thymeleaf pages
 - Session-based authentication
-- Base URL: `http://localhost:8080/admin`
+- Base URL: `http://localhost:7071/admin`
 - Role-based access (ADMIN, SUPER_USER)
 
 ## Prerequisites
@@ -43,8 +43,8 @@ Create a `.env` file or set environment variables:
 ```
 DB_USERNAME=root
 DB_PASSWORD=your_password
-JWT_ISSUER_URI=http://localhost:8080
-JWT_JWK_SET_URI=http://localhost:8080/.well-known/jwks.json
+JWT_ISSUER_URI=http://localhost:7071
+JWT_JWK_SET_URI=http://localhost:7071/.well-known/jwks.json
 ```
 
 ## Running the Application
@@ -62,7 +62,7 @@ java -jar target/api-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
 
 ## API Endpoints
 
-Base URL: `http://localhost:8080/api`
+Base URL: `http://localhost:7071/api`
 
 ### Health Check
 - `GET /health` - Check service health (public)
@@ -74,7 +74,7 @@ Base URL: `http://localhost:8080/api`
 
 ## Admin UI Routes
 
-Base URL: `http://localhost:8080/admin`
+Base URL: `http://localhost:7071/admin`
 
 ### Admin Pages
 - `GET /admin/login` - Admin login page
@@ -114,7 +114,7 @@ backoffice/
 ## CORS Configuration
 
 Currently configured to allow:
-- Frontend app: `http://localhost:80`
+- Frontend app: `http://localhost:7070`
 
 Update `SecurityConfig.java` to add more origins as needed.
 

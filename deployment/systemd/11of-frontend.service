@@ -9,10 +9,10 @@ User=11of-app
 Group=11of-app
 WorkingDirectory=/opt/11of/frontend/current
 Environment="NODE_ENV=production"
-Environment="PORT=8080"
+Environment="PORT=7070"
 Environment="PATH=/usr/local/bin:/usr/bin:/bin"
 EnvironmentFile=-/opt/11of/frontend/current/.env.production
-ExecStart=/usr/bin/node /opt/11of/frontend/current/node_modules/.bin/next start -p 8080
+ExecStart=/usr/bin/node /opt/11of/frontend/current/node_modules/.bin/next start -p 7070
 Restart=on-failure
 RestartSec=10
 StandardOutput=append:/opt/11of/frontend/logs/app.log

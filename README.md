@@ -13,7 +13,7 @@ Football (soccer) management platform with public-facing frontend and admin back
 
 ## Architecture
 
-### Backoffice (Port 8080)
+### Backoffice (Port 7071)
 - **Technology**: Spring Boot 3.2.3, Java 17, Thymeleaf
 - **Database**: MySQL 8.x
 - **Authentication**:
@@ -24,7 +24,7 @@ Football (soccer) management platform with public-facing frontend and admin back
   - Server-side rendered admin pages (Thymeleaf)
   - Core business logic and database access
 
-### Frontend App (Port 80)
+### Frontend App (Port 7070)
 - **Technology**: Next.js 14, React 18, TypeScript
 - **Purpose**: Public-facing user interface for players and events
 - **Authentication**: OAuth2 JWT tokens from backoffice API
@@ -52,8 +52,8 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 Backoffice will be available at:
-- Admin UI: `http://localhost:8080/admin`
-- REST API: `http://localhost:8080/api`
+- Admin UI: `http://localhost:7071/admin`
+- REST API: `http://localhost:7071/api`
 
 ### 2. Setup Frontend App
 
@@ -65,14 +65,14 @@ npm install
 sudo npm run dev
 ```
 
-Frontend will be available at: `http://localhost:80`
+Frontend will be available at: `http://localhost:7070`
 
 ## API Integration
 
 The frontend app consumes REST API from the backoffice:
-- Base URL: `http://localhost:8080/api`
+- Base URL: `http://localhost:7071/api`
 - Authentication: OAuth2 Bearer tokens (JWT)
-- CORS: Configured for frontend (port 80)
+- CORS: Configured for frontend (port 7070)
 
 ## Environment Variables
 
@@ -80,13 +80,13 @@ The frontend app consumes REST API from the backoffice:
 ```
 DB_USERNAME=root
 DB_PASSWORD=your_password
-JWT_ISSUER_URI=http://localhost:8080
-JWT_JWK_SET_URI=http://localhost:8080/.well-known/jwks.json
+JWT_ISSUER_URI=http://localhost:7071
+JWT_JWK_SET_URI=http://localhost:7071/.well-known/jwks.json
 ```
 
 ### Frontend App
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
+NEXT_PUBLIC_API_URL=http://localhost:7071/api
 ```
 
 ## Development Workflow

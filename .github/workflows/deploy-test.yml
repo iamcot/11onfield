@@ -350,8 +350,8 @@ jobs:
           sudo journalctl -u 11of-backend.service -n 100 --no-pager || true
           echo "Application log file:"
           sudo tail -n 100 ${{ env.DEPLOY_PATH }}/backend/logs/app.log 2>/dev/null || echo "Log file not found"
-          echo "Checking if port 8081 is listening..."
-          sudo netstat -tlnp | grep 8081 || echo "Port 8081 not listening"
+          echo "Checking if port 7071 is listening..."
+          sudo netstat -tlnp | grep 7071 || echo "Port 7071 not listening"
           echo "Checking backend current release:"
           ls -la ${{ env.DEPLOY_PATH }}/backend/current/ || echo "Current release not found"
 
@@ -362,8 +362,8 @@ jobs:
           sudo systemctl status 11of-frontend.service --no-pager || true
           echo "Frontend logs (last 50 lines):"
           sudo journalctl -u 11of-frontend.service -n 50 --no-pager || true
-          echo "Checking if port 8080 is listening..."
-          sudo netstat -tlnp | grep 8080 || echo "Port 8080 not listening"
+          echo "Checking if port 7070 is listening..."
+          sudo netstat -tlnp | grep 7070 || echo "Port 7070 not listening"
 
       - name: Run comprehensive health check
         run: |
@@ -373,8 +373,8 @@ jobs:
         if: success()
         run: |
           echo "✅ Deployment completed successfully!"
-          echo "Backend: http://localhost:8081"
-          echo "Frontend: http://localhost:8080"
+          echo "Backend: http://localhost:7071"
+          echo "Frontend: http://localhost:7070"
           echo "Deployed commit: ${{ github.sha }}"
 
   rollback:
