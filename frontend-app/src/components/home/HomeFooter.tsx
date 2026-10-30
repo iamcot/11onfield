@@ -96,7 +96,7 @@ export default function HomeFooter() {
       <div className="of-rule mx-auto mt-10 max-w-[1240px]" />
       <div className="mx-auto mt-5 flex max-w-[1240px] items-center justify-between gap-4">
         <div className="of-num text-[12px] text-[#8FA197]">© {new Date().getFullYear()} 11 ON FIELD</div>
-        <LanguageSwitcher up />
+        <LanguageSwitcher />
       </div>
     </footer>
   );

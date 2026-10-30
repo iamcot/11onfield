@@ -1,5 +1,6 @@
+"use client";
 
-import { useT } from "@/i18n/I18nProvider";"use client";
+import { useT } from "@/i18n/I18nProvider";
 
 interface PlayerAttribute {
   attributeKey: string;

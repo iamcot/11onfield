@@ -100,7 +100,7 @@ export default function HomeHeader({
                 {cross.label} ›
               </Link>
             )}
-            <LanguageSwitcher className="hidden sm:block" />
+            <LanguageSwitcher className="hidden sm:inline-flex" />
             {showLogin && (
               <Link href="/auth/login" className="of-navlink hidden xl:inline-block">
                 {t('Đăng nhập')}
@@ -161,14 +161,14 @@ export default function HomeHeader({
             </Link>
           ))}
         </nav>
-        <div className="of-menu-item flex items-center gap-3 p-6" style={cssVars({ '--i': links.length + extra.length })}>
-          <LanguageSwitcher up className="sm:hidden" />
+        <div className="of-menu-item flex flex-wrap items-center gap-3 p-6" style={cssVars({ '--i': links.length + extra.length })}>
+          <LanguageSwitcher className="sm:hidden" />
           {showLogin && (
-            <Link href="/auth/login" className="of-btn-ghost of-cut flex-1" onClick={() => setOpen(false)}>
+            <Link href="/auth/login" className="of-btn-ghost of-cut flex-1 whitespace-nowrap" onClick={() => setOpen(false)}>
               {t('Đăng nhập')}
             </Link>
           )}
-          <Link href={primary.href} className="of-btn flex-1" onClick={() => setOpen(false)}>
+          <Link href={primary.href} className="of-btn flex-1 whitespace-nowrap" onClick={() => setOpen(false)}>
             {primary.long}
           </Link>
         </div>
