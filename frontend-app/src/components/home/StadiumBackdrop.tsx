@@ -9,6 +9,8 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
     const canvas = ref.current;
     if (!canvas) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Desktop only: on phones and tablets the motes cost more than they add (CoT, 2026-10-30)
+    if (window.matchMedia('(hover: none)').matches) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -16,8 +18,7 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
     let h = 0;
     let raf = 0;
     let motes: Mote[] = [];
-    const touch = window.matchMedia('(hover: none)').matches;
-    const dpr = touch ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     // pre-rendered glow sprites: building a radial gradient per mote per frame is costly on phones
     const sprite = (c: string) => {

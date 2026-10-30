@@ -2058,6 +2058,7 @@ html body .of-app select option { background: #0b1f15; color: #fff; }
    (animated conic-gradient), which makes typing on the login and register forms stutter. Keep the
    still ring there; the streak stays on the rest of the site. */
 @media (hover: none) {
+  .of-particles { display: none; } /* motes are drawn on desktop only (StadiumBackdrop) */
   .of-run:has(form)::before,
   .of-run:has(input)::before {
     animation: none;
