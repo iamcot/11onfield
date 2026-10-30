@@ -1,17 +1,18 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import TopUserCard from "@/components/layout/TopUserCard";
-import TopBar from "@/components/layout/TopBar";
-import MobileNav from "@/components/layout/MobileNav";
 import HomeFooter from "@/components/home/HomeFooter";
-import { competitionService, CompetitionNews } from "@/services/competition.service";
+import MobileNav from "@/components/layout/MobileNav";
+import TopBar from "@/components/layout/TopBar";
+import TopUserCard from "@/components/layout/TopUserCard";
+import { IconPrev } from "@/components/pp/icons";
+import "@/components/pp/pp.css";
 import { useI18n } from "@/i18n/I18nProvider";
+import { competitionService, CompetitionNews } from "@/services/competition.service";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function NewsDetailPage() {
   const { t, intlLocale } = useI18n();
@@ -20,115 +21,82 @@ export default function NewsDetailPage() {
   const newsId = parseInt(params.newsId as string);
 
   const [news, setNews] = useState<CompetitionNews | null>(null);
-  const [recentNews, setRecentNews] = useState<CompetitionNews[]>([]);
+  const [related, setRelated] = useState<CompetitionNews[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchNews = async () => {
-      setLoading(true);
-      try {
-        const allNews = await competitionService.getNews(competitionId);
-        const article = allNews.find((n) => n.id === newsId) ?? null;
-        setNews(article);
-        setRecentNews(allNews.filter((n) => n.id !== newsId).slice(0, 15));
-      } catch (error) {
-        console.error("Error fetching news:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchNews();
+    setLoading(true);
+    competitionService
+      .getNews(competitionId)
+      .then((all) => {
+        setNews(all.find((n) => n.id === newsId) ?? null);
+        setRelated(all.filter((n) => n.id !== newsId).slice(0, 3));
+      })
+      .catch(() => setNews(null))
+      .finally(() => setLoading(false));
+    window.scrollTo(0, 0);
   }, [competitionId, newsId]);
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString(intlLocale, {
-      year: "numeric", month: "long", day: "numeric",
-      hour: "2-digit", minute: "2-digit",
-    });
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 pt-16">
-        <TopBar />
-        <TopUserCard />
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!news) {
-    return (
-      <div className="min-h-screen bg-gray-50 pt-16">
-        <TopBar />
-        <TopUserCard />
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-500">{t("Không tìm thấy tin tức")}</p>
-            <Link href={`/competitions/${competitionId}/news`} className="inline-block mt-4 text-green-700 hover:underline">
-              {t("Quay lại danh sách tin tức")}
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const date = (s: string) =>
+    new Date(s).toLocaleDateString(intlLocale, { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const back = `/competitions/${competitionId}?tab=news`;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 pb-20 md:pb-0">
+    <div className="pp min-h-screen pt-16 pb-20 md:pb-0">
       <TopBar />
       <TopUserCard />
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Main article */}
-          <div className="flex-1 min-w-0">
-            <Link href={`/competitions/${competitionId}/news`} className="inline-flex items-center text-green-700 hover:underline mb-4 text-sm">
-              {t("← Quay lại danh sách tin tức")}
+      <div className="pp-wrap">
+        {loading ? (
+          <div className="pp-spin" />
+        ) : !news ? (
+          <div className="pp-empty" style={{ paddingTop: 80 }}>
+            <b>{t("Không tìm thấy tin tức")}</b>
+            <Link href={back} className="pp-back">
+              <IconPrev />
+              {t("Tất cả tin tức")}
             </Link>
-
-            <article className="bg-white rounded-lg shadow overflow-hidden">
-              {news.thumbnail && (
-                <div className="relative w-full aspect-video">
-                  <Image src={news.thumbnail} alt={news.title} fill className="object-cover" />
-                </div>
-              )}
-              <div className="p-6 md:p-8">
-                <h1 className="text-2xl md:text-4xl font-bold mb-4">{news.title}</h1>
-                <div className="flex items-center text-gray-500 text-sm mb-6 pb-6 border-b flex-wrap gap-2">
-                  {news.authorName && <span>{t("Bởi")} {news.authorName}</span>}
-                  <span>{formatDate(news.publishedAt)}</span>
-                </div>
-                <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-a:text-green-700" dangerouslySetInnerHTML={{ __html: news.content }} />
-              </div>
-            </article>
           </div>
-
-          {/* Sidebar — recent news */}
-          <div className="hidden md:block w-[280px] shrink-0">
-            <div className="bg-white rounded-lg shadow p-4 sticky top-32">
-              <h4 className="font-bold mb-3 pb-2 border-b">{t("Tin tức gần đây")}</h4>
-              <div className="space-y-3">
-                {recentNews.map((article) => (
-                  <Link key={article.id} href={`/competitions/${competitionId}/news/${article.id}`}
-                        className="flex gap-3 hover:opacity-80 transition">
-                    {article.thumbnail ? (
-                      <div className="relative w-20 h-14 shrink-0 rounded overflow-hidden">
-                        <Image src={article.thumbnail} alt={article.title} fill className="object-cover" />
+        ) : (
+          <article className="pp-article">
+            <Link href={back} className="pp-back">
+              <IconPrev />
+              {t("Tất cả tin tức")}
+            </Link>
+            {news.isFeatured && (
+              <div>
+                <span className="pp-ncat">{t("Nổi bật")}</span>
+              </div>
+            )}
+            <h1 className="pp-disp">{news.title}</h1>
+            <span className="pp-mute" style={{ fontSize: 13 }}>
+              {[news.publishedAt ? date(news.publishedAt) : null, news.authorName].filter(Boolean).join(" · ")}
+            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {news.thumbnail && <img className="cover of-cut" src={news.thumbnail} alt="" />}
+            <div className="body" dangerouslySetInnerHTML={{ __html: news.content }} />
+            {related.length > 0 && (
+              <>
+                <h2 className="pp-disp" style={{ fontSize: 30, margin: "28px 0 12px" }}>
+                  {t("Bài liên quan")}
+                </h2>
+                <div className="pp-ngrid">
+                  {related.map((n) => (
+                    <Link key={n.id} className="pp-ncard of-cut" href={`/competitions/${competitionId}/news/${n.id}`}>
+                      <div className="im">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {n.thumbnail && <img src={n.thumbnail} alt="" loading="lazy" />}
                       </div>
-                    ) : (
-                      <div className="w-20 h-14 shrink-0 rounded bg-gray-100" />
-                    )}
-                    <p className="text-sm line-clamp-3 font-medium">{article.title}</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+                      <div className="tx">
+                        <h4>{n.title}</h4>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+          </article>
+        )}
       </div>
-
       <HomeFooter />
       <MobileNav />
     </div>

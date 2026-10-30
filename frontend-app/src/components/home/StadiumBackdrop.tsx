@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { fxEnabled, subscribeFx } from '@/lib/fx';
 
 type Mote = { x: number; y: number; r: number; vy: number; vx: number; ph: number; tw: number; gold: boolean };
 
@@ -79,17 +80,21 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
       raf = requestAnimationFrame(frame);
     };
 
+    // runs only while the tab is visible and the fireflies switch (lib/fx) is on
     const onVisibility = () => {
       cancelAnimationFrame(raf);
-      if (!document.hidden) raf = requestAnimationFrame(frame);
+      ctx.clearRect(0, 0, w, h);
+      if (!document.hidden && fxEnabled()) raf = requestAnimationFrame(frame);
     };
 
     resize();
-    raf = requestAnimationFrame(frame);
+    onVisibility();
+    const unsubscribe = subscribeFx(onVisibility);
     window.addEventListener('resize', resize);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       cancelAnimationFrame(raf);
+      unsubscribe();
       window.removeEventListener('resize', resize);
       document.removeEventListener('visibilitychange', onVisibility);
     };

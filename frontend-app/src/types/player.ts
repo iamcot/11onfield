@@ -7,6 +7,7 @@ export interface PlayerAttribute {
   attributeGroup?: string;
   isHexagon?: boolean;
   isGoalKeeper?: boolean;
+  isSynthetic?: boolean | null;
 }
 
 export interface PlayerListItem {
@@ -27,6 +28,10 @@ export interface PlayerListItem {
   followerCount: number;
   verified: boolean;
   attributes?: PlayerAttribute[];
+  /** FIT EXP SKL PRF ACH HLT computed from the profile. */
+  profileStats?: PlayerAttribute[];
+  /** Full-body photo with the background removed. */
+  fullBodyPhoto?: string | null;
 }
 
 export interface PlayersFilters {
