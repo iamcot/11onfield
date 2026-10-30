@@ -37,11 +37,6 @@
 .pp-seg button { min-height: 36px; padding: 0 13px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--pp-mute); display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
 .pp-seg button[aria-pressed='true'] { background: var(--lime); color: #0b2412; }
 .pp-seg svg { width: 15px; height: 15px; }
-.pp-toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; color: var(--pp-mute); font-size: 12.5px; }
-.pp-toggle i { width: 34px; height: 20px; border-radius: 999px; background: rgba(255, 255, 255, 0.15); position: relative; transition: background 0.2s; }
-.pp-toggle i::after { content: ''; position: absolute; left: 3px; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
-.pp-toggle[aria-pressed='true'] i { background: var(--lime); }
-.pp-toggle[aria-pressed='true'] i::after { transform: translateX(14px); }
 .pp-live { display: inline-flex; align-items: center; gap: 8px; color: var(--lime-2); }
 .pp-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); animation: pp-pulse 1.6s infinite; }
 @keyframes pp-pulse { 0% { box-shadow: 0 0 0 0 rgba(166, 227, 90, 0.7); } 70%, 100% { box-shadow: 0 0 0 10px rgba(166, 227, 90, 0); } }
@@ -223,7 +218,6 @@
 .pp-stage .hero img.refl { position: absolute; left: 0; top: 100%; height: 100%; width: auto; max-width: none; transform: scaleY(-1); opacity: 0.13; -webkit-mask-image: linear-gradient(0deg, #000, transparent 28%); mask-image: linear-gradient(0deg, #000, transparent 28%); }
 .pp-stage.enter .hero { animation: pp-pop 0.9s cubic-bezier(0.2, 0.9, 0.25, 1.2) both; }
 @keyframes pp-pop { from { opacity: 0; transform: translateX(-50%) translateY(30px) scale(0.94); } }
-.pp-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 11; pointer-events: none; }
 .pp-orb { position: absolute; left: 50%; top: 0; z-index: 5; pointer-events: none; will-change: transform, opacity; }
 .pp-orb > div { display: grid; grid-template-columns: auto auto; align-items: baseline; gap: 6px; padding: 7px 11px; background: rgba(6, 22, 14, 0.86); border: 1px solid rgba(166, 227, 90, 0.5); border-radius: 4px; white-space: nowrap; }
 .pp-orb b { font: 800 24px/1 var(--f-display); color: #fff; font-variant-numeric: tabular-nums; }

@@ -240,6 +240,25 @@ sudo systemctl restart 11of-backend.service
 sudo systemctl restart 11of-frontend.service
 ```
 
+## Background Removal (rembg)
+
+Player avatars and full-body photos get their background removed on the server by
+[rembg](https://github.com/danielgatis/rembg) with the `isnet-general-use` model (the same library the
+anylearn sticker artwork was cut out with). There is no service running all the time: the backend starts
+`deployment/rembg/cutout.py` once per uploaded photo, at most one at a time, after shrinking the photo to
+1280 px on the long side.
+
+- Installed into `/opt/rembg` (venv + model, about 1.5 GB disk) by `deployment/rembg/install.sh`, which
+  both deploy workflows run on every backend deploy (it does nothing once installed). Run it by hand with
+  `sudo bash deployment/rembg/install.sh` if needed.
+- Measured on a sample photo: about 4 s and a peak of about 1 GB RAM per photo, then the memory is freed.
+  The box is shared with anylearn, so keep 2 GB of swap (`sudo fallocate -l 2G /swapfile && sudo chmod 600
+  /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile`, then add it to `/etc/fstab`).
+- Not installed or failing = the photo keeps its background (logged as a warning), uploads never fail.
+- Local development: install rembg (`pip install "rembg[cpu]"`) and set `APP_REMBG_COMMAND="python
+  /path/to/deployment/rembg/cutout.py"` and `APP_REMBG_MODEL_DIR=~/.u2net`; without it photos keep their
+  background.
+
 ## Reverse Proxy Setup (Optional but Recommended)
 
 Configure nginx as a reverse proxy for SSL/TLS termination:

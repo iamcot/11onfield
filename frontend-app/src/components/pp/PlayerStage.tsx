@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, type ReactNode } from 'react';
-import { fxEnabled } from '@/lib/fx';
 import { useT } from '@/i18n/I18nProvider';
 import { IconDrag } from './icons';
 
@@ -24,14 +23,13 @@ interface Props {
 
 /**
  * The 2.5D stage of the drawer and the profile: the player on a lit floor, six stat chips orbiting around, drag to
- * spin. 60 fps on phones: every frame only writes transform and opacity, sparkles are one pre-drawn sprite on a canvas
+ * spin. 60 fps on phones: every frame only writes transform and opacity
  * (1x pixel ratio on touch screens), and the loop stops while the stage is off screen or the tab is hidden.
  */
 export default function PlayerStage({ image, bigText, name, keys, values, profile, enterKey, className, children }: Props) {
   const t = useT();
   const root = useRef<HTMLDivElement>(null);
   const hero = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
   const r1 = useRef<SVGEllipseElement>(null);
   const r2 = useRef<SVGEllipseElement>(null);
   const orbs = useRef<(HTMLDivElement | null)[]>([]);
@@ -39,35 +37,17 @@ export default function PlayerStage({ image, bigText, name, keys, values, profil
 
   useEffect(() => {
     const el = root.current;
-    const cv = canvas.current;
-    if (!el || !cv) return;
-    const ctx = cv.getContext('2d');
-    if (!ctx) return;
+    if (!el) return;
     const touch = window.matchMedia('(hover: none)').matches;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const s = { angle: 0, vel: 0.18, tilt: 0, drag: false, lx: 0, W: 0, H: 0, raf: 0, visible: false };
-    let parts: { x: number; y: number; v: number; s: number }[] = [];
-
-    const sprite = document.createElement('canvas');
-    sprite.width = sprite.height = 16;
-    const sg = sprite.getContext('2d')!;
-    const gr = sg.createRadialGradient(8, 8, 0, 8, 8, 8);
-    gr.addColorStop(0, 'rgba(214,250,158,1)');
-    gr.addColorStop(1, 'rgba(214,250,158,0)');
-    sg.fillStyle = gr;
-    sg.fillRect(0, 0, 16, 16);
 
     const size = () => {
       const r = el.getBoundingClientRect();
       if (!r.width) return;
       s.W = r.width;
       s.H = r.height;
-      const d = touch ? 1 : Math.min(1.5, window.devicePixelRatio || 1);
-      cv.width = Math.round(r.width * d);
-      cv.height = Math.round(r.height * d);
-      ctx.setTransform(d, 0, 0, d, 0, 0);
-      parts = Array.from({ length: touch ? 16 : 34 }, () => ({ x: Math.random() * r.width, y: Math.random() * r.height, v: 0.2 + Math.random() * 0.6, s: 2 + Math.random() * 4 }));
     };
 
     const paint = () => {
@@ -97,20 +77,6 @@ export default function PlayerStage({ image, bigText, name, keys, values, profil
       });
       if (r1.current) r1.current.style.transform = `rotate(${(s.angle * 0.25).toFixed(1)}deg)`;
       if (r2.current) r2.current.style.transform = `rotate(${(-s.angle * 0.18).toFixed(1)}deg)`;
-      ctx.clearRect(0, 0, s.W, s.H);
-      if (fxEnabled() && !reduce) {
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = 0.6;
-        for (const p of parts) {
-          p.y -= p.v;
-          if (p.y < 0) {
-            p.y = s.H;
-            p.x = Math.random() * s.W;
-          }
-          ctx.drawImage(sprite, p.x - p.s, p.y - p.s, p.s * 2, p.s * 2);
-        }
-        ctx.globalAlpha = 1;
-      }
     };
 
     const stop = () => {
@@ -210,7 +176,6 @@ export default function PlayerStage({ image, bigText, name, keys, values, profil
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="refl" src={src} alt="" draggable={false} />
       </div>
-      <canvas ref={canvas} />
       <div aria-hidden="true">
         {keys.map((k, j) => (
           <div key={k} ref={(n) => { orbs.current[j] = n; }} className={`pp-orb ${profile ? 'auto' : ''}`}>

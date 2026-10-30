@@ -9,7 +9,6 @@ import TopUserCard from "@/components/layout/TopUserCard";
 import NewsTab from "@/components/competition/NewsTab";
 import PlayersTab from "@/components/competition/PlayersTab";
 import RoundRail from "@/components/competition/RoundRail";
-import FxToggle from "@/components/pp/FxToggle";
 import "@/components/pp/pp.css";
 import { useI18n } from "@/i18n/I18nProvider";
 import { activeRoundIndex, finalIsOpen, sortRounds } from "@/lib/players/rounds";
@@ -117,7 +116,6 @@ export default function CompetitionDetailPage() {
               {live && <i />}
               {[t("Mùa {n}", { n: competition.season }), year, t(STATUS_LABELS[competition.status] ?? competition.status)].filter(Boolean).join(" · ")}
             </span>
-            <FxToggle />
           </div>
           <h1 className="pp-disp">{competition.title}</h1>
           {competition.description && <p className="pp-desc">{competition.description}</p>}

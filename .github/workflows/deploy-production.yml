@@ -149,6 +149,7 @@ jobs:
           sparse-checkout: |
             deployment/scripts
             deployment/systemd
+            deployment/rembg
             backoffice/scripts
           sparse-checkout-cone-mode: false
 
@@ -201,6 +202,11 @@ jobs:
           sudo systemctl daemon-reload
 
           echo "✓ Systemd service files updated with Java path: $JAVA21_HOME"
+
+      - name: Install background removal (rembg, once)
+        # idempotent: only the first run installs (about 1.5 GB disk incl. the 179 MB model);
+        # a failure here only means photos keep their background, so it never blocks the deploy
+        run: bash deployment/rembg/install.sh || echo "::warning::rembg install failed; photos keep their background"
 
       - name: Clear previous backend artifact
         # download-artifact merges into the folder, so stale builds pile up without this

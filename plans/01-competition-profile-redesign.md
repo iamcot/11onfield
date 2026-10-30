@@ -89,5 +89,7 @@ anti-abuse.
 - [x] Competition page
 - [x] Profile page
 - [x] i18n (`src/i18n/messages/players.ts`), tsc, `next build`
+- [x] Background removal: the AWS Lambda was never deployed; replaced by rembg run on the server per photo (`deployment/rembg`, isnet-general-use, ~4 s / ~1 GB peak, one at a time), see `deployment/README.md`
+- [x] Fireflies canvas and its switch removed everywhere (floodlight beams stay); full-screen highlight viewer with vertical swipe
 - [ ] PR merged (after PR #4, because of V27), Bunny secrets created, check on a phone
 - [ ] Later: leaderboard tab (idea above), jersey number, region rank

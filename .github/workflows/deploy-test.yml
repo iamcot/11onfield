@@ -181,6 +181,7 @@ jobs:
           sparse-checkout: |
             deployment/scripts
             deployment/systemd
+            deployment/rembg
           sparse-checkout-cone-mode: false
 
       - name: Update systemd service files
@@ -239,6 +240,9 @@ jobs:
           sudo grep -E "JAVA_HOME|ExecStart=" /etc/systemd/system/11of-backend.service
 
           echo "✓ Systemd service files updated with Java path: $JAVA21_HOME"
+
+      - name: Install background removal (rembg, once)
+        run: bash deployment/rembg/install.sh || echo "::warning::rembg install failed; photos keep their background"
 
       - name: Clear previous backend artifact
         # download-artifact merges into the folder, so stale builds pile up without this

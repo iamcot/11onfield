@@ -1,127 +1,116 @@
 package com.elevenof.backoffice.service;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.InvokeRequest;
-import com.amazonaws.services.lambda.model.InvokeResult;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Background Removal Service
- * Integrates with AWS Lambda function to remove image backgrounds
+ * Background removal with rembg (deployment/rembg), run on the server only when a photo is uploaded.
+ * One process per photo and at most one at a time, so it uses no memory while nobody uploads
+ * (the box is shared with anylearn, MySQL and Meilisearch). Photos are shrunk first: the cut-out is
+ * shown at most about 1000 px tall, and a smaller input keeps the run short and light.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class BackgroundRemovalService {
 
+    static final int MAX_EDGE = 1280;
+    private static final long TIMEOUT_SECONDS = 90;
+
+    private final Semaphore oneAtATime = new Semaphore(1, true);
+    private final List<String> command;
+    private final String modelDir;
+
+    public BackgroundRemovalService(
+            @Value("${app.rembg.command:/opt/rembg/bin/python /opt/rembg/cutout.py}") String command,
+            @Value("${app.rembg.model-dir:/opt/rembg/models}") String modelDir) {
+        this.command = Arrays.stream(command.trim().split("\\s+")).toList();
+        this.modelDir = modelDir;
+    }
+
     /**
-     * A synchronous Lambda call takes at most 6MB of payload and base64 adds a third, so bigger photos are
-     * shrunk first; otherwise the call fails and the photo silently keeps its background.
-     */
-    static final int MAX_SEND_BYTES = 3 * 1024 * 1024;
-    static final int MAX_EDGE = 2000;
-
-    private final AWSLambda lambdaClient;
-    private final ObjectMapper objectMapper;
-
-    @Value("${aws.lambda.bgRemoverFunctionName}")
-    private String functionName;
-
-    /**
-     * Remove background from image
+     * Remove the background of a photo.
      *
-     * @param imageBytes Original image bytes
-     * @return Processed image bytes with background removed (PNG format)
-     * @throws Exception if processing fails
+     * @return PNG bytes with a transparent background
+     * @throws Exception when rembg is missing, fails or takes too long
      */
     public byte[] removeBackground(byte[] imageBytes) throws Exception {
-        log.info("Starting background removal, image size: {} bytes", imageBytes.length);
-
+        byte[] input = shrink(imageBytes);
+        if (!oneAtATime.tryAcquire(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("Background removal is busy");
+        }
+        long started = System.currentTimeMillis();
         try {
-            imageBytes = shrinkForLambda(imageBytes);
-
-            // Encode image to Base64
-            String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
-
-            // Prepare Lambda request payload
-            String payload = String.format("{\"image\":\"%s\"}", imageBase64);
-
-            // Invoke Lambda function
-            InvokeRequest invokeRequest = new InvokeRequest()
-                .withFunctionName(functionName)
-                .withPayload(ByteBuffer.wrap(payload.getBytes(StandardCharsets.UTF_8)));
-
-            log.info("Invoking Lambda function: {}", functionName);
-            InvokeResult invokeResult = lambdaClient.invoke(invokeRequest);
-
-            // Check for Lambda execution errors
-            if (invokeResult.getFunctionError() != null) {
-                String errorMessage = new String(invokeResult.getPayload().array(), StandardCharsets.UTF_8);
-                log.error("Lambda function error: {}", errorMessage);
-                throw new RuntimeException("Lambda function error: " + errorMessage);
-            }
-
-            // Parse response
-            String responseJson = new String(invokeResult.getPayload().array(), StandardCharsets.UTF_8);
-            JsonNode responseNode = objectMapper.readTree(responseJson);
-
-            // Extract body (Lambda returns statusCode + body)
-            JsonNode bodyNode = responseNode.has("body")
-                ? objectMapper.readTree(responseNode.get("body").asText())
-                : responseNode;
-
-            // Check success
-            boolean success = bodyNode.has("success") && bodyNode.get("success").asBoolean();
-            if (!success) {
-                String error = bodyNode.has("error") ? bodyNode.get("error").asText() : "Unknown error";
-                log.error("Background removal failed: {}", error);
-                throw new RuntimeException("Background removal failed: " + error);
-            }
-
-            // Decode result
-            String resultBase64 = bodyNode.get("image").asText();
-            byte[] resultBytes = Base64.getDecoder().decode(resultBase64);
-
-            log.info("Background removal successful, output size: {} bytes", resultBytes.length);
-            return resultBytes;
-
-        } catch (Exception e) {
-            log.error("Error removing background", e);
-            throw e;
+            byte[] out = run(input);
+            log.info("Background removed: {} -> {} bytes in {} ms", input.length, out.length, System.currentTimeMillis() - started);
+            return out;
+        } finally {
+            oneAtATime.release();
         }
     }
 
-    /** Big photos become a JPEG of at most MAX_EDGE px on the long side, rotated as the camera said. */
-    static byte[] shrinkForLambda(byte[] imageBytes) throws java.io.IOException {
-        if (imageBytes.length <= MAX_SEND_BYTES) return imageBytes;
+    private byte[] run(byte[] input) throws Exception {
+        ProcessBuilder pb = new ProcessBuilder(command);
+        pb.environment().put("U2NET_HOME", modelDir);
+        pb.environment().put("PYTHONDONTWRITEBYTECODE", "1");
+        // two threads is the box's whole CPU; more only adds memory
+        pb.environment().put("OMP_NUM_THREADS", "2");
+        Process process = pb.start();
+
+        CompletableFuture<byte[]> stdout = CompletableFuture.supplyAsync(() -> readAll(process.getInputStream()));
+        CompletableFuture<byte[]> stderr = CompletableFuture.supplyAsync(() -> readAll(process.getErrorStream()));
+        try (OutputStream stdin = process.getOutputStream()) {
+            stdin.write(input);
+        }
+
+        if (!process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+            process.destroyForcibly();
+            throw new IllegalStateException("Background removal timed out");
+        }
+        byte[] out = stdout.get(5, TimeUnit.SECONDS);
+        if (process.exitValue() != 0 || out.length == 0) {
+            String err = new String(stderr.get(5, TimeUnit.SECONDS));
+            throw new IllegalStateException("Background removal failed (" + process.exitValue() + "): "
+                + err.substring(Math.max(0, err.length() - 500)));
+        }
+        return out;
+    }
+
+    private static byte[] readAll(InputStream in) {
+        try (in) {
+            return in.readAllBytes();
+        } catch (IOException e) {
+            return new byte[0];
+        }
+    }
+
+    /** Applies the camera's rotation and keeps the long side at most MAX_EDGE px; PNG keeps transparency. */
+    static byte[] shrink(byte[] imageBytes) throws IOException {
+        BufferedImage img = Thumbnails.of(new ByteArrayInputStream(imageBytes)).scale(1.0).asBufferedImage();
+        if (Math.max(img.getWidth(), img.getHeight()) > MAX_EDGE) {
+            img = Thumbnails.of(img).size(MAX_EDGE, MAX_EDGE).asBufferedImage();
+        }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Thumbnails.of(new ByteArrayInputStream(imageBytes))
-            .size(MAX_EDGE, MAX_EDGE)
-            .outputFormat("jpg")
-            .outputQuality(0.9)
-            .toOutputStream(out);
-        log.info("Shrunk image for background removal: {} -> {} bytes", imageBytes.length, out.size());
+        ImageIO.write(img, "png", out);
         return out.toByteArray();
     }
 
     /**
-     * Remove background with graceful fallback
-     * If removal fails, returns original image
-     *
-     * @param imageBytes Original image bytes
-     * @return Processed image bytes or original if processing fails
+     * Remove background with graceful fallback: when it fails the original photo is kept.
      */
     public byte[] removeBackgroundWithFallback(byte[] imageBytes) {
         try {
