@@ -225,6 +225,7 @@ public class AdminPlayerApiController {
         m.put("phone", u.getPhone());
         m.put("email", u.getEmail());
         m.put("avatar", u.getAvatar());
+        m.put("fullBodyPhoto", pl.getFullBodyPhoto());
         m.put("dob", u.getDob());
         m.put("gender", u.getGender() != null ? u.getGender().name() : null);
         m.put("enabled", Boolean.TRUE.equals(u.getEnabled()));
@@ -281,7 +282,8 @@ public class AdminPlayerApiController {
                                 Long provinceId, Integer height, Integer weight, String preferredFoot, String positions,
                                 String secondaryPosition, Integer yearsOfExperience, String level, String bio,
                                 String personalId, String address, String school, String academy, String club,
-                                Boolean verified, List<ItemDto> achievements, List<ItemDto> highlights, List<String> socials) {}
+                                Boolean verified, List<ItemDto> achievements, List<ItemDto> highlights, List<String> socials,
+                                String fullBodyPhoto) {}
 
     @PutMapping("/players/{id}")
     @PreAuthorize(MANAGER)
@@ -305,6 +307,7 @@ public class AdminPlayerApiController {
                 addressRepository.save(a);
             }
 
+            pl.setFullBodyPhoto(blankToNull(r.fullBodyPhoto()));
             pl.setHeight(r.height());
             pl.setWeight(r.weight());
             pl.setPreferredFoot(blankToNull(r.preferredFoot()));

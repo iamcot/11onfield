@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { type RefObject, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { api, uploadImage, useApi } from '@/lib/admin/client';
 import RichText from '@/components/admin/RichText';
@@ -43,14 +43,16 @@ export default function PlayerEditPage() {
   const [socials, setSocials] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<'info' | 'media'>('info');
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState<'' | 'avatar' | 'fullBodyPhoto'>('');
+  const [cutOut, setCutOut] = useState(true);
+  const avatarRef = useRef<HTMLInputElement>(null);
+  const fullBodyRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const p = detail.data;
     if (!p) return;
     setF({
-      fullName: txt(p.fullName), phone: txt(p.phone), email: txt(p.email), avatar: txt(p.avatar), dob: txt(p.dob), gender: txt(p.gender),
+      fullName: txt(p.fullName), phone: txt(p.phone), email: txt(p.email), avatar: txt(p.avatar), fullBodyPhoto: txt(p.fullBodyPhoto), dob: txt(p.dob), gender: txt(p.gender),
       provinceId: txt(p.provinceId), height: txt(p.height), weight: txt(p.weight), preferredFoot: txt(p.preferredFoot), positions: txt(p.positions),
       secondaryPosition: txt(p.secondaryPosition), yearsOfExperience: txt(p.yearsOfExperience), level: txt(p.level), bio: txt(p.bio),
       personalId: txt(p.personalId), address: txt(p.address), school: txt(p.school), academy: txt(p.academy), club: txt(p.club),
@@ -107,19 +109,36 @@ export default function PlayerEditPage() {
       </div>
     ) : null;
 
-  async function pickAvatar(file?: File) {
+  async function pickPhoto(key: 'avatar' | 'fullBodyPhoto', file?: File) {
     if (!file) return;
-    setUploading(true);
+    setUploading(key);
     try {
-      set('avatar')(await uploadImage('avatar', file));
+      set(key)(await uploadImage(key === 'avatar' ? 'avatar' : 'fullbody', file, cutOut));
       toast('Đã tải ảnh lên, bấm Lưu hồ sơ để áp dụng');
     } catch (e) {
       toast((e as Error).message, 'error');
     } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = '';
+      setUploading('');
+      const input = key === 'avatar' ? avatarRef.current : fullBodyRef.current;
+      if (input) input.value = '';
     }
   }
+
+  const photo = (key: 'avatar' | 'fullBodyPhoto', label: string, ref: RefObject<HTMLInputElement>, box: string) => (
+    <div className="flex flex-col items-center gap-2">
+      <div className={`${box} shrink-0 overflow-hidden rounded-2xl border border-[#DCE5DF] bg-[#F3F6F4]`}>
+        {f[key] ? <img src={f[key]} alt={label} className="h-full w-full object-contain" /> : <div className="flex h-full items-center justify-center px-2 text-center text-[13px] text-[#66766D]">Chưa có {label.toLowerCase()}</div>}
+      </div>
+      <div className="text-[13px] font-medium text-[#46564D]">{label}</div>
+      {manager && (
+        <div className="flex flex-wrap justify-center gap-2">
+          <input ref={ref} type="file" accept="image/*" hidden onChange={(e) => pickPhoto(key, e.target.files?.[0])} />
+          <Button small disabled={!!uploading} onClick={() => ref.current?.click()}>{uploading === key ? (cutOut ? 'Đang xoá nền…' : 'Đang tải lên…') : 'Tải ảnh lên'}</Button>
+          {f[key] && <Button small variant="danger" onClick={() => set(key)('')}>Bỏ ảnh</Button>}
+        </div>
+      )}
+    </div>
+  );
 
   const select = (k: string, label: string, options: Record<string, string>) => (
     <Field label={label}>
@@ -165,16 +184,16 @@ export default function PlayerEditPage() {
           <div className={tab === 'info' ? 'space-y-4' : 'hidden'}>
             <div className="grid gap-4 xl:grid-cols-2">
               <Card title="Thông tin cơ bản">
-                <div className="mb-5 flex flex-col items-center gap-3 sm:flex-row sm:items-end">
-                  <div className="h-40 w-40 shrink-0 overflow-hidden rounded-2xl border border-[#DCE5DF] bg-[#F3F6F4]">
-                    {f.avatar ? <img src={f.avatar} alt="Ảnh đại diện" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[13px] text-[#66766D]">Chưa có ảnh</div>}
+                <div className="mb-5">
+                  <div className="flex flex-wrap items-end justify-center gap-6 sm:justify-start">
+                    {photo('avatar', 'Ảnh đại diện', avatarRef, 'h-40 w-40')}
+                    {photo('fullBodyPhoto', 'Ảnh toàn thân', fullBodyRef, 'h-56 w-36')}
                   </div>
                   {manager && (
-                    <div className="flex flex-col gap-2">
-                      <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pickAvatar(e.target.files?.[0])} />
-                      <Button disabled={uploading} onClick={() => fileRef.current?.click()}>{uploading ? 'Đang tải lên…' : 'Tải ảnh lên'}</Button>
-                      {f.avatar && <Button small variant="danger" onClick={() => set('avatar')('')}>Bỏ ảnh</Button>}
-                    </div>
+                    <label className="mt-3 flex items-center gap-2 text-[13px] text-[#46564D]">
+                      <input type="checkbox" checked={cutOut} onChange={(e) => setCutOut(e.target.checked)} />
+                      Tự xoá nền khi tải ảnh (ảnh nền trắng hoặc PNG đã tách nền cho kết quả tốt nhất)
+                    </label>
                   )}
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
