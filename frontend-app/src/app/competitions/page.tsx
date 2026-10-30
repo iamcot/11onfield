@@ -30,7 +30,7 @@ export default function CompetitionsPage() {
   if (!competition) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
-        <h1 className="text-2xl font-bold text-gray-800">{t("11 Người Ra Sân 2026")}</h1>
+        <h1 className="text-2xl font-bold text-gray-800">11 On Field</h1>
         <p className="text-gray-500 text-center">{t("Chương trình chưa mở. Hãy quay lại sớm nhé!")}</p>
         <Link href="/" className="mt-4 px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition">
           {t("Về trang chủ")}
@@ -39,7 +39,7 @@ export default function CompetitionsPage() {
     );
   }
 
-  // Redirect to competition detail
+  // Redirect to the open competition; without one the copy above stays generic (same as the login page).
   window.location.replace(`/competitions/${competition.id}`);
   return (
     <div className="min-h-screen flex items-center justify-center">

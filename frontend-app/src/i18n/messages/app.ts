@@ -120,7 +120,6 @@ const app: Messages = {
   ],
   'Xem tất cả tin tức →': ['See all news →', 'Ver todas las noticias →', '모든 뉴스 보기 →'],
   'Đọc tiếp →': ['Read more →', 'Seguir leyendo →', '계속 읽기 →'],
-  '11 Người Ra Sân 2026': ['11 On Field 2026', '11 On Field 2026', '11 On Field 2026'],
   'Chương trình chưa mở. Hãy quay lại sớm nhé!': ["The programme isn't open yet. Check back soon!", 'El programa aún no está abierto. ¡Vuelve pronto!', '프로그램이 아직 열리지 않았습니다. 곧 다시 방문해 주세요!'],
 
   // events
