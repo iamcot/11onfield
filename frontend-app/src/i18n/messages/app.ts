@@ -378,6 +378,13 @@ const app: Messages = {
   'Văn bản pháp lý': ['Legal', 'Documentos legales', '법적 고지'],
   'Cập nhật lần cuối:': ['Last updated:', 'Última actualización:', '최종 업데이트:'],
   'Văn bản liên quan': ['Related documents', 'Documentos relacionados', '관련 문서'],
+  'Liên hệ với chúng tôi': ['Contact us', 'Contacta con nosotros', '문의하기'],
+  'Bản dịch chỉ để tham khảo. Bản tiếng Việt là bản có giá trị pháp lý.': [
+    'This translation is for reference only. The Vietnamese version is the legally binding one.',
+    'Esta traducción es solo orientativa. La versión en vietnamita es la única con validez legal.',
+    '이 번역본은 참고용입니다. 법적 효력은 베트남어 원문에 있습니다.',
+  ],
+  'Chọn ngôn ngữ': ['Choose language', 'Elige idioma', '언어 선택'],
 };
 
 export default app;

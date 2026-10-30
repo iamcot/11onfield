@@ -6,7 +6,8 @@
     "dev": "next dev -p 7070",
     "build": "next build",
     "start": "next start -p 7070",
-    "lint": "next lint"
+    "lint": "next lint",
+    "i18n:check": "node scripts/i18n-check.js"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.20",
