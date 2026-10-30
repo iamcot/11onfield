@@ -9,6 +9,7 @@ const TABS = [
   { slug: '', label: 'Thông tin' },
   { slug: '/vong', label: 'Vòng thi' },
   { slug: '/thi-sinh', label: 'Thí sinh' },
+  { slug: '/tuyen-chon', label: 'Top 30 / Top 11' },
   { slug: '/tin-tuc', label: 'Tin tức' },
   { slug: '/nha-tai-tro', label: 'Nhà tài trợ' },
 ];

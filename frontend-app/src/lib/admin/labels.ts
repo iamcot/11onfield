@@ -37,3 +37,35 @@ export const APPROVAL: Record<string, { label: string; tone: 'green' | 'gold' | 
   REJECTED: { label: 'Từ chối', tone: 'red' },
 };
 export const FEET: Record<string, string> = { left: 'Chân trái', right: 'Chân phải', both: 'Hai chân' };
+
+export const COMP_STATUS: Record<string, { label: string; tone: 'green' | 'gold' | 'red' | 'gray' }> = {
+  DRAFT: { label: 'Nháp', tone: 'gray' },
+  REGISTRATION_OPEN: { label: 'Đang mở đăng ký', tone: 'green' },
+  REGIONAL_AUDITION: { label: 'Vòng tuyển trạch', tone: 'green' },
+  SELECTING_TOP30: { label: 'Chọn Top 30', tone: 'gold' },
+  TRAINING_PHASE: { label: 'Giai đoạn tập huấn', tone: 'gold' },
+  FINAL_PHASE: { label: 'Chung kết', tone: 'gold' },
+  COMPLETED: { label: 'Đã kết thúc', tone: 'gray' },
+};
+export const STAGE_TYPES: Record<string, string> = {
+  REGIONAL_AUDITION: 'Tuyển trạch khu vực',
+  TRAINING_EPISODE: 'Tập huấn (nội bộ)',
+  FINAL_MATCH: 'Chung kết',
+};
+export const STAGE_STATUS: Record<string, { label: string; tone: 'green' | 'gold' | 'red' | 'gray' }> = {
+  UPCOMING: { label: 'Sắp diễn ra', tone: 'gray' },
+  LIVE: { label: 'Đang diễn ra', tone: 'green' },
+  COMPLETED: { label: 'Đã xong', tone: 'gold' },
+};
+export const REGIONS: Record<string, string> = {
+  HANOI_NORTH: 'Hà Nội & Miền Bắc',
+  DANANG_CENTRAL: 'Đà Nẵng & Miền Trung',
+  HCMC_SOUTH: 'TP HCM & Miền Nam',
+};
+export const PARTICIPANT_STATUS: Record<string, { label: string; tone: 'green' | 'gold' | 'red' | 'gray' }> = {
+  REGISTERED: { label: 'Đã đăng ký', tone: 'gray' },
+  CHECKED_IN: { label: 'Đã check-in', tone: 'green' },
+  SELECTED_TOP30: { label: 'Top 30', tone: 'gold' },
+  SELECTED_TOP11: { label: 'Top 11', tone: 'green' },
+  ELIMINATED: { label: 'Bị loại', tone: 'red' },
+};

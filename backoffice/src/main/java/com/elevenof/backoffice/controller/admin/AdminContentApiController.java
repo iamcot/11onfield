@@ -68,20 +68,6 @@ public class AdminContentApiController {
         return out;
     }
 
-    @GetMapping("/competitions")
-    public List<Map<String, Object>> competitions() {
-        List<Map<String, Object>> out = new ArrayList<>();
-        for (Competition c : competitionRepository.findAll()) {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("id", c.getId());
-            m.put("title", c.getTitle());
-            m.put("season", c.getSeason());
-            m.put("status", c.getStatus() != null ? c.getStatus().name() : null);
-            out.add(m);
-        }
-        return out;
-    }
-
     // ==================== UPLOADS ====================
 
     /** Uploads one image to S3 and returns its public URL. type = event | news | sponsor. */

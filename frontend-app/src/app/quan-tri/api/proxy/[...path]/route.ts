@@ -26,10 +26,10 @@ async function forward(req: NextRequest, { params }: { params: { path: string[] 
     return NextResponse.json({ message: 'Không kết nối được máy chủ' }, { status: 502 });
   }
 
-  const out = new NextResponse(upstream.body, {
-    status: upstream.status,
-    headers: { 'Content-Type': upstream.headers.get('content-type') || 'application/json' },
-  });
+  const outHeaders: Record<string, string> = { 'Content-Type': upstream.headers.get('content-type') || 'application/json' };
+  const disposition = upstream.headers.get('content-disposition');
+  if (disposition) outHeaders['Content-Disposition'] = disposition;
+  const out = new NextResponse(upstream.body, { status: upstream.status, headers: outHeaders });
   if (upstream.status === 401) out.cookies.set(ADMIN_COOKIE, '', { httpOnly: true, path: '/quan-tri', maxAge: 0 });
   return out;
 }

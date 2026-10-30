@@ -57,10 +57,8 @@ export default async function AdminDashboardPage() {
     return (
       <>
         <h1 className="text-2xl font-semibold">Xin chào, {me.fullName || 'Ban giám khảo'}</h1>
-        <p className="mt-2 max-w-xl text-[#C4D0C8]">
-          Màn hình chấm điểm tại sân đang được xây dựng. Trong lúc chờ, hãy dùng{' '}
-          <a className="text-[#A6E35A] underline" href="/admin/field-scoring">trang chấm điểm bản cũ</a>.
-        </p>
+        <p className="mt-2 max-w-xl text-[#C4D0C8]">Bạn có quyền nhập điểm thi tại sân.</p>
+        <a href="/quan-tri/cham-diem" className="mt-4 inline-block bg-[#A6E35A] px-5 py-3 font-medium text-[#0B2419]">Mở màn hình chấm điểm</a>
       </>
     );
   }

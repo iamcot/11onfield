@@ -15,14 +15,16 @@ export async function api<T = any>(path: string, init: { method?: string; body?:
   }
   const text = await res.text();
   let data: any = null;
+  let plain = '';
   try {
     data = text ? JSON.parse(text) : null;
   } catch {
-    data = null;
+    plain = text.length < 300 ? text : ''; // some older endpoints answer with a plain-text message
   }
   if (!res.ok) {
-    throw new Error(data?.message || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : `Lỗi ${res.status}`));
+    throw new Error(data?.message || plain || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : `Lỗi ${res.status}`));
   }
+  if (data === null && plain) return { message: plain } as T;
   return data as T;
 }
 

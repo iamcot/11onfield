@@ -1,0 +1,520 @@
+package com.elevenof.backoffice.controller.admin;
+
+import com.elevenof.backoffice.model.*;
+import com.elevenof.backoffice.repository.*;
+import com.elevenof.backoffice.service.CompetitionAssessmentResultService;
+import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+/**
+ * JSON API behind the Next.js admin (/quan-tri) for competitions, stages, contestants, field scoring and Excel export.
+ * Assessment structure, stage results and TOP 30/11 selection live in CompetitionAssessmentController / AdminCompetitionController,
+ * which are also mapped under /api/admin/competitions.
+ */
+@RestController
+@RequestMapping("/api/admin")
+@RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+public class AdminCompetitionApiController {
+
+    private static final String MANAGER = "hasAnyRole('ADMIN', 'SUPER_USER')";
+    private static final String SCORER = "hasAnyRole('BGK', 'ADMIN', 'SUPER_USER')";
+
+    private final CompetitionRepository competitionRepository;
+    private final CompetitionStageRepository stageRepository;
+    private final CompetitionParticipantRepository participantRepository;
+    private final CompetitionNewsRepository newsRepository;
+    private final CompetitionSponsorRepository sponsorRepository;
+    private final CompetitionAssessmentDayRepository dayRepository;
+    private final CompetitionAssessmentStepRepository stepRepository;
+    private final CompetitionAssessmentRepository assessmentRepository;
+    private final CompetitionAssessmentResultRepository resultRepository;
+    private final CompetitionAssessmentResultService assessmentResultService;
+    private final StageResultRepository stageResultRepository;
+    private final AdminController legacyAdminController;
+
+    // ==================== COMPETITIONS ====================
+
+    @GetMapping("/competitions")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    public List<Map<String, Object>> competitions() {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (Competition c : competitionRepository.findAll()) {
+            Map<String, Object> m = summary(c);
+            m.put("participantCount", participantRepository.countByCompetitionId(c.getId()));
+            m.put("stageCount", stageRepository.countByCompetitionId(c.getId()));
+            out.add(m);
+        }
+        out.sort((a, b) -> Integer.compare(num(b.get("season")), num(a.get("season"))));
+        return out;
+    }
+
+    @GetMapping("/competitions/{id}")
+    public ResponseEntity<?> competition(@PathVariable Long id) {
+        Competition c = competitionRepository.findById(id).orElse(null);
+        if (c == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy giải đấu");
+        Map<String, Object> m = summary(c);
+        m.put("description", c.getDescription());
+        m.put("participantCount", participantRepository.countByCompetitionId(id));
+        m.put("stageCount", stageRepository.countByCompetitionId(id));
+        m.put("newsCount", newsRepository.countByCompetitionId(id));
+        m.put("sponsorCount", sponsorRepository.countByCompetitionId(id));
+        m.put("datesLocked", !isNotStarted(c));
+        return ResponseEntity.ok(m);
+    }
+
+    @PutMapping("/competitions/{id}")
+    @PreAuthorize(MANAGER)
+    public ResponseEntity<?> updateCompetition(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        Competition c = competitionRepository.findById(id).orElse(null);
+        if (c == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy giải đấu");
+        String title = str(body.get("title"));
+        if (title == null) return error(HttpStatus.BAD_REQUEST, "Tên giải đấu không được để trống");
+        c.setTitle(title);
+        c.setDescription(str(body.get("description")));
+        String status = str(body.get("status"));
+        if (status != null) {
+            try {
+                c.setStatus(CompetitionStatus.valueOf(status));
+            } catch (IllegalArgumentException e) {
+                return error(HttpStatus.BAD_REQUEST, "Trạng thái không hợp lệ");
+            }
+        }
+        try {
+            // Same rule as the old admin: start dates are frozen once the competition has begun; the end date is always editable.
+            if (isNotStarted(c)) {
+                if (str(body.get("registrationStartDate")) != null) c.setRegistrationStartDate(LocalDate.parse(str(body.get("registrationStartDate"))));
+                if (str(body.get("registrationEndDate")) != null) c.setRegistrationEndDate(LocalDate.parse(str(body.get("registrationEndDate"))));
+                if (str(body.get("competitionStartDate")) != null) c.setCompetitionStartDate(LocalDate.parse(str(body.get("competitionStartDate"))));
+            }
+            if (str(body.get("competitionEndDate")) != null) c.setCompetitionEndDate(LocalDate.parse(str(body.get("competitionEndDate"))));
+        } catch (Exception e) {
+            return error(HttpStatus.BAD_REQUEST, "Ngày không hợp lệ");
+        }
+        competitionRepository.save(c);
+        return competition(id);
+    }
+
+    // ==================== STAGES ====================
+
+    @GetMapping("/competitions/{id}/stages")
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> stages(@PathVariable Long id) {
+        Competition c = competitionRepository.findById(id).orElse(null);
+        if (c == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy giải đấu");
+        List<CompetitionStage> stages = stageRepository.findByCompetitionIdOrderByStageNumberAsc(id);
+
+        Integer live = null;
+        Integer nextUpcoming = null;
+        for (CompetitionStage s : stages) if (s.getStatus() == StageStatus.LIVE) { live = s.getStageNumber(); break; }
+        for (CompetitionStage s : stages) {
+            if (s.getStatus() == StageStatus.UPCOMING && (live == null || s.getStageNumber() > live)) { nextUpcoming = s.getStageNumber(); break; }
+        }
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (CompetitionStage s : stages) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", s.getId());
+            m.put("stageNumber", s.getStageNumber());
+            m.put("title", s.getTitle());
+            m.put("description", s.getDescription());
+            m.put("stageDate", s.getStageDate() != null ? s.getStageDate().toString() : null);
+            m.put("stageTime", s.getStageTime());
+            m.put("stageType", s.getStageType() != null ? s.getStageType().name() : null);
+            m.put("region", s.getRegion() != null ? s.getRegion().name() : null);
+            m.put("status", s.getStatus() != null ? s.getStatus().name() : null);
+            m.put("isPublicScoring", Boolean.TRUE.equals(s.getIsPublicScoring()));
+            int days = 0, steps = 0, assessments = 0;
+            for (CompetitionAssessmentDay d : dayRepository.findByStageIdOrderByDisplayOrderAsc(s.getId())) {
+                days++;
+                for (CompetitionAssessmentStep st : stepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(d.getId())) {
+                    steps++;
+                    assessments += (int) assessmentRepository.countByAssessmentStepId(st.getId());
+                }
+            }
+            m.put("daysCount", days);
+            m.put("stepsCount", steps);
+            m.put("assessmentsCount", assessments);
+            items.add(m);
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("competition", summary(c));
+        out.put("liveStageNumber", live);
+        out.put("nextUpcomingStageNumber", nextUpcoming);
+        out.put("stages", items);
+        return ResponseEntity.ok(out);
+    }
+
+    /** Creates a stage. stageDate may be empty: the website then shows "Đang cập nhật". */
+    @PostMapping("/competitions/{id}/stages")
+    @PreAuthorize(MANAGER)
+    public ResponseEntity<?> createStage(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        Competition c = competitionRepository.findById(id).orElse(null);
+        if (c == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy giải đấu");
+        String title = str(body.get("title"));
+        if (title == null) return error(HttpStatus.BAD_REQUEST, "Tên vòng thi không được để trống");
+        StageType type;
+        Region region = null;
+        try {
+            type = StageType.valueOf(str(body.get("stageType")));
+            if (str(body.get("region")) != null) region = Region.valueOf(str(body.get("region")));
+        } catch (Exception e) {
+            return error(HttpStatus.BAD_REQUEST, "Loại vòng hoặc khu vực không hợp lệ");
+        }
+        LocalDate date = null;
+        try {
+            if (str(body.get("stageDate")) != null) date = LocalDate.parse(str(body.get("stageDate")));
+        } catch (Exception e) {
+            return error(HttpStatus.BAD_REQUEST, "Ngày không hợp lệ");
+        }
+        int next = stageRepository.findByCompetitionIdOrderByStageNumberAsc(id).stream()
+                .mapToInt(CompetitionStage::getStageNumber).max().orElse(0) + 1;
+        Boolean pub = body.get("isPublicScoring") instanceof Boolean b ? b : type != StageType.TRAINING_EPISODE;
+        CompetitionStage s = CompetitionStage.builder()
+                .competition(c).stageNumber(next).title(title).description(str(body.get("description")))
+                .stageDate(date).stageTime(str(body.get("stageTime"))).stageType(type).region(region)
+                .status(StageStatus.UPCOMING).isPublicScoring(pub).build();
+        stageRepository.save(s);
+        return ResponseEntity.ok(Map.of("stageNumber", next, "message", "Đã tạo vòng thi"));
+    }
+
+    @PutMapping("/competitions/{id}/stages/{n}")
+    @PreAuthorize(MANAGER)
+    public ResponseEntity<?> updateStage(@PathVariable Long id, @PathVariable Integer n, @RequestBody Map<String, Object> body) {
+        CompetitionStage s = stageRepository.findByCompetitionIdAndStageNumber(id, n).orElse(null);
+        if (s == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy vòng thi");
+        String title = str(body.get("title"));
+        if (title == null) return error(HttpStatus.BAD_REQUEST, "Tên vòng thi không được để trống");
+        try {
+            s.setStageDate(str(body.get("stageDate")) != null ? LocalDate.parse(str(body.get("stageDate"))) : null);
+        } catch (Exception e) {
+            return error(HttpStatus.BAD_REQUEST, "Ngày không hợp lệ");
+        }
+        s.setTitle(title);
+        s.setDescription(str(body.get("description")));
+        s.setStageTime(str(body.get("stageTime")));
+        if (body.get("isPublicScoring") instanceof Boolean b) s.setIsPublicScoring(b);
+        stageRepository.save(s);
+        return ResponseEntity.ok(Map.of("message", "Đã lưu vòng thi"));
+    }
+
+    @PostMapping("/competitions/{id}/stages/{n}/activate")
+    @PreAuthorize(MANAGER)
+    public ResponseEntity<?> activate(@PathVariable Long id, @PathVariable Integer n) {
+        return wrap(legacyAdminController.activateStage(id, n));
+    }
+
+    @PostMapping("/competitions/{id}/stages/{n}/deactivate")
+    @PreAuthorize(MANAGER)
+    public ResponseEntity<?> deactivate(@PathVariable Long id, @PathVariable Integer n) {
+        return wrap(legacyAdminController.deactivateStage(id, n));
+    }
+
+    // ==================== CONTESTANTS ====================
+
+    @GetMapping("/competitions/{id}/contestants")
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> contestants(@PathVariable Long id) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+        for (int i = 0; i < all.size(); i++) out.add(contestant(all.get(i), i + 1));
+        return out;
+    }
+
+    private Map<String, Object> contestant(CompetitionParticipant p, int sbd) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", p.getId());
+        m.put("sbd", sbd);
+        m.put("userId", p.getUser().getId());
+        m.put("fullName", p.getUser().getFullName());
+        m.put("phone", p.getUser().getPhone());
+        m.put("avatar", p.getUser().getAvatar());
+        m.put("status", p.getStatus() != null ? p.getStatus().name() : null);
+        m.put("region", p.getSelectedRegion() != null ? p.getSelectedRegion().name() : null);
+        m.put("registrationDate", p.getRegistrationDate() != null ? p.getRegistrationDate().toString() : null);
+        return m;
+    }
+
+    // ==================== FIELD SCORING ====================
+
+    /** Everything the mobile scoring screen needs for the current selection (stage -> day -> step -> contestant by SBD). */
+    @GetMapping("/field-scoring")
+    @PreAuthorize(SCORER)
+    @Transactional(readOnly = true)
+    public Map<String, Object> fieldScoring(@RequestParam(required = false) Long dayId,
+                                            @RequestParam(required = false) Long stepId,
+                                            @RequestParam(required = false) String sbd,
+                                            @RequestParam(required = false) Long participantId,
+                                            @RequestParam(defaultValue = "0") int historyPage) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        List<Competition> active = competitionRepository.findByStatusNotInOrderBySeasonDesc(
+                List.of(CompetitionStatus.DRAFT, CompetitionStatus.COMPLETED));
+        if (active.isEmpty()) return out;
+        Competition c = active.get(0);
+        out.put("competition", summary(c));
+
+        CompetitionStage live = stageRepository.findByCompetitionIdOrderByStageNumberAsc(c.getId()).stream()
+                .filter(s -> s.getStatus() == StageStatus.LIVE).findFirst().orElse(null);
+        if (live == null) return out;
+        out.put("stage", Map.of("id", live.getId(), "stageNumber", live.getStageNumber(), "title", live.getTitle()));
+
+        List<CompetitionAssessmentDay> days = dayRepository.findByStageIdOrderByDisplayOrderAsc(live.getId());
+        List<Map<String, Object>> dayList = new ArrayList<>();
+        for (CompetitionAssessmentDay d : days) dayList.add(Map.of("id", d.getId(), "title", label(d.getDayNumber(), d.getTitle())));
+        out.put("days", dayList);
+
+        CompetitionAssessmentDay day = days.stream().filter(d -> d.getId().equals(dayId)).findFirst().orElse(null);
+        if (day == null) return out;
+
+        List<CompetitionAssessmentStep> steps = stepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(day.getId());
+        List<Map<String, Object>> stepList = new ArrayList<>();
+        for (CompetitionAssessmentStep s : steps) stepList.add(Map.of("id", s.getId(), "title", label(s.getStepNumber(), s.getTitle())));
+        out.put("steps", stepList);
+
+        CompetitionAssessmentStep step = steps.stream().filter(s -> s.getId().equals(stepId)).findFirst().orElse(null);
+        if (step == null) return out;
+
+        List<CompetitionAssessment> assessments = assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(step.getId());
+        List<Map<String, Object>> assessmentList = new ArrayList<>();
+        for (CompetitionAssessment a : assessments) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", a.getId());
+            m.put("title", a.getTitle());
+            m.put("unit", a.getUnit());
+            m.put("attemptsCount", a.getAttemptsCount());
+            m.put("scoringMethod", a.getScoringMethod() != null ? a.getScoringMethod().name() : null);
+            assessmentList.add(m);
+        }
+        out.put("assessments", assessmentList);
+
+        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(c.getId());
+        CompetitionParticipant picked = null;
+        int pickedSbd = 0;
+        if (participantId != null) {
+            for (int i = 0; i < all.size(); i++) if (all.get(i).getId().equals(participantId)) { picked = all.get(i); pickedSbd = i + 1; }
+        } else if (sbd != null && !sbd.isBlank()) {
+            try {
+                int n = Integer.parseInt(sbd.trim());
+                if (n >= 1 && n <= all.size()) { picked = all.get(n - 1); pickedSbd = n; }
+                else out.put("sbdError", "Không tìm thấy thí sinh với SBD: " + sbd.trim());
+            } catch (NumberFormatException e) {
+                out.put("sbdError", "SBD không hợp lệ");
+            }
+        }
+        if (picked != null) {
+            out.put("participant", contestant(picked, pickedSbd));
+            Map<String, BigDecimal> scores = new LinkedHashMap<>();
+            for (CompetitionAssessment a : assessments) {
+                for (CompetitionAssessmentResult r : resultRepository.findByAssessmentIdAndParticipantIdOrderByAttemptNumberAsc(a.getId(), picked.getId())) {
+                    scores.put(a.getId() + "_" + r.getAttemptNumber(), r.getResultValue());
+                }
+            }
+            out.put("scores", scores);
+        }
+
+        int size = 10;
+        List<Long> ids = resultRepository.findDistinctParticipantIdsByStepId(step.getId(), PageRequest.of(Math.max(historyPage, 0), size));
+        long total = resultRepository.countDistinctParticipantsByStepId(step.getId());
+        long expected = assessments.stream().mapToLong(CompetitionAssessment::getAttemptsCount).sum();
+        List<Map<String, Object>> history = new ArrayList<>();
+        for (Long pid : ids) {
+            for (int i = 0; i < all.size(); i++) {
+                if (all.get(i).getId().equals(pid)) {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("sbd", i + 1);
+                    m.put("participantId", pid);
+                    m.put("fullName", all.get(i).getUser().getFullName());
+                    m.put("filled", resultRepository.countFilledAssessmentsByStepAndParticipant(step.getId(), pid));
+                    m.put("total", expected);
+                    history.add(m);
+                    break;
+                }
+            }
+        }
+        out.put("history", history);
+        out.put("historyPage", historyPage);
+        out.put("historyTotalPages", (int) Math.ceil((double) total / size));
+        return out;
+    }
+
+    /** body: { stepId, participantId, scores: { "<assessmentId>_<attempt>": value } } */
+    @PostMapping("/field-scoring/save")
+    @PreAuthorize(SCORER)
+    public ResponseEntity<?> fieldScoringSave(@RequestBody Map<String, Object> body) {
+        Long stepId = longOf(body.get("stepId"));
+        Long participantId = longOf(body.get("participantId"));
+        if (stepId == null || participantId == null) return error(HttpStatus.BAD_REQUEST, "Thiếu thông tin thí sinh hoặc bài thi");
+        Map<?, ?> scores = body.get("scores") instanceof Map<?, ?> m ? m : Map.of();
+        try {
+            for (CompetitionAssessment a : assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId)) {
+                for (int attempt = 1; attempt <= a.getAttemptsCount(); attempt++) {
+                    Object v = scores.get(a.getId() + "_" + attempt);
+                    String text = v == null ? "" : v.toString().trim();
+                    if (!text.isEmpty()) {
+                        try {
+                            assessmentResultService.recordAttemptResult(a.getId(), participantId, attempt, new BigDecimal(text), null);
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+                try { assessmentResultService.calculateAssessmentFinalScore(a.getId(), participantId); } catch (Exception ignored) { }
+            }
+            try { assessmentResultService.calculateStepScore(stepId, participantId); } catch (Exception ignored) { }
+        } catch (Exception e) {
+            return error(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi lưu: " + e.getMessage());
+        }
+        return ResponseEntity.ok(Map.of("message", "Đã lưu kết quả"));
+    }
+
+    // ==================== EXCEL EXPORT ====================
+
+    @GetMapping("/competitions/{id}/export/participants")
+    @PreAuthorize(MANAGER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportParticipants(@PathVariable Long id) throws Exception {
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("Thí sinh");
+            header(wb, sheet, "SBD", "Họ tên", "Số điện thoại", "Email", "Khu vực", "Trạng thái", "Ngày đăng ký");
+            List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+            for (int i = 0; i < all.size(); i++) {
+                CompetitionParticipant p = all.get(i);
+                row(sheet, i + 1, i + 1, p.getUser().getFullName(), p.getUser().getPhone(), p.getUser().getEmail(),
+                        p.getSelectedRegion() != null ? p.getSelectedRegion().name() : "",
+                        p.getStatus() != null ? p.getStatus().name() : "",
+                        p.getRegistrationDate() != null ? p.getRegistrationDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "");
+            }
+            widths(sheet, 7);
+            return xlsx(wb, "thi-sinh-" + id + ".xlsx");
+        }
+    }
+
+    @GetMapping("/competitions/{id}/export/results")
+    @PreAuthorize(MANAGER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> exportResults(@PathVariable Long id) throws Exception {
+        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+        Map<Long, Integer> sbd = new HashMap<>();
+        for (int i = 0; i < all.size(); i++) sbd.put(all.get(i).getId(), i + 1);
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            List<CompetitionStage> stages = stageRepository.findByCompetitionIdOrderByStageNumberAsc(id);
+            if (stages.isEmpty()) wb.createSheet("Chưa có vòng thi");
+            for (CompetitionStage s : stages) {
+                Sheet sheet = wb.createSheet(("Vòng " + s.getStageNumber()));
+                header(wb, sheet, "SBD", "Họ tên", "Số điện thoại", "Điểm", "Xếp hạng", "Nhận xét");
+                int r = 1;
+                for (StageResult res : stageResultRepository.findByStageIdOrderByRankPositionAsc(s.getId())) {
+                    CompetitionParticipant p = res.getParticipant();
+                    row(sheet, r++, sbd.getOrDefault(p.getId(), 0), p.getUser().getFullName(), p.getUser().getPhone(),
+                            res.getScore() != null ? res.getScore().doubleValue() : "", res.getRankPosition() != null ? res.getRankPosition() : "",
+                            res.getPerformanceNotes() != null ? res.getPerformanceNotes() : "");
+                }
+                widths(sheet, 6);
+            }
+            return xlsx(wb, "ket-qua-" + id + ".xlsx");
+        }
+    }
+
+    private static void header(Workbook wb, Sheet sheet, String... names) {
+        CellStyle style = wb.createCellStyle();
+        Font font = wb.createFont();
+        font.setBold(true);
+        style.setFont(font);
+        Row row = sheet.createRow(0);
+        for (int i = 0; i < names.length; i++) {
+            Cell c = row.createCell(i);
+            c.setCellValue(names[i]);
+            c.setCellStyle(style);
+        }
+    }
+
+    private static void row(Sheet sheet, int index, Object... values) {
+        Row row = sheet.createRow(index);
+        for (int i = 0; i < values.length; i++) {
+            Object v = values[i];
+            Cell c = row.createCell(i);
+            if (v instanceof Number n) c.setCellValue(n.doubleValue());
+            else c.setCellValue(v == null ? "" : v.toString());
+        }
+    }
+
+    private static void widths(Sheet sheet, int cols) {
+        for (int i = 0; i < cols; i++) sheet.setColumnWidth(i, i == 1 || i == 5 ? 9000 : 5200);
+    }
+
+    private static ResponseEntity<byte[]> xlsx(Workbook wb, String filename) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        wb.write(out);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(out.toByteArray());
+    }
+
+    // ==================== HELPERS ====================
+
+    private static Map<String, Object> summary(Competition c) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", c.getId());
+        m.put("title", c.getTitle());
+        m.put("season", c.getSeason());
+        m.put("status", c.getStatus() != null ? c.getStatus().name() : null);
+        m.put("currentPhase", c.getCurrentPhase());
+        m.put("registrationStartDate", date(c.getRegistrationStartDate()));
+        m.put("registrationEndDate", date(c.getRegistrationEndDate()));
+        m.put("competitionStartDate", date(c.getCompetitionStartDate()));
+        m.put("competitionEndDate", date(c.getCompetitionEndDate()));
+        return m;
+    }
+
+    private static boolean isNotStarted(Competition c) {
+        return c.getStatus() == CompetitionStatus.DRAFT || c.getStatus() == CompetitionStatus.REGISTRATION_OPEN;
+    }
+
+    private static String date(LocalDate d) {
+        return d != null ? d.toString() : null;
+    }
+
+    private static String label(Integer number, String title) {
+        return (number != null ? number + ". " : "") + (title != null ? title : "");
+    }
+
+    private static int num(Object o) {
+        return o instanceof Number n ? n.intValue() : 0;
+    }
+
+    private static String str(Object o) {
+        if (o == null) return null;
+        String s = o.toString().trim();
+        return s.isEmpty() || "null".equals(s) ? null : s;
+    }
+
+    private static Long longOf(Object o) {
+        try {
+            return o == null ? null : Long.valueOf(o.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
+        return ResponseEntity.status(status).body(Map.of("message", message));
+    }
+
+    /** Turns the old controller's plain-text reply into {message}. */
+    private static ResponseEntity<?> wrap(ResponseEntity<String> r) {
+        String text = r.getBody() != null ? r.getBody() : "";
+        return ResponseEntity.status(r.getStatusCode()).body(Map.of("message", text));
+    }
+}

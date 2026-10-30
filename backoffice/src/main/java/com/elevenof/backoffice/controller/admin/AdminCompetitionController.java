@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
  * Handles result entry, TOP 30/11 selection, and admin operations
  */
 @RestController
-@RequestMapping("/admin/api/competitions")
+@RequestMapping({"/admin/api/competitions", "/api/admin/competitions"})
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
 public class AdminCompetitionController {
 
     private final CompetitionService competitionService;
@@ -37,6 +37,7 @@ public class AdminCompetitionController {
     /**
      * Get all participants for a competition
      */
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/{id}/participants")
     public ResponseEntity<List<AdminParticipantDTO>> getAllParticipants(@PathVariable Long id) {
         List<CompetitionParticipant> participants = competitionService.getAllParticipants(id);
@@ -61,6 +62,7 @@ public class AdminCompetitionController {
     /**
      * Get results for a specific stage (admin view)
      */
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/{id}/stages/{stageNumber}/results")
     public ResponseEntity<List<StageResultDTO>> getStageResults(
             @PathVariable Long id,
@@ -131,6 +133,7 @@ public class AdminCompetitionController {
     /**
      * Get eligible participants for TOP 30 selection
      */
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/{id}/select-top30/eligible")
     public ResponseEntity<List<AdminParticipantDTO>> getEligibleForTop30(@PathVariable Long id) {
         List<CompetitionParticipant> participants = selectionService.getEligibleForTop30(id);
@@ -181,6 +184,7 @@ public class AdminCompetitionController {
     /**
      * Get eligible participants for TOP 11 selection
      */
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/{id}/select-top11/eligible")
     public ResponseEntity<List<AdminParticipantDTO>> getEligibleForTop11(@PathVariable Long id) {
         List<CompetitionParticipant> participants = selectionService.getEligibleForTop11(id);
