@@ -333,13 +333,12 @@
 
 .of-glass {
   background: linear-gradient(160deg, rgba(22, 62, 42, 0.68), rgba(6, 22, 15, 0.8));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 .of-glass-gold {
   background: linear-gradient(160deg, rgba(64, 50, 20, 0.6), rgba(14, 20, 12, 0.84));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 0 40px rgba(227, 194, 126, 0.1);
+  box-shadow: inset 0 0 40px rgba(227, 194, 126, 0.1);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
@@ -1757,13 +1756,71 @@ html body .of-app select option { background: #0b1f15; color: #fff; }
 .of-app .of-profile-hero h2 { line-height: 1; }
 .of-app .of-avatar {
   --c: 14px;
-  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  --b: 2px;
+  --ring: var(--lime);
   background: linear-gradient(140deg, #2f6b2a, #10301d);
   font-family: var(--font-display), sans-serif;
-  box-shadow: inset 0 0 0 2px var(--lime);
 }
 @media (min-width: 768px) {
   .of-app .of-avatar { --c: 22px; }
+}
+
+/* modals rendered outside the app tree (edit profile, change password) */
+.of-root.of-modal {
+  display: contents;
+}
+.of-modal .bg-white,
+.of-modal .bg-white.rounded-lg {
+  background-color: #0a1d14;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.of-modal .bg-black.bg-opacity-50,
+.of-modal .bg-black\/50 {
+  background-color: rgba(1, 6, 4, 0.78);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.of-modal h3 {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 26px;
+}
+/* bare `border` utilities inherit preflight gray; zero specificity so any colour class still wins */
+:where(.of-app) :where(.border, .border-b, .border-t, .border-l, .border-r, .border-y, .border-x) {
+  border-color: var(--app-line, rgba(166, 227, 90, 0.18));
+}
+.of-modal { --app-line: rgba(166, 227, 90, 0.18); }
+/* keep page content clear of the fixed mobile bottom nav, and fade it in instead of a hard cut */
+@media (max-width: 767px) {
+  .of-app:not(.of-modal) {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  .of-app .of-appnav {
+    padding-bottom: env(safe-area-inset-bottom);
+    overflow: visible;
+  }
+  .of-app .of-appnav::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 28px;
+    background: linear-gradient(180deg, rgba(4, 12, 9, 0), rgba(4, 12, 9, 0.85));
+    pointer-events: none;
+  }
+  .of-app .of-appnav > .relative {
+    padding-top: 0;
+  }
+}
+
+/* drawers and dropdowns sit over content: keep them solid */
+.of-app .fixed.bg-white,
+.of-app .absolute.bg-white {
+  background-color: #0a1d14;
+  border: 1px solid var(--app-line);
 }
 
 /* ==========================================================================

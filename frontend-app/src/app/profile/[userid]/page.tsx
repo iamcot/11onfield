@@ -601,18 +601,21 @@ export default function UserProfilePage() {
             <div className="of-profile-hero bg-white rounded-lg shadow p-4 md:p-7 mb-4">
               <div className="flex items-start gap-4 md:gap-7">
                 {/* Avatar */}
-                {profileUser.avatar ? (
-                  <img
-                    src={profileUser.avatar}
-                    alt="Avatar"
-                    className="of-avatar w-20 h-20 md:w-32 md:h-32 object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div className="of-avatar w-20 h-20 md:w-32 md:h-32 flex items-center justify-center text-3xl md:text-5xl font-bold text-white flex-shrink-0">
-                    {profileUser.fullName?.charAt(0) ||
-                      profileUser.username.charAt(0)}
-                  </div>
-                )}
+                {/* frame carries the chamfer + uniform ring (of-cut ::before), so the diagonals keep their border */}
+                <div className="of-avatar of-cut w-20 h-20 md:w-32 md:h-32 flex-shrink-0">
+                  {profileUser.avatar ? (
+                    <img
+                      src={profileUser.avatar}
+                      alt="Avatar"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-3xl md:text-5xl font-bold text-white">
+                      {profileUser.fullName?.charAt(0) ||
+                        profileUser.username.charAt(0)}
+                    </div>
+                  )}
+                </div>
 
                 {/* Name and Positions */}
                 <div className="flex-1 min-w-0">
@@ -1043,7 +1046,7 @@ export default function UserProfilePage() {
 
                 {/* Right Column: Player Stats or Following List - Narrow */}
                 <div className="lg:col-span-3">
-                  <div className="bg-white p-4 md:p-6 rounded-lg shadow sticky top-20">
+                  <div className="bg-white p-4 md:p-6 rounded-lg shadow">
                     {/* Show Followers List */}
                     {sidebarView === "followers" ? (
                       <div>

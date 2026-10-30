@@ -1,8 +1,12 @@
 "use client";
 
+import { barlowCondensed, chakraPetch } from "@/components/home/fonts";
+import "@/components/home/home.css";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -107,8 +111,10 @@ export default function ChangePasswordModal({
 
   if (!isOpen) return null;
 
-  return (
-    <>
+  // portal to <body>: the app bar that opens this has backdrop-filter, which would
+  // otherwise become the containing block for these fixed elements
+  return createPortal(
+    <div className={`of-root of-app of-modal ${barlowCondensed.variable} ${chakraPetch.variable}`}>
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 z-[200]"
@@ -116,7 +122,7 @@ export default function ChangePasswordModal({
       ></div>
 
       {/* Modal */}
-      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-lg shadow-2xl z-[210] p-6">
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-32px)] max-w-md max-h-[calc(100svh-32px)] overflow-y-auto bg-white rounded-lg shadow-2xl z-[210] p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">Đổi mật khẩu</h2>
@@ -248,6 +254,7 @@ export default function ChangePasswordModal({
           </div>
         </form>
       </div>
-    </>
+    </div>,
+    document.body,
   );
 }
