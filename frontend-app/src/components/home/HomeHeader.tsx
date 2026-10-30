@@ -6,7 +6,9 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cssVars } from './ui';
 
-export const NAV_LINKS = [
+type NavLink = { id: string; label: string };
+
+export const NAV_LINKS: NavLink[] = [
   { id: 'quyen-loi', label: 'Quyền lợi' },
   { id: 'hanh-trinh', label: 'Hành trình' },
   { id: 'lich', label: 'Lịch tuyển trạch' },
@@ -14,11 +16,18 @@ export const NAV_LINKS = [
   { id: 'hoi-dap', label: 'Hỏi đáp' },
 ];
 
-export default function HomeHeader() {
+export default function HomeHeader({
+  links = NAV_LINKS,
+  variant = 'player',
+}: {
+  links?: NavLink[];
+  variant?: 'player' | 'partner';
+}) {
   const { user, isAuthenticated } = useAuth();
   const [solid, setSolid] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState('');
+  const isPartner = variant === 'partner';
 
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 24);
@@ -28,7 +37,7 @@ export default function HomeHeader() {
   }, []);
 
   useEffect(() => {
-    const sections = NAV_LINKS.map((l) => document.getElementById(l.id)).filter(Boolean) as HTMLElement[];
+    const sections = links.map((l) => document.getElementById(l.id)).filter(Boolean) as HTMLElement[];
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -39,7 +48,7 @@ export default function HomeHeader() {
     );
     sections.forEach((s) => io.observe(s));
     return () => io.disconnect();
-  }, []);
+  }, [links]);
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
@@ -49,9 +58,14 @@ export default function HomeHeader() {
   }, [open]);
 
   const profileHref = isAuthenticated && user ? `/profile/${user.userid}` : null;
-  const primary = profileHref
-    ? { href: profileHref, label: 'Hồ sơ' }
-    : { href: '/auth/register', label: 'Đăng ký' };
+  const primary = isPartner
+    ? { href: '#lien-he', label: 'Hợp tác', long: 'Nhận hồ sơ hợp tác' }
+    : profileHref
+      ? { href: profileHref, label: 'Hồ sơ', long: 'Hồ sơ của tôi' }
+      : { href: '/auth/register', label: 'Đăng ký', long: 'Đăng ký miễn phí' };
+  const cross = isPartner ? { href: '/', label: 'Cầu thủ' } : { href: '/doi-tac', label: 'Đối tác' };
+  const extra = [cross, { href: '/competitions', label: 'Chương trình' }];
+  const showLogin = !isPartner && !isAuthenticated;
 
   return (
     <>
@@ -68,8 +82,8 @@ export default function HomeHeader() {
             />
           </Link>
 
-          <nav aria-label="Điều hướng chính" className="hidden flex-1 items-center gap-7 lg:flex">
-            {NAV_LINKS.map((l) => (
+          <nav aria-label="Điều hướng chính" className="hidden flex-1 items-center gap-6 lg:flex xl:gap-7">
+            {links.map((l) => (
               <a key={l.id} href={`#${l.id}`} className={`of-navlink ${active === l.id ? 'is-active' : ''}`}>
                 {l.label}
               </a>
@@ -77,11 +91,11 @@ export default function HomeHeader() {
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-2 lg:gap-4">
-            <Link href="/competitions" className="of-navlink hidden xl:inline-block" style={{ color: 'var(--gold-2)' }}>
-              Chương trình
+            <Link href={cross.href} className="of-navlink hidden lg:inline-block" style={{ color: 'var(--gold-2)' }}>
+              {cross.label} ›
             </Link>
-            {!isAuthenticated && (
-              <Link href="/auth/login" className="of-navlink hidden lg:inline-block">
+            {showLogin && (
+              <Link href="/auth/login" className="of-navlink hidden xl:inline-block">
                 Đăng nhập
               </Link>
             )}
@@ -115,7 +129,7 @@ export default function HomeHeader() {
           </button>
         </div>
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 pt-6" aria-label="Menu di động">
-          {NAV_LINKS.map((l, i) => (
+          {links.map((l, i) => (
             <a
               key={l.id}
               href={`#${l.id}`}
@@ -127,23 +141,27 @@ export default function HomeHeader() {
               {l.label}
             </a>
           ))}
-          <Link
-            href="/competitions"
-            className="of-menu-item of-display flex items-baseline gap-4 py-3 text-[40px] text-[color:var(--gold-2)]"
-            style={cssVars({ '--i': NAV_LINKS.length })}
-          >
-            <span className="of-num text-sm">0{NAV_LINKS.length + 1}</span>
-            Chương trình
-          </Link>
+          {extra.map((l, j) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => setOpen(false)}
+              className="of-menu-item of-display flex items-baseline gap-4 py-3 text-[40px] text-[color:var(--gold-2)]"
+              style={cssVars({ '--i': links.length + j })}
+            >
+              <span className="of-num text-sm">0{links.length + j + 1}</span>
+              {l.label}
+            </Link>
+          ))}
         </nav>
-        <div className="of-menu-item flex gap-3 p-6" style={cssVars({ '--i': NAV_LINKS.length + 1 })}>
-          {!isAuthenticated && (
+        <div className="of-menu-item flex gap-3 p-6" style={cssVars({ '--i': links.length + extra.length })}>
+          {showLogin && (
             <Link href="/auth/login" className="of-btn-ghost of-cut flex-1" onClick={() => setOpen(false)}>
               Đăng nhập
             </Link>
           )}
           <Link href={primary.href} className="of-btn flex-1" onClick={() => setOpen(false)}>
-            {profileHref ? 'Hồ sơ của tôi' : 'Đăng ký miễn phí'}
+            {primary.long}
           </Link>
         </div>
       </div>

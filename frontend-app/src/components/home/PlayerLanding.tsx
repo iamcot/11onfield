@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePageEffects } from './effects';
 import { useAuth } from '@/contexts/AuthContext';
 import { competitionService, type CompetitionDetail } from '@/services/competition.service';
 import { barlowCondensed, chakraPetch } from './fonts';
@@ -17,63 +18,6 @@ import Faq from './Faq';
 import FinalCta from './FinalCta';
 import HomeFooter from './HomeFooter';
 import './home.css';
-
-/** Wires the page-wide effects: scroll reveal, pointer spotlight, background parallax, header progress. */
-function usePageEffects(root: React.RefObject<HTMLDivElement>) {
-  useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add('is-in');
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { rootMargin: '0px 0px -8% 0px', threshold: 0.12 }
-    );
-    el.querySelectorAll('[data-reveal]').forEach((n) => io.observe(n));
-
-    const onPointer = (e: PointerEvent) => {
-      const spot = (e.target as HTMLElement).closest?.('.of-spot') as HTMLElement | null;
-      if (spot) {
-        const r = spot.getBoundingClientRect();
-        spot.style.setProperty('--px', `${e.clientX - r.left}px`);
-        spot.style.setProperty('--py', `${e.clientY - r.top}px`);
-      }
-      if (!reduced && e.pointerType === 'mouse') {
-        el.style.setProperty('--of-mx', ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
-        el.style.setProperty('--of-my', ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
-      }
-    };
-
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        const y = window.scrollY;
-        el.style.setProperty('--of-progress', max > 0 ? (y / max).toFixed(4) : '0');
-        if (!reduced) el.style.setProperty('--of-sy', Math.min(1, y / (window.innerHeight * 2)).toFixed(4));
-      });
-    };
-
-    onScroll();
-    el.addEventListener('pointermove', onPointer, { passive: true });
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      io.disconnect();
-      el.removeEventListener('pointermove', onPointer);
-      window.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, [root]);
-}
 
 export default function PlayerLanding() {
   const rootRef = useRef<HTMLDivElement>(null);

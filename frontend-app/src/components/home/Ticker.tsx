@@ -1,4 +1,4 @@
-const ITEMS = [
+export const PLAYER_TICKER = [
   'From the street to the stadium',
   '30.000 hồ sơ',
   'Tuyển trạch 3 miền',
@@ -8,8 +8,8 @@ const ITEMS = [
   'Đăng ký miễn phí',
 ];
 
-function Row({ reverse = false }: { reverse?: boolean }) {
-  const items = reverse ? [...ITEMS].reverse() : ITEMS;
+function Row({ items: base, reverse = false }: { items: string[]; reverse?: boolean }) {
+  const items = reverse ? [...base].reverse() : base;
   return (
     <div className={`of-ticker ${reverse ? 'of-ticker--rev' : ''}`}>
       <div className="of-ticker-track py-2.5 lg:py-3">
@@ -35,14 +35,14 @@ function Row({ reverse = false }: { reverse?: boolean }) {
 }
 
 /** Stadium LED board crossing the page at a slight angle. */
-export default function Ticker() {
+export default function Ticker({ items = PLAYER_TICKER }: { items?: string[] }) {
   return (
     <div className="relative z-[2] my-4 overflow-hidden py-6 lg:my-8" aria-label="Điểm nổi bật chương trình">
       <div className="-mx-6 -rotate-2">
-        <Row />
+        <Row items={items} />
       </div>
       <div className="-mx-6 mt-1 rotate-1 opacity-80">
-        <Row reverse />
+        <Row items={items} reverse />
       </div>
     </div>
   );

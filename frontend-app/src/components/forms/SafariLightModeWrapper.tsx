@@ -15,6 +15,9 @@ export default function SafariLightModeWrapper() {
       formElements.forEach((element) => {
         const htmlElement = element as HTMLElement;
 
+        // The new dark landing pages style their own fields
+        if (htmlElement.closest('.of-root')) return;
+
         // Apply inline styles that force light mode
         htmlElement.style.setProperty('color-scheme', 'light', 'important');
         htmlElement.style.setProperty('background-color', 'white', 'important');

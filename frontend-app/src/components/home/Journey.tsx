@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
+import { useScrollProgress } from './effects';
 import CountUp from './CountUp';
 import { Icons, SectionHead, cssVars, revealDelay } from './ui';
 
@@ -20,34 +21,7 @@ const SCORING = [
 
 export default function Journey() {
   const ref = useRef<HTMLDivElement>(null);
-  const [p, setP] = useState(0);
-
-  useEffect(() => {
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      const el = ref.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const isDesktop = window.innerWidth >= 1024;
-      // desktop: fill while the row crosses the middle; mobile: follow the list
-      const start = vh * (isDesktop ? 0.85 : 0.7);
-      const span = isDesktop ? vh * 0.45 : r.height;
-      setP(Math.max(0, Math.min(1, (start - r.top) / span)));
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(update);
-    };
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
+  const p = useScrollProgress(ref);
 
   return (
     <section id="hanh-trinh" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">

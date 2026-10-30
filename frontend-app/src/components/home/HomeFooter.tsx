@@ -33,6 +33,8 @@ export default function HomeFooter() {
   }, []);
 
   const links = [
+    { label: 'Dành cho cầu thủ', href: '/' },
+    { label: 'Dành cho đối tác', href: '/doi-tac' },
     { label: 'Chương trình', href: '/competitions' },
     { label: 'Tin tức', href: newsHref },
     { label: 'Điều khoản tham gia', href: '/terms' },

@@ -1072,6 +1072,92 @@
   -webkit-text-stroke-color: rgba(214, 250, 158, 0.9);
 }
 
+/* animated flow connector (vertical on mobile, horizontal from 1024px) */
+.of-flow {
+  width: 2px;
+  height: 44px;
+  background: repeating-linear-gradient(180deg, var(--lime-2) 0 8px, rgba(0, 0, 0, 0) 8px 16px) 0 0 / 2px 16px;
+  box-shadow: 0 0 10px rgba(166, 227, 90, 0.6);
+  animation: of-flow-v 0.7s linear infinite;
+}
+@keyframes of-flow-v {
+  to { background-position: 0 16px; }
+}
+@media (min-width: 1024px) {
+  .of-flow {
+    width: 64px;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--lime-2) 0 8px, rgba(0, 0, 0, 0) 8px 16px) 0 0 / 16px 2px;
+    animation-name: of-flow-h;
+  }
+}
+@keyframes of-flow-h {
+  to { background-position: 16px 0; }
+}
+.of-gate {
+  box-shadow: inset 0 0 60px rgba(227, 194, 126, 0.14);
+  animation: of-gate 3.2s ease-in-out infinite;
+}
+@keyframes of-gate {
+  50% { box-shadow: inset 0 0 90px rgba(227, 194, 126, 0.3); }
+}
+
+/* form fields */
+/* globals.css forces white inputs with `html body input … !important`, so match its specificity */
+html body .of-root .of-field {
+  display: block;
+  width: 100%;
+  height: auto !important;
+  min-height: 48px;
+  padding: 12px 14px !important;
+  line-height: 1.5 !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background-color: rgba(4, 14, 10, 0.6) !important;
+  color-scheme: dark !important;
+  border: 1px solid rgba(166, 227, 90, 0.28);
+  border-radius: 0;
+  font: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+html body .of-root textarea.of-field {
+  min-height: 110px !important;
+}
+html body .of-root .of-field::placeholder {
+  color: #8fa197;
+  -webkit-text-fill-color: #8fa197;
+}
+html body .of-root .of-field:focus {
+  outline: none;
+  border-color: var(--lime-2);
+  box-shadow: 0 0 0 3px rgba(166, 227, 90, 0.18), 0 0 18px rgba(166, 227, 90, 0.25);
+}
+.of-option input {
+  position: absolute;
+  opacity: 0;
+}
+.of-option span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(166, 227, 90, 0.3);
+  color: #d5ded8;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.of-option input:checked + span {
+  border-color: var(--lime-2);
+  background: rgba(166, 227, 90, 0.14);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(166, 227, 90, 0.3);
+}
+.of-option input:focus-visible + span {
+  outline: 2px solid var(--lime-2);
+  outline-offset: 2px;
+}
+
 /* final CTA light sweep */
 .of-sweep {
   position: relative;
