@@ -8,14 +8,33 @@ const PILLARS = [
   { title: 'Kỹ năng mềm', text: 'Truyền thông, thương hiệu cá nhân, hợp đồng' },
 ];
 
-const COACHES = [
-  { name: 'Park Hang-seo', role: 'Biểu tượng di sản', mono: 'PH', gold: true },
-  { name: 'Chuyên gia La Liga', role: 'Ban huấn luyện', mono: 'LL' },
-  { name: 'Quang Hải', role: 'Khách mời', mono: 'QH' },
-  { name: 'Đình Bắc', role: 'Khách mời', mono: 'ĐB' },
-  { name: 'Xuân Son', role: 'Khách mời', mono: 'XS' },
-  { name: 'Đặng Văn Lâm', role: 'Khách mời', mono: 'VL' },
+// names are not signed yet: one mystery silhouette per open slot
+const SLOTS = [
+  { name: 'Biểu tượng di sản', slots: 1, gold: true },
+  { name: 'Chuyên gia quốc tế', slots: 2 },
+  { name: 'Siêu sao bóng đá', slots: 2 },
+  { name: 'Chủ tịch quyền lực', slots: 1 },
 ];
+const COACHES = SLOTS.flatMap((s) => Array.from({ length: s.slots }, (_, i) => ({ ...s, key: `${s.name}-${i}`, role: 'Sắp công bố' })));
+
+function Silhouette({ gold }: { gold?: boolean }) {
+  const c = gold ? '#E3C27E' : '#A6E35A';
+  return (
+    <svg className="of-coach-mono" viewBox="0 0 120 150" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id={gold ? 'of-sil-g' : 'of-sil-l'} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={c} stopOpacity=".5" />
+          <stop offset="1" stopColor={c} stopOpacity=".04" />
+        </linearGradient>
+      </defs>
+      <circle cx="60" cy="48" r="26" fill={`url(#${gold ? 'of-sil-g' : 'of-sil-l'})`} stroke={c} strokeOpacity=".8" strokeWidth="1.6" />
+      <path d="M8 150c0-38 22-58 52-58s52 20 52 58z" fill={`url(#${gold ? 'of-sil-g' : 'of-sil-l'})`} stroke={c} strokeOpacity=".8" strokeWidth="1.6" strokeLinejoin="round" />
+      <text x="60" y="60" textAnchor="middle" fontSize="34" fontWeight="800" fill={c} fillOpacity=".95" fontFamily="inherit">
+        ?
+      </text>
+    </svg>
+  );
+}
 
 export default function Training() {
   return (
@@ -79,17 +98,11 @@ export default function Training() {
           <SectionHead eyebrow="Người dẫn đường" title="Ban huấn luyện & khách mời" />
           <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 lg:gap-4">
             {COACHES.map((c, i) => (
-              <div key={c.name} className="of-coach text-center" data-reveal="" style={revealDelay(i)}>
+              <div key={c.key} className="of-coach text-center" data-reveal="" style={revealDelay(i)}>
                 <div
                   className={`${c.gold ? 'of-glass-gold of-cut--gold of-run' : 'of-glass of-run-hover'} of-cut of-spot flex aspect-[3/4] items-center justify-center overflow-hidden`}
                 >
-                  <span
-                    className="of-display of-coach-mono"
-                    style={{ color: 'transparent', WebkitTextStroke: c.gold ? '1.5px rgba(227,194,126,.75)' : '1.5px rgba(166,227,90,.5)' }}
-                    aria-hidden="true"
-                  >
-                    {c.mono}
-                  </span>
+                  <Silhouette gold={c.gold} />
                 </div>
                 <div className={`of-display mt-3 text-[22px] lg:text-[24px] ${c.gold ? 'of-gold' : ''}`}>{c.name}</div>
                 <div className={`text-[13px] ${c.gold ? 'text-[color:var(--gold-2)]' : 'text-[#BFCCC4]'}`}>{c.role}</div>

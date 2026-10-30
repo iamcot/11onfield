@@ -46,7 +46,7 @@ export default function HomeFooter() {
       <div className="mx-auto grid max-w-[1240px] gap-10 lg:grid-cols-[1.2fr_1fr_1fr]">
         <div>
           <Image src="/images/logo-white-full.png" alt="11 On Field" width={182} height={36} className="h-9 w-auto" />
-          <p className="of-display of-shine-gold mt-4 text-[20px] !leading-[1.25] tracking-[0.2em]">From the street to the stadium</p>
+          <p className="of-display of-shine-gold mt-4 text-[20px] !leading-[1.25] tracking-[0.14em]">Từ Đường Phố ra Sân Vận Động</p>
           <div className="mt-5 flex gap-2.5">
             {SOCIALS.map((s) => (
               <a

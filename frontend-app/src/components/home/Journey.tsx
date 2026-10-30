@@ -10,7 +10,7 @@ const STEPS = [
   { title: 'Scouting khu vực', text: 'Thi đấu trực tiếp tại 3 miền', badge: <>Top 100 / miền</> },
   { title: 'Vòng toàn quốc', text: 'Đánh giá chuyên sâu bằng dữ liệu', badge: <>Top 100</> },
   { title: 'Lên tuyển', text: '4 tháng huấn luyện, 10 tập thử thách', badge: <>Top 30</> },
-  { title: 'Ra sân', text: 'Tập huấn La Liga, Final Match', badge: <>Top 11</>, gold: true },
+  { title: 'Ra sân', text: 'World Cup Tour, Final Match', badge: <>Top 11</>, gold: true },
 ];
 
 const SCORING = [

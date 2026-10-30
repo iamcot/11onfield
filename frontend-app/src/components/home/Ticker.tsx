@@ -1,10 +1,10 @@
 export const PLAYER_TICKER = [
-  'From the street to the stadium',
+  'Từ Đường Phố ra Sân Vận Động',
   '30.000 hồ sơ',
   'Tuyển trạch 3 miền',
-  'Huấn luyện cùng Park Hang-seo',
-  'Tập huấn La Liga',
-  'Top 11 ra sân quốc gia',
+  'Huấn luyện cùng chuyên gia La Liga',
+  'Top 11 đi World Cup Tour',
+  'Ra sân quốc gia, hàng triệu khán giả',
   'Đăng ký miễn phí',
 ];
 
