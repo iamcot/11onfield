@@ -17,9 +17,9 @@ type Phase = 'idle' | 'in' | 'hold' | 'out';
 /**
  * Flag button that opens a centred language picker. Picking a language plays a stadium-board wipe
  * that covers the page while it re-renders, then uncovers it in the new language.
- * `square` shows the flag only, sized like the header's menu button.
+ * The button is a chamfered square filled by the current flag, sized like the header's menu button.
  */
-export default function LanguageSwitcher({ square = false, className = '' }: { square?: boolean; className?: string }) {
+export default function LanguageSwitcher({ className = '' }: { className?: string }) {
   const { locale, setLocale, switching, t } = useI18n();
   const [open, setOpen] = useState(false);
   const [target, setTarget] = useState<Locale | null>(null);
@@ -86,10 +86,10 @@ export default function LanguageSwitcher({ square = false, className = '' }: { s
         aria-haspopup="dialog"
         aria-label={`${t('Ngôn ngữ')}: ${LOCALE_LABELS[locale].name}`}
         onClick={() => setOpen(true)}
-        className={`of-lang-btn of-cut ${square ? 'of-lang-btn--square' : ''} ${className}`}
+        title={LOCALE_LABELS[locale].name}
+        className={`of-lang-btn of-cut ${className}`}
       >
-        <Flag locale={locale} className="of-lang-flag" />
-        {!square && <span>{LOCALE_LABELS[locale].short}</span>}
+        <Flag locale={locale} square className="of-lang-flag" />
       </button>
 
       {host &&

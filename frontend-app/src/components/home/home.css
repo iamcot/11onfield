@@ -1850,42 +1850,25 @@ html body .of-app select option { background: #0b1f15; color: #fff; }
    Language switcher: flag button, centred picker, stadium-board wipe
    ========================================================================== */
 .of-lang-btn {
-  /* chamfer ring comes from .of-cut::before, never border + clip-path */
+  /* chamfered square filled by the flag; the ring comes from .of-cut::before, never border + clip-path */
   --c: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  --ring: rgba(255, 255, 255, 0.45);
+  width: 40px;
   height: 40px;
-  padding: 0 12px 0 8px;
-  background: rgba(6, 20, 14, 0.5);
-  color: #fff;
-  font-family: var(--font-hud), sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
   flex-shrink: 0;
-  transition: background 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  transition: filter 0.2s;
 }
 .of-lang-btn:hover,
 .of-lang-btn:focus-visible {
   --ring: var(--lime, #a6e35a);
-  background: rgba(166, 227, 90, 0.14);
-  box-shadow: inset 0 0 12px rgba(166, 227, 90, 0.25);
-}
-/* square, flag only: sits between the CTA and the menu button on mobile */
-.of-lang-btn--square {
-  width: 40px;
-  padding: 0;
-}
-.of-lang-btn--square .of-lang-flag {
-  width: 22px;
-  height: 15px;
+  --b: 2px;
+  filter: brightness(1.08);
 }
 .of-lang-flag {
-  width: 24px;
-  height: 16px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .of-lang-modal {

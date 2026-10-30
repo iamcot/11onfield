@@ -1,9 +1,13 @@
 import type { Locale } from '@/i18n/config';
 
-/** Inline SVG flags: emoji flags don't render on Windows. 3:2 viewBox, scale with width/height. */
-export default function Flag({ locale, className = '' }: { locale: Locale; className?: string }) {
+/**
+ * Inline SVG flags: emoji flags don't render on Windows. 3:2 viewBox, scale with width/height.
+ * `square` crops to the centre 1:1 (the Korean trigrams are pulled in so they stay visible).
+ */
+export default function Flag({ locale, className = '', square = false }: { locale: Locale; className?: string; square?: boolean }) {
+  const pull = square ? 'translate(15 10) scale(0.8) translate(-15 -10)' : undefined;
   return (
-    <svg viewBox="0 0 30 20" className={className} aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+    <svg viewBox={square ? '5 0 20 20' : '0 0 30 20'} className={className} aria-hidden="true" preserveAspectRatio="xMidYMid slice">
       {locale === 'vi' && (
         <>
           <rect width="30" height="20" fill="#DA251D" />
@@ -29,6 +33,7 @@ export default function Flag({ locale, className = '' }: { locale: Locale; class
       {locale === 'ko' && (
         <>
           <rect width="30" height="20" fill="#fff" />
+          <g transform={pull}>
           <g transform="rotate(33.7 15 10)">
             <circle cx="15" cy="10" r="5" fill="#CD2E3A" />
             <path d="M10 10a5 5 0 0 0 10 0a2.5 2.5 0 0 0-5 0a2.5 2.5 0 0 1-5 0z" fill="#0047A0" />
@@ -38,6 +43,7 @@ export default function Flag({ locale, className = '' }: { locale: Locale; class
             <path d="M22 15.7l2.4-1.6M22.6 16.6l2.4-1.6M23.2 17.5l2.4-1.6" />
             <path d="M4.6 15.9l2.4 1.6M5.2 15l2.4 1.6M5.8 14.1l2.4 1.6" />
             <path d="M22 4.3l2.4 1.6M22.6 3.4l2.4 1.6M23.2 2.5l2.4 1.6" />
+          </g>
           </g>
         </>
       )}

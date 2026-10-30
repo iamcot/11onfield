@@ -109,7 +109,7 @@ export default function HomeHeader({
             <Link href={primary.href} className="of-btn of-btn--sm lg:!min-h-[44px] lg:!px-6 lg:!text-lg">
               {primary.label}
             </Link>
-            <LanguageSwitcher square className="lg:hidden" />
+            <LanguageSwitcher className="lg:hidden" />
             <button
               type="button"
               className="of-iconbtn of-iconbtn--mobile of-cut of-cut--sm"
