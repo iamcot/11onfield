@@ -2054,24 +2054,13 @@ html body .of-app select option { background: #0b1f15; color: #fff; }
   .of-lang-wipe.is-in .of-lang-wipe-label, .of-lang-wipe.is-hold .of-lang-wipe-label { opacity: 1; transform: none; }
 }
 
-/* Phones and tablets (no hover): the moving, blurred, blended floodlight beams under a backdrop-filter card
-   made every frame re-blur half the screen, which stutters even on recent iPhones. Keep the same look but
-   still: beams and haze stop moving, and glass panels use a denser fill instead of a live blur. */
+/* Touch devices: the streak running around a big form card repaints the whole card ring every frame
+   (animated conic-gradient), which makes typing on the login and register forms stutter. Keep the
+   still ring there; the streak stays on the rest of the site. */
 @media (hover: none) {
-  .of-beam,
-  .of-haze {
+  .of-run:has(form)::before,
+  .of-run:has(input)::before {
     animation: none;
-    transform: rotate(var(--r0, 0deg));
-  }
-  .of-glass,
-  .of-glass-gold {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  .of-glass {
-    background: linear-gradient(160deg, rgba(20, 56, 38, 0.92), rgba(6, 22, 15, 0.95));
-  }
-  .of-glass-gold {
-    background: linear-gradient(160deg, rgba(58, 46, 20, 0.9), rgba(14, 20, 12, 0.95));
+    background: linear-gradient(var(--ring), var(--ring));
   }
 }
