@@ -23,7 +23,7 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
   }, []);
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 shadow-lg z-40 overflow-hidden">
+    <nav className="of-appnav md:hidden fixed bottom-0 left-0 right-0 shadow-lg z-40 overflow-hidden">
       {/* Background with connector at top */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 right-0 h-3 bg-green-700"></div>

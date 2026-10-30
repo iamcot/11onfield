@@ -1,7 +1,7 @@
 "use client";
 
 import HexagonChart from "@/components/HexagonChart";
-import LandingFooter from "@/components/landing/LandingFooter";
+import HomeFooter from "@/components/home/HomeFooter";
 import MobileNav from "@/components/layout/MobileNav";
 import RightNavigator from "@/components/layout/RightNavigator";
 import Sidebar from "@/components/layout/Sidebar";
@@ -598,17 +598,17 @@ export default function UserProfilePage() {
               </button>
             )}
 
-            <div className="bg-white rounded-lg shadow p-3 mb-4">
-              <div className="flex items-start gap-4 md:gap-6">
+            <div className="of-profile-hero bg-white rounded-lg shadow p-4 md:p-7 mb-4">
+              <div className="flex items-start gap-4 md:gap-7">
                 {/* Avatar */}
                 {profileUser.avatar ? (
                   <img
                     src={profileUser.avatar}
                     alt="Avatar"
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+                    className="of-avatar w-20 h-20 md:w-32 md:h-32 object-cover flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-green-700 flex items-center justify-center text-3xl md:text-4xl font-bold text-white flex-shrink-0">
+                  <div className="of-avatar w-20 h-20 md:w-32 md:h-32 flex items-center justify-center text-3xl md:text-5xl font-bold text-white flex-shrink-0">
                     {profileUser.fullName?.charAt(0) ||
                       profileUser.username.charAt(0)}
                   </div>
@@ -617,7 +617,7 @@ export default function UserProfilePage() {
                 {/* Name and Positions */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                    <h2 className="text-[28px] md:text-[48px] font-bold text-gray-900">
                       <span className={!isOwnProfile ? "" : "truncate"}>
                         {profileUser.fullName || profileUser.username}
                       </span>
@@ -1411,7 +1411,7 @@ export default function UserProfilePage() {
 
         {/* Footer */}
         <div className="hidden md:block">
-          <LandingFooter />
+          <HomeFooter />
         </div>
       </main>
 

@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import TopUserCard from "@/components/layout/TopUserCard";
 import TopBar from "@/components/layout/TopBar";
 import MobileNav from "@/components/layout/MobileNav";
-import LandingFooter from "@/components/landing/LandingFooter";
+import HomeFooter from "@/components/home/HomeFooter";
 import {
   competitionService,
   StageResult,
@@ -237,7 +237,7 @@ export default function MyResultsPage({
           </div>
         )}
       </div>
-      <LandingFooter />
+      <HomeFooter />
       <MobileNav />
     </div>
   );
