@@ -11,11 +11,11 @@ const PILLARS = [
 // names are not signed yet: one mystery silhouette per open slot
 const SLOTS = [
   { name: 'Biểu tượng di sản', slots: 1, gold: true },
-  { name: 'Chuyên gia quốc tế', slots: 2, role: 'Đến từ La Liga' },
+  { name: 'Chuyên gia quốc tế', slots: 2 },
   { name: 'Siêu sao bóng đá', slots: 2 },
   { name: 'Chủ tịch quyền lực', slots: 1 },
 ];
-const COACHES = SLOTS.flatMap((s) => Array.from({ length: s.slots }, (_, i) => ({ ...s, key: `${s.name}-${i}`, role: 'Sắp công bố', ...s })));
+const COACHES = SLOTS.flatMap((s) => Array.from({ length: s.slots }, (_, i) => ({ ...s, key: `${s.name}-${i}`, role: 'Sắp công bố' })));
 
 function Silhouette({ gold }: { gold?: boolean }) {
   const c = gold ? '#E3C27E' : '#A6E35A';
