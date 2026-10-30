@@ -294,6 +294,39 @@ public class AdminCompetitionApiController {
         return Map.of("message", "Đã thêm " + user.getFullName() + " vào giải", "id", p.getId());
     }
 
+    /** Takes a player out of the competition (WITHDRAWN). Scores, check-ins and the SBD stay, so it can be undone. */
+    @PostMapping("/competitions/{id}/participants/{participantId}/withdraw")
+    @PreAuthorize(MANAGER)
+    @Transactional
+    public Map<String, Object> withdrawParticipant(@PathVariable Long id, @PathVariable Long participantId) {
+        CompetitionParticipant p = participantOf(id, participantId);
+        if (p.getStatus() == ParticipantStatus.WITHDRAWN)
+            throw new IllegalArgumentException(p.getUser().getFullName() + " đã ra khỏi giải.");
+        p.setStatus(ParticipantStatus.WITHDRAWN);
+        participantRepository.save(p);
+        return Map.of("message", "Đã cho " + p.getUser().getFullName() + " ra khỏi giải");
+    }
+
+    /** Brings a withdrawn player back as REGISTERED. */
+    @PostMapping("/competitions/{id}/participants/{participantId}/restore")
+    @PreAuthorize(MANAGER)
+    @Transactional
+    public Map<String, Object> restoreParticipant(@PathVariable Long id, @PathVariable Long participantId) {
+        CompetitionParticipant p = participantOf(id, participantId);
+        if (p.getStatus() != ParticipantStatus.WITHDRAWN)
+            throw new IllegalArgumentException(p.getUser().getFullName() + " đang có trong giải.");
+        p.setStatus(ParticipantStatus.REGISTERED);
+        participantRepository.save(p);
+        return Map.of("message", "Đã đưa " + p.getUser().getFullName() + " trở lại giải");
+    }
+
+    private CompetitionParticipant participantOf(Long competitionId, Long participantId) {
+        CompetitionParticipant p = participantRepository.findById(participantId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thí sinh."));
+        if (!p.getCompetition().getId().equals(competitionId)) throw new IllegalArgumentException("Thí sinh không thuộc giải này.");
+        return p;
+    }
+
     // ==================== CHECK-IN (QR) ====================
 
     private static final String ANY_STAFF = "hasAnyRole('EDITOR', 'BGK', 'ADMIN', 'SUPER_USER')";

@@ -12,6 +12,7 @@ export const IconArrow = () => <svg {...base} strokeWidth={2.4}><path d="M5 12h1
 export const IconPen = () => <svg {...base}><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="m14 6 4 4" /></svg>;
 export const IconCamera = () => <svg {...base}><path d="M4 7h3l2-3h6l2 3h3v13H4z" /><circle cx="12" cy="13" r="4" /></svg>;
 export const IconUpload = () => <svg {...base}><path d="M12 16V4M7 9l5-5 5 5M4 20h16" /></svg>;
+export const IconSoundOff = () => <svg {...base}><path d="M4 9h4l5-4v14l-5-4H4z" /><path d="m17 9 5 5M22 9l-5 5" /></svg>;
 export const IconPlay = () => <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z" /></svg>;
 export const IconCheck = () => <svg {...base} strokeWidth={3}><path d="m5 12 5 5 9-10" /></svg>;
 export const IconShield = () => <svg {...base}><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z" /></svg>;

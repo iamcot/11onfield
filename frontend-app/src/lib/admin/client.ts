@@ -30,10 +30,10 @@ export async function api<T = any>(path: string, init: { method?: string; body?:
   return data as T;
 }
 
-export async function uploadImage(type: 'event' | 'news' | 'sponsor' | 'avatar', file: File): Promise<string> {
+export async function uploadImage(type: 'event' | 'news' | 'sponsor' | 'avatar' | 'fullbody', file: File, removeBackground = false): Promise<string> {
   const form = new FormData();
   form.append('file', file);
-  const { url } = await api<{ url: string }>(`uploads?type=${type}`, { form });
+  const { url } = await api<{ url: string }>(`uploads?type=${type}${removeBackground ? '&removeBackground=true' : ''}`, { form });
   return url;
 }
 
