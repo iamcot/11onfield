@@ -380,6 +380,13 @@
 .pp-bio { margin: 0; font-size: 14.5px; color: #dfe8e1; max-width: 65ch; white-space: pre-line; }
 .pp-reel { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 180px); gap: 12px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 6px; }
 .pp-clip { position: relative; aspect-ratio: 9 / 16; overflow: hidden; border-radius: 8px; background: linear-gradient(160deg, #1d5634, #0b2416); display: block; color: inherit; text-decoration: none; }
+.pp-clip:is(button) { width: 100%; padding: 0; border: 0; font: inherit; text-align: left; cursor: pointer; }
+.pp-clip.grey { background: linear-gradient(160deg, #c3c8cc, #8e959b); }
+.pp-clip.grey::after { background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.5)); }
+.pp-clip.grey .play { background: rgba(255, 255, 255, 0.85); }
+.pp-clip .badge { position: absolute; left: 8px; top: 8px; right: 8px; z-index: 2; }
+.pp-clip .badge .pp-flag { background: rgba(11, 36, 18, 0.85); }
+.pp-clip .badge .pp-flag.wait { color: var(--pp-gold); }
 .pp-clip img, .pp-clip iframe { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border: 0; }
 .pp-clip::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, 0.85)); pointer-events: none; }
 .pp-clip.playing::after { display: none; }

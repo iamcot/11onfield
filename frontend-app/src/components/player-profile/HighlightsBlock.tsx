@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { IconPen, IconPlay, IconUpload } from '@/components/pp/icons';
 import { useT } from '@/i18n/I18nProvider';
 import { mediaService, type MediaConfig } from '@/services/media.service';
@@ -14,7 +14,8 @@ function youtubeThumb(url: string): string | null {
   return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : null;
 }
 
-function Clip({ h }: { h: Highlight }) {
+/** A 9:16 card. Not approved yet (or no picture) = light grey card with the title and the review badge inside. */
+function Clip({ h, badge }: { h: Highlight; badge?: ReactNode }) {
   const t = useT();
   const [playing, setPlaying] = useState(false);
   const [noPoster, setNoPoster] = useState(false);
@@ -24,26 +25,27 @@ function Clip({ h }: { h: Highlight }) {
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {poster && !noPoster && <img src={poster} alt="" loading="lazy" onError={() => setNoPoster(true)} />}
-      <span className="src">{h.kind === 'VIDEO' ? '11 On Field' : h.platform || t('Link')}</span>
+      {badge ? <span className="badge">{badge}</span> : <span className="src">{h.kind === 'VIDEO' ? '11 On Field' : h.platform || t('Link')}</span>}
       <span className="play">
         <IconPlay />
       </span>
       <span className="cap">{caption}</span>
     </>
   );
+  const grey = h.approvalStatus !== 'APPROVED' || !poster || noPoster ? ' grey' : '';
   if (h.kind === 'VIDEO' && h.embedUrl) {
     return playing ? (
       <div className="pp-clip playing">
         <iframe src={h.embedUrl.replace('autoplay=false', 'autoplay=true')} title={caption} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen loading="lazy" />
       </div>
     ) : (
-      <button type="button" className="pp-clip" onClick={() => setPlaying(true)} aria-label={t('Xem {n}', { n: caption })}>
+      <button type="button" className={`pp-clip${grey}`} onClick={() => setPlaying(true)} aria-label={t('Xem {n}', { n: caption })}>
         {body}
       </button>
     );
   }
   return (
-    <a className="pp-clip" href={h.url} target="_blank" rel="noopener noreferrer" aria-label={t('Xem {n}', { n: caption })}>
+    <a className={`pp-clip${grey}`} href={h.url} target="_blank" rel="noopener noreferrer" aria-label={t('Xem {n}', { n: caption })}>
       {body}
     </a>
   );
@@ -195,12 +197,11 @@ export default function HighlightsBlock({
         <div className="pp-reel">
           {items.map((h) => (
             <div key={h.id} className="pp-item-wrap">
-              <div className={h.approvalStatus !== 'APPROVED' || h.hidden ? 'pp-pending' : undefined}>
-                <Clip h={h} />
+              <div className={h.hidden ? 'pp-pending' : undefined}>
+                <Clip h={h} badge={owner && (h.approvalStatus !== 'APPROVED' || h.hidden) ? <ReviewFlag status={h.approvalStatus} hidden={h.hidden} /> : undefined} />
               </div>
               {owner && (
                 <>
-                  <ReviewFlag status={h.approvalStatus} hidden={h.hidden} />
                   <ItemActions
                     hidden={h.hidden}
                     busy={busy === h.id}
