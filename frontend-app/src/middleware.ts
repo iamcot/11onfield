@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Partner page holds competitive information: keep it behind HTTP Basic Auth.
-// Override the defaults with PARTNER_PAGE_USER / PARTNER_PAGE_PASSWORD.
-const USER = process.env.PARTNER_PAGE_USER || 'anylearn';
-const PASSWORD = process.env.PARTNER_PAGE_PASSWORD || '@anyLEARN2026';
+// Credentials come from PARTNER_PAGE_USER / PARTNER_PAGE_PASSWORD (GitHub secrets,
+// written to .env.production by the deploy workflows). Unset = page stays locked.
+const USER = process.env.PARTNER_PAGE_USER || '';
+const PASSWORD = process.env.PARTNER_PAGE_PASSWORD || '';
 
 export function middleware(req: NextRequest) {
   const header = req.headers.get('authorization');
-  if (header?.startsWith('Basic ')) {
+  if (USER && PASSWORD && header?.startsWith('Basic ')) {
     try {
       const decoded = atob(header.slice(6));
       const i = decoded.indexOf(':');

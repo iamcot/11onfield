@@ -41,9 +41,10 @@ export default function Journey() {
                   className={`of-step flex items-center gap-5 lg:flex-col lg:text-center ${s.gold ? 'of-step--gold' : ''} ${lit ? 'is-lit' : ''}`}
                 >
                   <div className="of-node">0{i + 1}</div>
-                  <div className="of-step-body min-w-0">
-                    <h3 className={`of-display text-[26px] lg:mt-2 lg:text-[28px] ${s.gold ? 'of-gold' : ''}`}>{s.title}</h3>
-                    <p className="text-[14px] text-[#CBD6CF]">{s.text}</p>
+                  <div className="of-step-body min-w-0 lg:flex lg:flex-col lg:items-center">
+                    <h3 className={`of-display text-[26px] lg:mt-2 lg:whitespace-nowrap lg:text-[22px] xl:text-[28px] ${s.gold ? 'of-gold' : ''}`}>{s.title}</h3>
+                    {/* reserve two lines on desktop so the badges line up across steps */}
+                    <p className="text-[14px] leading-[1.5] text-[#CBD6CF] lg:min-h-[42px] lg:[text-wrap:balance]">{s.text}</p>
                     <span className={`of-chip mt-2 ${s.gold ? 'of-chip--gold' : ''}`}>{s.badge}</span>
                   </div>
                 </li>
