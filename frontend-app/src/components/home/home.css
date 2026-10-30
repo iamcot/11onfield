@@ -1823,6 +1823,28 @@ html body .of-app select option { background: #0b1f15; color: #fff; }
   border: 1px solid var(--app-line);
 }
 
+/* Touch devices: keep scrolling smooth. Backdrop blur over the fixed stadium and animated,
+   heavily blurred beams are the expensive parts on phones, so trade them for flat fills. */
+@media (hover: none) {
+  .of-root *,
+  .of-root *::before,
+  .of-root *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .of-glass { background: linear-gradient(160deg, rgba(18, 52, 35, 0.9), rgba(6, 20, 14, 0.94)); }
+  .of-glass-gold { background: linear-gradient(160deg, rgba(56, 44, 18, 0.9), rgba(12, 18, 11, 0.94)); }
+  .of-app { --app-card: rgba(9, 26, 18, 0.92); }
+  .of-header.is-solid,
+  .of-app .of-appbar,
+  .of-app .of-appnav { background: rgba(4, 12, 9, 0.96); }
+  .of-beam,
+  .of-haze { animation: none; }
+  .of-beam { transform: rotate(calc((var(--r0) + var(--r1)) / 2)); }
+  .of-bg-photo,
+  .of-bg-light { transform: none; }
+}
+
 /* ==========================================================================
    Reduced motion
    ========================================================================== */
