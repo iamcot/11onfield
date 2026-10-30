@@ -8,6 +8,7 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 import ThemeShell from "@/components/shell/ThemeShell";
 import { ArrowRight } from "@/components/home/ui";
 import { useT } from "@/i18n/I18nProvider";
+import { competitionService, type CompetitionDetail } from "@/services/competition.service";
 
 export default function LoginPage() {
   const [phone, setPhone] = useState("");
@@ -21,6 +22,13 @@ export default function LoginPage() {
   const { track } = useAnalytics();
   const router = useRouter();
   const t = useT();
+  // Only an open competition (not draft, not finished) is returned; without one the copy stays generic.
+  const [competition, setCompetition] = useState<CompetitionDetail | null>(null);
+
+  useEffect(() => {
+    competitionService.getCurrentCompetition().then(setCompetition);
+  }, []);
+  const year = competition?.competitionStartDate?.slice(0, 4) || competition?.registrationStartDate?.slice(0, 4);
 
   // Check for success message from password change
   useEffect(() => {
@@ -75,17 +83,25 @@ export default function LoginPage() {
     <ThemeShell footer={false}>
       <div className="mx-auto grid min-h-[calc(100svh-var(--header-h))] max-w-[1240px] items-center gap-10 px-4 py-10 lg:grid-cols-[1fr_460px] lg:gap-16 lg:px-6">
         <div className="hidden lg:block" data-reveal="">
-          <div className="of-eyebrow of-eyebrow--left">{t("Mùa {n}", { n: 1 })} · 2026</div>
+          <div className="of-eyebrow of-eyebrow--left">
+            {competition ? `${t("Mùa {n}", { n: competition.season })}${year ? ` · ${year}` : ""}` : "11 On Field"}
+          </div>
           <h1 className="of-display mt-3 text-[88px] leading-[0.9]">
             {t("Trở lại")}
             <br />
             <span className="of-neon">{t("sân cỏ")}</span>
           </h1>
           <p className="of-lede mt-5 max-w-md !text-[#CBD6CF]">
-            {t("Đăng nhập để cập nhật hồ sơ cầu thủ, xem lịch tuyển trạch khu vực và theo dõi kết quả của bạn.")}
+            {competition
+              ? t("Đăng nhập để cập nhật hồ sơ cầu thủ, xem lịch tuyển trạch khu vực và theo dõi kết quả của bạn.")
+              : t("Đăng nhập để cập nhật hồ sơ cầu thủ và theo dõi các chương trình, sự kiện bóng đá.")}
           </p>
-          <Link href="/competitions" className="of-navlink mt-8 inline-block" style={{ color: "var(--gold-2)" }}>
-            {t("Chương trình 11 người ra sân 2026")} ›
+          <Link
+            href={competition ? `/competitions/${competition.id}` : "/competitions"}
+            className="of-navlink mt-8 inline-block"
+            style={{ color: "var(--gold-2)" }}
+          >
+            {competition ? competition.title : t("Xem các chương trình")} ›
           </Link>
         </div>
 
