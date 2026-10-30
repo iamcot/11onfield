@@ -32,5 +32,5 @@ sudo systemctl reload-or-restart 11of-frontend.service
 
 echo "Frontend deployed successfully"
 
-# Cleanup: keep only last 5 releases
-cd "${DEPLOY_PATH}/releases" && ls -t | tail -n +6 | xargs -r rm -rf
+# Cleanup: keep only last 3 releases
+cd "${DEPLOY_PATH}/releases" && ls -t | tail -n +4 | xargs -r rm -rf
