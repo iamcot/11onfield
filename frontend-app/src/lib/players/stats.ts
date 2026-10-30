@@ -107,10 +107,27 @@ export function initials(name?: string | null): string {
 }
 
 /** Vietnamese names: the given name is the last word(s); shown big, the family name small. */
+// Common Vietnamese family names, compared without accents and case.
+const FAMILY_NAMES = new Set(
+  'nguyen tran le pham hoang huynh phan vu vo dang bui do ho ngo duong ly truong dinh lam mai trinh doan luong ta cao chau ha to quach thai luu kieu la tang van giang lai khuc mac ong tieu thach ton nghiem chu au duong'.split(' '),
+);
+
+function plain(word: string): string {
+  return word.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase();
+}
+
+export function isFamilyName(word: string): boolean {
+  return FAMILY_NAMES.has(plain(word));
+}
+
 export function splitName(name?: string | null): { given: string; family: string } {
   const words = (name ?? '').trim().split(/\s+/).filter(Boolean);
   if (words.length <= 1) return { given: words[0] ?? '', family: '' };
-  // Vietnamese names: the last word is the name people are called by, so it is the big one everywhere
+  // Vietnamese names put the family name first ("Trương Thắng"), but some people type it last ("Thắng Trương");
+  // when only the last word is a family name, the first word is the name people are called by
+  if (isFamilyName(words[words.length - 1]) && !isFamilyName(words[0])) {
+    return { given: words[0], family: words.slice(1).join(' ') };
+  }
   return { given: words[words.length - 1], family: words.slice(0, -1).join(' ') };
 }
 
