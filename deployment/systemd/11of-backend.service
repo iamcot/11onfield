@@ -26,7 +26,8 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/opt/11of/backend/logs
+# numba cache of background removal (deployment/rembg); '-' = fine when rembg is not installed
+ReadWritePaths=/opt/11of/backend/logs -/opt/rembg/numba-cache
 
 [Install]
 WantedBy=multi-user.target

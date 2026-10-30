@@ -32,4 +32,20 @@ if [ -z "$(sudo find "$PREFIX/models" -name "$MODEL.onnx" -print -quit)" ]; then
   sudo U2NET_HOME="$PREFIX/models" "$PREFIX/bin/python" -c "from rembg import new_session; new_session('$MODEL')"
 fi
 sudo chmod -R a+rX "$PREFIX"
+
+# numba cache for pymatting, writable by the backend's user (11of-backend.service lists it in ReadWritePaths) and
+# warmed once here, so the first photo after a deploy does not spend ~40 s compiling
+APP_USER=11of-app
+sudo mkdir -p "$PREFIX/numba-cache"
+if id "$APP_USER" >/dev/null 2>&1; then
+  sudo chown -R "$APP_USER" "$PREFIX/numba-cache"
+  if [ -z "$(sudo find "$PREFIX/numba-cache" -name '*.nbi' -print -quit)" ]; then
+    echo "Warming the numba cache..."
+    sudo -u "$APP_USER" U2NET_HOME="$PREFIX/models" "$PREFIX/bin/python" -c \
+      "import io, sys; from PIL import Image; b = io.BytesIO(); Image.new('RGB', (64, 64), 'white').save(b, 'PNG'); sys.stdout.buffer.write(b.getvalue())" \
+      | sudo -u "$APP_USER" U2NET_HOME="$PREFIX/models" "$PREFIX/bin/python" "$PREFIX/cutout.py" >/dev/null
+  fi
+else
+  sudo chmod 1777 "$PREFIX/numba-cache"
+fi
 echo "✓ rembg ready: $PREFIX/bin/python $PREFIX/cutout.py (model $MODEL)"

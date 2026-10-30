@@ -7,6 +7,14 @@ Same library the anylearn sticker artwork was cut out with (rembg); the model is
 import io
 import os
 import sys
+import tempfile
+
+# pymatting (used by rembg) compiles with numba and caches the result next to its own files. The venv is read-only
+# for the backend's user and its home is hidden (systemd ProtectSystem / ProtectHome), so numba refuses to start
+# unless the cache goes somewhere writable: numba-cache/ next to this script (made and warmed by install.sh, writable
+# through the service's ReadWritePaths), else /tmp. Compiling takes about 40 s, the cache brings a run back to ~4 s.
+_cache = os.path.join(os.path.dirname(os.path.abspath(__file__)), "numba-cache")
+os.environ.setdefault("NUMBA_CACHE_DIR", _cache if os.access(_cache, os.W_OK) else os.path.join(tempfile.gettempdir(), "rembg-numba"))
 
 import onnxruntime as ort
 from PIL import Image

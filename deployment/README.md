@@ -254,6 +254,9 @@ anylearn sticker artwork was cut out with). There is no service running all the 
 - Measured on a sample photo: about 4 s and a peak of about 1 GB RAM per photo, then the memory is freed.
   The box is shared with anylearn, so keep 2 GB of swap (`sudo fallocate -l 2G /swapfile && sudo chmod 600
   /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile`, then add it to `/etc/fstab`).
+- The backend runs as `11of-app` with a read-only system and no home (systemd hardening), so pymatting's numba
+  cache lives in `/opt/rembg/numba-cache` (owned by `11of-app`, listed in the service's `ReadWritePaths`). The
+  installer warms it once; without it every first photo after a restart spends about 40 s compiling.
 - Not installed or failing = the photo keeps its background (logged as a warning), uploads never fail.
 - Local development: install rembg (`pip install "rembg[cpu]"`) and set `APP_REMBG_COMMAND="python
   /path/to/deployment/rembg/cutout.py"` and `APP_REMBG_MODEL_DIR=~/.u2net`; without it photos keep their
