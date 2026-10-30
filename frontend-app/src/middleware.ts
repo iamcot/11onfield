@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ADMIN_COOKIE, readToken } from '@/lib/admin/session';
 
 // Partner page holds competitive information: keep it behind HTTP Basic Auth.
 // Credentials come from PARTNER_PAGE_USER / PARTNER_PAGE_PASSWORD (GitHub secrets,
@@ -6,7 +7,24 @@ import { NextRequest, NextResponse } from 'next/server';
 const USER = process.env.PARTNER_PAGE_USER || '';
 const PASSWORD = process.env.PARTNER_PAGE_PASSWORD || '';
 
+// Admin area: send visitors without a valid staff token to the admin login page.
+// The backend still checks the role on every API call; this only keeps the pages private.
+function guardAdmin(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  if (pathname.startsWith('/quan-tri/api/')) return NextResponse.next(); // route handlers answer 401 themselves
+  const session = readToken(req.cookies.get(ADMIN_COOKIE)?.value);
+  const isLogin = pathname === '/quan-tri/dang-nhap';
+  if (!session && !isLogin) return NextResponse.redirect(new URL('/quan-tri/dang-nhap', req.url));
+  if (session && isLogin) return NextResponse.redirect(new URL('/quan-tri', req.url));
+  const res = NextResponse.next();
+  res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  res.headers.set('Cache-Control', 'no-store');
+  return res;
+}
+
 export function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith('/quan-tri')) return guardAdmin(req);
+
   const header = req.headers.get('authorization');
   if (USER && PASSWORD && header?.startsWith('Basic ')) {
     try {
@@ -29,5 +47,5 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   // the page's JS chunk carries the copy too, so guard it as well
-  matcher: ['/doi-tac', '/doi-tac/:path*', '/_next/static/chunks/app/doi-tac/:path*'],
+  matcher: ['/quan-tri', '/quan-tri/:path*', '/doi-tac', '/doi-tac/:path*', '/_next/static/chunks/app/doi-tac/:path*'],
 };
