@@ -29,6 +29,15 @@ public class CompetitionController {
     private final CompetitionNewsRepository newsRepository;
     private final CompetitionSponsorRepository sponsorRepository;
     private final com.elevenof.backoffice.service.StageCheckinService checkinService;
+    private final com.elevenof.backoffice.repository.UserRepository userRepository;
+
+    /** JwtAuthenticationFilter stores the userid (String) as the principal, not the User entity. */
+    private User currentUser(Authentication authentication) {
+        if (authentication == null) return null;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User u) return u;
+        return principal instanceof String userid ? userRepository.findByUserid(userid).orElse(null) : null;
+    }
 
     /**
      * Get current active competition
@@ -55,7 +64,8 @@ public class CompetitionController {
     /** A logged-in player scanned the QR shown at a stage (see StageCheckinService). */
     @PostMapping("/checkin")
     public ResponseEntity<?> checkin(@RequestBody Map<String, String> body, Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+        User user = currentUser(authentication);
+        if (user == null) {
             return ResponseEntity.status(401).body(Map.of("message", "Vui lòng đăng nhập để check-in."));
         }
         try {
@@ -78,7 +88,8 @@ public class CompetitionController {
                 .build());
         }
 
-        User user = (User) authentication.getPrincipal();
+        User user = currentUser(authentication);
+        if (user == null) return ResponseEntity.status(401).build();
         return competitionService.getParticipant(user.getId(), id)
             .map(participant -> ResponseEntity.ok(ParticipantStatusDTO.builder()
                 .isRegistered(true)
@@ -98,7 +109,8 @@ public class CompetitionController {
     public ResponseEntity<String> registerForCompetition(
             @PathVariable Long id,
             Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
+        User user = currentUser(authentication);
+        if (user == null) return ResponseEntity.status(401).build();
 
         try {
             competitionService.registerForCompetition(user.getId(), id, user);
@@ -115,7 +127,8 @@ public class CompetitionController {
     public ResponseEntity<String> withdrawFromCompetition(
             @PathVariable Long id,
             Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
+        User user = currentUser(authentication);
+        if (user == null) return ResponseEntity.status(401).build();
 
         try {
             competitionService.withdrawFromCompetition(user.getId(), id);
@@ -193,7 +206,8 @@ public class CompetitionController {
     public ResponseEntity<List<StageResultDTO>> getMyResults(
             @PathVariable Long id,
             Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
+        User user = currentUser(authentication);
+        if (user == null) return ResponseEntity.status(401).build();
 
         return competitionService.getParticipant(user.getId(), id)
             .map(participant -> {
