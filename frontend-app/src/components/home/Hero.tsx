@@ -100,13 +100,14 @@ export default function Hero({
             </span>
           </h1>
 
-          <div className="of-in of-display mt-4 text-[17px] font-bold !leading-[1.25] tracking-[0.3em] sm:text-[22px]" style={cssVars({ '--i': 0 })}>
-            <span className="of-shine-gold">From the street to the stadium</span>
+          <div className="of-in of-display mt-4 text-[17px] font-bold !leading-[1.3] tracking-[0.12em] sm:text-[22px] sm:tracking-[0.18em]" style={cssVars({ '--i': 0 })}>
+            <span className="of-shine-gold">Từ Đường Phố ra Sân Vận Động</span>
           </div>
 
           <p className="of-in mt-5 max-w-[560px] text-[16px] text-[#E2EAE4] sm:text-[18px]" style={cssVars({ '--i': 1 })}>
             Cơ hội cho tài năng <strong className="text-white">16–21 tuổi</strong> theo đuổi giấc mơ sân cỏ. Huấn luyện cùng{' '}
-            <strong className="text-white">Park Hang-seo</strong> và chuyên gia La Liga, tập huấn tại Tây Ban Nha, ra sân ở sân vận động quốc gia.
+            <strong className="whitespace-nowrap text-white">chuyên gia quốc tế</strong>, Top 11 đi World Cup Tour, ra sân vận động quốc gia gặp{' '}
+            <strong className="text-white">hàng triệu</strong> khán giả.
           </p>
 
           <div className="of-in mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap" style={cssVars({ '--i': 2 })}>

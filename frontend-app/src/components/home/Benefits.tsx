@@ -1,9 +1,9 @@
 import { Icons, SectionHead, revealDelay } from './ui';
 
 const BENEFITS = [
-  { icon: Icons.coach, title: 'Huấn luyện chuẩn chuyên nghiệp', text: '4 tháng cùng Park Hang-seo, chuyên gia La Liga và chuyên gia hàng đầu Việt Nam.' },
-  { icon: Icons.globe, title: 'Tập huấn tại Tây Ban Nha', text: 'Top 11 đi World Cup Tour, học hỏi trực tiếp nền bóng đá La Liga.' },
-  { icon: Icons.stadium, title: 'Ra sân vận động quốc gia', text: 'Final Match phát sóng truyền hình toàn quốc, trước hàng vạn khán giả.' },
+  { icon: Icons.coach, title: 'Huấn luyện chuẩn chuyên nghiệp', text: '4 tháng cùng chuyên gia quốc tế và chuyên gia hàng đầu Việt Nam.' },
+  { icon: Icons.globe, title: 'Đi World Cup Tour', text: 'Top 11 học hỏi trực tiếp nền bóng đá số 1 thế giới.' },
+  { icon: Icons.stadium, title: 'Ra sân vận động quốc gia', text: 'Final Match phát sóng truyền hình toàn quốc, gặp hàng triệu khán giả.' },
   { icon: Icons.contract, title: 'Hợp đồng CLB chuyên nghiệp', text: 'Cơ hội ký với CLB trong nước, quốc tế và được chọn vào Đội tuyển quốc gia.' },
   { icon: Icons.scholarship, title: 'Học bổng', text: 'Học bổng tú tài, cử nhân và đào tạo bóng đá chuyên nghiệp.' },
   { icon: Icons.trophy, title: 'Giải thưởng & thương hiệu', text: 'Hiện kim, hiện vật, cúp vàng và hàng triệu khán giả biết đến bạn.', gold: true },

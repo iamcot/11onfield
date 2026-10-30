@@ -1062,13 +1062,14 @@
 
 /* coach cards */
 .of-coach-mono {
-  font-size: 110px;
-  line-height: 0.8;
-  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), -webkit-text-stroke-color 0.3s;
+  width: 62%;
+  height: auto;
+  margin-top: 14%;
+  filter: drop-shadow(0 0 10px rgba(166, 227, 90, 0.35));
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .of-coach:hover .of-coach-mono {
-  transform: scale(1.12) translateY(-6px);
-  -webkit-text-stroke-color: rgba(214, 250, 158, 0.9);
+  transform: scale(1.08) translateY(-6px);
 }
 
 /* animated flow connector (vertical on mobile, horizontal from 1024px) */

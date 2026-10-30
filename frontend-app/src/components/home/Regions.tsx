@@ -19,9 +19,14 @@ function formatDate(d: string) {
   return day && m && y ? `${day}/${m}/${y}` : d;
 }
 
+// The new audition dates are not final yet. Flip to true to show the dates from the backend stages again.
+const SHOW_DATES = false;
+
 export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref: string }) {
   const byRegion = (key: string) =>
-    stages.filter((s) => s.region === key && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => a.stageDate.localeCompare(b.stageDate))[0];
+    !SHOW_DATES
+      ? undefined
+      : stages.filter((s) => s.region === key && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => a.stageDate.localeCompare(b.stageDate))[0];
 
   return (
     <section id="lich" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
@@ -36,7 +41,7 @@ export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref:
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-3 lg:grid-cols-3 lg:gap-5">
+        <div className="mt-8 grid gap-2.5 lg:mt-10 lg:grid-cols-3 lg:gap-3">
           {REGIONS.map((r, i) => {
             const stage = byRegion(r.key);
             const active = stage?.status === 'ACTIVE';
@@ -45,7 +50,7 @@ export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref:
                 key={r.key}
                 data-reveal="zoom"
                 style={revealDelay(i)}
-                className={`of-glass of-cut of-cut--lg of-spot of-lift flex flex-col gap-3 overflow-hidden p-6 lg:p-7 ${active ? 'of-run' : 'of-run-hover'}`}
+                className={`of-glass of-cut of-cut--lg of-spot of-lift flex flex-col gap-2.5 overflow-hidden p-6 lg:p-7 ${active ? 'of-run' : 'of-run-hover'}`}
               >
                 <div className="of-display of-outline pointer-events-none absolute -right-2 top-1 text-[110px] !leading-[1.2] opacity-70 lg:text-[130px]" aria-hidden="true">
                   {r.mark}
