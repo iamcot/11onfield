@@ -106,7 +106,7 @@ export default function Hero({
 
           <p className="of-in mt-5 max-w-[560px] text-[16px] text-[#E2EAE4] sm:text-[18px]" style={cssVars({ '--i': 1 })}>
             Cơ hội cho tài năng <strong className="text-white">16–21 tuổi</strong> theo đuổi giấc mơ sân cỏ. Huấn luyện cùng{' '}
-            <strong className="whitespace-nowrap text-white">chuyên gia quốc tế</strong>, Top 11 đi World Cup Tour, ra sân vận động quốc gia gặp{' '}
+            <strong className="text-white">chuyên gia quốc tế đến từ La Liga</strong>, Top 11 đi World Cup Tour, ra sân vận động quốc gia gặp{' '}
             <strong className="text-white">hàng triệu</strong> khán giả.
           </p>
 
