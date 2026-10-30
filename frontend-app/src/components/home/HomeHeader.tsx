@@ -63,8 +63,9 @@ export default function HomeHeader({
     : profileHref
       ? { href: profileHref, label: 'Hồ sơ', long: 'Hồ sơ của tôi' }
       : { href: '/auth/register', label: 'Đăng ký', long: 'Đăng ký miễn phí' };
-  const cross = isPartner ? { href: '/', label: 'Cầu thủ' } : { href: '/doi-tac', label: 'Đối tác' };
-  const extra = [cross, { href: '/competitions', label: 'Chương trình' }];
+  // the partner page is password-protected and not linked from the public site
+  const cross = isPartner ? { href: '/', label: 'Cầu thủ' } : null;
+  const extra = [...(cross ? [cross] : []), { href: '/competitions', label: 'Chương trình' }];
   const showLogin = !isPartner && !isAuthenticated;
 
   return (
@@ -91,9 +92,11 @@ export default function HomeHeader({
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-2 lg:gap-4">
-            <Link href={cross.href} className="of-navlink hidden lg:inline-block" style={{ color: 'var(--gold-2)' }}>
-              {cross.label} ›
-            </Link>
+            {cross && (
+              <Link href={cross.href} className="of-navlink hidden lg:inline-block" style={{ color: 'var(--gold-2)' }}>
+                {cross.label} ›
+              </Link>
+            )}
             {showLogin && (
               <Link href="/auth/login" className="of-navlink hidden xl:inline-block">
                 Đăng nhập
