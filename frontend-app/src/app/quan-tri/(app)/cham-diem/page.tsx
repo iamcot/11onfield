@@ -50,6 +50,15 @@ function useWakeLock() {
   }, []);
 }
 
+function Spinner({ className = 'h-6 w-6' }: { className?: string }) {
+  return (
+    <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" />
+      <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function Keypad({ onKey, allowDot }: { onKey: (k: string) => void; allowDot: boolean }) {
   const keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', allowDot ? '.' : '', '0', '⌫'];
   return (
@@ -92,6 +101,8 @@ export default function FieldScoringPage() {
   const [fresh, setFresh] = useState(true);
   const setTarget = (t: string) => { setTargetRaw(t); setFresh(true); };
   const [saving, setSaving] = useState(false);
+  // What the in-flight request was started by, so that control can show a spinner.
+  const [pending, setPending] = useState<'find' | 'reload' | number | null>(null);
   const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -103,6 +114,7 @@ export default function FieldScoringPage() {
   params.set('historyPage', String(historyPage));
   const ctx = useApi<Ctx>(`field-scoring?${params}`);
   const c = ctx.data;
+  const loading = ctx.loading;
 
   // Refill the attempt cells whenever another contestant (or fresh scores) arrive.
   useEffect(() => {
@@ -121,9 +133,31 @@ export default function FieldScoringPage() {
     noticeTimer.current = setTimeout(() => setNotice(null), 3500);
   };
 
+  useEffect(() => {
+    if (loading) return;
+    if (pending === 'reload' && !ctx.error) flash('ok', 'Đã tải lại dữ liệu mới nhất');
+    setPending(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
+
   const pickDay = (id: number) => { setDayId(id); setStepId(null); setLookup({}); setSbdInput(''); setHistoryPage(0); setTarget('sbd'); };
   const pickStep = (id: number) => { setStepId(id); setLookup({}); setSbdInput(''); setHistoryPage(0); setTarget('sbd'); };
-  const find = () => { if (sbdInput.trim()) setLookup({ sbd: sbdInput.trim() }); };
+  const find = () => {
+    const sbd = sbdInput.trim();
+    if (!sbd || loading) return;
+    setPending('find');
+    // Same SBD again: the URL does not change, so ask for a fresh copy explicitly.
+    if (lookup.sbd === sbd && !lookup.participantId) ctx.reload();
+    else setLookup({ sbd });
+  };
+  const openHistory = (participantId: number, sbd: number) => {
+    if (loading) return;
+    setPending(participantId);
+    if (lookup.participantId === participantId) ctx.reload();
+    else setLookup({ participantId });
+    setSbdInput(String(sbd));
+  };
+  const reload = () => { if (!loading) { setPending('reload'); ctx.reload(); } };
 
   // Order of the attempt cells, so the keypad can move on to the next one.
   const cells = (c?.assessments || []).flatMap((a) => Array.from({ length: a.attemptsCount }, (_, i) => `${a.id}_${i + 1}`));
@@ -188,7 +222,7 @@ export default function FieldScoringPage() {
   return (
     <div className={`min-h-screen touch-manipulation select-none bg-[#F4F7F5] ${INK}`}>
       {/* Top bar */}
-      <header className="sticky top-0 z-20 flex min-h-[64px] items-center gap-3 bg-[#0B2419] px-4 text-white lg:px-6">
+      <header className="sticky top-0 z-20 relative flex min-h-[64px] items-center gap-3 bg-[#0B2419] px-4 text-white lg:px-6">
         <div className="min-w-0 flex-1">
           <div className="font-[family-name:var(--font-hud)] text-[12px] font-semibold uppercase tracking-[0.16em] text-[#A6E35A]">Chấm điểm hiện trường</div>
           <div className="truncate text-[17px] font-semibold">
@@ -199,13 +233,25 @@ export default function FieldScoringPage() {
           {me.fullName || 'Giám khảo'}
           <span className="block text-[12px] text-[#A9B8AF]">{manager ? 'Quản trị' : 'Ban giám khảo'}</span>
         </span>
+        <button
+          type="button"
+          onClick={reload}
+          aria-label="Tải lại dữ liệu"
+          className="flex min-h-[48px] items-center gap-2 rounded-lg border-2 border-white/30 px-3 text-[15px] font-semibold active:bg-white/10"
+        >
+          {pending === 'reload' ? <Spinner className="h-5 w-5" /> : <span aria-hidden="true" className="text-[18px] leading-none">⟳</span>}
+          Tải lại
+        </button>
         <button type="button" onClick={goFullscreen} className="min-h-[48px] rounded-lg border-2 border-white/30 px-3 text-[15px] font-semibold active:bg-white/10">Toàn màn hình</button>
         {manager ? (
           <button type="button" onClick={() => router.push('/quan-tri')} className="min-h-[48px] rounded-lg border-2 border-white/30 px-3 text-[15px] font-semibold active:bg-white/10">Về quản trị</button>
         ) : (
           <button type="button" onClick={logout} className="min-h-[48px] rounded-lg border-2 border-white/30 px-3 text-[15px] font-semibold active:bg-white/10">Đăng xuất</button>
         )}
+        {loading && <span className="absolute inset-x-0 bottom-0 h-1 overflow-hidden bg-white/10" aria-hidden="true"><span className="block h-full w-1/3 animate-[ofbar_1s_ease-in-out_infinite] bg-[#A6E35A]" /></span>}
       </header>
+      <style>{`@keyframes ofbar{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}@keyframes ofpop{0%{box-shadow:0 0 0 0 rgba(166,227,90,0.9)}100%{box-shadow:0 0 0 14px rgba(166,227,90,0)}}`}</style>
+      {loading && c && <p className="sr-only" role="status">Đang tải</p>}
 
       {notice && (
         <div role="status" className={`sticky top-[64px] z-20 px-4 py-3 text-center text-[18px] font-semibold ${notice.tone === 'ok' ? 'bg-[#1F7A3A] text-white' : 'bg-[#B42318] text-white'}`}>
@@ -215,7 +261,7 @@ export default function FieldScoringPage() {
 
       <main className="mx-auto max-w-[1400px] p-4 lg:p-6">
         {ctx.error && <p role="alert" className="mb-4 rounded-xl border-2 border-[#B42318] bg-white p-4 text-[18px] font-semibold text-[#B42318]">{ctx.error}</p>}
-        {ctx.loading && !c && <p className="text-[18px]">Đang tải…</p>}
+        {loading && !c && <p className="flex items-center gap-3 text-[18px]"><Spinner /> Đang tải…</p>}
         {c && !c.competition && <p className="rounded-xl bg-white p-6 text-[20px]">Hiện chưa có giải đấu nào đang diễn ra.</p>}
         {c?.competition && !c.stage && (
           <p className="rounded-xl bg-white p-6 text-[20px]">Giải “{c.competition.title}” chưa có vòng nào đang diễn ra. Admin cần kích hoạt vòng thi trước.</p>
@@ -242,7 +288,7 @@ export default function FieldScoringPage() {
             {!stepId && <p className="mt-8 text-center text-[20px] font-medium">Chọn ngày thi và bước thi để bắt đầu chấm.</p>}
 
             {stepId && (
-              <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+              <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:grid-rows-[auto_1fr] lg:items-start">
                 {/* Left: contestant + attempts */}
                 <div className="space-y-5 lg:col-start-1 lg:row-start-1">
                   <section className="rounded-2xl border-2 border-[#0B2419]/15 bg-white p-4 lg:p-5">
@@ -256,11 +302,13 @@ export default function FieldScoringPage() {
                         <span className="mr-3 text-[15px] font-bold uppercase">SBD</span>
                         <span className="font-[family-name:var(--font-hud)] text-[36px] font-bold tabular-nums">{sbdInput || <span className="text-[#0B2419]/30">—</span>}</span>
                       </button>
-                      <button type="button" onClick={find} className="min-h-[72px] rounded-xl bg-[#0B2419] px-8 text-[20px] font-bold text-[#D6FA9E] active:bg-[#18522F]">Tìm</button>
+                      <button type="button" onClick={find} disabled={loading} className="flex min-h-[72px] min-w-[120px] items-center justify-center gap-2 rounded-xl bg-[#0B2419] px-8 text-[20px] font-bold text-[#D6FA9E] active:bg-[#18522F] disabled:opacity-80">
+                        {pending === 'find' ? <><Spinner /> Đang tìm</> : 'Tìm'}
+                      </button>
                     </div>
                     {c.sbdError && <p role="alert" className="mt-3 text-[18px] font-semibold text-[#B42318]">{c.sbdError}</p>}
                     {c.participant && (
-                      <div className="mt-4 flex items-center gap-4 rounded-xl bg-[#0B2419] px-4 py-3 text-white">
+                      <div key={c.participant.id} className="mt-4 flex animate-[ofpop_0.7s_ease-out] items-center gap-4 rounded-xl bg-[#0B2419] px-4 py-3 text-white">
                         <span className="font-[family-name:var(--font-display)] text-[44px] font-bold leading-none text-[#A6E35A]">{c.participant.sbd}</span>
                         <span className="text-[22px] font-semibold leading-tight">{c.participant.fullName}</span>
                         {dirty && <span className="ml-auto rounded-md bg-[#F5C451] px-2 py-1 text-[14px] font-bold text-[#06140D]">Chưa lưu</span>}
@@ -307,7 +355,9 @@ export default function FieldScoringPage() {
                     </p>
                     <Keypad allowDot={allowDot} onKey={onKey} />
                     {target === 'sbd' ? (
-                      <button type="button" onClick={find} className="mt-3 h-[64px] w-full rounded-xl bg-[#0B2419] text-[20px] font-bold text-[#D6FA9E] active:bg-[#18522F]">Tìm thí sinh</button>
+                      <button type="button" onClick={find} disabled={loading} className="mt-3 flex h-[64px] w-full items-center justify-center gap-2 rounded-xl bg-[#0B2419] text-[20px] font-bold text-[#D6FA9E] active:bg-[#18522F] disabled:opacity-80">
+                        {pending === 'find' ? <><Spinner /> Đang tìm…</> : 'Tìm thí sinh'}
+                      </button>
                     ) : (
                       <button
                         type="button"
@@ -321,11 +371,11 @@ export default function FieldScoringPage() {
                   {c.participant && (
                     <button
                       type="button"
-                      disabled={saving}
+                      disabled={saving || loading}
                       onClick={save}
-                      className="fixed inset-x-4 bottom-4 z-20 h-[72px] rounded-2xl bg-[#1F7A3A] text-[22px] font-bold text-white shadow-[0_6px_20px_rgba(6,20,13,0.35)] active:bg-[#18602E] disabled:opacity-60 lg:static lg:mt-4 lg:w-full"
+                      className="fixed flex items-center justify-center gap-3 inset-x-4 bottom-4 z-20 h-[72px] rounded-2xl bg-[#1F7A3A] text-[22px] font-bold text-white shadow-[0_6px_20px_rgba(6,20,13,0.35)] active:bg-[#18602E] disabled:opacity-60 lg:static lg:mt-4 lg:w-full"
                     >
-                      {saving ? 'Đang lưu…' : `Lưu điểm SBD ${c.participant.sbd}`}
+                      {saving ? <><Spinner className="h-7 w-7" /> Đang lưu…</> : `Lưu điểm SBD ${c.participant.sbd}`}
                     </button>
                   )}
                 </aside>
@@ -339,10 +389,11 @@ export default function FieldScoringPage() {
                           <button
                             type="button"
                             className="flex min-h-[60px] w-full items-center gap-3 rounded-xl border-2 border-[#0B2419]/15 px-3 text-left active:bg-[#E4F3D6]"
-                            onClick={() => { setLookup({ participantId: h.participantId }); setSbdInput(String(h.sbd)); }}
+                            onClick={() => openHistory(h.participantId, h.sbd)}
                           >
                             <span className="w-12 font-[family-name:var(--font-hud)] text-[22px] font-bold tabular-nums">{h.sbd}</span>
                             <span className="min-w-0 flex-1 truncate text-[17px]">{h.fullName}</span>
+                            {pending === h.participantId && <Spinner className="h-5 w-5 text-[#1F7A3A]" />}
                             <span className={`rounded-md px-2 py-1 text-[15px] font-bold tabular-nums ${h.filled >= h.total ? 'bg-[#1F7A3A] text-white' : 'bg-[#F5C451] text-[#06140D]'}`}>{h.filled}/{h.total}</span>
                           </button>
                         </li>
