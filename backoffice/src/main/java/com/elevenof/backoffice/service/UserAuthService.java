@@ -13,6 +13,7 @@ import com.elevenof.backoffice.dto.response.UserResponse;
 import com.elevenof.backoffice.exception.InvalidCredentialsException;
 import com.elevenof.backoffice.exception.UserAlreadyExistsException;
 import com.elevenof.backoffice.model.Player;
+import com.elevenof.backoffice.model.Region;
 import com.elevenof.backoffice.model.User;
 import com.elevenof.backoffice.repository.UserRepository;
 import com.elevenof.backoffice.security.JwtTokenProvider;
@@ -75,6 +76,7 @@ public class UserAuthService {
                 .userid(generateUserid())
                 .fullName(request.getFullName())
                 .email(request.getEmail())
+                .dob(request.getDob())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(User.Role.valueOf(request.getRole().toUpperCase()))
                 .enabled(true)
@@ -133,7 +135,7 @@ public class UserAuthService {
 
             // Auto-enroll in current active competition if eligible
             try {
-                competitionService.autoEnrollInCurrentCompetitionIfEligible(savedUser);
+                competitionService.autoEnrollInCurrentCompetitionIfEligible(savedUser, parseRegion(request.getSelectedRegion()));
             } catch (Exception e) {
                 log.warn("Failed to auto-enroll player {} in competition: {}", savedUser.getId(), e.getMessage());
                 // Don't fail registration if competition enrollment fails
@@ -208,5 +210,17 @@ public class UserAuthService {
         userRepository.save(user);
 
         log.info("Password changed for user: {}", user.getUserid());
+    }
+
+    private Region parseRegion(String region) {
+        if (region == null || region.isBlank()) {
+            return null;
+        }
+        try {
+            return Region.valueOf(region.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Ignoring unknown region on registration: {}", region);
+            return null;
+        }
     }
 }
