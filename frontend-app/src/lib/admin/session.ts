@@ -31,5 +31,7 @@ export function readToken(token: string | undefined): { role: AdminRole; exp: nu
 
 /** Server-side base URL of the Spring API (…/api). Prefer a localhost URL in production. */
 export function backendUrl() {
-  return (process.env.ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7071/api').replace(/\/+$/, '');
+  // A relative NEXT_PUBLIC_API_URL ("/api") only works in the browser; the server needs a full URL.
+  const pub = process.env.NEXT_PUBLIC_API_URL?.startsWith('http') ? process.env.NEXT_PUBLIC_API_URL : '';
+  return (process.env.ADMIN_API_URL || pub || 'http://localhost:7071/api').replace(/\/+$/, '');
 }
