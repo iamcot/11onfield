@@ -13,14 +13,19 @@ export function usePageEffects(root: React.RefObject<HTMLDivElement>) {
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            e.target.classList.add('is-in');
+            // an attribute, not a class: React rewrites className on re-render and would drop it
+            e.target.setAttribute('data-in', '');
             io.unobserve(e.target);
           }
         });
       },
       { rootMargin: '0px 0px -8% 0px', threshold: 0.12 }
     );
-    el.querySelectorAll('[data-reveal]').forEach((n) => io.observe(n));
+    const watch = (scope: ParentNode) => scope.querySelectorAll('[data-reveal]:not([data-in])').forEach((n) => io.observe(n));
+    watch(el);
+    // sections that render later (API data) still need to be revealed
+    const mo = new MutationObserver(() => watch(el));
+    mo.observe(el, { childList: true, subtree: true });
 
     const onPointer = (e: PointerEvent) => {
       const spot = (e.target as HTMLElement).closest?.('.of-spot') as HTMLElement | null;
@@ -52,6 +57,7 @@ export function usePageEffects(root: React.RefObject<HTMLDivElement>) {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       io.disconnect();
+      mo.disconnect();
       el.removeEventListener('pointermove', onPointer);
       window.removeEventListener('scroll', onScroll);
       cancelAnimationFrame(raf);

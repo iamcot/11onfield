@@ -894,7 +894,7 @@
 [data-reveal='left'] { transform: translate3d(-48px, 0, 0); }
 [data-reveal='right'] { transform: translate3d(48px, 0, 0); }
 [data-reveal='zoom'] { transform: scale(0.9); filter: blur(6px); }
-[data-reveal].is-in {
+[data-reveal][data-in] {
   opacity: 1;
   transform: none;
   filter: none;
@@ -1016,7 +1016,7 @@
   transform: scaleX(0);
   transition: transform 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s;
 }
-.is-in .of-meter > i {
+[data-in] .of-meter > i {
   transform: scaleX(1);
 }
 

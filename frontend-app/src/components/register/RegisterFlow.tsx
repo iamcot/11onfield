@@ -19,8 +19,7 @@ type Region = NonNullable<RegisterData['selectedRegion']>;
 const POSITIONS = [
   { id: 'striker', label: 'Tiền đạo', code: 'TĐ', x: 50, y: 16 },
   { id: 'midfielder', label: 'Tiền vệ', code: 'TV', x: 50, y: 40 },
-  { id: 'defender', label: 'Hậu vệ', code: 'HV', x: 20, y: 64 },
-  { id: 'centerback', label: 'Trung vệ', code: 'TrV', x: 54, y: 66 },
+  { id: 'defender', label: 'Hậu vệ', code: 'HV', x: 50, y: 64 },
   { id: 'goalkeeper', label: 'Thủ môn', code: 'TM', x: 50, y: 88 },
 ];
 const FEET = [

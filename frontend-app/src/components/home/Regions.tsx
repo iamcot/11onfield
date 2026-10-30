@@ -47,7 +47,7 @@ export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref:
                 style={revealDelay(i)}
                 className={`of-glass of-cut of-cut--lg of-spot of-lift flex flex-col gap-3 overflow-hidden p-6 lg:p-7 ${active ? 'of-run' : 'of-run-hover'}`}
               >
-                <div className="of-display of-outline pointer-events-none absolute -right-2 -top-3 text-[110px] opacity-70 lg:text-[130px]" aria-hidden="true">
+                <div className="of-display of-outline pointer-events-none absolute -right-2 top-1 text-[110px] !leading-[1.2] opacity-70 lg:text-[130px]" aria-hidden="true">
                   {r.mark}
                 </div>
                 <span className={`of-chip self-start ${active ? '' : '!border-white/40 !bg-transparent !text-[#E2EAE4]'}`}>

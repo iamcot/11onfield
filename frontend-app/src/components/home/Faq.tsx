@@ -53,7 +53,7 @@ export default function Faq() {
             .
           </p>
         </div>
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-3">
           {FAQS.map((f, i) => {
             const isOpen = open === i;
             return (

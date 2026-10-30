@@ -10,7 +10,7 @@ const ITEMS = [
 export default function Eligibility() {
   return (
     <section aria-label="Điều kiện tham gia" className="relative z-[2] px-4 lg:px-6">
-      <div className="mx-auto grid max-w-[1240px] grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-0">
+      <div className="mx-auto grid max-w-[1240px] grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         {ITEMS.map((it, i) => (
           <div
             key={it.label}
