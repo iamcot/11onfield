@@ -15,6 +15,7 @@ import {
   LeaderboardEntry,
   CompetitionDetail,
 } from "@/services/competition.service";
+import { useT } from "@/i18n/I18nProvider";
 
 const REGIONS = [
   { value: "", label: "Tổng" },
@@ -24,6 +25,7 @@ const REGIONS = [
 ];
 
 export default function LeaderboardPage() {
+  const t = useT();
   const params = useParams();
   const competitionId = parseInt(params.id as string);
 
@@ -69,7 +71,7 @@ export default function LeaderboardPage() {
 
   const getRegionLabel = (region: string) => {
     const found = REGIONS.find((r) => r.value === region);
-    return found ? found.label : region;
+    return found ? t(found.label) : region;
   };
 
   return (
@@ -88,26 +90,26 @@ export default function LeaderboardPage() {
               href={`/competitions/${competitionId}`}
               className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
             >
-              Trang chủ
+              {t("Trang chủ")}
             </Link>
             <Link
               href={`/competitions/${competitionId}/news`}
               className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
             >
-              Tin tức
+              {t("Tin tức")}
             </Link>
             <Link
               href={`/competitions/${competitionId}/leaderboard`}
               className="py-4 px-2 border-b-2 border-green-700 text-green-700 font-medium whitespace-nowrap"
             >
-              Bảng xếp hạng
+              {t("Bảng xếp hạng")}
             </Link>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Bảng xếp hạng</h1>
+        <h1 className="text-3xl font-bold mb-6">{t("Bảng xếp hạng")}</h1>
 
         {/* Region Filter */}
         <div className="mb-6">
@@ -122,7 +124,7 @@ export default function LeaderboardPage() {
                     : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
               >
-                {region.label}
+                {t(region.label)}
               </button>
             ))}
           </div>
@@ -136,7 +138,7 @@ export default function LeaderboardPage() {
         ) : leaderboard.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <p className="text-gray-500">
-              Chưa có kết quả nào được công bố
+              {t("Chưa có kết quả nào được công bố")}
             </p>
           </div>
         ) : (
@@ -150,13 +152,13 @@ export default function LeaderboardPage() {
                       #
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Cầu thủ
+                      {t("Cầu thủ")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Khu vực
+                      {t("Khu vực")}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Điểm số
+                      {t("Điểm số")}
                     </th>
                   </tr>
                 </thead>

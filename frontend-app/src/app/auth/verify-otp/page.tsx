@@ -8,8 +8,10 @@ import { Suspense, useEffect, useState } from "react";
 import { authService } from "@/services/auth.service";
 import AuthCard, { FieldLabel, Notice, errorMessage } from "@/components/shell/AuthCard";
 import { ArrowRight } from "@/components/home/ui";
+import { useT } from "@/i18n/I18nProvider";
 
 function VerifyOtpContent() {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const phone = searchParams.get("phone");
@@ -30,7 +32,7 @@ function VerifyOtpContent() {
 
     // Validate OTP
     if (!/^\d{6}$/.test(otpCode)) {
-      setError("Mã OTP phải gồm 6 chữ số");
+      setError(t("Mã OTP phải gồm 6 chữ số"));
       return;
     }
 
@@ -41,7 +43,7 @@ function VerifyOtpContent() {
       // Redirect to reset password page with token
       router.push(`/auth/reset-password/${result.token}`);
     } catch (err: unknown) {
-      setError(errorMessage(err, "Mã OTP không đúng hoặc đã hết hạn"));
+      setError(errorMessage(err, "Mã OTP không đúng hoặc đã hết hạn", t));
     } finally {
       setIsLoading(false);
     }
@@ -49,30 +51,30 @@ function VerifyOtpContent() {
 
   return (
     <AuthCard
-      eyebrow="Khôi phục tài khoản"
-      title="Xác minh OTP"
+      eyebrow={t("Khôi phục tài khoản")}
+      title={t("Xác minh OTP")}
       subtitle={
         <>
-          Nhập mã 6 số đã gửi đến <strong className="text-white">{phone}</strong>
+          {t("Nhập mã 6 số đã gửi đến")} <strong className="text-white">{phone}</strong>
         </>
       }
       aside={{
-        eyebrow: "Bước 2 / 3",
+        eyebrow: t("Bước 2 / 3"),
         title: (
           <>
-            Kiểm tra
+            {t("Kiểm tra")}
             <br />
             <span className="of-neon">Zalo</span>
           </>
         ),
-        text: "Mã OTP có hiệu lực trong thời gian ngắn. Nếu chưa nhận được, bạn có thể yêu cầu gửi lại.",
+        text: t("Mã OTP có hiệu lực trong thời gian ngắn. Nếu chưa nhận được, bạn có thể yêu cầu gửi lại."),
       }}
     >
       <form className="grid gap-4" onSubmit={handleSubmit}>
         {error && <Notice tone="error">{error}</Notice>}
 
         <label className="block">
-          <FieldLabel>Mã OTP (6 chữ số)</FieldLabel>
+          <FieldLabel>{t("Mã OTP (6 chữ số)")}</FieldLabel>
           <input
             id="otpCode"
             name="otpCode"
@@ -89,11 +91,11 @@ function VerifyOtpContent() {
         </label>
 
         <button type="submit" disabled={isLoading} className="of-btn mt-2 w-full">
-          {isLoading ? "Đang xác minh…" : "Xác minh"} {!isLoading && <ArrowRight />}
+          {isLoading ? t("Đang xác minh…") : t("Xác minh")} {!isLoading && <ArrowRight />}
         </button>
 
         <Link href="/auth/forgot-password" className="text-center text-[14px] font-semibold hover:!text-white" style={{ color: "var(--lime-2)" }}>
-          Gửi lại mã OTP
+          {t("Gửi lại mã OTP")}
         </Link>
       </form>
     </AuthCard>

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import ThemeShell from './ThemeShell';
+import type { TFunction } from '@/i18n/translate';
 
 /** Two-column auth layout in the night-stadium theme: headline on the left (desktop), form card on the right. */
 export default function AuthCard({
@@ -50,11 +51,11 @@ export function FieldLabel({ children }: { children: ReactNode }) {
   return <span className="of-hud text-[10px] text-[color:var(--mute)]">{children}</span>;
 }
 
-/** Turns fetch() network failures into a readable message. */
-export function errorMessage(err: unknown, fallback: string) {
+/** Turns fetch() network failures into a readable message; server messages go through `t` too. */
+export function errorMessage(err: unknown, fallback: string, t: TFunction) {
   const raw = (err as { message?: string })?.message;
   if (err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw ?? '')) {
-    return 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại sau ít phút.';
+    return t('Không kết nối được máy chủ. Kiểm tra mạng và thử lại sau ít phút.');
   }
-  return raw || fallback;
+  return t(raw || fallback);
 }

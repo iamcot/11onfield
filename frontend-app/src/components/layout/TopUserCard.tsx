@@ -11,8 +11,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NotificationDropdown from "./NotificationDropdown";
+import { useT } from "@/i18n/I18nProvider";
 
 export default function TopUserCard() {
+  const t = useT();
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
   const { openEditProfile } = useEditProfile();
@@ -48,19 +50,19 @@ export default function TopUserCard() {
   const navItems = [
     {
       icon: HomeIcon,
-      label: "Hồ sơ",
+      label: t("Hồ sơ"),
       href: user?.userid ? `/profile/${user.userid}` : "/",
       isActive: pathname === "/" || pathname.startsWith("/profile"),
     },
     {
       icon: CompetitionIcon,
-      label: "Chương trình",
+      label: t("Chương trình"),
       href: "/competitions",
       isActive: pathname.startsWith("/competitions") && !pathname.includes("/news"),
     },
     {
       icon: EventIcon,
-      label: "Tin tức",
+      label: t("Tin tức"),
       href: newsHref,
       isActive: pathname.includes("/news"),
     },
@@ -246,7 +248,7 @@ export default function TopUserCard() {
                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                           />
                         </svg>
-                        <span>Sửa thông tin</span>
+                        <span>{t("Sửa thông tin")}</span>
                       </button>
 
                       <button
@@ -266,7 +268,7 @@ export default function TopUserCard() {
                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                           />
                         </svg>
-                        <span>Đổi mật khẩu</span>
+                        <span>{t("Đổi mật khẩu")}</span>
                       </button>
 
                       <div className="border-t border-gray-200 my-1"></div>
@@ -294,7 +296,7 @@ export default function TopUserCard() {
                           d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                         />
                       </svg>
-                      <span>Đăng xuất</span>
+                      <span>{t("Đăng xuất")}</span>
                     </button>
                   ) : (
                     <button
@@ -317,7 +319,7 @@ export default function TopUserCard() {
                           d="M11 16l-4-4m0 0l4-4m0 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
                         />
                       </svg>
-                      <span>Đăng nhập</span>
+                      <span>{t("Đăng nhập")}</span>
                     </button>
                   )}
                 </div>

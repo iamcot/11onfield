@@ -19,8 +19,10 @@ import { userService } from "@/services/user.service";
 import { useCallback, useEffect, useRef, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useT } from "@/i18n/I18nProvider";
 
 export default function EditProfileHandler() {
+  const t = useT();
   const { user: currentUser } = useAuth();
   const { setOpenCallback, closeEditProfile } = useEditProfile();
 
@@ -58,7 +60,7 @@ export default function EditProfileHandler() {
   const handleOpenEditModal = useCallback(async () => {
     if (!currentUser?.userid) {
       console.error("No user data available");
-      alert("Vui lòng đăng nhập để chỉnh sửa hồ sơ");
+      alert(t("Vui lòng đăng nhập để chỉnh sửa hồ sơ"));
       return;
     }
 
@@ -142,7 +144,7 @@ export default function EditProfileHandler() {
       setShowEditModal(true);
     } catch (error) {
       console.error("Error loading profile:", error);
-      alert("Không thể tải thông tin hồ sơ");
+      alert(t("Không thể tải thông tin hồ sơ"));
     }
   }, [currentUser]);
 
@@ -179,21 +181,21 @@ export default function EditProfileHandler() {
       // Validate required fields for players
       if (currentUser?.role === "PLAYER") {
         const requiredFields = [
-          { field: "fullName", label: "Họ và tên" },
-          { field: "dob", label: "Ngày sinh" },
-          { field: "provinceId", label: "Tỉnh/Thành phố" },
-          { field: "height", label: "Chiều cao" },
-          { field: "weight", label: "Cân nặng" },
-          { field: "positions", label: "Vị trí chính" },
-          { field: "preferredFoot", label: "Chân thuận" },
-          { field: "level", label: "Cấp độ" },
-          { field: "yearsOfExperience", label: "Số năm chơi bóng" },
+          { field: "fullName", label: t("Họ và tên") },
+          { field: "dob", label: t("Ngày sinh") },
+          { field: "provinceId", label: t("Tỉnh/Thành phố") },
+          { field: "height", label: t("Chiều cao") },
+          { field: "weight", label: t("Cân nặng") },
+          { field: "positions", label: t("Vị trí chính") },
+          { field: "preferredFoot", label: t("Chân thuận") },
+          { field: "level", label: t("Cấp độ") },
+          { field: "yearsOfExperience", label: t("Số năm chơi bóng") },
         ];
 
         for (const { field, label } of requiredFields) {
           const value = editFormData[field];
           if (!value || (Array.isArray(value) && value.length === 0)) {
-            alert(`Vui lòng nhập ${label} (trường bắt buộc cho xét tuyển)`);
+            alert(t("Vui lòng nhập {label} (trường bắt buộc cho xét tuyển)", { label }));
             setIsSaving(false);
             return;
           }
@@ -212,7 +214,7 @@ export default function EditProfileHandler() {
             achievement.title.trim() &&
             !achievement.date
           ) {
-            alert("Vui lòng chọn ngày cho tất cả các thành tích cá nhân");
+            alert(t("Vui lòng chọn ngày cho tất cả các thành tích cá nhân"));
             setIsSaving(false);
             return;
           }
@@ -225,7 +227,7 @@ export default function EditProfileHandler() {
             achievement.title.trim() &&
             !achievement.date
           ) {
-            alert("Vui lòng chọn ngày cho tất cả các thành tích tập thể");
+            alert(t("Vui lòng chọn ngày cho tất cả các thành tích tập thể"));
             setIsSaving(false);
             return;
           }
@@ -238,7 +240,7 @@ export default function EditProfileHandler() {
             achievement.title.trim() &&
             !achievement.date
           ) {
-            alert("Vui lòng chọn ngày cho tất cả các giải đấu tham gia");
+            alert(t("Vui lòng chọn ngày cho tất cả các giải đấu tham gia"));
             setIsSaving(false);
             return;
           }
@@ -247,7 +249,7 @@ export default function EditProfileHandler() {
         // Check highlights
         for (const highlight of highlights) {
           if (highlight.url && highlight.url.trim() && !highlight.date) {
-            alert("Vui lòng chọn ngày cho tất cả các video highlights");
+            alert(t("Vui lòng chọn ngày cho tất cả các video highlights"));
             setIsSaving(false);
             return;
           }
@@ -256,9 +258,9 @@ export default function EditProfileHandler() {
 
       // Upload avatar first if selected
       if (fileToUpload) {
-        setUploadProgress("Đang nén ảnh...");
+        setUploadProgress(t("Đang nén ảnh..."));
         const compressedFile = await compressImage(fileToUpload, 800, 800, 0.8);
-        setUploadProgress("Đang upload ảnh...");
+        setUploadProgress(t("Đang upload ảnh..."));
         await userService.uploadAvatar(compressedFile, false); // Background removal disabled
         setUploadProgress("");
       }
@@ -314,7 +316,7 @@ export default function EditProfileHandler() {
       }
       setAvatarPreviewUrl(null);
 
-      alert("Cập nhật thông tin thành công!");
+      alert(t("Cập nhật thông tin thành công!"));
       handleCloseEditModal();
 
       // Clear refs
@@ -325,7 +327,7 @@ export default function EditProfileHandler() {
       window.location.reload();
     } catch (err: any) {
       console.error("Error updating profile:", err);
-      alert(err.message || "Cập nhật thất bại");
+      alert(t(err.message || "Cập nhật thất bại"));
     } finally {
       setIsSaving(false);
       setUploadProgress("");
@@ -338,13 +340,13 @@ export default function EditProfileHandler() {
     if (!file) return;
 
     if (!isValidImageFile(file)) {
-      alert("Chỉ chấp nhận file ảnh: JPEG, PNG, GIF, WebP");
+      alert(t("Chỉ chấp nhận file ảnh: JPEG, PNG, GIF, WebP"));
       return;
     }
 
     if (!isValidImageSize(file)) {
       alert(
-        `Kích thước file không được vượt quá ${formatFileSize(20 * 1024 * 1024)}`,
+        t("Kích thước file không được vượt quá {size}", { size: formatFileSize(20 * 1024 * 1024) }),
       );
       return;
     }
@@ -389,7 +391,7 @@ export default function EditProfileHandler() {
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
-          <h3 className="text-xl font-bold text-gray-900">Chỉnh sửa hồ sơ</h3>
+          <h3 className="text-xl font-bold text-gray-900">{t("Chỉnh sửa hồ sơ")}</h3>
           <button
             onClick={handleCloseEditModal}
             className="text-gray-400 hover:text-gray-600 text-2xl"
@@ -403,7 +405,7 @@ export default function EditProfileHandler() {
           {/* Avatar Upload Section */}
           <div className="border-b pb-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">
-              Ảnh đại diện
+              {t("Ảnh đại diện")}
             </h4>
             <div className="flex items-center gap-6">
               <div className="relative">
@@ -448,7 +450,7 @@ export default function EditProfileHandler() {
                       onClick={handleAvatarClick}
                       className="text-sm text-green-600 hover:text-green-700"
                     >
-                      Chọn ảnh khác
+                      {t("Chọn ảnh khác")}
                     </button>
                   </div>
                 ) : (
@@ -457,10 +459,10 @@ export default function EditProfileHandler() {
                       onClick={handleAvatarClick}
                       className="px-4 py-2 btn-primary text-white rounded-md transition text-sm"
                     >
-                      Chọn ảnh mới
+                      {t("Chọn ảnh mới")}
                     </button>
                     <p className="text-xs text-gray-500 mt-2">
-                      JPEG, PNG, GIF, WebP. Tối đa 20MB.
+                      {t("JPEG, PNG, GIF, WebP. Tối đa 20MB.")}
                     </p>
                   </div>
                 )}
@@ -495,12 +497,12 @@ export default function EditProfileHandler() {
           {/* User Info Section */}
           <div>
             <h4 className="text-lg font-semibold text-gray-900 mb-4">
-              Thông tin cơ bản
+              {t("Thông tin cơ bản")}
             </h4>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Họ và tên <span className="text-red-500">*</span>
+                  {t("Họ và tên")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -508,7 +510,7 @@ export default function EditProfileHandler() {
                   value={editFormData.fullName || ""}
                   onChange={handleEditFormChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                  placeholder="Nhập họ và tên"
+                  placeholder={t("Nhập họ và tên")}
                 />
               </div>
 
@@ -526,14 +528,14 @@ export default function EditProfileHandler() {
                   placeholder="email@example.com"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Thông tin này sẽ không công khai trên trang cá nhân
+                  {t("Thông tin này sẽ không công khai trên trang cá nhân")}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ngày sinh {currentUser?.role === "PLAYER" && <span className="text-red-500">*</span>}
+                    {t("Ngày sinh")} {currentUser?.role === "PLAYER" && <span className="text-red-500">*</span>}
                   </label>
                   <DatePicker
                     selected={
@@ -547,7 +549,7 @@ export default function EditProfileHandler() {
                     }}
                     dateFormat="dd/MM/yyyy"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholderText="Chọn ngày sinh"
+                    placeholderText={t("Chọn ngày sinh")}
                     showYearDropdown
                     showMonthDropdown
                     dropdownMode="select"
@@ -557,7 +559,7 @@ export default function EditProfileHandler() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Giới tính
+                    {t("Giới tính")}
                   </label>
                   <select
                     name="gender"
@@ -565,17 +567,17 @@ export default function EditProfileHandler() {
                     onChange={handleEditFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
                   >
-                    <option value="">Chọn giới tính</option>
+                    <option value="">{t("Chọn giới tính")}</option>
                     <option value="MALE">Nam</option>
-                    <option value="FEMALE">Nữ</option>
-                    <option value="OTHER">Khác</option>
+                    <option value="FEMALE">{t("Nữ")}</option>
+                    <option value="OTHER">{t("Khác")}</option>
                   </select>
                 </div>
               </div>
 
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tỉnh/Thành phố {currentUser?.role === "PLAYER" && <span className="text-red-500">*</span>}
+                  {t("Tỉnh/Thành phố")} {currentUser?.role === "PLAYER" && <span className="text-red-500">*</span>}
                 </label>
                 <select
                   name="provinceId"
@@ -583,7 +585,7 @@ export default function EditProfileHandler() {
                   onChange={handleEditFormChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
                 >
-                  <option value="">Chọn tỉnh/thành phố</option>
+                  <option value="">{t("Chọn tỉnh/thành phố")}</option>
                   {provinces.map((province) => (
                     <option key={province.id} value={province.id}>
                       {province.name}
@@ -600,13 +602,13 @@ export default function EditProfileHandler() {
               {/* Section 2: Hồ sơ bóng đá */}
               <div className="border-t pt-6">
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                  Hồ sơ bóng đá
+                  {t("Hồ sơ bóng đá")}
                 </h4>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Vị trí chính <span className="text-red-500">*</span>
+                        {t("Vị trí chính")} <span className="text-red-500">*</span>
                       </label>
                       <select
                         name="positions"
@@ -619,17 +621,17 @@ export default function EditProfileHandler() {
                         }
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                       >
-                        <option value="">Chọn vị trí chính</option>
-                        <option value="striker">Tiền đạo</option>
-                        <option value="midfielder">Tiền vệ</option>
-                        <option value="defender">Hậu vệ</option>
-                        <option value="goalkeeper">Thủ môn</option>
+                        <option value="">{t("Chọn vị trí chính")}</option>
+                        <option value="striker">{t("Tiền đạo")}</option>
+                        <option value="midfielder">{t("Tiền vệ")}</option>
+                        <option value="defender">{t("Hậu vệ")}</option>
+                        <option value="goalkeeper">{t("Thủ môn")}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Vị trí phụ
+                        {t("Vị trí phụ")}
                       </label>
                       <select
                         name="secondaryPosition"
@@ -637,11 +639,11 @@ export default function EditProfileHandler() {
                         onChange={handleEditFormChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                       >
-                        <option value="">Chọn vị trí phụ</option>
-                        <option value="striker">Tiền đạo</option>
-                        <option value="midfielder">Tiền vệ</option>
-                        <option value="defender">Hậu vệ</option>
-                        <option value="goalkeeper">Thủ môn</option>
+                        <option value="">{t("Chọn vị trí phụ")}</option>
+                        <option value="striker">{t("Tiền đạo")}</option>
+                        <option value="midfielder">{t("Tiền vệ")}</option>
+                        <option value="defender">{t("Hậu vệ")}</option>
+                        <option value="goalkeeper">{t("Thủ môn")}</option>
                       </select>
                     </div>
                   </div>
@@ -649,7 +651,7 @@ export default function EditProfileHandler() {
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Chiều cao (cm) <span className="text-red-500">*</span>
+                        {t("Chiều cao (cm)")} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
@@ -663,7 +665,7 @@ export default function EditProfileHandler() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Cân nặng (kg) <span className="text-red-500">*</span>
+                        {t("Cân nặng (kg)")} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
@@ -677,7 +679,7 @@ export default function EditProfileHandler() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Số năm thi đấu <span className="text-red-500">*</span>
+                        {t("Số năm thi đấu")} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
@@ -693,13 +695,13 @@ export default function EditProfileHandler() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Chân thuận <span className="text-red-500">*</span>
+                      {t("Chân thuận")} <span className="text-red-500">*</span>
                     </label>
                     <div className="flex gap-6">
                       {[
-                        { value: "left", label: "Trái" },
-                        { value: "right", label: "Phải" },
-                        { value: "both", label: "Cả hai" },
+                        { value: "left", label: t("Trái") },
+                        { value: "right", label: t("Phải") },
+                        { value: "both", label: t("Cả hai") },
                       ].map((foot) => (
                         <label
                           key={foot.value}
@@ -728,7 +730,7 @@ export default function EditProfileHandler() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Cấp độ <span className="text-red-500">*</span>
+                      {t("Cấp độ")} <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="level"
@@ -736,17 +738,17 @@ export default function EditProfileHandler() {
                       onChange={handleEditFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
                     >
-                      <option value="">Chọn cấp độ</option>
-                      <option value="CAU_THU_MOI">Cầu thủ mới</option>
-                      <option value="NGHIEP_DU">Nghiệp dư</option>
-                      <option value="TUYEN_TRE">Tuyển trẻ</option>
-                      <option value="CHUYEN_NGHIEP">Chuyên nghiệp</option>
+                      <option value="">{t("Chọn cấp độ")}</option>
+                      <option value="CAU_THU_MOI">{t("Cầu thủ mới")}</option>
+                      <option value="NGHIEP_DU">{t("Nghiệp dư")}</option>
+                      <option value="TUYEN_TRE">{t("Tuyển trẻ")}</option>
+                      <option value="CHUYEN_NGHIEP">{t("Chuyên nghiệp")}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Giới thiệu
+                      {t("Giới thiệu")}
                     </label>
                     <textarea
                       name="bio"
@@ -754,13 +756,13 @@ export default function EditProfileHandler() {
                       onChange={handleEditFormChange}
                       rows={4}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                      placeholder="Giới thiệu về bản thân..."
+                      placeholder={t("Giới thiệu về bản thân...")}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Số CCCD
+                      {t("Số CCCD")}
                     </label>
                     <input
                       type="text"
@@ -768,16 +770,16 @@ export default function EditProfileHandler() {
                       value={editFormData.personalId || ""}
                       onChange={handleEditFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                      placeholder="Nhập số CCCD"
+                      placeholder={t("Nhập số CCCD")}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Thông tin này sẽ không công khai trên trang cá nhân
+                      {t("Thông tin này sẽ không công khai trên trang cá nhân")}
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Địa chỉ thường trú
+                      {t("Địa chỉ thường trú")}
                     </label>
                     <input
                       type="text"
@@ -785,16 +787,16 @@ export default function EditProfileHandler() {
                       value={editFormData.residentialAddress || ""}
                       onChange={handleEditFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                      placeholder="Nhập địa chỉ chi tiết"
+                      placeholder={t("Nhập địa chỉ chi tiết")}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Thông tin này sẽ không công khai trên trang cá nhân
+                      {t("Thông tin này sẽ không công khai trên trang cá nhân")}
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Trường đang học
+                      {t("Trường đang học")}
                     </label>
                     <input
                       type="text"
@@ -802,16 +804,16 @@ export default function EditProfileHandler() {
                       value={editFormData.school || ""}
                       onChange={handleEditFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                      placeholder="Ví dụ: THPT Lê Quý Đôn"
+                      placeholder={t("Ví dụ: THPT Lê Quý Đôn")}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Thông tin này sẽ không công khai trên trang cá nhân
+                      {t("Thông tin này sẽ không công khai trên trang cá nhân")}
                     </p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Học viện đang tập
+                      {t("Học viện đang tập")}
                     </label>
                     <input
                       type="text"
@@ -819,13 +821,13 @@ export default function EditProfileHandler() {
                       value={editFormData.academy || ""}
                       onChange={handleEditFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                      placeholder="Ví dụ: PVF, HAGL JMG"
+                      placeholder={t("Ví dụ: PVF, HAGL JMG")}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Đội bóng đang thi đấu
+                      {t("Đội bóng đang thi đấu")}
                     </label>
                     <input
                       type="text"
@@ -833,7 +835,7 @@ export default function EditProfileHandler() {
                       value={editFormData.club || ""}
                       onChange={handleEditFormChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
-                      placeholder="Ví dụ: CLB Bóng đá Thanh Hóa U18"
+                      placeholder={t("Ví dụ: CLB Bóng đá Thanh Hóa U18")}
                     />
                   </div>
                 </div>
@@ -842,30 +844,29 @@ export default function EditProfileHandler() {
               {/* Section 3: Kinh nghiệm & thành tích */}
               <div className="border-t pt-6">
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                  Kinh nghiệm & thành tích
+                  {t("Kinh nghiệm & thành tích")}
                 </h4>
                 <p className="text-sm text-gray-600 mb-4">
-                  Thông tin này sẽ được hiển thị trên trang feed của bạn sau khi
-                  admin duyệt
+                  {t("Thông tin này sẽ được hiển thị trên trang feed của bạn sau khi admin duyệt")}
                 </p>
                 <div className="space-y-4">
                   <DynamicAchievementList
-                    label="Thành tích cá nhân"
-                    titlePlaceholder="Ví dụ: Vua phá lưới U18 TP HCM năm 2025"
+                    label={t("Thành tích cá nhân")}
+                    titlePlaceholder={t("Ví dụ: Vua phá lưới U18 TP HCM năm 2025")}
                     values={individualAchievements}
                     onChange={setIndividualAchievements}
                   />
 
                   <DynamicAchievementList
-                    label="Thành tích tập thể"
-                    titlePlaceholder="Ví dụ: HCV với đội trẻ TP HCM"
+                    label={t("Thành tích tập thể")}
+                    titlePlaceholder={t("Ví dụ: HCV với đội trẻ TP HCM")}
                     values={teamAchievements}
                     onChange={setTeamAchievements}
                   />
 
                   <DynamicAchievementList
-                    label="Các giải đấu từng tham gia"
-                    titlePlaceholder="Ví dụ: Giải bóng đá U15 toàn quốc 2024"
+                    label={t("Các giải đấu từng tham gia")}
+                    titlePlaceholder={t("Ví dụ: Giải bóng đá U15 toàn quốc 2024")}
                     values={participantAchievements}
                     onChange={setParticipantAchievements}
                   />
@@ -878,21 +879,20 @@ export default function EditProfileHandler() {
                   Media & social
                 </h4>
                 <p className="text-sm text-gray-600 mb-4">
-                  Highlights sẽ được hiển thị trên trang feed của bạn sau khi
-                  admin duyệt
+                  {t("Highlights sẽ được hiển thị trên trang feed của bạn sau khi admin duyệt")}
                 </p>
                 <div className="space-y-4">
                   <DynamicHighlightList
                     label="Video highlights"
-                    urlPlaceholder="Dán URL video (YouTube, Facebook...)"
+                    urlPlaceholder={t("Dán URL video (YouTube, Facebook...)")}
                     values={highlights}
                     onChange={setHighlights}
                   />
 
                   <DynamicFieldList
-                    label="Mạng xã hội"
-                    placeholder="Dán URL profile (Facebook, Instagram...)"
-                    helpText="Bằng việc nhập vào liên kết mạng xã hội, bạn đồng ý hiển thị các liên kết này trên trang profile của bạn."
+                    label={t("Mạng xã hội")}
+                    placeholder={t("Dán URL profile (Facebook, Instagram...)")}
+                    helpText={t("Bằng việc nhập vào liên kết mạng xã hội, bạn đồng ý hiển thị các liên kết này trên trang profile của bạn.")}
                     values={socials}
                     onChange={setSocials}
                   />
@@ -909,14 +909,14 @@ export default function EditProfileHandler() {
             disabled={isSaving}
             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
           >
-            Hủy
+            {t("Hủy")}
           </button>
           <button
             onClick={handleSaveProfile}
             disabled={isSaving}
             className="px-4 py-2 btn-primary text-white rounded-md transition disabled:opacity-50"
           >
-            {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
+            {isSaving ? t("Đang lưu...") : t("Lưu thay đổi")}
           </button>
         </div>
       </div>

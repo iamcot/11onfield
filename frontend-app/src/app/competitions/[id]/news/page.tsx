@@ -15,8 +15,10 @@ import {
   CompetitionNews,
   CompetitionDetail,
 } from "@/services/competition.service";
+import { useT } from "@/i18n/I18nProvider";
 
 export default function NewsPage() {
+  const t = useT();
   const params = useParams();
   const competitionId = parseInt(params.id as string);
 
@@ -71,7 +73,7 @@ export default function NewsPage() {
       <TopUserCard />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Tin tức</h1>
+        <h1 className="text-3xl font-bold mb-6">{t("Tin tức")}</h1>
 
         {loading ? (
           <div className="flex justify-center py-12">
@@ -79,7 +81,7 @@ export default function NewsPage() {
           </div>
         ) : news.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-500">Chưa có tin tức nào được công bố</p>
+            <p className="text-gray-500">{t("Chưa có tin tức nào được công bố")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -105,7 +107,7 @@ export default function NewsPage() {
                   </h2>
                   <div className="text-gray-600 text-sm mb-3">
                     {article.authorName && (
-                      <span className="mr-4">Bởi {article.authorName}</span>
+                      <span className="mr-4">{t("Bởi")} {article.authorName}</span>
                     )}
                     <span>{formatDate(article.publishedAt)}</span>
                   </div>

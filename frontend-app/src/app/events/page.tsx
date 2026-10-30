@@ -21,8 +21,10 @@ import {
 import { formatDateOnly } from "@/utils/timezone";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { useT } from "@/i18n/I18nProvider";
 
 function EventsContent() {
+  const t = useT();
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const { track } = useAnalytics();
   const { isCollapsed } = useSidebar();
@@ -216,7 +218,7 @@ function EventsContent() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Đang tải...</p>
+        <p>{t("Đang tải...")}</p>
       </div>
     );
   }
@@ -238,9 +240,9 @@ function EventsContent() {
         <div className="max-w-7xl mx-auto px-4 py-6 relative z-10">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-800">Sự kiện</h1>
+            <h1 className="text-3xl font-bold text-gray-800">{t("Sự kiện")}</h1>
             <p className="text-gray-600 mt-1">
-              Khám phá và tham gia các sự kiện bóng đá
+              {t("Khám phá và tham gia các sự kiện bóng đá")}
             </p>
           </div>
 
@@ -250,7 +252,7 @@ function EventsContent() {
             <div className="md:hidden flex gap-2 mb-3">
               <input
                 type="text"
-                placeholder="Tìm kiếm sự kiện..."
+                placeholder={t("Tìm kiếm sự kiện...")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -261,7 +263,7 @@ function EventsContent() {
                 <button
                   onClick={() => setShowSortMenu(!showSortMenu)}
                   className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
-                  aria-label="Sắp xếp"
+                  aria-label={t("Sắp xếp")}
                 >
                   <svg
                     className="w-5 h-5 text-gray-600"
@@ -293,7 +295,7 @@ function EventsContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${!filters.sortBy ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Không sắp xếp
+                        {t("Không sắp xếp")}
                       </button>
                       <button
                         onClick={() => {
@@ -302,7 +304,7 @@ function EventsContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${filters.sortBy === "title" && filters.sortOrder === "asc" ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Tên (A → Z)
+                        {t("Tên (A → Z)")}
                       </button>
                       <button
                         onClick={() => {
@@ -311,7 +313,7 @@ function EventsContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${filters.sortBy === "title" && filters.sortOrder === "desc" ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Tên (Z → A)
+                        {t("Tên (Z → A)")}
                       </button>
                       <button
                         onClick={() => {
@@ -320,7 +322,7 @@ function EventsContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${filters.sortBy === "startDate" && filters.sortOrder === "asc" ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Ngày bắt đầu (Sớm nhất)
+                        {t("Ngày bắt đầu (Sớm nhất)")}
                       </button>
                       <button
                         onClick={() => {
@@ -329,7 +331,7 @@ function EventsContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${filters.sortBy === "startDate" && filters.sortOrder === "desc" ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Ngày bắt đầu (Muộn nhất)
+                        {t("Ngày bắt đầu (Muộn nhất)")}
                       </button>
                     </div>
                   </>
@@ -346,12 +348,12 @@ function EventsContent() {
                 }
                 className="flex-shrink-0 px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
               >
-                <option value="">Trạng thái</option>
-                <option value="PLAN">Đang lên kế hoạch</option>
-                <option value="OPEN_REGISTER">Đang mở đăng ký</option>
-                <option value="CLOSE_REGISTER">Đóng đăng ký</option>
-                <option value="COMPLETE">Hoàn thành</option>
-                <option value="CANCELLED">Hủy bỏ</option>
+                <option value="">{t("Trạng thái")}</option>
+                <option value="PLAN">{t("Đang lên kế hoạch")}</option>
+                <option value="OPEN_REGISTER">{t("Đang mở đăng ký")}</option>
+                <option value="CLOSE_REGISTER">{t("Đóng đăng ký")}</option>
+                <option value="COMPLETE">{t("Hoàn thành")}</option>
+                <option value="CANCELLED">{t("Hủy bỏ")}</option>
               </select>
             </div>
 
@@ -359,7 +361,7 @@ function EventsContent() {
             <div className="hidden md:flex gap-2 mb-3">
               <input
                 type="text"
-                placeholder="Tìm kiếm sự kiện..."
+                placeholder={t("Tìm kiếm sự kiện...")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -380,11 +382,11 @@ function EventsContent() {
                 }}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               >
-                <option value="">Không sắp xếp</option>
-                <option value="title-asc">Tên (A → Z)</option>
-                <option value="title-desc">Tên (Z → A)</option>
-                <option value="startDate-asc">Ngày bắt đầu (Sớm nhất)</option>
-                <option value="startDate-desc">Ngày bắt đầu (Muộn nhất)</option>
+                <option value="">{t("Không sắp xếp")}</option>
+                <option value="title-asc">{t("Tên (A → Z)")}</option>
+                <option value="title-desc">{t("Tên (Z → A)")}</option>
+                <option value="startDate-asc">{t("Ngày bắt đầu (Sớm nhất)")}</option>
+                <option value="startDate-desc">{t("Ngày bắt đầu (Muộn nhất)")}</option>
               </select>
             </div>
 
@@ -397,12 +399,12 @@ function EventsContent() {
                 }
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               >
-                <option value="">Tất cả trạng thái</option>
-                <option value="PLAN">Đang lên kế hoạch</option>
-                <option value="OPEN_REGISTER">Đang mở đăng ký</option>
-                <option value="CLOSE_REGISTER">Đóng đăng ký</option>
-                <option value="COMPLETE">Hoàn thành</option>
-                <option value="CANCELLED">Hủy bỏ</option>
+                <option value="">{t("Tất cả trạng thái")}</option>
+                <option value="PLAN">{t("Đang lên kế hoạch")}</option>
+                <option value="OPEN_REGISTER">{t("Đang mở đăng ký")}</option>
+                <option value="CLOSE_REGISTER">{t("Đóng đăng ký")}</option>
+                <option value="COMPLETE">{t("Hoàn thành")}</option>
+                <option value="CANCELLED">{t("Hủy bỏ")}</option>
               </select>
             </div>
 
@@ -426,7 +428,7 @@ function EventsContent() {
                       d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
-                  <span>Xóa bộ lọc</span>
+                  <span>{t("Xóa bộ lọc")}</span>
                 </button>
               </div>
             )}
@@ -435,11 +437,11 @@ function EventsContent() {
           {/* Loading State */}
           {isLoading ? (
             <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-gray-500">Đang tải sự kiện...</p>
+              <p className="text-gray-500">{t("Đang tải sự kiện...")}</p>
             </div>
           ) : events.length === 0 ? (
             <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-gray-500">Không tìm thấy sự kiện nào</p>
+              <p className="text-gray-500">{t("Không tìm thấy sự kiện nào")}</p>
             </div>
           ) : (
             <>
@@ -463,7 +465,7 @@ function EventsContent() {
                     ) : (
                       <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
                         <span className="text-gray-400 text-sm">
-                          Không có hình ảnh
+                          {t("Không có hình ảnh")}
                         </span>
                       </div>
                     )}
@@ -529,7 +531,7 @@ function EventsContent() {
                               d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                             />
                           </svg>
-                          <span>{event.location || "Chưa xác định"}</span>
+                          <span>{event.location || t("Chưa xác định")}</span>
                         </div>
                       </div>
 
@@ -555,7 +557,7 @@ function EventsContent() {
                             d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                           />
                         </svg>
-                        <span>{event.participantCount} người tham gia</span>
+                        <span>{event.participantCount} {t("người tham gia")}</span>
                       </div>
                     </div>
                   </div>
@@ -570,7 +572,7 @@ function EventsContent() {
                     disabled={pagination.page === 0}
                     className="px-4 py-2 bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Trước
+                    {t("Trước")}
                   </button>
                   <span className="text-sm text-gray-600">
                     Trang {pagination.page + 1} / {pagination.totalPages}
@@ -600,11 +602,12 @@ function EventsContent() {
 }
 
 export default function EventsPage() {
+  const t = useT();
   return (
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <p>Đang tải...</p>
+          <p>{t("Đang tải...")}</p>
         </div>
       }
     >

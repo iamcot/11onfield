@@ -3,12 +3,14 @@
 import { useNotifications } from "@/contexts/NotificationContext";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
+import { useT } from "@/i18n/I18nProvider";
 
 interface NotificationDropdownProps {
   onClose: () => void;
 }
 
 export default function NotificationDropdown({ onClose }: NotificationDropdownProps) {
+  const t = useT();
   const { notifications, markAsRead, markAllAsRead, hasMore, isLoading, loadMoreNotifications } = useNotifications();
 
   const handleNotificationClick = async (id: number, isRead: boolean) => {
@@ -29,13 +31,13 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
       <div className="absolute top-full right-2 mt-2 w-80 bg-white rounded-lg shadow-xl z-50 max-h-[500px] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold text-gray-900">Thông báo</h3>
+          <h3 className="font-semibold text-gray-900">{t("Thông báo")}</h3>
           {notifications.length > 0 && (
             <button
               onClick={markAllAsRead}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
-              Đánh dấu đã đọc
+              {t("Đánh dấu đã đọc")}
             </button>
           )}
         </div>
@@ -44,7 +46,7 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
         <div className="overflow-y-auto flex-1">
           {notifications.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              <p>Không có thông báo nào</p>
+              <p>{t("Không có thông báo nào")}</p>
             </div>
           ) : (
             <>
@@ -88,7 +90,7 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
                     disabled={isLoading}
                     className="text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? "Đang tải..." : "Xem thêm"}
+                    {isLoading ? t("Đang tải...") : t("Xem thêm")}
                   </button>
                 </div>
               )}
@@ -103,7 +105,7 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
               onClick={onClose}
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
             >
-              Đóng
+              {t("Đóng")}
             </button>
           </div>
         )}

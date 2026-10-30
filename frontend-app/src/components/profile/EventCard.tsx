@@ -2,6 +2,7 @@ import { EventListItem, getStatusBadgeColor, getStatusDisplayName } from "@/type
 import Image from "next/image";
 import Link from "next/link";
 import { formatDateOnly } from "@/utils/timezone";
+import { useT } from "@/i18n/I18nProvider";
 
 interface EventCardProps {
   event: EventListItem;
@@ -18,12 +19,13 @@ export default function EventCard({
   onJoinClick,
   isJoining = false,
 }: EventCardProps) {
+  const t = useT();
   const formatEventDate = () => {
     try {
       const dateStr = formatDateOnly(event.startDate);
 
       if (event.startTime) {
-        return `${dateStr} lúc ${event.startTime}`;
+        return t("{dateStr} lúc {startTime}", { dateStr, startTime: event.startTime });
       }
       return dateStr;
     } catch {
@@ -36,7 +38,7 @@ export default function EventCard({
       {/* Card Header */}
       <div className="px-4 py-3 bg-gray-50 border-b">
         <p className="text-sm text-gray-700">
-          <span className="font-semibold">{userName}</span> đã tham gia sự kiện
+          <span className="font-semibold">{userName}</span> {t("đã tham gia sự kiện")}
         </p>
       </div>
 
@@ -140,7 +142,7 @@ export default function EventCard({
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                <span>{event.participantCount} người tham gia</span>
+                <span>{event.participantCount} {t("người tham gia")}</span>
               </div>
             </div>
           </div>
@@ -157,7 +159,7 @@ export default function EventCard({
               disabled={isJoining}
               className="w-full btn-primary disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
             >
-              {isJoining ? "Đang tham gia..." : "Tham gia cùng"}
+              {isJoining ? t("Đang tham gia...") : t("Tham gia cùng")}
             </button>
           </div>
         )}

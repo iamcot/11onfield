@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEditProfile } from "@/contexts/EditProfileContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/i18n/I18nProvider";
 
 interface RightNavigatorProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface RightNavigatorProps {
 }
 
 export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen = false }: RightNavigatorProps) {
+  const t = useT();
   const { logout, user } = useAuth();
   const { openEditProfile } = useEditProfile();
   const router = useRouter();
@@ -151,7 +153,7 @@ export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen
                           d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                         />
                       </svg>
-                      <span className="font-medium">Sửa thông tin</span>
+                      <span className="font-medium">{t("Sửa thông tin")}</span>
                     </button>
 
                     <button
@@ -171,7 +173,7 @@ export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen
                           d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                         />
                       </svg>
-                      <span className="font-medium">Đổi mật khẩu</span>
+                      <span className="font-medium">{t("Đổi mật khẩu")}</span>
                     </button>
                   </>
                 )}
@@ -194,7 +196,7 @@ export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                       />
                     </svg>
-                    <span className="font-medium">Đăng xuất</span>
+                    <span className="font-medium">{t("Đăng xuất")}</span>
                   </button>
                 ) : (
                   <button
@@ -217,7 +219,7 @@ export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen
                         d="M11 16l-4-4m0 0l4-4m0 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
                       />
                     </svg>
-                    <span className="font-medium">Đăng nhập</span>
+                    <span className="font-medium">{t("Đăng nhập")}</span>
                   </button>
                 )}
               </nav>

@@ -13,8 +13,10 @@ import {
 } from "@/types/player";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useT } from "@/i18n/I18nProvider";
 
 export default function PlayersSection() {
+  const t = useT();
   const router = useRouter();
 
   const [players, setPlayers] = useState<PlayerListItem[]>([]);
@@ -81,8 +83,8 @@ export default function PlayersSection() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-xl font-bold text-gray-900">Danh sách cầu thủ đăng ký</h3>
-          <p className="text-sm text-gray-500">Tìm kiếm và khám phá cầu thủ tham gia chương trình</p>
+          <h3 className="text-xl font-bold text-gray-900">{t("Danh sách cầu thủ đăng ký")}</h3>
+          <p className="text-sm text-gray-500">{t("Tìm kiếm và khám phá cầu thủ tham gia chương trình")}</p>
         </div>
       </div>
 
@@ -92,7 +94,7 @@ export default function PlayersSection() {
         <div className="md:hidden flex gap-2 mb-3">
           <input
             type="text"
-            placeholder="Tìm kiếm theo tên..."
+            placeholder={t("Tìm kiếm theo tên...")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -107,7 +109,7 @@ export default function PlayersSection() {
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-20">
-                  {[["", "asc", "Không sắp xếp"], ["fullName", "asc", "Tên (A→Z)"], ["fullName", "desc", "Tên (Z→A)"], ["createdAt", "desc", "Mới nhất"]].map(([sb, so, label]) => (
+                  {[["", "asc", t("Không sắp xếp")], ["fullName", "asc", t("Tên (A→Z)")], ["fullName", "desc", t("Tên (Z→A)")], ["createdAt", "desc", t("Mới nhất")]].map(([sb, so, label]) => (
                     <button key={label} onClick={() => { handleSortChange(sb, so as "asc" | "desc"); setShowSortMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700">{label}</button>
                   ))}
@@ -129,7 +131,7 @@ export default function PlayersSection() {
             return (
               <button key={val} onClick={() => handleFilterChange("positions", filters.positions?.[0] === val ? [] : [val])}
                 className={`flex-shrink-0 px-3 py-1 rounded-full text-xs border transition ${filters.positions?.[0] === val ? "bg-green-700 text-white border-green-700" : "bg-white text-gray-600 border-gray-300"}`}>
-                {label}
+                {t(label)}
               </button>
             );
           })}
@@ -139,7 +141,7 @@ export default function PlayersSection() {
         <div className="hidden md:flex gap-2 mb-3">
           <input
             type="text"
-            placeholder="Tìm kiếm theo tên cầu thủ..."
+            placeholder={t("Tìm kiếm theo tên cầu thủ...")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -147,12 +149,12 @@ export default function PlayersSection() {
           <select value={filters.sortBy ? `${filters.sortBy}-${filters.sortOrder}` : ""}
             onChange={(e) => { if (!e.target.value) { handleSortChange("", "asc"); } else { const [s, o] = e.target.value.split("-"); handleSortChange(s, o as "asc" | "desc"); } }}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-            <option value="">Không sắp xếp</option>
-            <option value="fullName-asc">Tên (A→Z)</option>
-            <option value="fullName-desc">Tên (Z→A)</option>
-            <option value="dob-asc">Tuổi (Tăng)</option>
-            <option value="dob-desc">Tuổi (Giảm)</option>
-            <option value="height-desc">Chiều cao (Cao→Thấp)</option>
+            <option value="">{t("Không sắp xếp")}</option>
+            <option value="fullName-asc">{t("Tên (A→Z)")}</option>
+            <option value="fullName-desc">{t("Tên (Z→A)")}</option>
+            <option value="dob-asc">{t("Tuổi (Tăng)")}</option>
+            <option value="dob-desc">{t("Tuổi (Giảm)")}</option>
+            <option value="height-desc">{t("Chiều cao (Cao→Thấp)")}</option>
           </select>
           <button onClick={() => setViewMode(viewMode === "list" ? "card" : "list")} className="p-2 border border-gray-300 rounded-md hover:bg-gray-50">
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,32 +167,32 @@ export default function PlayersSection() {
         <div className="hidden md:grid grid-cols-4 gap-3 mb-3">
           <select value={filters.positions?.[0] || ""} onChange={(e) => handleFilterChange("positions", e.target.value ? [e.target.value] : [])}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-            <option value="">Tất cả vị trí</option>
-            <option value="striker">Tiền đạo</option>
-            <option value="midfielder">Tiền vệ</option>
-            <option value="defender">Hậu vệ</option>
-            <option value="centerback">Trung vệ</option>
-            <option value="goalkeeper">Thủ môn</option>
+            <option value="">{t("Tất cả vị trí")}</option>
+            <option value="striker">{t("Tiền đạo")}</option>
+            <option value="midfielder">{t("Tiền vệ")}</option>
+            <option value="defender">{t("Hậu vệ")}</option>
+            <option value="centerback">{t("Trung vệ")}</option>
+            <option value="goalkeeper">{t("Thủ môn")}</option>
           </select>
           <select value={filters.provinceId || ""} onChange={(e) => handleFilterChange("provinceId", e.target.value ? parseInt(e.target.value) : null)}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-            <option value="">Tất cả tỉnh/thành</option>
+            <option value="">{t("Tất cả tỉnh/thành")}</option>
             {provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
           <select value={filters.level || ""} onChange={(e) => handleFilterChange("level", e.target.value || null)}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-            <option value="">Tất cả cấp độ</option>
-            <option value="CAU_THU_MOI">Cầu thủ mới</option>
-            <option value="NGHIEP_DU">Nghiệp dư</option>
-            <option value="TUYEN_TRE">Tuyển trẻ</option>
-            <option value="CHUYEN_NGHIEP">Chuyên nghiệp</option>
+            <option value="">{t("Tất cả cấp độ")}</option>
+            <option value="CAU_THU_MOI">{t("Cầu thủ mới")}</option>
+            <option value="NGHIEP_DU">{t("Nghiệp dư")}</option>
+            <option value="TUYEN_TRE">{t("Tuyển trẻ")}</option>
+            <option value="CHUYEN_NGHIEP">{t("Chuyên nghiệp")}</option>
           </select>
           <select value={filters.preferredFoot || ""} onChange={(e) => handleFilterChange("preferredFoot", e.target.value || null)}
             className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-            <option value="">Chân thuận</option>
-            <option value="left">Trái</option>
-            <option value="right">Phải</option>
-            <option value="both">Cả hai</option>
+            <option value="">{t("Chân thuận")}</option>
+            <option value="left">{t("Trái")}</option>
+            <option value="right">{t("Phải")}</option>
+            <option value="both">{t("Cả hai")}</option>
           </select>
         </div>
 
@@ -198,7 +200,7 @@ export default function PlayersSection() {
           <div className="flex justify-end mt-1">
             <button onClick={handleClearFilters} className="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-md transition flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              Xóa bộ lọc
+              {t("Xóa bộ lọc")}
             </button>
           </div>
         )}
@@ -206,14 +208,14 @@ export default function PlayersSection() {
 
       {/* Result count */}
       <div className="mb-4 text-sm text-gray-600">
-        Tìm thấy <span className="font-semibold">{pagination.total}</span> cầu thủ
+        {t("Tìm thấy")} <span className="font-semibold">{pagination.total}</span> {t("cầu thủ")}
       </div>
 
       {/* Content */}
       {isLoading ? (
-        <div className="p-8 text-center text-gray-500 bg-white rounded-lg shadow">Đang tải...</div>
+        <div className="p-8 text-center text-gray-500 bg-white rounded-lg shadow">{t("Đang tải...")}</div>
       ) : players.length === 0 ? (
-        <div className="p-8 text-center text-gray-500 bg-white rounded-lg shadow">Không tìm thấy cầu thủ nào</div>
+        <div className="p-8 text-center text-gray-500 bg-white rounded-lg shadow">{t("Không tìm thấy cầu thủ nào")}</div>
       ) : (
         <>
           {/* Desktop */}
@@ -224,7 +226,7 @@ export default function PlayersSection() {
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b">
                       <tr>
-                        {["Chỉ số", "Avatar", "Tên", "Tuổi", "Chiều cao", "Cân nặng", "Vị trí", "Chân thuận", "Cấp độ", "Tỉnh/TP"].map((h) => (
+                        {[t("Chỉ số"), "Avatar", t("Tên"), t("Tuổi"), t("Chiều cao"), t("Cân nặng"), t("Vị trí"), t("Chân thuận"), t("Cấp độ"), t("Tỉnh/TP")].map((h) => (
                           <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{h}</th>
                         ))}
                       </tr>
@@ -279,7 +281,7 @@ export default function PlayersSection() {
                         {player.avatar ? <img src={player.avatar} alt={player.fullName} className="w-12 h-12 rounded-full object-cover flex-shrink-0" /> : <div className="w-12 h-12 rounded-full bg-green-700 flex items-center justify-center text-lg font-bold text-white flex-shrink-0">{player.fullName?.charAt(0) || "?"}</div>}
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-gray-900 truncate">{player.fullName}</h3>
-                          <p className="text-sm text-gray-500">{player.age ? `${player.age} tuổi` : "N/A"} • {player.height ? `${player.height} cm` : "N/A"}</p>
+                          <p className="text-sm text-gray-500">{player.age ? t("{age} tuổi", { age: player.age }) : "N/A"} • {player.height ? `${player.height} cm` : "N/A"}</p>
                         </div>
                       </div>
                       <div className="flex-shrink-0">
@@ -287,9 +289,9 @@ export default function PlayersSection() {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-gray-500">Vị trí:</span> <span className="font-medium">{player.positions.length > 0 ? player.positions.map(getPositionDisplayName).join(", ") : "N/A"}</span></div>
-                      <div><span className="text-gray-500">Chân:</span> <span className="font-medium">{player.preferredFoot ? getPreferredFootDisplayName(player.preferredFoot) : "N/A"}</span></div>
-                      <div><span className="text-gray-500">Tỉnh/TP:</span> <span className="font-medium">{player.provinceName || "N/A"}</span></div>
+                      <div><span className="text-gray-500">{t("Vị trí:")}</span> <span className="font-medium">{player.positions.length > 0 ? player.positions.map(getPositionDisplayName).join(", ") : "N/A"}</span></div>
+                      <div><span className="text-gray-500">{t("Chân:")}</span> <span className="font-medium">{player.preferredFoot ? getPreferredFootDisplayName(player.preferredFoot) : "N/A"}</span></div>
+                      <div><span className="text-gray-500">{t("Tỉnh/TP:")}</span> <span className="font-medium">{player.provinceName || "N/A"}</span></div>
                     </div>
                   </div>
                 ))}
@@ -312,7 +314,7 @@ export default function PlayersSection() {
         <div className="mt-6 flex items-center justify-between">
           <button onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))} disabled={pagination.page === 0}
             className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-            ← Trước
+            {t("← Trước")}
           </button>
           <div className="flex items-center gap-2">
             {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {

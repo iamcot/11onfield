@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { useT } from "@/i18n/I18nProvider";
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export default function ChangePasswordModal({
   isOpen,
   onClose,
 }: ChangePasswordModalProps) {
+  const t = useT();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -33,17 +35,17 @@ export default function ChangePasswordModal({
 
     // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError("Vui lòng điền đầy đủ thông tin");
+      setError(t("Vui lòng điền đầy đủ thông tin"));
       return;
     }
 
     if (newPassword.length < 6) {
-      setError("Mật khẩu mới phải có ít nhất 6 ký tự");
+      setError(t("Mật khẩu mới phải có ít nhất 6 ký tự"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Mật khẩu mới và xác nhận mật khẩu không khớp");
+      setError(t("Mật khẩu mới và xác nhận mật khẩu không khớp"));
       return;
     }
 
@@ -69,7 +71,7 @@ export default function ChangePasswordModal({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Đổi mật khẩu thất bại");
+        throw new Error(t(errorData.message || "Đổi mật khẩu thất bại"));
       }
 
       setSuccess(true);
@@ -81,7 +83,7 @@ export default function ChangePasswordModal({
           "loginMessage",
           JSON.stringify({
             type: "success",
-            message: "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.",
+            message: t("Đổi mật khẩu thành công! Vui lòng đăng nhập lại."),
           })
         );
 
@@ -92,7 +94,7 @@ export default function ChangePasswordModal({
         router.push("/auth/login");
       }, 1500);
     } catch (err: any) {
-      setError(err.message || "Có lỗi xảy ra. Vui lòng thử lại.");
+      setError(t(err.message || "Có lỗi xảy ra. Vui lòng thử lại."));
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +127,7 @@ export default function ChangePasswordModal({
       <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-32px)] max-w-md max-h-[calc(100svh-32px)] overflow-y-auto bg-white rounded-lg shadow-2xl z-[210] p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Đổi mật khẩu</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t("Đổi mật khẩu")}</h2>
           <button
             onClick={handleClose}
             disabled={isLoading}
@@ -152,7 +154,7 @@ export default function ChangePasswordModal({
           {/* Current Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mật khẩu hiện tại
+              {t("Mật khẩu hiện tại")}
             </label>
             <input
               type="password"
@@ -160,14 +162,14 @@ export default function ChangePasswordModal({
               onChange={(e) => setCurrentPassword(e.target.value)}
               disabled={isLoading}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="Nhập mật khẩu hiện tại"
+              placeholder={t("Nhập mật khẩu hiện tại")}
             />
           </div>
 
           {/* New Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mật khẩu mới
+              {t("Mật khẩu mới")}
             </label>
             <input
               type="password"
@@ -175,14 +177,14 @@ export default function ChangePasswordModal({
               onChange={(e) => setNewPassword(e.target.value)}
               disabled={isLoading}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự)"
+              placeholder={t("Nhập mật khẩu mới (ít nhất 6 ký tự)")}
             />
           </div>
 
           {/* Confirm Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Xác nhận mật khẩu mới
+              {t("Xác nhận mật khẩu mới")}
             </label>
             <input
               type="password"
@@ -190,7 +192,7 @@ export default function ChangePasswordModal({
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={isLoading}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              placeholder="Nhập lại mật khẩu mới"
+              placeholder={t("Nhập lại mật khẩu mới")}
             />
           </div>
 
@@ -204,7 +206,7 @@ export default function ChangePasswordModal({
           {/* Success Message */}
           {success && (
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm text-green-600">Đổi mật khẩu thành công!</p>
+              <p className="text-sm text-green-600">{t("Đổi mật khẩu thành công!")}</p>
             </div>
           )}
 
@@ -216,7 +218,7 @@ export default function ChangePasswordModal({
               disabled={isLoading}
               className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Hủy
+              {t("Hủy")}
             </button>
             <button
               type="submit"
@@ -245,10 +247,10 @@ export default function ChangePasswordModal({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Đang xử lý...
+                  {t("Đang xử lý...")}
                 </>
               ) : (
-                "Đổi mật khẩu"
+                t("Đổi mật khẩu")
               )}
             </button>
           </div>

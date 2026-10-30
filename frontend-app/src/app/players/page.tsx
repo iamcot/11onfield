@@ -24,8 +24,10 @@ import {
 } from "@/types/player";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { useT } from "@/i18n/I18nProvider";
 
 function PlayersContent() {
+  const t = useT();
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const { track } = useAnalytics();
   const { isCollapsed } = useSidebar();
@@ -244,7 +246,7 @@ function PlayersContent() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Đang tải...</p>
+        <p>{t("Đang tải...")}</p>
       </div>
     );
   }
@@ -266,10 +268,10 @@ function PlayersContent() {
           {/* Page Header */}
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              Danh sách cầu thủ
+              {t("Danh sách cầu thủ")}
             </h1>
             <p className="hidden md:block text-gray-600 mt-1">
-              Tìm kiếm và khám phá cầu thủ trên hệ thống
+              {t("Tìm kiếm và khám phá cầu thủ trên hệ thống")}
             </p>
           </div>
 
@@ -279,7 +281,7 @@ function PlayersContent() {
             <div className="md:hidden flex gap-2 mb-3">
               <input
                 type="text"
-                placeholder="Tìm kiếm theo tên..."
+                placeholder={t("Tìm kiếm theo tên...")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -290,7 +292,7 @@ function PlayersContent() {
                 <button
                   onClick={() => setShowSortMenu(!showSortMenu)}
                   className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
-                  aria-label="Sắp xếp"
+                  aria-label={t("Sắp xếp")}
                 >
                   <svg
                     className="w-5 h-5 text-gray-600"
@@ -322,7 +324,7 @@ function PlayersContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${!filters.sortBy ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Không sắp xếp
+                        {t("Không sắp xếp")}
                       </button>
                       <button
                         onClick={() => {
@@ -331,7 +333,7 @@ function PlayersContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${filters.sortBy === "fullName" && filters.sortOrder === "asc" ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Tên (A → Z)
+                        {t("Tên (A → Z)")}
                       </button>
                       <button
                         onClick={() => {
@@ -340,7 +342,7 @@ function PlayersContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${filters.sortBy === "fullName" && filters.sortOrder === "desc" ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Tên (Z → A)
+                        {t("Tên (Z → A)")}
                       </button>
                       <button
                         onClick={() => {
@@ -349,7 +351,7 @@ function PlayersContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${filters.sortBy === "createdAt" && filters.sortOrder === "desc" ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Mới nhất
+                        {t("Mới nhất")}
                       </button>
                       <button
                         onClick={() => {
@@ -358,7 +360,7 @@ function PlayersContent() {
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${filters.sortBy === "createdAt" && filters.sortOrder === "asc" ? "text-green-600 font-medium" : "text-gray-700"}`}
                       >
-                        Cũ nhất
+                        {t("Cũ nhất")}
                       </button>
                     </div>
                   </>
@@ -371,7 +373,7 @@ function PlayersContent() {
                   setViewMode(viewMode === "list" ? "card" : "list")
                 }
                 className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
-                aria-label="Chuyển chế độ xem"
+                aria-label={t("Chuyển chế độ xem")}
               >
                 {viewMode === "list" ? (
                   <svg
@@ -423,12 +425,12 @@ function PlayersContent() {
                   WebkitTextFillColor: "#374151",
                 }}
               >
-                <option value="">Vị trí</option>
-                <option value="striker">Tiền đạo</option>
-                <option value="midfielder">Tiền vệ</option>
-                <option value="defender">Hậu vệ</option>
-                <option value="centerback">Trung vệ</option>
-                <option value="goalkeeper">Thủ môn</option>
+                <option value="">{t("Vị trí")}</option>
+                <option value="striker">{t("Tiền đạo")}</option>
+                <option value="midfielder">{t("Tiền vệ")}</option>
+                <option value="defender">{t("Hậu vệ")}</option>
+                <option value="centerback">{t("Trung vệ")}</option>
+                <option value="goalkeeper">{t("Thủ môn")}</option>
               </select>
 
               <select
@@ -438,7 +440,7 @@ function PlayersContent() {
                 }
                 className="flex-shrink-0 px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
               >
-                <option value="">Tỉnh/TP</option>
+                <option value="">{t("Tỉnh/TP")}</option>
                 {provinces.map((province) => (
                   <option key={province.id} value={province.id}>
                     {province.name}
@@ -453,11 +455,11 @@ function PlayersContent() {
                 }
                 className="flex-shrink-0 px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
               >
-                <option value="">Cấp độ</option>
-                <option value="CAU_THU_MOI">Mới</option>
-                <option value="NGHIEP_DU">Nghiệp dư</option>
-                <option value="TUYEN_TRE">Tuyển trẻ</option>
-                <option value="CHUYEN_NGHIEP">Chuyên nghiệp</option>
+                <option value="">{t("Cấp độ")}</option>
+                <option value="CAU_THU_MOI">{t("Mới")}</option>
+                <option value="NGHIEP_DU">{t("Nghiệp dư")}</option>
+                <option value="TUYEN_TRE">{t("Tuyển trẻ")}</option>
+                <option value="CHUYEN_NGHIEP">{t("Chuyên nghiệp")}</option>
               </select>
 
               <select
@@ -467,10 +469,10 @@ function PlayersContent() {
                 }
                 className="flex-shrink-0 px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
               >
-                <option value="">Chân thuận</option>
-                <option value="left">Trái</option>
-                <option value="right">Phải</option>
-                <option value="both">Cả hai</option>
+                <option value="">{t("Chân thuận")}</option>
+                <option value="left">{t("Trái")}</option>
+                <option value="right">{t("Phải")}</option>
+                <option value="both">{t("Cả hai")}</option>
               </select>
             </div>
 
@@ -478,7 +480,7 @@ function PlayersContent() {
             <div className="hidden md:flex gap-2 mb-3">
               <input
                 type="text"
-                placeholder="Tìm kiếm theo tên cầu thủ..."
+                placeholder={t("Tìm kiếm theo tên cầu thủ...")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -499,15 +501,15 @@ function PlayersContent() {
                 }}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               >
-                <option value="">Không sắp xếp</option>
-                <option value="fullName-asc">Tên (A → Z)</option>
-                <option value="fullName-desc">Tên (Z → A)</option>
-                <option value="dob-asc">Tuổi (Tăng dần)</option>
-                <option value="dob-desc">Tuổi (Giảm dần)</option>
-                <option value="height-asc">Chiều cao (Thấp → Cao)</option>
-                <option value="height-desc">Chiều cao (Cao → Thấp)</option>
-                <option value="weight-asc">Cân nặng (Nhẹ → Nặng)</option>
-                <option value="weight-desc">Cân nặng (Nặng → Nhẹ)</option>
+                <option value="">{t("Không sắp xếp")}</option>
+                <option value="fullName-asc">{t("Tên (A → Z)")}</option>
+                <option value="fullName-desc">{t("Tên (Z → A)")}</option>
+                <option value="dob-asc">{t("Tuổi (Tăng dần)")}</option>
+                <option value="dob-desc">{t("Tuổi (Giảm dần)")}</option>
+                <option value="height-asc">{t("Chiều cao (Thấp → Cao)")}</option>
+                <option value="height-desc">{t("Chiều cao (Cao → Thấp)")}</option>
+                <option value="weight-asc">{t("Cân nặng (Nhẹ → Nặng)")}</option>
+                <option value="weight-desc">{t("Cân nặng (Nặng → Nhẹ)")}</option>
               </select>
 
               {/* View Mode Toggle */}
@@ -516,7 +518,7 @@ function PlayersContent() {
                   setViewMode(viewMode === "list" ? "card" : "list")
                 }
                 className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
-                aria-label="Chuyển chế độ xem"
+                aria-label={t("Chuyển chế độ xem")}
               >
                 {viewMode === "list" ? (
                   <svg
@@ -563,12 +565,12 @@ function PlayersContent() {
                 }
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               >
-                <option value="">Tất cả vị trí</option>
-                <option value="striker">Tiền đạo</option>
-                <option value="midfielder">Tiền vệ</option>
-                <option value="defender">Hậu vệ</option>
-                <option value="centerback">Trung vệ</option>
-                <option value="goalkeeper">Thủ môn</option>
+                <option value="">{t("Tất cả vị trí")}</option>
+                <option value="striker">{t("Tiền đạo")}</option>
+                <option value="midfielder">{t("Tiền vệ")}</option>
+                <option value="defender">{t("Hậu vệ")}</option>
+                <option value="centerback">{t("Trung vệ")}</option>
+                <option value="goalkeeper">{t("Thủ môn")}</option>
               </select>
 
               {/* Province Filter */}
@@ -579,7 +581,7 @@ function PlayersContent() {
                 }
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               >
-                <option value="">Tất cả tỉnh/thành phố</option>
+                <option value="">{t("Tất cả tỉnh/thành phố")}</option>
                 {provinces.map((province) => (
                   <option key={province.id} value={province.id}>
                     {province.name}
@@ -595,11 +597,11 @@ function PlayersContent() {
                 }
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               >
-                <option value="">Tất cả cấp độ</option>
-                <option value="CAU_THU_MOI">Cầu thủ mới</option>
-                <option value="NGHIEP_DU">Nghiệp dư</option>
-                <option value="TUYEN_TRE">Tuyển trẻ</option>
-                <option value="CHUYEN_NGHIEP">Chuyên nghiệp</option>
+                <option value="">{t("Tất cả cấp độ")}</option>
+                <option value="CAU_THU_MOI">{t("Cầu thủ mới")}</option>
+                <option value="NGHIEP_DU">{t("Nghiệp dư")}</option>
+                <option value="TUYEN_TRE">{t("Tuyển trẻ")}</option>
+                <option value="CHUYEN_NGHIEP">{t("Chuyên nghiệp")}</option>
               </select>
 
               {/* Preferred Foot Filter */}
@@ -610,10 +612,10 @@ function PlayersContent() {
                 }
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               >
-                <option value="">Tất cả chân thuận</option>
-                <option value="left">Trái</option>
-                <option value="right">Phải</option>
-                <option value="both">Cả hai</option>
+                <option value="">{t("Tất cả chân thuận")}</option>
+                <option value="left">{t("Trái")}</option>
+                <option value="right">{t("Phải")}</option>
+                <option value="both">{t("Cả hai")}</option>
               </select>
             </div>
 
@@ -642,7 +644,7 @@ function PlayersContent() {
                       d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
-                  <span>Xóa bộ lọc</span>
+                  <span>{t("Xóa bộ lọc")}</span>
                 </button>
               </div>
             )}
@@ -650,18 +652,18 @@ function PlayersContent() {
 
           {/* Results Count */}
           <div className="mb-4 text-sm text-gray-600">
-            Tìm thấy <span className="font-semibold">{pagination.total}</span>{" "}
-            cầu thủ
+            {t("Tìm thấy")} <span className="font-semibold">{pagination.total}</span>{" "}
+            {t("cầu thủ")}
           </div>
 
           {/* Players Content */}
           {isLoading ? (
             <div className="p-8 text-center text-gray-500 bg-white rounded-lg shadow">
-              Đang tải...
+              {t("Đang tải...")}
             </div>
           ) : players.length === 0 ? (
             <div className="p-8 text-center text-gray-500 bg-white rounded-lg shadow">
-              Không tìm thấy cầu thủ nào
+              {t("Không tìm thấy cầu thủ nào")}
             </div>
           ) : (
             <>
@@ -675,34 +677,34 @@ function PlayersContent() {
                         <thead className="bg-gray-50 border-b">
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Chỉ số
+                              {t("Chỉ số")}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Avatar
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Tên
+                              {t("Tên")}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Tuổi
+                              {t("Tuổi")}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Chiều cao
+                              {t("Chiều cao")}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Cân nặng
+                              {t("Cân nặng")}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Vị trí
+                              {t("Vị trí")}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Chân thuận
+                              {t("Chân thuận")}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Cấp độ
+                              {t("Cấp độ")}
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Tỉnh/TP
+                              {t("Tỉnh/TP")}
                             </th>
                           </tr>
                         </thead>
@@ -840,7 +842,7 @@ function PlayersContent() {
                                 {player.fullName}
                               </h3>
                               <p className="text-sm text-gray-500">
-                                {player.age ? `${player.age} tuổi` : "N/A"} •{" "}
+                                {player.age ? t("{age} tuổi", { age: player.age }) : "N/A"} •{" "}
                                 {player.height ? `${player.height} cm` : "N/A"}{" "}
                                 •{" "}
                                 {player.weight ? `${player.weight} kg` : "N/A"}
@@ -864,7 +866,7 @@ function PlayersContent() {
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div>
-                            <span className="text-gray-500">Vị trí:</span>{" "}
+                            <span className="text-gray-500">{t("Vị trí:")}</span>{" "}
                             <span className="font-medium text-gray-900">
                               {player.positions.length > 0
                                 ? player.positions
@@ -874,7 +876,7 @@ function PlayersContent() {
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Chân:</span>{" "}
+                            <span className="text-gray-500">{t("Chân:")}</span>{" "}
                             <span className="font-medium text-gray-900">
                               {player.preferredFoot
                                 ? getPreferredFootDisplayName(
@@ -884,7 +886,7 @@ function PlayersContent() {
                             </span>
                           </div>
                           <div>
-                            <span className="text-gray-500">Cấp độ:</span>{" "}
+                            <span className="text-gray-500">{t("Cấp độ:")}</span>{" "}
                             <span className="font-medium text-gray-900">
                               {player.level
                                 ? getLevelDisplayName(player.level)
@@ -893,7 +895,7 @@ function PlayersContent() {
                           </div>
                         </div>
                         <div className="text-sm mt-2">
-                          <span className="text-gray-500">Tỉnh/TP:</span>{" "}
+                          <span className="text-gray-500">{t("Tỉnh/TP:")}</span>{" "}
                           <span className="font-medium text-gray-900">
                             {player.provinceName || "N/A"}
                           </span>
@@ -934,7 +936,7 @@ function PlayersContent() {
                 disabled={pagination.page === 0}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                ← Trước
+                {t("← Trước")}
               </button>
 
               <div className="flex items-center gap-2">
@@ -993,11 +995,12 @@ function PlayersContent() {
 }
 
 export default function PlayersPage() {
+  const t = useT();
   return (
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <p>Đang tải...</p>
+          <p>{t("Đang tải...")}</p>
         </div>
       }
     >

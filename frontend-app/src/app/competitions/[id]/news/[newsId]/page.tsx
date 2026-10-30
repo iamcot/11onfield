@@ -11,8 +11,10 @@ import TopBar from "@/components/layout/TopBar";
 import MobileNav from "@/components/layout/MobileNav";
 import HomeFooter from "@/components/home/HomeFooter";
 import { competitionService, CompetitionNews } from "@/services/competition.service";
+import { useT } from "@/i18n/I18nProvider";
 
 export default function NewsDetailPage() {
+  const t = useT();
   const params = useParams();
   const competitionId = parseInt(params.id as string);
   const newsId = parseInt(params.newsId as string);
@@ -63,9 +65,9 @@ export default function NewsDetailPage() {
         <TopUserCard />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-500">Không tìm thấy tin tức</p>
+            <p className="text-gray-500">{t("Không tìm thấy tin tức")}</p>
             <Link href={`/competitions/${competitionId}/news`} className="inline-block mt-4 text-green-700 hover:underline">
-              Quay lại danh sách tin tức
+              {t("Quay lại danh sách tin tức")}
             </Link>
           </div>
         </div>
@@ -83,7 +85,7 @@ export default function NewsDetailPage() {
           {/* Main article */}
           <div className="flex-1 min-w-0">
             <Link href={`/competitions/${competitionId}/news`} className="inline-flex items-center text-green-700 hover:underline mb-4 text-sm">
-              ← Quay lại danh sách tin tức
+              {t("← Quay lại danh sách tin tức")}
             </Link>
 
             <article className="bg-white rounded-lg shadow overflow-hidden">
@@ -95,7 +97,7 @@ export default function NewsDetailPage() {
               <div className="p-6 md:p-8">
                 <h1 className="text-2xl md:text-4xl font-bold mb-4">{news.title}</h1>
                 <div className="flex items-center text-gray-500 text-sm mb-6 pb-6 border-b flex-wrap gap-2">
-                  {news.authorName && <span>Bởi {news.authorName}</span>}
+                  {news.authorName && <span>{t("Bởi")} {news.authorName}</span>}
                   <span>{formatDate(news.publishedAt)}</span>
                 </div>
                 <div className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-a:text-green-700" dangerouslySetInnerHTML={{ __html: news.content }} />
@@ -106,7 +108,7 @@ export default function NewsDetailPage() {
           {/* Sidebar — recent news */}
           <div className="hidden md:block w-[280px] shrink-0">
             <div className="bg-white rounded-lg shadow p-4 sticky top-32">
-              <h4 className="font-bold mb-3 pb-2 border-b">Tin tức gần đây</h4>
+              <h4 className="font-bold mb-3 pb-2 border-b">{t("Tin tức gần đây")}</h4>
               <div className="space-y-3">
                 {recentNews.map((article) => (
                   <Link key={article.id} href={`/competitions/${competitionId}/news/${article.id}`}

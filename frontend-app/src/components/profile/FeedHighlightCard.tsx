@@ -1,6 +1,7 @@
 "use client";
 
 import { FeedItem } from "@/types/feed";
+import { useT } from "@/i18n/I18nProvider";
 
 interface FeedHighlightCardProps {
   feed: FeedItem;
@@ -30,6 +31,7 @@ function getFacebookVideoId(url: string): string | null {
 }
 
 export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightCardProps) {
+  const t = useT();
   if (!feed.highlight) return null;
 
   const { highlight, fullName, date } = feed;
@@ -41,7 +43,7 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
     day: "numeric",
   });
 
-  const displayName = isOwnProfile ? "Bạn" : fullName;
+  const displayName = isOwnProfile ? t("Bạn") : fullName;
   const isPending = highlight.approvalStatus === 'PENDING';
 
   // Get status badge based on approval status
@@ -51,7 +53,7 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
     if (highlight.approvalStatus === 'PENDING') {
       return (
         <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-          Chờ duyệt
+          {t("Chờ duyệt")}
         </span>
       );
     }
@@ -160,8 +162,8 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
         </div>
         <div className="flex-1">
           <h4 className="text-sm font-medium text-gray-900">
-            <span className="font-semibold">{displayName}</span> có một{" "}
-            <span className="font-semibold">siêu phẩm</span> vào ngày{" "}
+            <span className="font-semibold">{displayName}</span> {t("có một")}{" "}
+            <span className="font-semibold">{t("siêu phẩm")}</span> {t("vào ngày")}{" "}
             <span className="font-semibold">{formattedDate}</span>
             {getStatusBadge()}
           </h4>

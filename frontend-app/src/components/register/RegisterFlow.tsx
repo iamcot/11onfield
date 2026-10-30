@@ -13,6 +13,7 @@ import { usePageEffects } from '../home/effects';
 import StadiumBackdrop from '../home/StadiumBackdrop';
 import { ArrowRight, cssVars } from '../home/ui';
 import '../home/home.css';
+import { useT } from '@/i18n/I18nProvider';
 
 type Region = NonNullable<RegisterData['selectedRegion']>;
 
@@ -115,6 +116,7 @@ function Check({ checked, onChange, children }: { checked: boolean; onChange: (v
 /* ------------------------------------------------------- pitch picker */
 
 function PitchPicker({ value, onToggle }: { value: string[]; onToggle: (id: string) => void }) {
+  const t = useT();
   return (
     <div className="of-pitch relative mx-auto aspect-[3/4] w-full max-w-[340px]">
       <svg viewBox="0 0 300 400" className="absolute inset-0 h-full w-full" aria-hidden="true">
@@ -143,8 +145,8 @@ function PitchPicker({ value, onToggle }: { value: string[]; onToggle: (id: stri
             className={`of-pos ${on ? 'is-on' : ''}`}
             style={{ left: `${p.x}%`, top: `${p.y}%` }}
           >
-            {p.label}
-            {idx === 0 && <span className="of-pos-tag">Chính</span>}
+            {t(p.label)}
+            {idx === 0 && <span className="of-pos-tag">{t('Chính')}</span>}
           </button>
         );
       })}
@@ -155,6 +157,7 @@ function PitchPicker({ value, onToggle }: { value: string[]; onToggle: (id: stri
 /* --------------------------------------------------------- player card */
 
 function PlayerCard({ form, done = false }: { form: Form; done?: boolean }) {
+  const t = useT();
   const age = ageOf(form.dob);
   const pos = POSITIONS.find((p) => p.id === form.positions[0]);
   const foot = FEET.find((f) => f.id === form.preferredFoot);
@@ -165,7 +168,7 @@ function PlayerCard({ form, done = false }: { form: Form; done?: boolean }) {
         <div className="flex items-start justify-between">
           <div>
             <div className="of-display of-gold text-[44px] leading-none">{pos?.code ?? '--'}</div>
-            <div className="of-hud mt-1 text-[10px] text-[color:var(--gold-2)]">{pos?.label ?? 'Vị trí'}</div>
+            <div className="of-hud mt-1 text-[10px] text-[color:var(--gold-2)]">{pos ? t(pos.label) : t('Vị trí')}</div>
           </div>
           <Image src="/images/logo-color-small.png" alt="" width={44} height={44} className="h-11 w-11 object-contain opacity-90" />
         </div>
@@ -173,14 +176,14 @@ function PlayerCard({ form, done = false }: { form: Form; done?: boolean }) {
           {initials(form.fullName)}
         </div>
         <div className="absolute inset-x-5 bottom-5">
-          <div className="of-display truncate text-[30px] text-white">{form.fullName.trim() || 'Tên của bạn'}</div>
+          <div className="of-display truncate text-[30px] text-white">{form.fullName.trim() || t('Tên của bạn')}</div>
           <div className="of-rule my-2" />
           <div className="grid grid-cols-4 gap-1 text-center">
             {[
-              ['Tuổi', age ?? '--'],
-              ['Chân', foot?.label ?? '--'],
+              [t('Tuổi'), age ?? '--'],
+              [t('Chân'), foot ? t(foot.label) : '--'],
               ['Cao', form.height ? `${form.height}` : '--'],
-              ['Nặng', form.weight ? `${form.weight}` : '--'],
+              [t('Nặng'), form.weight ? `${form.weight}` : '--'],
             ].map(([k, v]) => (
               <div key={k as string}>
                 <div className="of-num text-[17px] text-white">{v}</div>
@@ -188,7 +191,7 @@ function PlayerCard({ form, done = false }: { form: Form; done?: boolean }) {
               </div>
             ))}
           </div>
-          <div className="of-hud mt-3 truncate text-center text-[10px] text-[#CFC6AE]">{region ? region.label : 'Chỉ số sẽ có sau vòng tuyển trạch'}</div>
+          <div className="of-hud mt-3 truncate text-center text-[10px] text-[#CFC6AE]">{region ? t(region.label) : t('Chỉ số sẽ có sau vòng tuyển trạch')}</div>
         </div>
       </div>
     </div>
@@ -198,6 +201,7 @@ function PlayerCard({ form, done = false }: { form: Form; done?: boolean }) {
 /* ---------------------------------------------------------------- flow */
 
 export default function RegisterFlow() {
+  const t = useT();
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   usePageEffects(rootRef);
@@ -239,26 +243,26 @@ export default function RegisterFlow() {
   const validate = (): Errors => {
     const e: Errors = {};
     if (screen === 'account') {
-      if (!/^0\d{9}$/.test(form.phone)) e.phone = 'Số điện thoại gồm 10 chữ số, bắt đầu bằng 0';
-      if (form.password.length < 8) e.password = 'Mật khẩu phải có ít nhất 8 ký tự';
-      if (form.confirmPassword !== form.password) e.confirmPassword = 'Mật khẩu nhập lại không khớp';
+      if (!/^0\d{9}$/.test(form.phone)) e.phone = t('Số điện thoại gồm 10 chữ số, bắt đầu bằng 0');
+      if (form.password.length < 8) e.password = t('Mật khẩu phải có ít nhất 8 ký tự');
+      if (form.confirmPassword !== form.password) e.confirmPassword = t('Mật khẩu nhập lại không khớp');
     }
     if (screen === 'personal') {
-      if (!form.fullName.trim()) e.fullName = 'Vui lòng nhập họ và tên';
-      if (form.isPlayer && !form.dob) e.dob = 'Vui lòng chọn ngày sinh';
-      if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Email không hợp lệ';
+      if (!form.fullName.trim()) e.fullName = t('Vui lòng nhập họ và tên');
+      if (form.isPlayer && !form.dob) e.dob = t('Vui lòng chọn ngày sinh');
+      if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = t('Email không hợp lệ');
     }
     if (screen === 'player') {
-      if (!form.positions.length) e.positions = 'Chạm vào sân để chọn ít nhất một vị trí';
+      if (!form.positions.length) e.positions = t('Chạm vào sân để chọn ít nhất một vị trí');
       const h = Number(form.height);
       const w = Number(form.weight);
-      if (form.height && (h < 120 || h > 230)) e.height = 'Chiều cao từ 120 đến 230 cm';
-      if (form.weight && (w < 30 || w > 150)) e.weight = 'Cân nặng từ 30 đến 150 kg';
+      if (form.height && (h < 120 || h > 230)) e.height = t('Chiều cao từ 120 đến 230 cm');
+      if (form.weight && (w < 30 || w > 150)) e.weight = t('Cân nặng từ 30 đến 150 kg');
     }
-    if (screen === 'region' && !form.region) e.region = 'Chọn khu vực bạn sẽ tham gia tuyển trạch';
+    if (screen === 'region' && !form.region) e.region = t('Chọn khu vực bạn sẽ tham gia tuyển trạch');
     if (screen === 'confirm') {
-      if (!form.terms) e.terms = 'Vui lòng đồng ý với điều khoản tham gia';
-      if (form.isPlayer && CONSENTS.some((c) => !form.consents[c.id])) e.consents = 'Vui lòng xác nhận tất cả cam kết của cầu thủ';
+      if (!form.terms) e.terms = t('Vui lòng đồng ý với điều khoản tham gia');
+      if (form.isPlayer && CONSENTS.some((c) => !form.consents[c.id])) e.consents = t('Vui lòng xác nhận tất cả cam kết của cầu thủ');
     }
     return e;
   };
@@ -320,8 +324,8 @@ export default function RegisterFlow() {
       // fetch() rejects with a TypeError when the API is unreachable or blocked by CORS
       const message =
         err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw ?? '')
-          ? 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại sau ít phút.'
-          : raw || 'Đăng ký thất bại. Vui lòng thử lại.';
+          ? t('Không kết nối được máy chủ. Kiểm tra mạng và thử lại sau ít phút.')
+          : t(raw || 'Đăng ký thất bại. Vui lòng thử lại.');
       track('api_error', { endpoint: '/auth/register', error_message: message, user_action: 'registration_attempt' });
       if (/điện thoại/i.test(message)) {
         setStep(0);
@@ -342,19 +346,19 @@ export default function RegisterFlow() {
       <StadiumBackdrop />
       <header className="of-header is-solid">
         <div className="mx-auto flex h-full max-w-[1240px] items-center gap-3 px-4 lg:px-6">
-          <Link href="/" className="flex shrink-0 items-center" aria-label="11 On Field – Trang chủ">
+          <Link href="/" className="flex shrink-0 items-center" aria-label={t('11 On Field – Trang chủ')}>
             <Image src="/images/logo-white-full.png" alt="11 On Field" width={182} height={36} priority className="h-[28px] w-auto lg:h-[36px]" />
           </Link>
           <div className="ml-auto flex items-center gap-3 text-[13px] text-[#CBD6CF]">
             {done ? (
               <Link href="/profile" className="of-btn-ghost of-cut !min-h-[38px] !px-4 !text-[15px]">
-                Hồ sơ
+                {t('Hồ sơ')}
               </Link>
             ) : (
               <>
-                <span className="hidden sm:inline">Đã có tài khoản?</span>
+                <span className="hidden sm:inline">{t('Đã có tài khoản?')}</span>
                 <Link href="/auth/login" className="of-btn-ghost of-cut !min-h-[38px] !px-4 !text-[15px]">
-                  Đăng nhập
+                  {t('Đăng nhập')}
                 </Link>
               </>
             )}
@@ -367,17 +371,17 @@ export default function RegisterFlow() {
           {/* left rail: progress + live card (desktop) */}
           <aside className="hidden lg:block">
             <div className="sticky top-[96px]">
-              <div className="of-eyebrow of-eyebrow--left">Đăng ký · Mùa 1</div>
+              <div className="of-eyebrow of-eyebrow--left">{t('Đăng ký · Mùa 1')}</div>
               <h1 className="of-display mt-3 text-[56px] text-white" style={{ textShadow: '0 0 30px rgba(166,227,90,.35)' }}>
-                Bắt đầu
+                {t('Bắt đầu')}
                 <br />
-                <span className="of-neon">hành trình</span>
+                <span className="of-neon">{t('hành trình')}</span>
               </h1>
               <ol className="mt-6 flex flex-col gap-2">
                 {steps.map((s, i) => (
                   <li key={s} className={`of-rstep ${done || i < step ? 'is-done' : i === step ? 'is-current' : ''}`}>
                     <span className="of-rstep-dot of-cut">{done || i < step ? '✓' : `0${i + 1}`}</span>
-                    {s}
+                    {t(s)}
                   </li>
                 ))}
               </ol>
@@ -395,7 +399,7 @@ export default function RegisterFlow() {
                 {/* mobile progress */}
                 <div className="lg:hidden">
                   <div className="of-hud text-[11px] text-[color:var(--gold)]">
-                    Bước {step + 1}/{steps.length}
+                    {t('Bước')} {step + 1}/{steps.length}
                   </div>
                   <div className="mt-2 flex gap-1.5" aria-hidden="true">
                     {steps.map((s, i) => (
@@ -407,17 +411,17 @@ export default function RegisterFlow() {
                 <div key={screen} className="of-step-in of-glass of-cut of-cut--lg of-cut--b2 of-run mt-4 p-5 lg:mt-0 lg:p-9">
                   <div className="of-brackets" />
                   <div className="of-hud text-[11px] text-[color:var(--lime)]">
-                    Bước {step + 1} · {steps[step]}
+                    {t('Bước')} {step + 1} · {t(steps[step])}
                   </div>
 
                   {screen === 'account' && (
                     <>
-                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">Tạo tài khoản</h2>
-                      <p className="mt-1 text-[14.5px] text-[#CBD6CF]">Nam, sinh từ 2006 đến 2011 · Miễn phí · Người Việt trong nước &amp; toàn cầu</p>
-                      <div className="mt-5 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Bạn tham gia với tư cách">
+                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">{t('Tạo tài khoản')}</h2>
+                      <p className="mt-1 text-[14.5px] text-[#CBD6CF]">{t('Nam, sinh từ 2006 đến 2011 · Miễn phí · Người Việt trong nước &amp; toàn cầu')}</p>
+                      <div className="mt-5 grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('Bạn tham gia với tư cách')}>
                         {[
-                          { v: true, t: 'Đăng ký thi đấu', s: 'Dành cho cầu thủ' },
-                          { v: false, t: 'Người hâm mộ', s: 'Theo dõi & bình chọn' },
+                          { v: true, t: t('Đăng ký thi đấu'), s: t('Dành cho cầu thủ') },
+                          { v: false, t: t('Người hâm mộ'), s: t('Theo dõi & bình chọn') },
                         ].map((o) => (
                           <button
                             key={o.t}
@@ -436,7 +440,7 @@ export default function RegisterFlow() {
                         ))}
                       </div>
                       <div className="mt-5 grid gap-4">
-                        <Field label="Số điện thoại" error={errors.phone} hint="Dùng để đăng nhập và nhận thông báo qua Zalo">
+                        <Field label={t('Số điện thoại')} error={errors.phone} hint={t('Dùng để đăng nhập và nhận thông báo qua Zalo')}>
                           <input
                             className="of-field"
                             type="tel"
@@ -448,10 +452,10 @@ export default function RegisterFlow() {
                           />
                         </Field>
                         <div className="grid gap-4 sm:grid-cols-2">
-                          <Field label="Mật khẩu" error={errors.password}>
-                            <input className="of-field" type="password" autoComplete="new-password" placeholder="Ít nhất 8 ký tự" value={form.password} onChange={(e) => set('password', e.target.value)} />
+                          <Field label={t('Mật khẩu')} error={errors.password}>
+                            <input className="of-field" type="password" autoComplete="new-password" placeholder={t('Ít nhất 8 ký tự')} value={form.password} onChange={(e) => set('password', e.target.value)} />
                           </Field>
-                          <Field label="Nhập lại mật khẩu" error={errors.confirmPassword}>
+                          <Field label={t('Nhập lại mật khẩu')} error={errors.confirmPassword}>
                             <input className="of-field" type="password" autoComplete="new-password" value={form.confirmPassword} onChange={(e) => set('confirmPassword', e.target.value)} />
                           </Field>
                         </div>
@@ -461,21 +465,21 @@ export default function RegisterFlow() {
 
                   {screen === 'personal' && (
                     <>
-                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">Thông tin cá nhân</h2>
+                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">{t('Thông tin cá nhân')}</h2>
                       <div className="mt-5 grid gap-4">
-                        <Field label="Họ và tên" error={errors.fullName}>
-                          <input className="of-field" autoComplete="name" placeholder="Nguyễn Văn A" value={form.fullName} onChange={(e) => set('fullName', e.target.value)} />
+                        <Field label={t('Họ và tên')} error={errors.fullName}>
+                          <input className="of-field" autoComplete="name" placeholder={t('Nguyễn Văn A')} value={form.fullName} onChange={(e) => set('fullName', e.target.value)} />
                         </Field>
                         <div className="grid gap-4 sm:grid-cols-2">
                           <Field
-                            label={form.isPlayer ? 'Ngày sinh' : 'Ngày sinh (không bắt buộc)'}
+                            label={form.isPlayer ? t('Ngày sinh') : t('Ngày sinh (không bắt buộc)')}
                             error={errors.dob}
                             hint={
                               form.isPlayer && age !== null ? (
                                 eligible ? (
-                                  <span className="text-[color:var(--lime-2)]">✓ {age} tuổi: đủ điều kiện độ tuổi 16 – 21</span>
+                                  <span className="text-[color:var(--lime-2)]">✓ {age} {t('tuổi: đủ điều kiện độ tuổi 16 – 21')}</span>
                                 ) : (
-                                  <span className="text-[color:var(--gold-2)]">{age} tuổi: mùa 1 dành cho cầu thủ sinh 2006 – 2011</span>
+                                  <span className="text-[color:var(--gold-2)]">{age} {t('tuổi: mùa 1 dành cho cầu thủ sinh 2006 – 2011')}</span>
                                 )
                               ) : undefined
                             }
@@ -483,9 +487,9 @@ export default function RegisterFlow() {
                             <input className="of-field" type="date" max={new Date().toISOString().slice(0, 10)} value={form.dob} onChange={(e) => set('dob', e.target.value)} />
                           </Field>
                           {provinces.length > 0 && (
-                            <Field label="Tỉnh / Thành phố">
+                            <Field label={t('Tỉnh / Thành phố')}>
                               <select className="of-field" value={form.provinceId} onChange={(e) => set('provinceId', e.target.value)}>
-                                <option value="">Chọn tỉnh / thành</option>
+                                <option value="">{t('Chọn tỉnh / thành')}</option>
                                 {provinces.map((p) => (
                                   <option key={p.id} value={p.id}>
                                     {p.name}
@@ -495,7 +499,7 @@ export default function RegisterFlow() {
                             </Field>
                           )}
                         </div>
-                        <Field label="Email (không bắt buộc)" error={errors.email} hint="Nhận xác nhận hồ sơ và lịch tuyển trạch">
+                        <Field label={t('Email (không bắt buộc)')} error={errors.email} hint={t('Nhận xác nhận hồ sơ và lịch tuyển trạch')}>
                           <input className="of-field" type="email" autoComplete="email" placeholder="email@example.com" value={form.email} onChange={(e) => set('email', e.target.value)} />
                         </Field>
                       </div>
@@ -504,21 +508,21 @@ export default function RegisterFlow() {
 
                   {screen === 'player' && (
                     <>
-                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">Hồ sơ cầu thủ</h2>
+                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">{t('Hồ sơ cầu thủ')}</h2>
                       <div className="mt-5 grid gap-6 md:grid-cols-[minmax(0,340px)_1fr] md:items-start">
                         <div>
-                          <div className="of-hud mb-2 text-[10px] text-[color:var(--mute)]">Vị trí sở trường (chạm vào sân)</div>
+                          <div className="of-hud mb-2 text-[10px] text-[color:var(--mute)]">{t('Vị trí sở trường (chạm vào sân)')}</div>
                           <PitchPicker value={form.positions} onToggle={togglePosition} />
                           <div className={`mt-2 text-[12.5px] ${errors.positions ? 'text-[#FF8A80]' : 'text-[#9FB0A6]'}`}>
                             {errors.positions ||
                               (form.positions.length
-                                ? `Đã chọn: ${form.positions.map((id) => POSITIONS.find((p) => p.id === id)?.label).join(', ')}`
-                                : 'Chọn nhiều vị trí được, vị trí đầu tiên là vị trí chính')}
+                                ? t('Đã chọn: {positions}', { positions: form.positions.map((id) => t(POSITIONS.find((p) => p.id === id)?.label ?? '')).join(', ') })
+                                : t('Chọn nhiều vị trí được, vị trí đầu tiên là vị trí chính'))}
                           </div>
                         </div>
                         <div className="grid gap-4">
                           <div>
-                            <div className="of-hud mb-2 text-[10px] text-[color:var(--mute)]">Chân thuận</div>
+                            <div className="of-hud mb-2 text-[10px] text-[color:var(--mute)]">{t('Chân thuận')}</div>
                             <div className="grid grid-cols-3 gap-2">
                               {FEET.map((f) => (
                                 <button
@@ -528,20 +532,20 @@ export default function RegisterFlow() {
                                   onClick={() => set('preferredFoot', f.id)}
                                   className={`of-choice of-cut !min-h-[48px] !items-center ${form.preferredFoot === f.id ? 'is-on' : ''}`}
                                 >
-                                  <span className="text-[15px] font-semibold text-white">{f.label}</span>
+                                  <span className="text-[15px] font-semibold text-white">{t(f.label)}</span>
                                 </button>
                               ))}
                             </div>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
-                            <Field label="Chiều cao (cm)" error={errors.height}>
+                            <Field label={t('Chiều cao (cm)')} error={errors.height}>
                               <input className="of-field" type="number" inputMode="numeric" placeholder="175" value={form.height} onChange={(e) => set('height', e.target.value)} />
                             </Field>
-                            <Field label="Cân nặng (kg)" error={errors.weight}>
+                            <Field label={t('Cân nặng (kg)')} error={errors.weight}>
                               <input className="of-field" type="number" inputMode="numeric" placeholder="68" value={form.weight} onChange={(e) => set('weight', e.target.value)} />
                             </Field>
                           </div>
-                          <p className="text-[13px] text-[#9FB0A6]">Ảnh chân dung, video highlight và CLB đã thi đấu bạn bổ sung trong hồ sơ ngay sau khi đăng ký.</p>
+                          <p className="text-[13px] text-[#9FB0A6]">{t('Ảnh chân dung, video highlight và CLB đã thi đấu bạn bổ sung trong hồ sơ ngay sau khi đăng ký.')}</p>
                         </div>
                       </div>
                     </>
@@ -549,17 +553,17 @@ export default function RegisterFlow() {
 
                   {screen === 'region' && (
                     <>
-                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">Khu vực tuyển trạch</h2>
-                      <p className="mt-1 text-[14.5px] text-[#CBD6CF]">Chọn nơi bạn sẽ thi đấu trực tiếp ở vòng Scouting.</p>
-                      <div className="mt-5 grid gap-3 md:grid-cols-3" role="radiogroup" aria-label="Khu vực tuyển trạch">
+                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">{t('Khu vực tuyển trạch')}</h2>
+                      <p className="mt-1 text-[14.5px] text-[#CBD6CF]">{t('Chọn nơi bạn sẽ thi đấu trực tiếp ở vòng Scouting.')}</p>
+                      <div className="mt-5 grid gap-3 md:grid-cols-3" role="radiogroup" aria-label={t('Khu vực tuyển trạch')}>
                         {REGIONS.map((r) => {
                           const st = stageFor(r.id);
                           const on = form.region === r.id;
                           return (
                             <button key={r.id} type="button" role="radio" aria-checked={on} onClick={() => set('region', r.id)} className={`of-choice of-cut of-choice--big ${on ? 'is-on' : ''}`}>
                               <span className="of-radio" aria-hidden="true" />
-                              <span className="of-display text-[26px] text-white">{r.label}</span>
-                              <span className="of-num text-[13px] text-[#AFC0B6]">{st ? `${formatDate(st.stageDate)}${st.title ? ` · ${st.title}` : ''}` : 'Lịch sẽ thông báo sau'}</span>
+                              <span className="of-display text-[26px] text-white">{t(r.label)}</span>
+                              <span className="of-num text-[13px] text-[#AFC0B6]">{st ? `${formatDate(st.stageDate)}${st.title ? ` · ${st.title}` : ''}` : t('Lịch sẽ thông báo sau')}</span>
                             </button>
                           );
                         })}
@@ -570,17 +574,17 @@ export default function RegisterFlow() {
 
                   {screen === 'confirm' && (
                     <>
-                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">Xác nhận &amp; gửi</h2>
+                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">{t('Xác nhận &amp; gửi')}</h2>
                       <dl className="mt-5 grid gap-x-6 gap-y-3 sm:grid-cols-2">
                         {[
-                          ['Họ tên', form.fullName],
-                          ['Số điện thoại', form.phone],
-                          ['Ngày sinh', form.dob ? `${formatDate(form.dob)}${age !== null ? ` · ${age} tuổi` : ''}` : '—'],
+                          [t('Họ tên'), form.fullName],
+                          [t('Số điện thoại'), form.phone],
+                          [t('Ngày sinh'), form.dob ? `${formatDate(form.dob)}${age !== null ? t(' · {age} tuổi', { age }) : ''}` : '—'],
                           ...(form.isPlayer
                             ? [
-                                ['Vị trí', form.positions.map((id) => POSITIONS.find((p) => p.id === id)?.label).join(', ')],
-                                ['Chân thuận', FEET.find((f) => f.id === form.preferredFoot)?.label ?? '—'],
-                                ['Khu vực', REGIONS.find((r) => r.id === form.region)?.label ?? '—'],
+                                [t('Vị trí'), form.positions.map((id) => t(POSITIONS.find((p) => p.id === id)?.label ?? '')).join(', ')],
+                                [t('Chân thuận'), t(FEET.find((f) => f.id === form.preferredFoot)?.label ?? '—')],
+                                [t('Khu vực'), t(REGIONS.find((r) => r.id === form.region)?.label ?? '—')],
                               ]
                             : []),
                         ].map(([k, v]) => (
@@ -592,13 +596,13 @@ export default function RegisterFlow() {
                       </dl>
                       <div className="mt-6 grid gap-3">
                         <Check checked={form.terms} onChange={(v) => set('terms', v)}>
-                          Tôi đồng ý với{' '}
+                          {t('Tôi đồng ý với')}{' '}
                           <Link href="/terms" target="_blank" className="text-[color:var(--lime-2)] underline underline-offset-2">
-                            Điều khoản tham gia
+                            {t('Điều khoản tham gia')}
                           </Link>{' '}
-                          và{' '}
+                          {t('và')}{' '}
                           <Link href="/privacy" target="_blank" className="text-[color:var(--lime-2)] underline underline-offset-2">
-                            Chính sách bảo mật
+                            {t('Chính sách bảo mật')}
                           </Link>
                           .
                         </Check>
@@ -606,10 +610,10 @@ export default function RegisterFlow() {
                         {form.isPlayer && (
                           <>
                             <div className="of-rule my-1" />
-                            <div className="of-hud text-[10px] text-[color:var(--mute)]">Cam kết của cầu thủ</div>
+                            <div className="of-hud text-[10px] text-[color:var(--mute)]">{t('Cam kết của cầu thủ')}</div>
                             {CONSENTS.map((c) => (
                               <Check key={c.id} checked={!!form.consents[c.id]} onChange={(v) => set('consents', { ...form.consents, [c.id]: v })}>
-                                {c.text}
+                                {t(c.text)}
                               </Check>
                             ))}
                             <button
@@ -617,7 +621,7 @@ export default function RegisterFlow() {
                               className="self-start text-[13px] text-[color:var(--lime-2)] underline underline-offset-2"
                               onClick={() => set('consents', Object.fromEntries(CONSENTS.map((c) => [c.id, true])))}
                             >
-                              Đồng ý tất cả cam kết
+                              {t('Đồng ý tất cả cam kết')}
                             </button>
                             {errors.consents && <div className="text-[12.5px] text-[#FF8A80]">{errors.consents}</div>}
                           </>
@@ -631,20 +635,20 @@ export default function RegisterFlow() {
                   <div className="of-actions">
                     {step > 0 ? (
                       <button type="button" onClick={back} className="of-btn-ghost of-cut">
-                        Quay lại
+                        {t('Quay lại')}
                       </button>
                     ) : (
                       <span />
                     )}
                     <button type="button" onClick={next} disabled={submitting} className="of-btn flex-1 sm:flex-none">
-                      {submitting ? 'Đang gửi…' : screen === 'confirm' ? 'Gửi hồ sơ' : 'Tiếp tục'} {!submitting && <ArrowRight />}
+                      {submitting ? t('Đang gửi…') : screen === 'confirm' ? t('Gửi hồ sơ') : t('Tiếp tục')} {!submitting && <ArrowRight />}
                     </button>
                   </div>
                 </div>
 
                 {form.isPlayer && step > 0 && (
                   <div className="mx-auto mt-8 max-w-[260px] lg:hidden">
-                    <div className="of-hud mb-2 text-center text-[10px] text-[color:var(--gold-2)]">Thẻ cầu thủ của bạn</div>
+                    <div className="of-hud mb-2 text-center text-[10px] text-[color:var(--gold-2)]">{t('Thẻ cầu thủ của bạn')}</div>
                     <PlayerCard form={form} />
                   </div>
                 )}
@@ -659,31 +663,31 @@ export default function RegisterFlow() {
                       <i key={i} style={cssVars({ '--r': `${(360 / 14) * i}deg`, '--dl': `${(i % 4) * 60}ms` })} />
                     ))}
                   </div>
-                  <div className="of-hud text-[11px] text-[color:var(--lime)]">Hoàn tất</div>
+                  <div className="of-hud text-[11px] text-[color:var(--lime)]">{t('Hoàn tất')}</div>
                   <h2 className="of-display mt-1 text-[46px] text-white lg:text-[64px]">
                     {form.isPlayer ? (
                       <>
-                        Hồ sơ <span className="of-neon">đã gửi!</span>
+                        {t('Hồ sơ')} <span className="of-neon">{t('đã gửi!')}</span>
                       </>
                     ) : (
                       <>
-                        Chào mừng <span className="of-neon">bạn!</span>
+                        {t('Chào mừng')} <span className="of-neon">{t('bạn!')}</span>
                       </>
                     )}
                   </h2>
                   <p className="mt-2 max-w-[560px] text-[15.5px] text-[#E2EAE4]">
                     {form.isPlayer
-                      ? 'Ban tổ chức sẽ liên hệ qua số điện thoại và email bạn đăng ký về lịch tuyển trạch khu vực.'
-                      : 'Tài khoản của bạn đã sẵn sàng để theo dõi chương trình và bình chọn cho cầu thủ yêu thích.'}
+                      ? t('Ban tổ chức sẽ liên hệ qua số điện thoại và email bạn đăng ký về lịch tuyển trạch khu vực.')
+                      : t('Tài khoản của bạn đã sẵn sàng để theo dõi chương trình và bình chọn cho cầu thủ yêu thích.')}
                   </p>
                   {form.isPlayer && (
                     <>
-                      <div className="of-hud mt-6 text-[10px] text-[color:var(--mute)]">Việc nên làm tiếp</div>
+                      <div className="of-hud mt-6 text-[10px] text-[color:var(--mute)]">{t('Việc nên làm tiếp')}</div>
                       <ul className="mt-2 grid gap-2 text-[15px]">
-                        {['Thêm ảnh chân dung và video highlight 1–3 phút', 'Bổ sung thành tích, CLB đã thi đấu', 'Theo dõi lịch tuyển trạch khu vực của bạn'].map((t, i) => (
-                          <li key={t} className="flex items-center gap-3">
+                        {[t('Thêm ảnh chân dung và video highlight 1–3 phút'), t('Bổ sung thành tích, CLB đã thi đấu'), t('Theo dõi lịch tuyển trạch khu vực của bạn')].map((tip, i) => (
+                          <li key={tip} className="flex items-center gap-3">
                             <span className="of-num flex h-7 w-7 shrink-0 items-center justify-center border border-[rgba(166,227,90,.5)] text-[12px] text-[color:var(--lime-2)]">0{i + 1}</span>
-                            {t}
+                            {tip}
                           </li>
                         ))}
                       </ul>
@@ -691,10 +695,10 @@ export default function RegisterFlow() {
                   )}
                   <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                     <Link href="/profile" className="of-btn">
-                      {form.isPlayer ? 'Hoàn thiện hồ sơ' : 'Vào trang cá nhân'} <ArrowRight />
+                      {form.isPlayer ? t('Hoàn thiện hồ sơ') : t('Vào trang cá nhân')} <ArrowRight />
                     </Link>
                     <Link href="/competitions" className="of-btn-ghost of-cut">
-                      Xem chương trình
+                      {t('Xem chương trình')}
                     </Link>
                   </div>
                 </div>
