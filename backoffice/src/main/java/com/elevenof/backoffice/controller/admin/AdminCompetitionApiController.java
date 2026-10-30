@@ -45,6 +45,7 @@ public class AdminCompetitionApiController {
     private final StageResultRepository stageResultRepository;
     private final AdminController legacyAdminController;
     private final PlayerRepository playerRepository;
+    private final UserRepository userRepository;
     private final com.elevenof.backoffice.service.StageCheckinService checkinService;
 
     // ==================== COMPETITIONS ====================
@@ -242,6 +243,55 @@ public class AdminCompetitionApiController {
             out.add(m);
         }
         return out;
+    }
+
+    /** Players who can be added to the competition by hand (search by name or phone). */
+    @GetMapping("/competitions/{id}/candidates")
+    @PreAuthorize(MANAGER)
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> candidates(@PathVariable Long id, @RequestParam(defaultValue = "") String q) {
+        String term = q.trim();
+        if (term.length() < 2) return List.of();
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (User u : userRepository.findCandidatesForCompetition(id, term, PageRequest.of(0, 20))) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("userId", u.getId());
+            m.put("fullName", u.getFullName());
+            m.put("phone", u.getPhone());
+            m.put("avatar", u.getAvatar());
+            out.add(m);
+        }
+        return out;
+    }
+
+    /** Adds a player to the competition by hand, outside the registration window. */
+    @PostMapping("/competitions/{id}/participants")
+    @PreAuthorize(MANAGER)
+    @Transactional
+    public Map<String, Object> addParticipant(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        Competition c = competitionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy giải đấu."));
+        Object rawUser = body.get("userId");
+        if (rawUser == null) throw new IllegalArgumentException("Chưa chọn cầu thủ.");
+        User user = userRepository.findById(Long.valueOf(rawUser.toString()))
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cầu thủ."));
+        if (user.getRole() != User.Role.PLAYER) throw new IllegalArgumentException("Tài khoản này không phải cầu thủ.");
+        if (participantRepository.existsByCompetitionIdAndUserId(id, user.getId()))
+            throw new IllegalArgumentException(user.getFullName() + " đã có trong giải đấu này.");
+        Region region = null;
+        Object rawRegion = body.get("region");
+        if (rawRegion != null && !rawRegion.toString().isBlank()) {
+            try { region = Region.valueOf(rawRegion.toString()); }
+            catch (IllegalArgumentException e) { throw new IllegalArgumentException("Khu vực không hợp lệ."); }
+        }
+        CompetitionParticipant p = participantRepository.save(CompetitionParticipant.builder()
+                .competition(c)
+                .user(user)
+                .enrollmentType(EnrollmentType.ADMIN_ADDED)
+                .status(ParticipantStatus.REGISTERED)
+                .selectedRegion(region)
+                .registrationDate(java.time.LocalDateTime.now())
+                .build());
+        return Map.of("message", "Đã thêm " + user.getFullName() + " vào giải", "id", p.getId());
     }
 
     // ==================== CHECK-IN (QR) ====================

@@ -3,9 +3,10 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useApi } from '@/lib/admin/client';
+import AddContestantModal from '@/components/admin/AddContestantModal';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
 import { useIsManager } from '@/components/admin/me';
-import { Badge, ChevronCell, ClickRow, Input, Loading, Select, Table, Td } from '@/components/admin/ui';
+import { Badge, Button, ChevronCell, ClickRow, Input, Loading, Select, Table, Td } from '@/components/admin/ui';
 import { fmtDateTime, PARTICIPANT_STATUS, REGIONS } from '@/lib/admin/labels';
 
 interface Contestant {
@@ -20,6 +21,7 @@ export default function ContestantsPage() {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const [region, setRegion] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -40,8 +42,10 @@ export default function ContestantsPage() {
   return (
     <>
       <CompetitionTabs id={id}>
+        {manager && <Button variant="primary" onClick={() => setAdding(true)}>+ Thêm cầu thủ</Button>}
         {manager && <a className="inline-block border border-[#C9D5CD] px-4 py-2 text-[14px] font-medium hover:border-[#1F7A3A]" href={`/quan-tri/api/proxy/competitions/${id}/export/participants`}>Xuất Excel</a>}
       </CompetitionTabs>
+      {adding && <AddContestantModal competitionId={id} onClose={() => setAdding(false)} onAdded={list.reload} />}
       <p className="mb-3 text-[13px] text-[#46564D]">
         Tổng {list.data?.length ?? 0} thí sinh{Object.entries(REGIONS).map(([k, v]) => ` · ${v}: ${counts[k] || 0}`).join('')}. SBD tính theo thứ tự đăng ký.
       </p>
