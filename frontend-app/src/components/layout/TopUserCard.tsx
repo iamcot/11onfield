@@ -122,7 +122,7 @@ export default function TopUserCard() {
 
         {/* Right: language, notifications and user */}
         <div className="flex items-center gap-4">
-          <LanguageSwitcher tone="light" />
+          <LanguageSwitcher />
           {/* Bell Icon */}
           <div className="relative">
             <button

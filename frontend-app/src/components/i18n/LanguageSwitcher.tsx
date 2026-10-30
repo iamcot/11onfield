@@ -17,9 +17,9 @@ type Phase = 'idle' | 'in' | 'hold' | 'out';
 /**
  * Flag button that opens a centred language picker. Picking a language plays a stadium-board wipe
  * that covers the page while it re-renders, then uncovers it in the new language.
- * `tone="light"` for the remapped light app bar.
+ * The button is a chamfered square filled by the current flag, sized like the header's menu button.
  */
-export default function LanguageSwitcher({ tone = 'dark', className = '' }: { tone?: 'dark' | 'light'; className?: string }) {
+export default function LanguageSwitcher({ className = '' }: { className?: string }) {
   const { locale, setLocale, switching, t } = useI18n();
   const [open, setOpen] = useState(false);
   const [target, setTarget] = useState<Locale | null>(null);
@@ -78,7 +78,6 @@ export default function LanguageSwitcher({ tone = 'dark', className = '' }: { to
     setPhase('in');
   };
 
-  const dark = tone === 'dark';
   return (
     <>
       <button
@@ -87,10 +86,10 @@ export default function LanguageSwitcher({ tone = 'dark', className = '' }: { to
         aria-haspopup="dialog"
         aria-label={`${t('Ngôn ngữ')}: ${LOCALE_LABELS[locale].name}`}
         onClick={() => setOpen(true)}
-        className={`of-lang-btn ${dark ? '' : 'of-lang-btn--light'} ${className}`}
+        title={LOCALE_LABELS[locale].name}
+        className={`of-lang-btn of-cut ${className}`}
       >
-        <Flag locale={locale} className="of-lang-flag" />
-        <span>{LOCALE_LABELS[locale].short}</span>
+        <Flag locale={locale} square className="of-lang-flag" />
       </button>
 
       {host &&
@@ -106,7 +105,7 @@ export default function LanguageSwitcher({ tone = 'dark', className = '' }: { to
                     {t('Chọn ngôn ngữ')}
                   </h2>
                 </div>
-                <button type="button" className="of-lang-close" aria-label={t('Đóng')} onClick={() => setOpen(false)}>
+                <button type="button" className="of-lang-close of-cut" style={{ ['--c' as string]: '8px' }} aria-label={t('Đóng')} onClick={() => setOpen(false)}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                     <path d="M6 6l12 12M18 6L6 18" />
                   </svg>
