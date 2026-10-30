@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NAV } from '@/lib/admin/nav';
 import { ROLE_LABEL, type AdminRole } from '@/lib/admin/session';
+import { MeContext } from './me';
 
 /** Sidebar + top bar for the staff area. Menu items follow the role; unbuilt pages open the old admin. */
 export default function AdminShell({
@@ -28,7 +29,7 @@ export default function AdminShell({
   const menu = (
     <nav className="flex flex-col gap-1 p-3" aria-label="Menu quản trị">
       {items.map((item) => {
-        const active = item.href === pathname;
+        const active = !!item.href && (item.href === '/quan-tri' ? pathname === item.href : pathname.startsWith(item.href));
         const cls = `flex items-center justify-between px-3 py-2.5 text-[14px] transition-colors ${
           active
             ? 'bg-[rgba(166,227,90,0.14)] text-[#D6FA9E] shadow-[inset_3px_0_0_#A6E35A]'
@@ -91,7 +92,9 @@ export default function AdminShell({
       </aside>
       {open && <button type="button" aria-label="Đóng menu" className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />}
 
-      <main className="px-4 pb-10 pt-20 lg:ml-60 lg:px-8">{children}</main>
+      <MeContext.Provider value={me}>
+        <main className="px-4 pb-10 pt-20 lg:ml-60 lg:px-8">{children}</main>
+      </MeContext.Provider>
     </div>
   );
 }

@@ -14,6 +14,8 @@ public interface PlayerHighlightRepository extends JpaRepository<PlayerHighlight
 
     List<PlayerHighlight> findByPlayerIdOrderByCreatedAtDesc(Long playerId);
 
+    List<PlayerHighlight> findByApprovalStatusOrderByCreatedAtDesc(PlayerHighlight.ApprovalStatus approvalStatus);
+
     @Modifying
     @Query("DELETE FROM PlayerHighlight ph WHERE ph.player.id = :playerId")
     void deleteByPlayerId(@Param("playerId") Long playerId);

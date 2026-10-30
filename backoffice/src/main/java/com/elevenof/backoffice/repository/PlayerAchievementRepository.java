@@ -14,6 +14,8 @@ public interface PlayerAchievementRepository extends JpaRepository<PlayerAchieve
 
     List<PlayerAchievement> findByPlayerIdOrderByCreatedAtDesc(Long playerId);
 
+    List<PlayerAchievement> findByApprovalStatusOrderByCreatedAtDesc(PlayerAchievement.ApprovalStatus approvalStatus);
+
     @Modifying
     @Query("DELETE FROM PlayerAchievement pa WHERE pa.player.id = :playerId")
     void deleteByPlayerId(@Param("playerId") Long playerId);
