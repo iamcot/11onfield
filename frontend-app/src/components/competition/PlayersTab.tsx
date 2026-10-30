@@ -210,7 +210,7 @@ export default function PlayersTab({ finalOpen, total }: { finalOpen: boolean; t
                     </span>
                   </span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="lg" src="/images/logo-color-small.png" alt="" />
+                  <img className="lg" src="/images/logo-white-small.png" alt="" />
                 </span>
                 {p.avatar ? (
                   <span className="face">
