@@ -31,4 +31,8 @@ public class PlayerListDTO {
     private Long academyId; // For future use
     private Integer followerCount; // Always 0 for now (Phase 4)
     private List<PlayerAttributeDTO> attributes;
+    private List<PlayerAttributeDTO> profileStats; // FIT EXP SKL PRF ACH HLT
+    private String fullBodyPhoto;
+    private String secondaryPosition;
+    private Integer yearsOfExperience;
 }

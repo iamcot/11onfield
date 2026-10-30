@@ -228,6 +228,9 @@ jobs:
           AWS_REGION=${{ secrets.AWS_REGION }}
           AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}
           FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          BUNNY_STREAM_LIBRARY_ID=${{ secrets.BUNNY_STREAM_LIBRARY_ID }}
+          BUNNY_STREAM_API_KEY=${{ secrets.BUNNY_STREAM_API_KEY }}
+          BUNNY_STREAM_CDN_HOST=${{ secrets.BUNNY_STREAM_CDN_HOST }}
           ZALO_APP_ID=${{ secrets.ZALO_APP_ID }}
           ZALO_APP_SECRET=${{ secrets.ZALO_APP_SECRET }}
           ZALO_OTP_TEMPLATE_ID=${{ secrets.ZALO_OTP_TEMPLATE_ID }}

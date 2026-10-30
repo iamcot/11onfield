@@ -93,6 +93,9 @@ public class Player {
     @Column(length = 200)
     private String club;  // Current football club
 
+    @Column(name = "full_body_photo", length = 500)
+    private String fullBodyPhoto;  // Full-body photo with the background removed
+
     @Column(name = "verified", nullable = false)
     @Builder.Default
     private Boolean verified = false;  // Admin verification status

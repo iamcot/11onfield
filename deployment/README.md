@@ -90,6 +90,10 @@ AWS_SECRET_ACCESS_KEY=your-aws-secret
 AWS_REGION=ap-southeast-1
 AWS_S3_BUCKET=11of
 FRONTEND_URL=https://yourdomain.com:7070
+# Bunny Stream library for highlight videos uploaded by players (any empty = video upload off)
+BUNNY_STREAM_LIBRARY_ID=123456
+BUNNY_STREAM_API_KEY=your-library-api-key
+BUNNY_STREAM_CDN_HOST=vz-xxxxxxxx-xxx.b-cdn.net
 SPRING_PROFILES_ACTIVE=prod
 ```
 
@@ -130,6 +134,8 @@ In your GitHub repository, go to Settings → Secrets and variables → Actions,
 - `AWS_REGION`
 - `AWS_S3_BUCKET`
 - `FRONTEND_URL`
+- `BUNNY_STREAM_LIBRARY_ID`, `BUNNY_STREAM_API_KEY`, `BUNNY_STREAM_CDN_HOST` (Bunny Stream > the library > API: library id,
+  API key and CDN hostname; highlight video upload is hidden while any of them is empty)
 
 **Frontend Secrets:**
 - `NEXT_PUBLIC_API_URL`

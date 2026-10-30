@@ -139,6 +139,11 @@ zalo:
 app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:7070}
+  # Bunny Stream for highlight videos uploaded by players; any empty value = video upload off
+  bunny:
+    library-id: ${BUNNY_STREAM_LIBRARY_ID:}
+    api-key: ${BUNNY_STREAM_API_KEY:}
+    cdn-host: ${BUNNY_STREAM_CDN_HOST:}
 
 logging:
   level:

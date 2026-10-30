@@ -70,6 +70,7 @@ public class UserController {
     private final PlayerAttributeService playerAttributeService;
     private final BackgroundRemovalService backgroundRemovalService;
     private final FeedService feedService;
+    private final com.elevenof.backoffice.service.BunnyStreamService bunnyStreamService;
     private final jakarta.persistence.EntityManager entityManager;
     private final com.elevenof.backoffice.repository.AddressRepository addressRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
@@ -199,55 +200,60 @@ public class UserController {
                     .school(player.getSchool())
                     .academy(player.getAcademy())
                     .club(player.getClub())
-                    .verified(player.getVerified());
+                    .verified(player.getVerified())
+                    .fullBodyPhoto(player.getFullBodyPhoto());
 
                 // Load player attributes with left join (always 6 hexagon attributes)
                 List<PlayerAttributeDTO> attributeDTOs = playerAttributeService.getHexagonAttributesWithValues(player.getId());
                 responseBuilder.attributes(attributeDTOs);
+                responseBuilder.profileStats(playerAttributeService.getProfileStatsWithValues(player.getId()));
 
                 // Load achievements - filter by approval status based on viewer
                 List<UserProfileResponse.AchievementDTO> individualAchs = player.getAchievements().stream()
                     .filter(a -> a.getType() == PlayerAchievement.AchievementType.INDIVIDUAL)
-                    .filter(a -> finalIsOwner || a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.APPROVED)
+                    .filter(a -> finalIsOwner || (a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.APPROVED && !Boolean.TRUE.equals(a.getHidden())))
                     .map(a -> UserProfileResponse.AchievementDTO.builder()
                         .id(a.getId())
                         .title(a.getTitle())
                         .description(a.getDescription())
                         .date(a.getAchievementDate())
                         .approvalStatus(a.getApprovalStatus().name())
+                        .hidden(finalIsOwner ? Boolean.TRUE.equals(a.getHidden()) : null)
                         .build())
                     .toList();
                 responseBuilder.individualAchievements(individualAchs);
 
                 List<UserProfileResponse.AchievementDTO> teamAchs = player.getAchievements().stream()
                     .filter(a -> a.getType() == PlayerAchievement.AchievementType.TEAM)
-                    .filter(a -> finalIsOwner || a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.APPROVED)
+                    .filter(a -> finalIsOwner || (a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.APPROVED && !Boolean.TRUE.equals(a.getHidden())))
                     .map(a -> UserProfileResponse.AchievementDTO.builder()
                         .id(a.getId())
                         .title(a.getTitle())
                         .description(a.getDescription())
                         .date(a.getAchievementDate())
                         .approvalStatus(a.getApprovalStatus().name())
+                        .hidden(finalIsOwner ? Boolean.TRUE.equals(a.getHidden()) : null)
                         .build())
                     .toList();
                 responseBuilder.teamAchievements(teamAchs);
 
                 List<UserProfileResponse.AchievementDTO> participantAchs = player.getAchievements().stream()
                     .filter(a -> a.getType() == PlayerAchievement.AchievementType.PARTICIPANT)
-                    .filter(a -> finalIsOwner || a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.APPROVED)
+                    .filter(a -> finalIsOwner || (a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.APPROVED && !Boolean.TRUE.equals(a.getHidden())))
                     .map(a -> UserProfileResponse.AchievementDTO.builder()
                         .id(a.getId())
                         .title(a.getTitle())
                         .description(a.getDescription())
                         .date(a.getAchievementDate())
                         .approvalStatus(a.getApprovalStatus().name())
+                        .hidden(finalIsOwner ? Boolean.TRUE.equals(a.getHidden()) : null)
                         .build())
                     .toList();
                 responseBuilder.participantAchievements(participantAchs);
 
                 // Load highlights - filter by approval status based on viewer
                 List<UserProfileResponse.HighlightDTO> highlights = player.getHighlights().stream()
-                    .filter(h -> finalIsOwner || h.getApprovalStatus() == PlayerHighlight.ApprovalStatus.APPROVED)
+                    .filter(h -> finalIsOwner || (h.getApprovalStatus() == PlayerHighlight.ApprovalStatus.APPROVED && !Boolean.TRUE.equals(h.getHidden())))
                     .map(h -> UserProfileResponse.HighlightDTO.builder()
                         .id(h.getId())
                         .url(h.getUrl())
@@ -255,6 +261,11 @@ public class UserController {
                         .title(h.getTitle())
                         .date(h.getHighlightDate())
                         .approvalStatus(h.getApprovalStatus().name())
+                        .kind(h.getKind() != null ? h.getKind().name() : "LINK")
+                        .posterUrl(h.getPosterUrl())
+                        .embedUrl(h.getKind() == PlayerHighlight.Kind.VIDEO && h.getVideoId() != null
+                            ? com.elevenof.backoffice.util.BunnyRules.embedUrl(bunnyStreamService.getLibraryId(), h.getVideoId()) : null)
+                        .hidden(finalIsOwner ? Boolean.TRUE.equals(h.getHidden()) : null)
                         .build())
                     .toList();
                 responseBuilder.highlights(highlights);
@@ -474,7 +485,8 @@ public class UserController {
 
             // Update highlights - clear and recreate
             if (request.getHighlights() != null) {
-                player.getHighlights().clear();
+                // Uploaded videos are managed by PlayerMediaController and never come back in this list
+                player.getHighlights().removeIf(h -> h.getKind() != PlayerHighlight.Kind.VIDEO);
                 entityManager.flush(); // Flush delete before insert
                 for (UpdateProfileRequest.HighlightRequest highlightReq : request.getHighlights()) {
                     if (highlightReq.getUrl() != null && !highlightReq.getUrl().trim().isEmpty()) {
@@ -764,6 +776,10 @@ public class UserController {
                 .academyId(player.getAcademyId())
                 .followerCount((int) followerCount)
                 .attributes(attributeDTOs)
+                .profileStats(playerAttributeService.getProfileStatsWithValues(player.getId()))
+                .fullBodyPhoto(player.getFullBodyPhoto())
+                .secondaryPosition(player.getSecondaryPosition())
+                .yearsOfExperience(player.getYearsOfExperience())
                 .build();
         });
 

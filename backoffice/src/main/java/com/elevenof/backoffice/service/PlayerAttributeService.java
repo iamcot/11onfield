@@ -83,6 +83,11 @@ public class PlayerAttributeService {
         return result;
     }
 
+    /** The six profile stats (FIT EXP SKL PRF ACH HLT) shown when a player has no council scores yet. */
+    public List<PlayerAttributeDTO> getProfileStatsWithValues(Long playerId) {
+        return attributeRepository.getProfileStatsWithValues(playerId);
+    }
+
     public Map<String, Integer> getPlayerAttributesAsMap(Long playerId) {
         List<PlayerAttribute> attributes = attributeRepository.findByPlayerId(playerId);
         return attributes.stream()
