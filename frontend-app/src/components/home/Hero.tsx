@@ -113,9 +113,6 @@ export default function Hero({
             <Link href={ctaHref} className="of-btn">
               Đăng ký miễn phí <ArrowRight />
             </Link>
-            <a href="#hanh-trinh" className="of-btn-ghost of-cut">
-              Xem hành trình
-            </a>
           </div>
 
           {cd && (
