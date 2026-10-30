@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import { fmtDateTime } from '@/lib/admin/labels';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
-import { Badge, Button, LinkButton, Loading, Table, Td, useUi } from '@/components/admin/ui';
+import { Badge, Button, ChevronCell, ClickRow, LinkButton, Loading, Table, Td, useUi } from '@/components/admin/ui';
 
 interface News {
   id: number;
@@ -39,9 +39,9 @@ export default function NewsListPage() {
       </CompetitionTabs>
       <Loading error={list.error} loading={list.loading && !list.data} />
       {list.data && (
-        <Table head={['Tin tức', 'Trạng thái', 'Ngày đăng', '']} empty="Chưa có tin tức nào.">
+        <Table head={['Tin tức', 'Trạng thái', 'Ngày đăng', '', '']} empty="Chưa có tin tức nào.">
           {list.data.map((n) => (
-            <tr key={n.id}>
+            <ClickRow key={n.id} href={`/quan-tri/giai-dau/${id}/tin-tuc/${n.id}`}>
               <Td>
                 <div className="flex items-center gap-3">
                   {n.thumbnail ? <img src={n.thumbnail} alt="" className="h-10 w-14 shrink-0 object-cover" /> : <div className="h-10 w-14 shrink-0 bg-[#F3F6F4]" />}
@@ -54,7 +54,6 @@ export default function NewsListPage() {
               <Td><Badge tone={n.status === 'PUBLISHED' ? 'green' : 'gray'}>{n.status === 'PUBLISHED' ? 'Đã đăng' : 'Nháp'}</Badge></Td>
               <Td className="whitespace-nowrap text-[#46564D]">{fmtDateTime(n.publishedAt)}</Td>
               <Td className="whitespace-nowrap text-right">
-                <LinkButton small href={`/quan-tri/giai-dau/${id}/tin-tuc/${n.id}`}>Sửa</LinkButton>{' '}
                 <Button small onClick={() => post(n, 'toggle-featured', n.isFeatured ? 'Đã bỏ nổi bật' : 'Đã đặt nổi bật')}>{n.isFeatured ? 'Bỏ nổi bật' : 'Nổi bật'}</Button>{' '}
                 {n.status === 'PUBLISHED' ? (
                   <Button small variant="danger" onClick={() => post(n, 'unpublish', 'Đã chuyển về nháp')}>Gỡ bài</Button>
@@ -62,7 +61,8 @@ export default function NewsListPage() {
                   <Button small variant="primary" onClick={() => post(n, 'publish', 'Đã đăng bài')}>Đăng</Button>
                 )}
               </Td>
-            </tr>
+              <ChevronCell />
+            </ClickRow>
           ))}
         </Table>
       )}

@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
-import { Badge, Button, LinkButton, Loading, Table, Td, useUi } from '@/components/admin/ui';
+import { Badge, Button, ChevronCell, ClickRow, LinkButton, Loading, Table, Td, useUi } from '@/components/admin/ui';
 
 interface Sponsor {
   id: number;
@@ -46,9 +46,9 @@ export default function SponsorsPage() {
       </CompetitionTabs>
       <Loading error={list.error} loading={list.loading && !list.data} />
       {list.data && (
-        <Table head={['Nhà tài trợ', 'Vị trí quảng cáo', 'Thứ tự', 'Trạng thái', '']} empty="Chưa có nhà tài trợ nào.">
+        <Table head={['Nhà tài trợ', 'Vị trí quảng cáo', 'Thứ tự', 'Trạng thái', '', '']} empty="Chưa có nhà tài trợ nào.">
           {list.data.map((s) => (
-            <tr key={s.id}>
+            <ClickRow key={s.id} href={`/quan-tri/giai-dau/${id}/nha-tai-tro/${s.id}`}>
               <Td>
                 <div className="flex items-center gap-3">
                   {s.logoUrl ? <img src={s.logoUrl} alt="" className="h-10 w-16 shrink-0 bg-white/90 object-contain p-1" /> : <div className="h-10 w-16 shrink-0 bg-[#F3F6F4]" />}
@@ -62,11 +62,11 @@ export default function SponsorsPage() {
               <Td className="tabular-nums">{s.displayOrder}</Td>
               <Td><Badge tone={s.isActive ? 'green' : 'gray'}>{s.isActive ? 'Đang hiện' : 'Đã ẩn'}</Badge></Td>
               <Td className="whitespace-nowrap text-right">
-                <LinkButton small href={`/quan-tri/giai-dau/${id}/nha-tai-tro/${s.id}`}>Sửa</LinkButton>{' '}
                 <Button small onClick={() => toggle(s)}>{s.isActive ? 'Ẩn' : 'Hiện'}</Button>{' '}
                 <Button small variant="danger" onClick={() => remove(s)}>Xoá</Button>
               </Td>
-            </tr>
+              <ChevronCell />
+            </ClickRow>
           ))}
         </Table>
       )}

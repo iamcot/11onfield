@@ -1,7 +1,7 @@
 'use client';
 
 import { api, useApi } from '@/lib/admin/client';
-import { Check, LinkButton, Loading, PageTitle, Table, Td, useUi } from '@/components/admin/ui';
+import { Check, ChevronCell, ClickRow, Loading, PageTitle, Table, Td, useUi } from '@/components/admin/ui';
 
 interface Scenario { id: number; scenarioKey: string; name: string; description: string | null; emailEnabled: boolean; inappEnabled: boolean; znsEnabled: boolean }
 type Flag = 'emailEnabled' | 'inappEnabled' | 'znsEnabled';
@@ -29,7 +29,7 @@ export default function NotificationsPage() {
       {list.data && (
         <Table head={['Tình huống', 'Email', 'Trong ứng dụng', 'Zalo ZNS', '']} empty="Chưa có kịch bản nào.">
           {list.data.map((s) => (
-            <tr key={s.id}>
+            <ClickRow key={s.id} href={`/quan-tri/thong-bao/${s.id}`}>
               <Td>
                 <div className="font-medium">{s.name}</div>
                 {s.description && <div className="text-[12px] text-[#66766D]">{s.description}</div>}
@@ -37,8 +37,8 @@ export default function NotificationsPage() {
               <Td><Check label="" checked={s.emailEnabled} onChange={(v) => toggle(s, 'emailEnabled', v)} /></Td>
               <Td><Check label="" checked={s.inappEnabled} onChange={(v) => toggle(s, 'inappEnabled', v)} /></Td>
               <Td><Check label="" checked={s.znsEnabled} onChange={(v) => toggle(s, 'znsEnabled', v)} /></Td>
-              <Td className="text-right"><LinkButton small href={`/quan-tri/thong-bao/${s.id}`}>Nội dung mẫu</LinkButton></Td>
-            </tr>
+              <ChevronCell />
+            </ClickRow>
           ))}
         </Table>
       )}

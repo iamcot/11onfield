@@ -17,6 +17,7 @@ export const NAV: NavItem[] = [
   { label: 'Tổng quan', href: '/quan-tri', roles: STAFF },
   { label: 'Giải đấu', href: '/quan-tri/giai-dau', roles: [...MANAGERS, 'EDITOR'] },
   { label: 'Chấm điểm', href: '/quan-tri/cham-diem', roles: [...MANAGERS, 'BGK'] },
+  { label: 'Check-in', href: '/quan-tri/check-in', roles: [...STAFF, 'BGK'] },
   { label: 'Cầu thủ', href: '/quan-tri/cau-thu', roles: STAFF, badge: 'unverifiedPlayers' },
   { label: 'Chờ duyệt', href: '/quan-tri/duyet', roles: STAFF, badge: 'pendingApprovals' },
   { label: 'Sự kiện', href: '/quan-tri/su-kien', roles: STAFF },

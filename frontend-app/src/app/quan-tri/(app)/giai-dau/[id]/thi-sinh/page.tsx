@@ -5,10 +5,13 @@ import { useParams } from 'next/navigation';
 import { useApi } from '@/lib/admin/client';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
 import { useIsManager } from '@/components/admin/me';
-import { Badge, Input, Loading, Select, Table, Td } from '@/components/admin/ui';
+import { Badge, ChevronCell, ClickRow, Input, Loading, Select, Table, Td } from '@/components/admin/ui';
 import { fmtDateTime, PARTICIPANT_STATUS, REGIONS } from '@/lib/admin/labels';
 
-interface Contestant { id: number; sbd: number; fullName: string; phone: string | null; status: string; region: string | null; registrationDate: string | null }
+interface Contestant {
+  id: number; sbd: number; playerId: number | null; fullName: string; phone: string | null; status: string; region: string | null; registrationDate: string | null;
+  lastCheckin: { stageTitle: string; stageNumber: number; at: string } | null;
+}
 
 export default function ContestantsPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,18 +58,22 @@ export default function ContestantsPage() {
       </div>
       <Loading error={list.error} loading={list.loading && !list.data} />
       {list.data && (
-        <Table head={['SBD', 'Thí sinh', 'Điện thoại', 'Khu vực', 'Trạng thái', 'Đăng ký lúc']} empty="Không có thí sinh phù hợp.">
+        <Table head={['SBD', 'Thí sinh', 'Điện thoại', 'Khu vực', 'Trạng thái', 'Check-in gần nhất', 'Đăng ký lúc', '']} empty="Không có thí sinh phù hợp.">
           {rows.map((c) => {
             const st = PARTICIPANT_STATUS[c.status];
             return (
-              <tr key={c.id}>
+              <ClickRow key={c.id} href={c.playerId ? `/quan-tri/cau-thu/${c.playerId}?back=${encodeURIComponent(`/quan-tri/giai-dau/${id}/thi-sinh`)}&backLabel=${encodeURIComponent('Danh sách thí sinh')}` : null}>
                 <Td className="tabular-nums">{c.sbd}</Td>
                 <Td className="font-medium">{c.fullName}</Td>
                 <Td className="tabular-nums">{c.phone}</Td>
                 <Td>{c.region ? REGIONS[c.region] || c.region : '—'}</Td>
                 <Td><Badge tone={st?.tone || 'gray'}>{st?.label || c.status}</Badge></Td>
+                <Td className="text-[13px] text-[#46564D]">
+                  {c.lastCheckin ? <><div className="text-[#10231A]">{c.lastCheckin.stageTitle}</div>{fmtDateTime(c.lastCheckin.at)}</> : '—'}
+                </Td>
                 <Td className="text-[13px] text-[#46564D]">{fmtDateTime(c.registrationDate)}</Td>
-              </tr>
+                <ChevronCell show={!!c.playerId} />
+              </ClickRow>
             );
           })}
         </Table>

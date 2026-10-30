@@ -385,6 +385,37 @@ const app: Messages = {
     'Esta traducción es solo orientativa. La versión en vietnamita es la única con validez legal.',
     '이 번역본은 참고용입니다. 법적 효력은 베트남어 원문에 있습니다.',
   ],
+  // QR check-in at regional auditions
+  'Check-in tuyển trạch': ['Trial check-in', 'Check-in de la prueba', '선발전 체크인'],
+  'Thiếu mã check-in. Hãy quét mã QR tại khu vực check-in.': [
+    'Check-in code missing. Scan the QR code at the check-in desk.',
+    'Falta el código de check-in. Escanea el código QR en el punto de check-in.',
+    '체크인 코드가 없습니다. 체크인 구역의 QR 코드를 스캔하세요.',
+  ],
+  'Đã cập nhật check-in': ['Check-in updated', 'Check-in actualizado', '체크인이 업데이트되었습니다'],
+  'Check-in thành công': ['Checked in', 'Check-in completado', '체크인 완료'],
+  'Lúc {time}': ['At {time}', 'A las {time}', '{time}'],
+  'Đưa màn hình này cho ban tổ chức nếu được hỏi.': [
+    'Show this screen to the organisers if asked.',
+    'Muestra esta pantalla a la organización si te la piden.',
+    '요청하면 이 화면을 운영진에게 보여 주세요.',
+  ],
+  'Xem giải đấu': ['View competition', 'Ver competición', '대회 보기'],
+  'Không check-in được': ['Check-in failed', 'No se pudo hacer el check-in', '체크인하지 못했습니다'],
+  'Hãy quét lại mã QR đang hiển thị tại khu vực check-in.': [
+    'Scan the QR code shown at the check-in desk again.',
+    'Vuelve a escanear el código QR que se muestra en el punto de check-in.',
+    '체크인 구역에 표시된 QR 코드를 다시 스캔하세요.',
+  ],
+  'Đang check-in…': ['Checking in…', 'Haciendo check-in…', '체크인 중…'],
+  // messages from the check-in API
+  'Mã check-in không hợp lệ.': ['Invalid check-in code.', 'Código de check-in no válido.', '유효하지 않은 체크인 코드입니다.'],
+  'Vòng này đang đóng check-in.': ['Check-in is closed for this round.', 'El check-in de esta fase está cerrado.', '이 라운드의 체크인이 마감되었습니다.'],
+  'Mã QR đã hết hạn. Hãy quét lại mã đang hiển thị.': [
+    'This QR code has expired. Scan the code on screen again.',
+    'Este código QR ha caducado. Vuelve a escanear el código de la pantalla.',
+    'QR 코드가 만료되었습니다. 화면의 코드를 다시 스캔하세요.',
+  ],
   'Chọn ngôn ngữ': ['Choose language', 'Elige idioma', '언어 선택'],
 };
 

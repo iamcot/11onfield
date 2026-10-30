@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,6 +18,8 @@ import java.util.Optional;
 public interface PlayerRepository extends JpaRepository<Player, Long>, JpaSpecificationExecutor<Player> {
 
     Optional<Player> findByUserId(Long userId);
+
+    List<Player> findByUserIdIn(java.util.Collection<Long> userIds);
 
     /**
      * Find player by user ID with all lazy collections eagerly fetched

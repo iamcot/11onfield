@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // ---- layout ----
 export function PageTitle({ title, children, back }: { title: string; children?: ReactNode; back?: { href: string; label: string } }) {
@@ -112,6 +113,29 @@ export function Table({ head, children, empty }: { head: string[]; children: Rea
     </div>
   );
 }
+/**
+ * A table row that opens `href`. Rule of the admin: every clickable row ends with <ChevronCell />.
+ * Clicks on buttons, links, inputs and switches inside the row keep their own action.
+ */
+export function ClickRow({ href, children, className = '' }: { href?: string | null; children: ReactNode; className?: string }) {
+  const router = useRouter();
+  if (!href) return <tr className={className}>{children}</tr>;
+  return (
+    <tr
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('a,button,input,select,textarea,label,[role=switch]')) return;
+        if (e.metaKey || e.ctrlKey) window.open(href, '_blank');
+        else router.push(href);
+      }}
+      className={`cursor-pointer transition-colors hover:bg-[#F6FAF7] ${className}`}
+    >
+      {children}
+    </tr>
+  );
+}
+export const ChevronCell = ({ show = true }: { show?: boolean }) => (
+  <td className="w-8 px-3 py-2.5 text-right align-middle text-[22px] leading-none text-[#9AA8A0]" aria-hidden="true">{show ? '›' : ''}</td>
+);
 export const Td = ({ children, className = '' }: { children?: ReactNode; className?: string }) => <td className={`px-3 py-2.5 align-middle ${className}`}>{children}</td>;
 
 export function Pagination({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (p: number) => void }) {

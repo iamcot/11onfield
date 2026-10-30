@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { PlayerAttributes } from '@/components/admin/PlayerAttributes';
 import { api, useApi } from '@/lib/admin/client';
 import { LEVELS, POSITIONS } from '@/lib/admin/labels';
 import { useIsManager } from '@/components/admin/me';
-import { Badge, Button, Drawer, Hexagon, Input, LinkButton, Loading, PageTitle, Pagination, Select, Table, Td, Toggle, useUi } from '@/components/admin/ui';
+import { Badge, Button, ChevronCell, ClickRow, Drawer, Hexagon, Input, LinkButton, Loading, PageTitle, Pagination, Select, Table, Td, Toggle, useUi } from '@/components/admin/ui';
 
 interface Row {
   id: number;
@@ -32,7 +32,6 @@ export default function PlayersPage() {
   const { toast, confirm } = useUi();
   const manager = useIsManager();
   const [page, setPage] = useState(0);
-  const router = useRouter();
   const params = useSearchParams();
   const [f, setF] = useState({ search: '', position: '', provinceId: '', level: '', verified: params.get('verified') || '', pending: false, competitionId: '' });
   const [drawer, setDrawer] = useState<Row | null>(null);
@@ -127,10 +126,10 @@ export default function PlayersPage() {
         <>
           <Table head={['Cầu thủ', 'Vị trí', 'Trình độ', 'Tỉnh/thành', 'Giải đấu', 'Xác minh', 'Hoạt động', 'Chỉ số', '']} empty="Không có cầu thủ nào.">
             {list.data.items.map((p) => (
-              <tr
+              <ClickRow
                 key={p.id}
-                onClick={() => router.push(`/quan-tri/cau-thu/${p.id}`)}
-                className={`cursor-pointer transition-colors hover:bg-[#F6FAF7] ${p.enabled ? '' : 'bg-[#FAFAFA] text-[#66766D]'}`}
+                href={`/quan-tri/cau-thu/${p.id}`}
+                className={p.enabled ? '' : 'bg-[#FAFAFA] text-[#66766D]'}
               >
                 <Td>
                   <div className="flex items-center gap-3">
@@ -189,8 +188,8 @@ export default function PlayersPage() {
                     <span className="text-[11px] text-[#66766D]">{KIND[p.attributeKind]}</span>
                   </button>
                 </Td>
-                <Td className="w-8 text-right text-[22px] leading-none text-[#9AA8A0]" aria-hidden="true">›</Td>
-              </tr>
+                <ChevronCell />
+              </ClickRow>
             ))}
           </Table>
           <Pagination page={page} totalPages={list.data.totalPages} onPage={setPage} />

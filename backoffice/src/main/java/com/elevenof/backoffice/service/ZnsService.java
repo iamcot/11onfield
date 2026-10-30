@@ -132,12 +132,13 @@ public class ZnsService {
         ResponseEntity<ZnsTokenResponse> response = restTemplate.postForEntity(
                 OAUTH_TOKEN_URL, request, ZnsTokenResponse.class);
 
-        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+        // Zalo answers 200 with an error body (no token) when the refresh token was already used or revoked.
+        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null && response.getBody().getAccessToken() != null) {
             log.info("Successfully refreshed access token");
             return response.getBody();
         }
 
-        throw new RuntimeException("Failed to refresh access token");
+        throw new RuntimeException("Failed to refresh ZNS access token (refresh token used or revoked; authorize the OA again or set ZNS_RELAY_URL)");
     }
 
     // Get current valid token (auto-refresh if expired)

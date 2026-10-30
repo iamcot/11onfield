@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,6 +28,7 @@ public class CompetitionController {
     private final CompetitionStageRepository stageRepository;
     private final CompetitionNewsRepository newsRepository;
     private final CompetitionSponsorRepository sponsorRepository;
+    private final com.elevenof.backoffice.service.StageCheckinService checkinService;
 
     /**
      * Get current active competition
@@ -48,6 +50,19 @@ public class CompetitionController {
             .map(this::mapToDetailDTO)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** A logged-in player scanned the QR shown at a stage (see StageCheckinService). */
+    @PostMapping("/checkin")
+    public ResponseEntity<?> checkin(@RequestBody Map<String, String> body, Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+            return ResponseEntity.status(401).body(Map.of("message", "Vui lòng đăng nhập để check-in."));
+        }
+        try {
+            return ResponseEntity.ok(checkinService.checkIn(user.getId(), body.get("code")));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     /**

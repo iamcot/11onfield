@@ -44,6 +44,8 @@ public class AdminCompetitionApiController {
     private final CompetitionAssessmentResultService assessmentResultService;
     private final StageResultRepository stageResultRepository;
     private final AdminController legacyAdminController;
+    private final PlayerRepository playerRepository;
+    private final com.elevenof.backoffice.service.StageCheckinService checkinService;
 
     // ==================== COMPETITIONS ====================
 
@@ -229,8 +231,45 @@ public class AdminCompetitionApiController {
     public List<Map<String, Object>> contestants(@PathVariable Long id) {
         List<Map<String, Object>> out = new ArrayList<>();
         List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
-        for (int i = 0; i < all.size(); i++) out.add(contestant(all.get(i), i + 1));
+        Map<Long, Long> playerIds = new HashMap<>();
+        playerRepository.findByUserIdIn(all.stream().map(p -> p.getUser().getId()).toList())
+                .forEach(pl -> playerIds.put(pl.getUser().getId(), pl.getId()));
+        Map<Long, Map<String, Object>> checkins = checkinService.latestByParticipant(id);
+        for (int i = 0; i < all.size(); i++) {
+            Map<String, Object> m = contestant(all.get(i), i + 1);
+            m.put("playerId", playerIds.get(all.get(i).getUser().getId()));
+            m.put("lastCheckin", checkins.get(all.get(i).getId()));
+            out.add(m);
+        }
         return out;
+    }
+
+    // ==================== CHECK-IN (QR) ====================
+
+    private static final String ANY_STAFF = "hasAnyRole('EDITOR', 'BGK', 'ADMIN', 'SUPER_USER')";
+
+    @GetMapping("/checkin/stages")
+    @PreAuthorize(ANY_STAFF)
+    public List<Map<String, Object>> checkinStages() {
+        return checkinService.stages();
+    }
+
+    /** Polled by the check-in screen: current QR (null when closed) and who checked in. */
+    @GetMapping("/checkin/stages/{stageId}")
+    @PreAuthorize(ANY_STAFF)
+    public Map<String, Object> checkinStage(@PathVariable Long stageId) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("qr", checkinService.currentCode(stageId));
+        out.put("windowSeconds", com.elevenof.backoffice.service.StageCheckinService.WINDOW_SECONDS);
+        out.put("checkins", checkinService.checkins(stageId));
+        return out;
+    }
+
+    @PostMapping("/checkin/stages/{stageId}/{action:open|close}")
+    @PreAuthorize(MANAGER)
+    public Map<String, String> checkinOpen(@PathVariable Long stageId, @PathVariable String action) {
+        checkinService.setOpen(stageId, "open".equals(action));
+        return Map.of("message", "open".equals(action) ? "Đã mở check-in" : "Đã đóng check-in");
     }
 
     private Map<String, Object> contestant(CompetitionParticipant p, int sbd) {

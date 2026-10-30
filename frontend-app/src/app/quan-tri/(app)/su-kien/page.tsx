@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { api, useApi } from '@/lib/admin/client';
 import { EVENT_STATUS, fmtDate } from '@/lib/admin/labels';
-import { Badge, Button, Input, LinkButton, Loading, PageTitle, Pagination, Select, Table, Td, useUi } from '@/components/admin/ui';
+import { Badge, Button, ChevronCell, ClickRow, Input, LinkButton, Loading, PageTitle, Pagination, Select, Table, Td, useUi } from '@/components/admin/ui';
 
 interface EventRow {
   id: number;
@@ -73,9 +73,9 @@ export default function EventsPage() {
       <Loading error={list.error} loading={list.loading && !list.data} />
       {list.data && (
         <>
-          <Table head={['Sự kiện', 'Thời gian', 'Địa điểm', 'Trạng thái', 'Tham gia', '']} empty="Không có sự kiện nào.">
+          <Table head={['Sự kiện', 'Thời gian', 'Địa điểm', 'Trạng thái', 'Tham gia', '', '']} empty="Không có sự kiện nào.">
             {list.data.items.map((e) => (
-              <tr key={e.id}>
+              <ClickRow key={e.id} href={`/quan-tri/su-kien/${e.id}`}>
                 <Td>
                   <div className="flex items-center gap-3">
                     {e.picture ? <img src={e.picture} alt="" className="h-10 w-14 shrink-0 object-cover" /> : <div className="h-10 w-14 shrink-0 bg-[#F3F6F4]" />}
@@ -87,10 +87,10 @@ export default function EventsPage() {
                 <Td><Badge tone={EVENT_STATUS[e.status]?.tone}>{EVENT_STATUS[e.status]?.label || e.status}</Badge></Td>
                 <Td className="tabular-nums">{e.participantCount}</Td>
                 <Td className="whitespace-nowrap text-right">
-                  <LinkButton small href={`/quan-tri/su-kien/${e.id}`}>Sửa</LinkButton>{' '}
                   <Button small variant={e.status === 'DELETED' ? 'ghost' : 'danger'} onClick={() => act(e)}>{e.status === 'DELETED' ? 'Khôi phục' : 'Xoá'}</Button>
                 </Td>
-              </tr>
+                <ChevronCell />
+              </ClickRow>
             ))}
           </Table>
           <Pagination page={page} totalPages={list.data.totalPages} onPage={setPage} />

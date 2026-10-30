@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { api, uploadImage, useApi } from '@/lib/admin/client';
 import RichText from '@/components/admin/RichText';
 import { sanitizeHtml, textToHtml } from '@/lib/sanitize-html';
@@ -28,6 +28,10 @@ const txt = (v: unknown) => (v == null ? '' : String(v));
 export default function PlayerEditPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  // Opened from another list (e.g. a competition's contestants): go back there.
+  const search = useSearchParams();
+  const backHref = search.get('back')?.startsWith('/quan-tri/') ? search.get('back')! : '/quan-tri/cau-thu';
+  const backLabel = backHref === '/quan-tri/cau-thu' ? 'Danh sách cầu thủ' : search.get('backLabel') || 'Quay lại';
   const { toast } = useUi();
   const manager = useIsManager();
   const provinces = useApi<{ id: number; name: string }[]>('provinces');
@@ -133,7 +137,7 @@ export default function PlayerEditPage() {
 
   return (
     <>
-      <PageTitle title={p?.fullName || 'Cầu thủ'} back={{ href: '/quan-tri/cau-thu', label: 'Danh sách cầu thủ' }}>
+      <PageTitle title={p?.fullName || 'Cầu thủ'} back={{ href: backHref, label: backLabel }}>
         {p && (
           <span className="flex items-center gap-2 rounded-md border border-[#DCE5DF] bg-white px-3 py-1.5 text-[14px]">
             <Toggle label="Đã xác minh" checked={verified} disabled={!manager} onChange={setVerified} />
