@@ -161,6 +161,25 @@ public class CompetitionAssessmentController {
     /**
      * Delete assessment day (cascade deletes everything under it)
      */
+    @PutMapping("/assessment-days/{dayId}")
+    public ResponseEntity<CompetitionAssessmentDay> updateAssessmentDay(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
+                                                                        @PathVariable Long dayId, @RequestBody AssessmentDayRequest request) {
+        return ResponseEntity.ok(structureService.updateAssessmentDay(dayId, request.getTitle(), request.getDescription(), request.getAssessmentDate()));
+    }
+
+    @PutMapping("/assessment-steps/{stepId}")
+    public ResponseEntity<CompetitionAssessmentStep> updateAssessmentStep(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
+                                                                          @PathVariable Long stepId, @RequestBody AssessmentStepRequest request) {
+        return ResponseEntity.ok(structureService.updateAssessmentStep(stepId, request.getTitle(), request.getDescription(), request.getHasRatingScale()));
+    }
+
+    @PutMapping("/assessments/{assessmentId}")
+    public ResponseEntity<CompetitionAssessment> updateAssessment(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
+                                                                  @PathVariable Long assessmentId, @RequestBody AssessmentRequest request) {
+        return ResponseEntity.ok(structureService.updateAssessment(assessmentId, request.getTitle(), request.getDescription(),
+            request.getUnit(), request.getAttemptsCount(), request.getScoringMethod()));
+    }
+
     @DeleteMapping("/assessment-days/{dayId}")
     public ResponseEntity<Void> deleteAssessmentDay(
             @PathVariable Long competitionId,

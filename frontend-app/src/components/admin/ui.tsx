@@ -189,3 +189,66 @@ export function Modal({ title, onClose, children, wide }: { title: string; onClo
     </div>
   );
 }
+
+/** Right-side panel at half the screen width (full width on phones). */
+export function Drawer({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-[55] flex justify-end bg-black/40" onClick={onClose}>
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="flex h-full w-full flex-col bg-[#F2F6F3] shadow-2xl md:w-1/2 md:min-w-[560px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-[#DCE5DF] bg-white px-5 py-3">
+          <h2 className="text-[16px] font-semibold">{title}</h2>
+          <button type="button" aria-label="Đóng" className="text-[26px] leading-none text-[#46564D] hover:text-[#10231A]" onClick={onClose}>×</button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5">{children}</div>
+      </aside>
+    </div>
+  );
+}
+
+/** On/off switch. */
+export function Toggle({ checked, onChange, disabled, label }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; label: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={(e) => { e.stopPropagation(); onChange(!checked); }}
+      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${checked ? 'bg-[#1F7A3A]' : 'bg-[#C9D5CD]'}`}
+    >
+      <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[22px]' : 'translate-x-[2px]'}`} />
+    </button>
+  );
+}
+
+/** Small radar chart of the hexagon attributes (values 0–100). */
+export function Hexagon({ items, size = 64 }: { items: { key: string; name: string; value: number }[]; size?: number }) {
+  const n = items.length;
+  if (n < 3) return <span className="text-[12px] text-[#66766D]">—</span>;
+  const c = size / 2;
+  const r = c - 4;
+  const pt = (i: number, k: number) => {
+    const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
+    return `${(c + Math.cos(a) * r * k).toFixed(1)},${(c + Math.sin(a) * r * k).toFixed(1)}`;
+  };
+  const ring = (k: number) => items.map((_, i) => pt(i, k)).join(' ');
+  const shape = items.map((it, i) => pt(i, Math.max(0, Math.min(100, it.value)) / 100)).join(' ');
+  const avg = Math.round(items.reduce((s, it) => s + it.value, 0) / n);
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Chỉ số: ${items.map((it) => `${it.name} ${it.value}`).join(', ')}`}>
+      <title>{items.map((it) => `${it.name}: ${it.value}`).join('\n')}</title>
+      <polygon points={ring(1)} fill="#F3F6F4" stroke="#C9D5CD" />
+      <polygon points={ring(0.5)} fill="none" stroke="#DCE5DF" />
+      <polygon points={shape} fill="rgba(166,227,90,0.55)" stroke="#1F7A3A" strokeWidth="1.5" />
+      <text x={c} y={c + 4} textAnchor="middle" fontSize="11" fontWeight="700" fill="#0F3324">{avg}</text>
+    </svg>
+  );
+}

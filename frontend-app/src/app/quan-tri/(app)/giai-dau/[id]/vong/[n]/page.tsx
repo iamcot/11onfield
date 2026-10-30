@@ -8,16 +8,16 @@ import { useIsManager } from '@/components/admin/me';
 import { Badge, Button, Card, Check, Field, Input, LinkButton, Loading, Modal, Select, Textarea, useUi } from '@/components/admin/ui';
 
 interface Assessment { id: number; assessmentNumber: number; title: string; unit: string | null; attemptsCount: number; scoringMethod: string }
-interface Step { id: number; stepNumber: number; title: string; hasRatingScale: boolean; assessments: Assessment[] }
+interface Step { id: number; stepNumber: number; title: string; description: string | null; hasRatingScale: boolean; assessments: Assessment[] }
 interface Day { id: number; dayNumber: number; title: string; description: string | null; assessmentDate: string | null; assessmentSteps: Step[] }
 interface Level { level: number; thresholdType: 'EXACT' | 'RANGE'; thresholdValue: string; rangeMin: string; rangeMax: string; description: string }
 
 const METHODS: Record<string, string> = { BEST_OF: 'Lấy lần tốt nhất', SUM: 'Cộng các lần', AVERAGE: 'Trung bình các lần' };
 
 type Dialog =
-  | { kind: 'day'; form: { title: string; description: string; assessmentDate: string } }
-  | { kind: 'step'; dayId: number; form: { title: string; description: string; hasRatingScale: boolean } }
-  | { kind: 'assessment'; stepId: number; form: { title: string; unit: string; attemptsCount: string; scoringMethod: string } }
+  | { kind: 'day'; id?: number; form: { title: string; description: string; assessmentDate: string } }
+  | { kind: 'step'; id?: number; dayId: number; form: { title: string; description: string; hasRatingScale: boolean } }
+  | { kind: 'assessment'; id?: number; stepId: number; form: { title: string; unit: string; attemptsCount: string; scoringMethod: string } }
   | { kind: 'rating'; stepId: number; title: string; levels: Level[] }
   | { kind: 'copy'; sources: { stageNumber: number; title: string }[]; from: string };
 
@@ -76,17 +76,20 @@ export default function StructurePage() {
     if (dialog.kind === 'day') {
       const f = dialog.form;
       if (!f.title.trim()) return toast('Cần nhập tên ngày thi', 'error');
+      if (dialog.id) return run(() => api(`${base}/assessment-days/${dialog.id}`, { method: 'PUT', body: { title: f.title, description: f.description || null, assessmentDate: f.assessmentDate || null } }), 'Đã lưu ngày thi');
       const dayNumber = Math.max(0, ...(days.data || []).map((d) => d.dayNumber)) + 1;
       run(() => api(`${base}/assessment-days`, { body: { dayNumber, title: f.title, description: f.description || null, assessmentDate: f.assessmentDate || null, displayOrder: dayNumber } }), 'Đã thêm ngày thi');
     } else if (dialog.kind === 'step') {
       const f = dialog.form;
       if (!f.title.trim()) return toast('Cần nhập tên bước', 'error');
+      if (dialog.id) return run(() => api(`${base}/assessment-steps/${dialog.id}`, { method: 'PUT', body: { title: f.title, description: f.description || null, hasRatingScale: f.hasRatingScale } }), 'Đã lưu bước');
       const day = days.data?.find((d) => d.id === dialog.dayId);
       const stepNumber = Math.max(0, ...(day?.assessmentSteps || []).map((s) => s.stepNumber)) + 1;
       run(() => api(`${base}/assessment-days/${dialog.dayId}/steps`, { body: { stepNumber, title: f.title, description: f.description || null, hasRatingScale: f.hasRatingScale, displayOrder: stepNumber } }), 'Đã thêm bước');
     } else if (dialog.kind === 'assessment') {
       const f = dialog.form;
       if (!f.title.trim()) return toast('Cần nhập tên bài thi', 'error');
+      if (dialog.id) return run(() => api(`${base}/assessments/${dialog.id}`, { method: 'PUT', body: { title: f.title, unit: f.unit || null, attemptsCount: Math.max(1, Number(f.attemptsCount) || 1), scoringMethod: f.scoringMethod } }), 'Đã lưu bài thi');
       const step = days.data?.flatMap((d) => d.assessmentSteps).find((s) => s.id === dialog.stepId);
       const assessmentNumber = Math.max(0, ...(step?.assessments || []).map((a) => a.assessmentNumber)) + 1;
       run(() => api(`${base}/assessment-steps/${dialog.stepId}/assessments`, { body: { assessmentNumber, title: f.title, unit: f.unit || null, attemptsCount: Math.max(1, Number(f.attemptsCount) || 1), scoringMethod: f.scoringMethod, displayOrder: assessmentNumber } }), 'Đã thêm bài thi');
@@ -135,6 +138,7 @@ export default function StructurePage() {
               </div>
               {manager && (
                 <div className="flex gap-2">
+                  <Button small onClick={() => setDialog({ kind: 'day', id: d.id, form: { title: d.title, description: d.description || '', assessmentDate: d.assessmentDate || '' } })}>Sửa</Button>
                   <Button small onClick={() => setDialog({ kind: 'step', dayId: d.id, form: { title: '', description: '', hasRatingScale: true } })}>+ Bước</Button>
                   <Button small variant="danger" onClick={() => remove(`assessment-days/${d.id}`, `Xoá ngày “${d.title}” và mọi bước, bài thi, điểm bên trong?`)}>Xoá</Button>
                 </div>
@@ -150,6 +154,7 @@ export default function StructurePage() {
                     </div>
                     <div className="flex gap-2">
                       {s.hasRatingScale && <Button small onClick={() => openRating(s)}>{manager ? 'Thang điểm' : 'Xem thang điểm'}</Button>}
+                      {manager && <Button small onClick={() => setDialog({ kind: 'step', id: s.id, dayId: d.id, form: { title: s.title, description: s.description || '', hasRatingScale: s.hasRatingScale } })}>Sửa</Button>}
                       {manager && <Button small onClick={() => setDialog({ kind: 'assessment', stepId: s.id, form: { title: '', unit: '', attemptsCount: '1', scoringMethod: 'BEST_OF' } })}>+ Bài thi</Button>}
                       {manager && <Button small variant="danger" onClick={() => remove(`assessment-steps/${s.id}`, `Xoá bước “${s.title}” và mọi bài thi, điểm bên trong?`)}>Xoá</Button>}
                     </div>
@@ -158,7 +163,12 @@ export default function StructurePage() {
                     {s.assessments.map((a) => (
                       <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
                         <span>{a.assessmentNumber}. {a.title}{a.unit ? ` (${a.unit})` : ''} <span className="text-[12px] text-[#66766D]">· {a.attemptsCount} lượt · {METHODS[a.scoringMethod] || a.scoringMethod}</span></span>
-                        {manager && <Button small variant="danger" onClick={() => remove(`assessments/${a.id}`, `Xoá bài thi “${a.title}” và điểm đã nhập?`)}>Xoá</Button>}
+                        {manager && (
+                          <span className="flex gap-2">
+                            <Button small onClick={() => setDialog({ kind: 'assessment', id: a.id, stepId: s.id, form: { title: a.title, unit: a.unit || '', attemptsCount: String(a.attemptsCount), scoringMethod: a.scoringMethod } })}>Sửa</Button>
+                        <Button small variant="danger" onClick={() => remove(`assessments/${a.id}`, `Xoá bài thi “${a.title}” và điểm đã nhập?`)}>Xoá</Button>
+                          </span>
+                        )}
                       </li>
                     ))}
                     {s.assessments.length === 0 && <li className="py-1.5 text-[#66766D]">Chưa có bài thi.</li>}
@@ -172,7 +182,7 @@ export default function StructurePage() {
       </div>
 
       {dialog && (
-        <Modal title={{ day: 'Thêm ngày thi', step: 'Thêm bước', assessment: 'Thêm bài thi', rating: 'Thang điểm', copy: 'Sao chép cấu trúc' }[dialog.kind]} wide={dialog.kind === 'rating'} onClose={() => setDialog(null)}>
+        <Modal title={'id' in dialog && dialog.id ? { day: 'Sửa ngày thi', step: 'Sửa bước', assessment: 'Sửa bài thi', rating: '', copy: '' }[dialog.kind] : { day: 'Thêm ngày thi', step: 'Thêm bước', assessment: 'Thêm bài thi', rating: 'Thang điểm', copy: 'Sao chép cấu trúc' }[dialog.kind]} wide={dialog.kind === 'rating'} onClose={() => setDialog(null)}>
           <div className="space-y-4">
             {dialog.kind === 'day' && (
               <>

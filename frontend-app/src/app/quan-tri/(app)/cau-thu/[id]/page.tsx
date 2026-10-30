@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { api, useApi } from '@/lib/admin/client';
+import { api, uploadImage, useApi } from '@/lib/admin/client';
+import RichText from '@/components/admin/RichText';
+import { sanitizeHtml, textToHtml } from '@/lib/sanitize-html';
 import { ACHIEVEMENT_TYPES, APPROVAL, FEET, LEVELS, POSITIONS, fmtDate } from '@/lib/admin/labels';
 import { useIsManager } from '@/components/admin/me';
-import { Badge, Button, Card, Check, Field, Input, LinkButton, Loading, PageTitle, Select, Textarea, useUi } from '@/components/admin/ui';
+import { Badge, Button, Card, Field, Input, LinkButton, Loading, PageTitle, Select, Toggle, useUi } from '@/components/admin/ui';
 
 interface Item {
   id?: number;
@@ -36,6 +38,9 @@ export default function PlayerEditPage() {
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [socials, setSocials] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [tab, setTab] = useState<'info' | 'media'>('info');
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const p = detail.data;
@@ -98,83 +103,119 @@ export default function PlayerEditPage() {
       </div>
     ) : null;
 
+  async function pickAvatar(file?: File) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      set('avatar')(await uploadImage('avatar', file));
+      toast('Đã tải ảnh lên, bấm Lưu hồ sơ để áp dụng');
+    } catch (e) {
+      toast((e as Error).message, 'error');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }
+
+  const select = (k: string, label: string, options: Record<string, string>) => (
+    <Field label={label}>
+      <Select value={f[k] ?? ''} onChange={(e) => set(k)(e.target.value)} disabled={!manager}>
+        <option value="">—</option>
+        {Object.entries(options).map(([key, v]) => <option key={key} value={key}>{v}</option>)}
+      </Select>
+    </Field>
+  );
+
   const p = detail.data;
+  const pending = achievements.filter((a) => a.status === 'PENDING').length + highlights.filter((h) => h.status === 'PENDING').length;
+  const ready = f.fullName !== undefined;
+  const tabCls = (on: boolean) => `flex items-center gap-2 px-4 py-2.5 text-[14px] ${on ? 'border-b-2 border-[#1F7A3A] font-semibold text-[#1F6B32]' : 'text-[#46564D] hover:text-[#10231A]'}`;
+
   return (
     <>
       <PageTitle title={p?.fullName || 'Cầu thủ'} back={{ href: '/quan-tri/cau-thu', label: 'Danh sách cầu thủ' }}>
-        {p && <LinkButton href={`/profile/${p.userid}`}>Xem trang công khai</LinkButton>}
+        {p && (
+          <span className="flex items-center gap-2 rounded-md border border-[#DCE5DF] bg-white px-3 py-1.5 text-[14px]">
+            <Toggle label="Đã xác minh" checked={verified} disabled={!manager} onChange={setVerified} />
+            {verified ? 'Đã xác minh' : 'Chưa xác minh'}
+          </span>
+        )}
+        {p && <LinkButton href={`/profile/${p.userid}`}>Trang công khai</LinkButton>}
         <LinkButton href={`/quan-tri/cau-thu/${id}/chi-so`}>Chỉ số</LinkButton>
+        {manager && <Button variant="primary" disabled={saving || !ready} onClick={save}>{saving ? 'Đang lưu…' : 'Lưu hồ sơ'}</Button>}
       </PageTitle>
       <Loading error={detail.error} loading={detail.loading && !p} />
-      {p && (
+      {p && ready && (
         <div className="space-y-4">
-          {!manager && <p className="border border-[#E9CF95] bg-[#FDF6E7] px-3 py-2 text-[14px] text-[#8A5A00]">Bạn chỉ có quyền xem hồ sơ và duyệt thành tích, highlight.</p>}
+          {!manager && <p className="rounded-md border border-[#E9CF95] bg-[#FDF6E7] px-3 py-2 text-[14px] text-[#8A5A00]">Bạn chỉ có quyền xem hồ sơ và duyệt thành tích, highlight.</p>}
 
-          <Card title="Thông tin cơ bản">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {field('fullName', 'Họ tên')}
-              {field('phone', 'Số điện thoại')}
-              {field('email', 'Email', { type: 'email' })}
-              {field('dob', 'Ngày sinh', { type: 'date' })}
-              <Field label="Giới tính">
-                <Select value={f.gender ?? ''} onChange={(e) => set('gender')(e.target.value)} disabled={!manager}>
-                  <option value="">—</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option>
-                </Select>
-              </Field>
-              <Field label="Tỉnh/thành">
-                <Select value={f.provinceId ?? ''} onChange={(e) => set('provinceId')(e.target.value)} disabled={!manager}>
-                  <option value="">—</option>
-                  {provinces.data?.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-                </Select>
-              </Field>
-              {field('personalId', 'CCCD / định danh')}
-              {field('address', 'Địa chỉ thường trú')}
-              <div className="flex items-end gap-3">
-                {f.avatar && <img src={f.avatar} alt="" className="h-10 w-10 rounded-full object-cover" />}
-                <div className="flex-1">{field('avatar', 'Ảnh đại diện (URL)')}</div>
-              </div>
+          <nav className="flex gap-1 border-b border-[#DCE5DF]" role="tablist">
+            <button type="button" role="tab" aria-selected={tab === 'info'} className={tabCls(tab === 'info')} onClick={() => setTab('info')}>Thông tin</button>
+            <button type="button" role="tab" aria-selected={tab === 'media'} className={tabCls(tab === 'media')} onClick={() => setTab('media')}>
+              Thành tích, highlight, MXH
+              {pending > 0 && <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#E8590C] px-1.5 text-[11px] font-bold text-white">{pending}</span>}
+            </button>
+          </nav>
+
+          {/* Both tabs stay mounted so the rich-text editor keeps its content when switching. */}
+          <div className={tab === 'info' ? 'space-y-4' : 'hidden'}>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <Card title="Thông tin cơ bản">
+                <div className="mb-5 flex flex-col items-center gap-3 sm:flex-row sm:items-end">
+                  <div className="h-40 w-40 shrink-0 overflow-hidden rounded-2xl border border-[#DCE5DF] bg-[#F3F6F4]">
+                    {f.avatar ? <img src={f.avatar} alt="Ảnh đại diện" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[13px] text-[#66766D]">Chưa có ảnh</div>}
+                  </div>
+                  {manager && (
+                    <div className="flex flex-col gap-2">
+                      <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pickAvatar(e.target.files?.[0])} />
+                      <Button disabled={uploading} onClick={() => fileRef.current?.click()}>{uploading ? 'Đang tải lên…' : 'Tải ảnh lên'}</Button>
+                      {f.avatar && <Button small variant="danger" onClick={() => set('avatar')('')}>Bỏ ảnh</Button>}
+                    </div>
+                  )}
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {field('fullName', 'Họ tên')}
+                  {field('phone', 'Số điện thoại')}
+                  {field('email', 'Email', { type: 'email' })}
+                  {field('dob', 'Ngày sinh', { type: 'date' })}
+                  {select('gender', 'Giới tính', { MALE: 'Nam', FEMALE: 'Nữ', OTHER: 'Khác' })}
+                  <Field label="Tỉnh/thành">
+                    <Select value={f.provinceId ?? ''} onChange={(e) => set('provinceId')(e.target.value)} disabled={!manager}>
+                      <option value="">—</option>
+                      {provinces.data?.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                    </Select>
+                  </Field>
+                  {field('personalId', 'CCCD / định danh')}
+                  {field('address', 'Địa chỉ thường trú')}
+                </div>
+              </Card>
+
+              <Card title="Thông tin cầu thủ">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {field('height', 'Chiều cao (cm)', { type: 'number' })}
+                  {field('weight', 'Cân nặng (kg)', { type: 'number' })}
+                  {select('preferredFoot', 'Chân thuận', FEET)}
+                  {field('yearsOfExperience', 'Số năm kinh nghiệm', { type: 'number' })}
+                  {select('positions', 'Vị trí chính', POSITIONS)}
+                  {select('secondaryPosition', 'Vị trí phụ', POSITIONS)}
+                  {select('level', 'Trình độ', LEVELS)}
+                  {field('club', 'CLB hiện tại')}
+                  {field('school', 'Trường')}
+                  {field('academy', 'Học viện')}
+                </div>
+              </Card>
             </div>
-          </Card>
 
-          <Card title="Thông tin bóng đá">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {field('height', 'Chiều cao (cm)', { type: 'number' })}
-              {field('weight', 'Cân nặng (kg)', { type: 'number' })}
-              <Field label="Chân thuận">
-                <Select value={f.preferredFoot ?? ''} onChange={(e) => set('preferredFoot')(e.target.value)} disabled={!manager}>
-                  <option value="">—</option>
-                  {Object.entries(FEET).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </Select>
-              </Field>
-              {field('yearsOfExperience', 'Số năm kinh nghiệm', { type: 'number' })}
-              <Field label="Vị trí chính">
-                <Select value={f.positions ?? ''} onChange={(e) => set('positions')(e.target.value)} disabled={!manager}>
-                  <option value="">—</option>
-                  {Object.entries(POSITIONS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </Select>
-              </Field>
-              <Field label="Vị trí phụ">
-                <Select value={f.secondaryPosition ?? ''} onChange={(e) => set('secondaryPosition')(e.target.value)} disabled={!manager}>
-                  <option value="">—</option>
-                  {Object.entries(POSITIONS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </Select>
-              </Field>
-              <Field label="Trình độ">
-                <Select value={f.level ?? ''} onChange={(e) => set('level')(e.target.value)} disabled={!manager}>
-                  <option value="">—</option>
-                  {Object.entries(LEVELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </Select>
-              </Field>
-              {field('school', 'Trường')}
-              {field('academy', 'Học viện')}
-              {field('club', 'CLB hiện tại')}
-            </div>
-            <Field label="Giới thiệu" className="mt-3">
-              <Textarea rows={4} value={f.bio ?? ''} onChange={(e) => set('bio')(e.target.value)} disabled={!manager} />
-            </Field>
-            <div className="mt-3"><Check label="Đã xác minh" checked={verified} onChange={(v) => manager && setVerified(v)} /></div>
-          </Card>
+            <Card title="Giới thiệu">
+              {manager ? (
+                <RichText key={p.id} value={textToHtml(f.bio ?? '')} imageType="news" height={260} simple onChange={(html) => set('bio')(html)} />
+              ) : (
+                <div className="text-[14px] [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc" dangerouslySetInnerHTML={{ __html: f.bio ? sanitizeHtml(f.bio) : '<p>—</p>' }} />
+              )}
+            </Card>
+          </div>
 
+          <div className={tab === 'media' ? 'space-y-4' : 'hidden'}>
           <Card title="Thành tích">
             <div className="space-y-2">
               {achievements.length === 0 && <p className="text-[14px] text-[#66766D]">Chưa có thành tích.</p>}
@@ -221,13 +262,8 @@ export default function PlayerEditPage() {
             </div>
           </Card>
 
-          {manager && (
-            <div className="flex gap-2">
-              <Button variant="primary" disabled={saving} onClick={save}>{saving ? 'Đang lưu…' : 'Lưu hồ sơ'}</Button>
-              <Button onClick={() => router.push('/quan-tri/cau-thu')}>Quay lại</Button>
-            </div>
-          )}
           <p className="text-[12px] text-[#66766D]">Khi lưu, thành tích và highlight giữ nguyên trạng thái duyệt nếu nội dung không đổi; mục mới hoặc đã sửa sẽ chờ duyệt.</p>
+          </div>
         </div>
       )}
     </>

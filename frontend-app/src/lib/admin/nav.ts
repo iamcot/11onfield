@@ -6,6 +6,8 @@ export interface NavItem {
   href?: string;
   legacy?: string;
   roles: AdminRole[];
+  /** Key of the count from /badges shown next to the item. */
+  badge?: 'pendingApprovals' | 'unverifiedPlayers';
 }
 
 const STAFF: AdminRole[] = ['EDITOR', 'ADMIN', 'SUPER_USER'];
@@ -15,11 +17,10 @@ export const NAV: NavItem[] = [
   { label: 'Tổng quan', href: '/quan-tri', roles: STAFF },
   { label: 'Giải đấu', href: '/quan-tri/giai-dau', roles: [...MANAGERS, 'EDITOR'] },
   { label: 'Chấm điểm', href: '/quan-tri/cham-diem', roles: [...MANAGERS, 'BGK'] },
-  { label: 'Cầu thủ', href: '/quan-tri/cau-thu', roles: STAFF },
-  { label: 'Chờ duyệt', href: '/quan-tri/duyet', roles: STAFF },
+  { label: 'Cầu thủ', href: '/quan-tri/cau-thu', roles: STAFF, badge: 'unverifiedPlayers' },
+  { label: 'Chờ duyệt', href: '/quan-tri/duyet', roles: STAFF, badge: 'pendingApprovals' },
   { label: 'Sự kiện', href: '/quan-tri/su-kien', roles: STAFF },
   { label: 'Loại chỉ số', href: '/quan-tri/loai-chi-so', roles: MANAGERS },
   { label: 'Thông báo', href: '/quan-tri/thong-bao', roles: MANAGERS },
-  { label: 'Zalo ZNS', href: '/quan-tri/zns', roles: MANAGERS },
   { label: 'Tài khoản', href: '/quan-tri/tai-khoan', roles: ['SUPER_USER'] },
 ];

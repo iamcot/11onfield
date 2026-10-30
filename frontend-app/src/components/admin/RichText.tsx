@@ -19,11 +19,14 @@ export default function RichText({
   onChange,
   imageType,
   height = 380,
+  simple = false,
 }: {
   value: string;
   onChange: (html: string) => void;
-  imageType: 'event' | 'news';
+  imageType: 'event' | 'news' | 'avatar';
   height?: number;
+  /** Text formatting only (no images, tables or source view). */
+  simple?: boolean;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const editorRef = useRef<any>(null);
@@ -37,10 +40,11 @@ export default function RichText({
       target: ref.current,
       height,
       menubar: false,
-      skin: 'oxide-dark',
-      content_css: 'dark',
-      plugins: 'lists link image table code autoresize',
-      toolbar: 'undo redo | blocks | bold italic underline | bullist numlist | link image table | code',
+      skin: 'oxide',
+      content_css: 'default',
+      content_style: 'body{font-family:system-ui,sans-serif;font-size:15px;color:#10231A}',
+      plugins: simple ? 'lists link autoresize' : 'lists link image table code autoresize',
+      toolbar: simple ? 'undo redo | bold italic underline | bullist numlist | link' : 'undo redo | blocks | bold italic underline | bullist numlist | link image table | code',
       images_upload_handler: async (blob: any) => uploadImage(imageType, new File([blob.blob()], blob.filename(), { type: blob.blob().type })),
       setup: (ed: any) => {
         editorRef.current = ed;

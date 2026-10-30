@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import { Button, Card, Check, Field, Input, Loading, PageTitle, Textarea, useUi } from '@/components/admin/ui';
 import { CHANNELS } from '@/lib/admin/labels';
+import RichText from '@/components/admin/RichText';
 
 interface Template { id: number; channel: string; subject: string | null; bodyTemplate: string; variables: string | null; active: boolean }
 
@@ -32,7 +33,11 @@ function TemplateCard({ t }: { t: Template }) {
       <div className="space-y-4">
         <Field label="Tiêu đề"><Input value={f.subject} onChange={(e) => setF({ ...f, subject: e.target.value })} /></Field>
         <Field label="Nội dung" hint={vars.length ? `Biến có thể dùng: ${vars.map((v) => `{{${v}}}`).join(' ')}` : 'Dùng {{tenBien}} để chèn dữ liệu'}>
-          <Textarea rows={8} value={f.bodyTemplate} onChange={(e) => setF({ ...f, bodyTemplate: e.target.value })} />
+          {t.channel === 'EMAIL' ? (
+            <RichText value={f.bodyTemplate} imageType="news" height={360} onChange={(html) => setF((x) => ({ ...x, bodyTemplate: html }))} />
+          ) : (
+            <Textarea rows={8} value={f.bodyTemplate} onChange={(e) => setF({ ...f, bodyTemplate: e.target.value })} />
+          )}
         </Field>
         <Check label="Đang sử dụng" checked={f.active} onChange={(v) => setF({ ...f, active: v })} />
         <Button variant="primary" disabled={saving} onClick={save}>{saving ? 'Đang lưu…' : 'Lưu'}</Button>

@@ -72,6 +72,7 @@ public class AdminPlayerApiController {
     private final PlayerAttributeService attributeService;
     private final PlayerAttributeTypeService attributeTypeService;
     private final ApplicationEventPublisher eventPublisher;
+    private final com.elevenof.backoffice.repository.CompetitionParticipantRepository participantRepository;
 
     private static ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("message", message));
@@ -89,6 +90,22 @@ public class AdminPlayerApiController {
         }
     }
 
+    // ==================== BADGES ====================
+
+    /** Counts for the sidebar badges and the bell. */
+    @GetMapping("/badges")
+    @PreAuthorize(STAFF)
+    public Map<String, Object> badges() {
+        long pendingAchievements = achievementRepository.countByApprovalStatus(PlayerAchievement.ApprovalStatus.PENDING);
+        long pendingHighlights = highlightRepository.countByApprovalStatus(PlayerHighlight.ApprovalStatus.PENDING);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("pendingAchievements", pendingAchievements);
+        out.put("pendingHighlights", pendingHighlights);
+        out.put("pendingApprovals", pendingAchievements + pendingHighlights);
+        out.put("unverifiedPlayers", playerRepository.countByVerifiedFalseOrVerifiedIsNull());
+        return out;
+    }
+
     // ==================== LIST ====================
 
     @GetMapping("/players")
@@ -101,7 +118,8 @@ public class AdminPlayerApiController {
                                        @RequestParam(required = false) Long provinceId,
                                        @RequestParam(required = false) String level,
                                        @RequestParam(required = false) Boolean verified,
-                                       @RequestParam(required = false) Boolean hasPendingItems) {
+                                       @RequestParam(required = false) Boolean hasPendingItems,
+                                       @RequestParam(required = false) Long competitionId) {
         Player.PlayerLevel lv = null;
         if (level != null && !level.isEmpty()) {
             try { lv = Player.PlayerLevel.valueOf(level); } catch (IllegalArgumentException ignored) { }
@@ -135,12 +153,30 @@ public class AdminPlayerApiController {
                         cb.equal(hr.get("approvalStatus"), PlayerHighlight.ApprovalStatus.PENDING)));
                 predicates.add(cb.or(cb.exists(ach), cb.exists(hl)));
             }
+            if (competitionId != null) {
+                Subquery<Long> cp = query.subquery(Long.class);
+                Root<com.elevenof.backoffice.model.CompetitionParticipant> cr = cp.from(com.elevenof.backoffice.model.CompetitionParticipant.class);
+                cp.select(cr.get("id")).where(cb.and(
+                        cb.equal(cr.get("user").get("id"), userJoin.get("id")),
+                        cb.equal(cr.get("competition").get("id"), competitionId)));
+                predicates.add(cb.exists(cp));
+            }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
         // Active accounts first, then newest, same order as the old admin
         Page<Player> p = playerRepository.findAll(spec,
                 PageRequest.of(page, size, Sort.by(Sort.Order.desc("user.enabled"), Sort.Order.desc("createdAt"))));
+
+        // Competitions each listed player has entered, fetched in one query for the page.
+        Map<Long, List<Map<String, Object>>> comps = new HashMap<>();
+        List<Long> userIds = p.getContent().stream().map(x -> x.getUser().getId()).toList();
+        if (!userIds.isEmpty()) {
+            for (com.elevenof.backoffice.model.CompetitionParticipant cp : participantRepository.findByUserIdInWithCompetition(userIds)) {
+                comps.computeIfAbsent(cp.getUser().getId(), k -> new ArrayList<>()).add(Map.of(
+                        "id", cp.getCompetition().getId(), "title", cp.getCompetition().getTitle(), "season", cp.getCompetition().getSeason()));
+            }
+        }
 
         List<Map<String, Object>> items = new ArrayList<>();
         for (Player pl : p.getContent()) {
@@ -156,9 +192,11 @@ public class AdminPlayerApiController {
             m.put("level", pl.getLevel() != null ? pl.getLevel().name() : null);
             m.put("verified", Boolean.TRUE.equals(pl.getVerified()));
             m.put("provinceName", u.getAddress() != null && u.getAddress().getProvince() != null ? u.getAddress().getProvince().getName() : null);
-            m.put("hasPending",
-                    (pl.getAchievements() != null && pl.getAchievements().stream().anyMatch(a -> a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.PENDING))
-                            || (pl.getHighlights() != null && pl.getHighlights().stream().anyMatch(h -> h.getApprovalStatus() == PlayerHighlight.ApprovalStatus.PENDING)));
+            long pending = (pl.getAchievements() == null ? 0 : pl.getAchievements().stream().filter(a -> a.getApprovalStatus() == PlayerAchievement.ApprovalStatus.PENDING).count())
+                    + (pl.getHighlights() == null ? 0 : pl.getHighlights().stream().filter(h -> h.getApprovalStatus() == PlayerHighlight.ApprovalStatus.PENDING).count());
+            m.put("hasPending", pending > 0);
+            m.put("pendingCount", pending);
+            m.put("competitions", comps.getOrDefault(u.getId(), List.of()));
             boolean synthetic = attributeService.hasSyntheticAttributes(u.getId());
             boolean real = attributeService.hasRealAttributes(u.getId());
             m.put("attributeKind", synthetic ? "synthetic" : real ? "real" : "none");

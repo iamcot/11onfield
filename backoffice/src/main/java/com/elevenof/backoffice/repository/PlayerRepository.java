@@ -30,4 +30,6 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, JpaSpecif
     Optional<Player> findByUserIdWithCollections(@Param("userId") Long userId);
 
     boolean existsByUserId(Long userId);
+
+    long countByVerifiedFalseOrVerifiedIsNull();
 }

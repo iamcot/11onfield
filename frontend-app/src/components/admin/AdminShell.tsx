@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NAV } from '@/lib/admin/nav';
 import { ROLE_LABEL, type AdminRole } from '@/lib/admin/session';
 import { MeContext } from './me';
+import { api } from '@/lib/admin/client';
 import { barlowCondensed, chakraPetch } from '@/components/home/fonts';
 
 /** Sidebar + top bar for the staff area. Menu items follow the role; unbuilt pages open the old admin. */
@@ -21,6 +22,29 @@ export default function AdminShell({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const items = NAV.filter((i) => i.roles.includes(me.role));
+  const [badges, setBadges] = useState<{ pendingApprovals: number; unverifiedPlayers: number; pendingAchievements: number; pendingHighlights: number } | null>(null);
+  const [bellOpen, setBellOpen] = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
+  const canSeeBadges = me.role !== 'BGK';
+
+  const loadBadges = useCallback(() => {
+    if (!canSeeBadges) return;
+    api<typeof badges>('badges').then(setBadges).catch(() => {});
+  }, [canSeeBadges]);
+
+  // Refresh on navigation, after any change made through the API, and every minute.
+  useEffect(loadBadges, [loadBadges, pathname]);
+  useEffect(() => {
+    window.addEventListener('admin:badges', loadBadges);
+    const t = setInterval(loadBadges, 60_000);
+    return () => { window.removeEventListener('admin:badges', loadBadges); clearInterval(t); };
+  }, [loadBadges]);
+  useEffect(() => {
+    if (!bellOpen) return;
+    const close = (e: MouseEvent) => { if (!bellRef.current?.contains(e.target as Node)) setBellOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [bellOpen]);
 
   async function logout() {
     await fetch('/quan-tri/api/logout', { method: 'POST' });
@@ -49,6 +73,11 @@ export default function AdminShell({
         return item.href ? (
           <Link key={item.label} href={item.href} className={cls} onClick={() => setOpen(false)}>
             {item.label}
+            {item.badge && badges && badges[item.badge] > 0 && (
+              <span className={`inline-flex h-5 min-w-[22px] items-center justify-center rounded-full px-1.5 font-sans text-[11px] font-bold normal-case tracking-normal ${item.badge === 'pendingApprovals' ? 'bg-[#E8590C] text-white' : 'bg-[#A6E35A] text-[#0B2419]'}`}>
+                {badges[item.badge] > 999 ? '999+' : badges[item.badge]}
+              </span>
+            )}
           </Link>
         ) : (
           <a key={item.label} href={item.legacy} className={cls} title="Mở bằng trang quản trị cũ">
@@ -80,6 +109,47 @@ export default function AdminShell({
           Hệ thống quản trị
         </span>
         <div className="ml-auto flex items-center gap-3 text-[13px]">
+          {canSeeBadges && (
+            <div className="relative" ref={bellRef}>
+              <button
+                type="button"
+                aria-label={`Thông báo${badges?.pendingApprovals ? `: ${badges.pendingApprovals} mục chờ duyệt` : ''}`}
+                aria-expanded={bellOpen}
+                onClick={() => setBellOpen((v) => !v)}
+                className="relative rounded-md p-2 text-[#E8F0EA] hover:bg-white/10"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                </svg>
+                {!!badges?.pendingApprovals && (
+                  <span className="absolute -right-0.5 -top-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#E8590C] px-1 text-[10px] font-bold text-white">
+                    {badges.pendingApprovals > 99 ? '99+' : badges.pendingApprovals}
+                  </span>
+                )}
+              </button>
+              {bellOpen && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-lg border border-[#DCE5DF] bg-white text-[#10231A] shadow-xl">
+                  <div className="border-b border-[#E6ECE8] px-4 py-2.5 text-[12px] font-semibold uppercase tracking-wider text-[#46564D]">Cần xử lý</div>
+                  {badges && (badges.pendingApprovals > 0 || badges.unverifiedPlayers > 0) ? (
+                    <ul className="divide-y divide-[#E6ECE8] text-[14px]">
+                      {badges.pendingAchievements > 0 && (
+                        <li><Link href="/quan-tri/duyet" onClick={() => setBellOpen(false)} className="flex justify-between px-4 py-3 hover:bg-[#F3F6F4]"><span>Thành tích chờ duyệt</span><b className="text-[#E8590C]">{badges.pendingAchievements}</b></Link></li>
+                      )}
+                      {badges.pendingHighlights > 0 && (
+                        <li><Link href="/quan-tri/duyet" onClick={() => setBellOpen(false)} className="flex justify-between px-4 py-3 hover:bg-[#F3F6F4]"><span>Video highlight chờ duyệt</span><b className="text-[#E8590C]">{badges.pendingHighlights}</b></Link></li>
+                      )}
+                      {badges.unverifiedPlayers > 0 && (
+                        <li><Link href="/quan-tri/cau-thu?verified=false" onClick={() => setBellOpen(false)} className="flex justify-between px-4 py-3 hover:bg-[#F3F6F4]"><span>Cầu thủ chưa xác minh</span><b className="text-[#1F6B32]">{badges.unverifiedPlayers}</b></Link></li>
+                      )}
+                    </ul>
+                  ) : (
+                    <p className="px-4 py-4 text-[14px] text-[#66766D]">Không có việc nào đang chờ.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           <span className="hidden text-right leading-tight sm:block">
             <span className="block text-[#E8F0EA]">{me.fullName || 'Quản trị viên'}</span>
             <span className="block text-[11px] text-[#8FA597]">{ROLE_LABEL[me.role]}</span>

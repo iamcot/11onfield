@@ -165,6 +165,38 @@ public class CompetitionAssessmentStructureService {
         assessmentRepository.deleteById(assessmentId);
     }
 
+    // ============= Edit Operations =============
+
+    public CompetitionAssessmentDay updateAssessmentDay(Long dayId, String title, String description, LocalDate assessmentDate) {
+        CompetitionAssessmentDay day = assessmentDayRepository.findById(dayId)
+            .orElseThrow(() -> new IllegalArgumentException("Assessment day not found: " + dayId));
+        day.setTitle(title);
+        day.setDescription(description);
+        day.setAssessmentDate(assessmentDate);
+        return assessmentDayRepository.save(day);
+    }
+
+    public CompetitionAssessmentStep updateAssessmentStep(Long stepId, String title, String description, Boolean hasRatingScale) {
+        CompetitionAssessmentStep step = assessmentStepRepository.findById(stepId)
+            .orElseThrow(() -> new IllegalArgumentException("Assessment step not found: " + stepId));
+        step.setTitle(title);
+        step.setDescription(description);
+        if (hasRatingScale != null) step.setHasRatingScale(hasRatingScale);
+        return assessmentStepRepository.save(step);
+    }
+
+    public CompetitionAssessment updateAssessment(Long assessmentId, String title, String description, String unit,
+                                                  Integer attemptsCount, ScoringMethod scoringMethod) {
+        CompetitionAssessment a = assessmentRepository.findById(assessmentId)
+            .orElseThrow(() -> new IllegalArgumentException("Assessment not found: " + assessmentId));
+        a.setTitle(title);
+        a.setDescription(description);
+        a.setUnit(unit);
+        if (attemptsCount != null && attemptsCount > 0) a.setAttemptsCount(attemptsCount);
+        if (scoringMethod != null) a.setScoringMethod(scoringMethod);
+        return assessmentRepository.save(a);
+    }
+
     // ============= Rating Scale Operations =============
 
     /**

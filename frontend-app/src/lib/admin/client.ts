@@ -24,11 +24,13 @@ export async function api<T = any>(path: string, init: { method?: string; body?:
   if (!res.ok) {
     throw new Error(data?.message || plain || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : `Lỗi ${res.status}`));
   }
+  // Any change may move the sidebar counts (approvals, verification), so ask the shell to refresh them.
+  if (init.method !== undefined ? init.method !== 'GET' : init.body !== undefined || !!init.form) window.dispatchEvent(new Event('admin:badges'));
   if (data === null && plain) return { message: plain } as T;
   return data as T;
 }
 
-export async function uploadImage(type: 'event' | 'news' | 'sponsor', file: File): Promise<string> {
+export async function uploadImage(type: 'event' | 'news' | 'sponsor' | 'avatar', file: File): Promise<string> {
   const form = new FormData();
   form.append('file', file);
   const { url } = await api<{ url: string }>(`uploads?type=${type}`, { form });

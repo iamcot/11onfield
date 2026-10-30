@@ -39,6 +39,7 @@ public class AdminCompetitionController {
      */
     @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/{id}/participants")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<AdminParticipantDTO>> getAllParticipants(@PathVariable Long id) {
         List<CompetitionParticipant> participants = competitionService.getAllParticipants(id);
 
@@ -64,6 +65,7 @@ public class AdminCompetitionController {
      */
     @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/{id}/stages/{stageNumber}/results")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<StageResultDTO>> getStageResults(
             @PathVariable Long id,
             @PathVariable Integer stageNumber) {
@@ -135,6 +137,7 @@ public class AdminCompetitionController {
      */
     @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/{id}/select-top30/eligible")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<AdminParticipantDTO>> getEligibleForTop30(@PathVariable Long id) {
         List<CompetitionParticipant> participants = selectionService.getEligibleForTop30(id);
 
@@ -186,6 +189,7 @@ public class AdminCompetitionController {
      */
     @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/{id}/select-top11/eligible")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<AdminParticipantDTO>> getEligibleForTop11(@PathVariable Long id) {
         List<CompetitionParticipant> participants = selectionService.getEligibleForTop11(id);
 

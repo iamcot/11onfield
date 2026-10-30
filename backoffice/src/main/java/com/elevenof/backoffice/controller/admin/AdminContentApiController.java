@@ -70,7 +70,7 @@ public class AdminContentApiController {
 
     // ==================== UPLOADS ====================
 
-    /** Uploads one image to S3 and returns its public URL. type = event | news | sponsor. */
+    /** Uploads one image to S3 and returns its public URL. type = event | news | sponsor | avatar. */
     @PostMapping(value = "/uploads", consumes = "multipart/form-data")
     public ResponseEntity<Map<String, Object>> upload(@RequestParam String type, @RequestParam("file") MultipartFile file) {
         if (file == null || file.isEmpty()) return error(HttpStatus.BAD_REQUEST, "Chưa chọn file");
@@ -80,6 +80,7 @@ public class AdminContentApiController {
                 case "event" -> s3Service.uploadEventImage(file, 0L);
                 case "news" -> s3Service.uploadNewsImage(file, 0L);
                 case "sponsor" -> s3Service.uploadSponsorImage(file, 0L);
+                case "avatar" -> s3Service.uploadAvatar(file, 0L);
                 default -> null;
             };
             if (url == null) return error(HttpStatus.BAD_REQUEST, "Loại ảnh không hợp lệ");
