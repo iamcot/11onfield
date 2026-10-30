@@ -14,17 +14,22 @@ export interface PlayerProfile {
 export interface PlayerAttribute {
   attributeKey: string;
   attributeName: string;
-  attributeValue: number;
+  attributeValue: number | null;
   attributeGroup?: string;
   isHexagon?: boolean;
   isGoalKeeper?: boolean;
 }
+
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface Achievement {
   id: number;
   title: string;
   description?: string;
   date?: string;
+  approvalStatus?: ApprovalStatus;
+  /** Only sent to the owner. */
+  hidden?: boolean | null;
 }
 
 export interface Highlight {
@@ -33,6 +38,13 @@ export interface Highlight {
   platform?: string;
   title?: string;
   date?: string;
+  approvalStatus?: ApprovalStatus;
+  /** LINK = external link, VIDEO = uploaded to Bunny Stream. */
+  kind?: 'LINK' | 'VIDEO';
+  posterUrl?: string | null;
+  embedUrl?: string | null;
+  /** Only sent to the owner. */
+  hidden?: boolean | null;
 }
 
 export interface Social {
@@ -71,6 +83,10 @@ export interface UserProfile {
   level?: string;
   bio?: string;
   attributes?: PlayerAttribute[];
+  /** FIT EXP SKL PRF ACH HLT computed from the profile. */
+  profileStats?: PlayerAttribute[];
+  /** Full-body photo with the background removed. */
+  fullBodyPhoto?: string | null;
   followersCount?: number;
   followingCount?: number;
   verified?: boolean;

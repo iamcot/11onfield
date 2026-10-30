@@ -3,6 +3,7 @@ import home from './home';
 import partner from './partner';
 import account from './account';
 import app from './app';
+import players from './players';
 
 /** Every translatable string, keyed by its Vietnamese source: [English, Español, 한국어]. */
 export const MESSAGES: Messages = {
@@ -10,4 +11,5 @@ export const MESSAGES: Messages = {
   ...partner,
   ...account,
   ...app,
+  ...players,
 };

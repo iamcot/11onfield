@@ -84,8 +84,10 @@ anti-abuse.
 ## Progress
 
 - [x] Plan
-- [ ] Backend: migration, full-body upload, per-item highlights / achievements, Bunny upload
-- [ ] Shared stage, radar, backdrop
-- [ ] Competition page
-- [ ] Profile page
-- [ ] i18n, build, PR
+- [x] Backend: migration, full-body upload, per-item highlights / achievements, Bunny upload
+- [x] Shared stage, radar, backdrop
+- [x] Competition page
+- [x] Profile page
+- [x] i18n (`src/i18n/messages/players.ts`), tsc, `next build`
+- [ ] PR merged (after PR #4, because of V27), Bunny secrets created, check on a phone
+- [ ] Later: leaderboard tab (idea above), jersey number, region rank
