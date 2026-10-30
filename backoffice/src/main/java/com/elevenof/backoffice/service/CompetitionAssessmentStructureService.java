@@ -190,7 +190,7 @@ public class CompetitionAssessmentStructureService {
         CompetitionAssessment a = assessmentRepository.findById(assessmentId)
             .orElseThrow(() -> new IllegalArgumentException("Assessment not found: " + assessmentId));
         a.setTitle(title);
-        a.setDescription(description);
+        if (description != null) a.setDescription(description); // the admin form has no description field for assessments
         a.setUnit(unit);
         if (attemptsCount != null && attemptsCount > 0) a.setAttemptsCount(attemptsCount);
         if (scoringMethod != null) a.setScoringMethod(scoringMethod);

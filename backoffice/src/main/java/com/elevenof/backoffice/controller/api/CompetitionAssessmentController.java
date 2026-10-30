@@ -162,22 +162,26 @@ public class CompetitionAssessmentController {
      * Delete assessment day (cascade deletes everything under it)
      */
     @PutMapping("/assessment-days/{dayId}")
-    public ResponseEntity<CompetitionAssessmentDay> updateAssessmentDay(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
+    public ResponseEntity<java.util.Map<String, String>> updateAssessmentDay(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
                                                                         @PathVariable Long dayId, @RequestBody AssessmentDayRequest request) {
-        return ResponseEntity.ok(structureService.updateAssessmentDay(dayId, request.getTitle(), request.getDescription(), request.getAssessmentDate()));
+        // Return a message, not the entity: its lazy children cannot be serialized outside the transaction.
+        structureService.updateAssessmentDay(dayId, request.getTitle(), request.getDescription(), request.getAssessmentDate());
+        return ResponseEntity.ok(java.util.Map.of("message", "Đã cập nhật ngày đánh giá"));
     }
 
     @PutMapping("/assessment-steps/{stepId}")
-    public ResponseEntity<CompetitionAssessmentStep> updateAssessmentStep(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
+    public ResponseEntity<java.util.Map<String, String>> updateAssessmentStep(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
                                                                           @PathVariable Long stepId, @RequestBody AssessmentStepRequest request) {
-        return ResponseEntity.ok(structureService.updateAssessmentStep(stepId, request.getTitle(), request.getDescription(), request.getHasRatingScale()));
+        structureService.updateAssessmentStep(stepId, request.getTitle(), request.getDescription(), request.getHasRatingScale());
+        return ResponseEntity.ok(java.util.Map.of("message", "Đã cập nhật bước đánh giá"));
     }
 
     @PutMapping("/assessments/{assessmentId}")
-    public ResponseEntity<CompetitionAssessment> updateAssessment(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
+    public ResponseEntity<java.util.Map<String, String>> updateAssessment(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
                                                                   @PathVariable Long assessmentId, @RequestBody AssessmentRequest request) {
-        return ResponseEntity.ok(structureService.updateAssessment(assessmentId, request.getTitle(), request.getDescription(),
-            request.getUnit(), request.getAttemptsCount(), request.getScoringMethod()));
+        structureService.updateAssessment(assessmentId, request.getTitle(), request.getDescription(),
+            request.getUnit(), request.getAttemptsCount(), request.getScoringMethod());
+        return ResponseEntity.ok(java.util.Map.of("message", "Đã cập nhật bài đánh giá"));
     }
 
     @DeleteMapping("/assessment-days/{dayId}")
