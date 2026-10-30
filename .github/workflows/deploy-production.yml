@@ -194,11 +194,9 @@ jobs:
           sudo sed -i "s|Environment=\"PATH=.*\"|Environment=\"PATH=$JAVA21_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"|" deployment/systemd/11of-backend.service
           sudo sed -i "s|ExecStart=.*/bin/java|ExecStart=$JAVA21_HOME/bin/java|" deployment/systemd/11of-backend.service
 
-          # Stop service if running to clear any cached config
-          echo "Stopping backend service..."
-          sudo systemctl stop 11of-backend.service || true
-
-          # Copy updated service file and reload
+          # Do not stop the service here: the old release keeps serving until deploy-backend.sh
+          # switches to the new one (stopping it here left the site down whenever a later step failed).
+          # Copy updated service file and reload; it takes effect on the restart in deploy-backend.sh.
           sudo cp deployment/systemd/11of-backend.service /etc/systemd/system/
           sudo systemctl daemon-reload
 
@@ -233,6 +231,8 @@ jobs:
           ZALO_OTP_TEMPLATE_ID=${{ secrets.ZALO_OTP_TEMPLATE_ID }}
           ZALO_REDIRECT_URI=${{ secrets.ZALO_REDIRECT_URI }}
           ZALO_TEST_MODE=${{ secrets.ZALO_TEST_MODE }}
+          ZNS_RELAY_URL=${{ secrets.ZNS_RELAY_URL }}
+          ZNS_RELAY_API_KEY=${{ secrets.ZNS_RELAY_API_KEY }}
           MAIL_ENABLED=${{ secrets.MAIL_ENABLED }}
           MAIL_HOST=${{ secrets.MAIL_HOST }}
           MAIL_PORT=${{ secrets.MAIL_PORT }}
@@ -267,14 +267,15 @@ jobs:
         if: always()
         run: rm -rf /tmp/artifacts/backend
 
-      - name: Wait for backend startup
-        run: sleep 30
+      # deploy-backend.sh waits for the health check and goes back to the old release on failure
 
   deploy-frontend:
     name: Deploy Frontend
     runs-on: [self-hosted, production]
     needs: [build-frontend, deploy-backend]
-    if: ${{ !cancelled() && needs.build-frontend.result == 'success' }}
+    # deploy-backend is in needs so a new API goes live first; a failed backend stops the frontend too,
+    # a frontend-only run (backend skipped) still deploys
+    if: ${{ !cancelled() && needs.build-frontend.result == 'success' && (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped') }}
 
     steps:
       - name: Checkout deployment scripts
@@ -326,15 +327,13 @@ jobs:
 
       - name: Deploy frontend
         run: |
-          bash ${{ env.DEPLOY_PATH }}/scripts/deploy-frontend.sh \
+          bash deployment/scripts/deploy-frontend.sh \
             /tmp/artifacts/frontend
 
       - name: Remove frontend artifact
         if: always()
         run: rm -rf /tmp/artifacts/frontend
 
-      - name: Wait for frontend startup
-        run: sleep 10
 
   health-check:
     name: Health Check
@@ -343,6 +342,12 @@ jobs:
     if: ${{ !cancelled() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
 
     steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: deployment/scripts
+          sparse-checkout-cone-mode: false
+
       - name: Check backend service status
         if: needs.deploy-backend.result == 'success'
         run: |
@@ -361,7 +366,7 @@ jobs:
 
       - name: Run comprehensive health check
         run: |
-          bash ${{ env.DEPLOY_PATH }}/scripts/health-check.sh
+          bash deployment/scripts/health-check.sh
 
       - name: Notify deployment success
         if: success()
@@ -378,16 +383,24 @@ jobs:
     if: failure()
 
     steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: deployment/scripts
+          sparse-checkout-cone-mode: false
+
+      # deploy-backend.sh and deploy-frontend.sh already go back to the old release when the new one
+      # does not start; these steps only cover a release that started but failed the final health check
       - name: Rollback backend
-        if: needs.deploy-backend.result == 'failure' || needs.health-check.result == 'failure'
+        if: needs.health-check.result == 'failure' && needs.deploy-backend.result == 'success'
         run: |
-          bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh backend
+          bash deployment/scripts/rollback.sh backend
         continue-on-error: true
 
       - name: Rollback frontend
-        if: needs.deploy-frontend.result == 'failure' || needs.health-check.result == 'failure'
+        if: needs.health-check.result == 'failure' && needs.deploy-frontend.result == 'success'
         run: |
-          bash ${{ env.DEPLOY_PATH }}/scripts/rollback.sh frontend
+          bash deployment/scripts/rollback.sh frontend
         continue-on-error: true
 
       - name: Notify deployment failure
