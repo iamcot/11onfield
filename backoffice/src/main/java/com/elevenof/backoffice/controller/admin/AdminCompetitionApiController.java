@@ -253,7 +253,7 @@ public class AdminCompetitionApiController {
         String term = q.trim();
         if (term.length() < 2) return List.of();
         List<Map<String, Object>> out = new ArrayList<>();
-        for (User u : userRepository.findCandidatesForCompetition(id, term, PageRequest.of(0, 20))) {
+        for (User u : userRepository.findCandidatesForCompetition(id, User.Role.PLAYER, term, PageRequest.of(0, 20))) {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("userId", u.getId());
             m.put("fullName", u.getFullName());
