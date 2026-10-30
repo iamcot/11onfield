@@ -116,7 +116,8 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
   }, [ref]);
 }
 
-export default function StadiumBackdrop() {
+/** `fireflies={false}` leaves the canvas out (the profile page has enough motion of its own). */
+export default function StadiumBackdrop({ fireflies = true }: { fireflies?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useParticles(canvasRef);
 
@@ -142,7 +143,7 @@ export default function StadiumBackdrop() {
       <div className="of-haze of-haze--a" />
       <div className="of-haze of-haze--b" />
       <div className="of-bg-shade" />
-      <canvas ref={canvasRef} className="of-particles" />
+      {fireflies && <canvas ref={canvasRef} className="of-particles" />}
     </div>
   );
 }

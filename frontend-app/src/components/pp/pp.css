@@ -28,7 +28,8 @@
 .pp-panel { background: var(--pp-panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
 .pp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 20px; font-family: var(--f-hud); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; font-size: 13px; --c: 12px; }
-.pp-btn-lime { background: linear-gradient(180deg, var(--lime-2), var(--lime)); color: #0b2412; }
+/* a deeper lime than the landing accent, with dark text that link colours cannot override */
+.pp .pp-btn-lime, .pp a.pp-btn-lime { background: linear-gradient(180deg, #9fd65a, #7fb83c); color: #0b2412; }
 .pp-btn-ghost { background: rgba(255, 255, 255, 0.05); }
 .pp-btn-sm { min-height: 36px; padding: 0 14px; font-size: 12px; }
 .pp-btn svg { width: 18px; height: 18px; }
@@ -151,7 +152,7 @@
 .pp-cc .face { position: absolute; left: 50%; bottom: 31%; z-index: 2; width: 70%; aspect-ratio: 1; transform: translateX(-50%); }
 .pp-cc .face img { width: 100%; height: 100%; object-fit: contain; object-position: bottom; filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.45)); }
 .pp-cc .ft { display: block; position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 3; }
-.pp-cc .nm { display: block; font: 800 clamp(19px, 4.4vw, 24px)/1 var(--f-display); text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pp-cc .nm { display: block; font: 800 clamp(19px, 4.4vw, 24px)/1 var(--f-display); text-transform: uppercase; color: #fff; -webkit-text-stroke: 4px #07140c; paint-order: stroke fill; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); padding: 3px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pp-rule { display: block; height: 1px; margin: 7px 0; background: linear-gradient(90deg, rgba(166, 227, 90, 0), rgba(166, 227, 90, 0.6), rgba(166, 227, 90, 0)); }
 .pp-cc .f4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; text-align: center; }
 .pp-cc .f4 b { display: block; font: 700 14px/1.1 var(--f-hud); color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap; }

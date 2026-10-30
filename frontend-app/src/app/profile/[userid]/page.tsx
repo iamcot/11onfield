@@ -8,7 +8,6 @@ import TopUserCard from "@/components/layout/TopUserCard";
 import AchievementsBlock, { type TypedAchievement } from "@/components/player-profile/AchievementsBlock";
 import { PhotoGuide } from "@/components/player-profile/Guides";
 import HighlightsBlock from "@/components/player-profile/HighlightsBlock";
-import FxToggle from "@/components/pp/FxToggle";
 import { IconCamera, IconCheck, IconHex, IconPen, IconPrev, IconShare, IconUpload } from "@/components/pp/icons";
 import PlayerStage from "@/components/pp/PlayerStage";
 import Radar from "@/components/pp/Radar";
@@ -360,7 +359,6 @@ export default function UserProfilePage() {
             ) : (
               <span />
             )}
-            <FxToggle />
           </div>
           <div className="pp-idrow">
             <div className="pp-bigav">

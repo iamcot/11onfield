@@ -19,5 +19,5 @@ export default function ProfileLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AppTheme>{children}</AppTheme>;
+  return <AppTheme fireflies={false}>{children}</AppTheme>;
 }
