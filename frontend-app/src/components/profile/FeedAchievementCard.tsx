@@ -1,6 +1,7 @@
 "use client";
 
 import { FeedItem } from "@/types/feed";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface FeedAchievementCardProps {
   feed: FeedItem;
@@ -8,27 +9,28 @@ interface FeedAchievementCardProps {
 }
 
 export default function FeedAchievementCard({ feed, isOwnProfile }: FeedAchievementCardProps) {
+  const { t, intlLocale } = useI18n();
   if (!feed.achievement) return null;
 
   const { achievement, fullName, date } = feed;
 
-  const formattedDate = new Date(date).toLocaleDateString("vi-VN", {
+  const formattedDate = new Date(date).toLocaleDateString(intlLocale, {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 
-  const displayName = isOwnProfile ? "Bạn" : fullName;
+  const displayName = isOwnProfile ? t("Bạn") : fullName;
   const isPending = achievement.approvalStatus === 'PENDING';
 
-  const verb = achievement.achievementType === "PARTICIPANT" ? "đã tham dự" : "đã đạt được";
+  const verb = achievement.achievementType === "PARTICIPANT" ? t("đã tham dự") : t("đã đạt được");
   const getStatusBadge = () => {
     if (!isOwnProfile) return null; // Visitors don't see status
 
     if (achievement.approvalStatus === 'PENDING') {
       return (
         <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-          Chờ duyệt
+          {t("Chờ duyệt")}
         </span>
       );
     }
@@ -56,7 +58,7 @@ export default function FeedAchievementCard({ feed, isOwnProfile }: FeedAchievem
         <div className="flex-1">
           <h4 className="text-sm font-medium text-gray-900">
             <span className="font-semibold">{displayName}</span> {verb}{" "}
-            <span className="font-semibold">{achievement.title}</span> vào ngày{" "}
+            <span className="font-semibold">{achievement.title}</span> {t("vào ngày")}{" "}
             <span className="font-semibold">{formattedDate}</span>
             {getStatusBadge()}
           </h4>

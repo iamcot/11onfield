@@ -2,6 +2,7 @@
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useT } from "@/i18n/I18nProvider";
 
 interface Achievement {
   title: string;
@@ -22,6 +23,7 @@ export default function DynamicAchievementList({
   values,
   onChange
 }: DynamicAchievementListProps) {
+  const t = useT();
   const addField = () => {
     onChange([...values, { title: "", date: "" }]);
   };
@@ -68,9 +70,9 @@ export default function DynamicAchievementList({
                   value.approvalStatus === 'APPROVED' ? 'bg-green-100 text-green-700' :
                   'bg-red-100 text-red-700'
                 }`}>
-                  {value.approvalStatus === 'PENDING' ? 'Chờ duyệt' :
-                   value.approvalStatus === 'APPROVED' ? 'Đã duyệt' :
-                   'Đã từ chối'}
+                  {value.approvalStatus === 'PENDING' ? t("Chờ duyệt") :
+                   value.approvalStatus === 'APPROVED' ? t("Đã duyệt") :
+                   t("Đã từ chối")}
                 </span>
               )}
             </div>
@@ -80,7 +82,7 @@ export default function DynamicAchievementList({
                 onChange={(date: Date | null) => updateDateField(index, date)}
                 dateFormat="dd/MM/yyyy"
                 className="flex-1 md:w-40 px-3 py-2 border rounded-md text-sm"
-                placeholderText="Chọn ngày"
+                placeholderText={t("Chọn ngày")}
                 required
                 showYearDropdown
                 showMonthDropdown
@@ -90,7 +92,7 @@ export default function DynamicAchievementList({
                 type="button"
                 onClick={() => removeField(index)}
                 className="px-3 py-2 border border-red-600 text-red-600 hover:bg-red-50 rounded-md transition font-medium text-sm"
-                title="Xóa"
+                title={t("Xóa")}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -105,7 +107,7 @@ export default function DynamicAchievementList({
           className="flex items-center gap-2 px-4 py-2 text-sm text-green-700 hover:bg-green-50 rounded-md border border-green-300 transition"
         >
           <span>+</span>
-          <span>Thêm {label.toLowerCase()}</span>
+          <span>{t("Thêm")} {label.toLowerCase()}</span>
         </button>
       </div>
     </div>

@@ -1,13 +1,17 @@
 import type { Metadata } from 'next';
+import { getT } from '@/i18n/server';
 
-export const metadata: Metadata = {
-  title: 'Điều khoản sử dụng',
-  description: 'Điều khoản và điều kiện sử dụng dịch vụ của nền tảng 11 người ra sân. Vui lòng đọc kỹ trước khi sử dụng dịch vụ.',
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
+export function generateMetadata(): Metadata {
+  const { t } = getT();
+  return {
+    title: t('Điều khoản sử dụng'),
+    description: t('Điều khoản và điều kiện sử dụng dịch vụ của nền tảng 11 người ra sân. Vui lòng đọc kỹ trước khi sử dụng dịch vụ.'),
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
 
 export default function TermsLayout({
   children,

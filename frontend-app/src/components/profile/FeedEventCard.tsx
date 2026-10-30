@@ -2,6 +2,7 @@
 
 import { FeedItem } from "@/types/feed";
 import Link from "next/link";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface FeedEventCardProps {
   feed: FeedItem;
@@ -9,6 +10,7 @@ interface FeedEventCardProps {
 }
 
 export default function FeedEventCard({ feed, isOwnProfile }: FeedEventCardProps) {
+  const { t, intlLocale } = useI18n();
   if (!feed.event) return null;
 
   const { event, fullName } = feed;
@@ -16,14 +18,14 @@ export default function FeedEventCard({ feed, isOwnProfile }: FeedEventCardProps
   const formatEventDate = () => {
     try {
       const startDate = new Date(event.startDate);
-      const dateStr = startDate.toLocaleDateString("vi-VN", {
+      const dateStr = startDate.toLocaleDateString(intlLocale, {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
 
       if (event.startTime) {
-        return `${dateStr} lúc ${event.startTime}`;
+        return t("{dateStr} lúc {startTime}", { dateStr, startTime: event.startTime });
       }
       return dateStr;
     } catch {
@@ -49,19 +51,19 @@ export default function FeedEventCard({ feed, isOwnProfile }: FeedEventCardProps
   const getStatusDisplayName = (status: string) => {
     switch (status) {
       case "UPCOMING":
-        return "Sắp diễn ra";
+        return t("Sắp diễn ra");
       case "ONGOING":
-        return "Đang diễn ra";
+        return t("Đang diễn ra");
       case "COMPLETED":
-        return "Đã kết thúc";
+        return t("Đã kết thúc");
       case "CANCELLED":
-        return "Đã hủy";
+        return t("Đã hủy");
       default:
         return status;
     }
   };
 
-  const displayName = isOwnProfile ? "Bạn" : fullName;
+  const displayName = isOwnProfile ? t("Bạn") : fullName;
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
@@ -84,8 +86,8 @@ export default function FeedEventCard({ feed, isOwnProfile }: FeedEventCardProps
         </div>
         <div className="flex-1">
           <h4 className="text-sm font-medium text-gray-900">
-            <span className="font-semibold">{displayName}</span> đã tham gia{" "}
-            <span className="font-semibold">sự kiện</span>
+            <span className="font-semibold">{displayName}</span> {t("đã tham gia")}{" "}
+            <span className="font-semibold">{t("sự kiện")}</span>
           </h4>
         </div>
       </div>
@@ -113,7 +115,7 @@ export default function FeedEventCard({ feed, isOwnProfile }: FeedEventCardProps
               <span
                 className={`flex-shrink-0 px-2 py-1 text-xs font-medium text-white rounded ${getStatusBadgeColor(event.status)}`}
               >
-                {getStatusDisplayName(event.status)}
+                {t(getStatusDisplayName(event.status))}
               </span>
             </div>
 

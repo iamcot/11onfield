@@ -1,6 +1,7 @@
 "use client";
 
 import { FeedItem } from "@/types/feed";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface FeedHighlightCardProps {
   feed: FeedItem;
@@ -30,18 +31,19 @@ function getFacebookVideoId(url: string): string | null {
 }
 
 export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightCardProps) {
+  const { t, intlLocale } = useI18n();
   if (!feed.highlight) return null;
 
   const { highlight, fullName, date } = feed;
   const platform = highlight.platform?.toLowerCase();
 
-  const formattedDate = new Date(date).toLocaleDateString("vi-VN", {
+  const formattedDate = new Date(date).toLocaleDateString(intlLocale, {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 
-  const displayName = isOwnProfile ? "Bạn" : fullName;
+  const displayName = isOwnProfile ? t("Bạn") : fullName;
   const isPending = highlight.approvalStatus === 'PENDING';
 
   // Get status badge based on approval status
@@ -51,7 +53,7 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
     if (highlight.approvalStatus === 'PENDING') {
       return (
         <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-          Chờ duyệt
+          {t("Chờ duyệt")}
         </span>
       );
     }
@@ -131,7 +133,7 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
           >
             <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
           </svg>
-          <span>Xem video</span>
+          <span>{t("Xem video")}</span>
         </a>
         {highlight.title && (
           <p className="mt-2 text-sm text-gray-600">{highlight.title}</p>
@@ -160,8 +162,8 @@ export default function FeedHighlightCard({ feed, isOwnProfile }: FeedHighlightC
         </div>
         <div className="flex-1">
           <h4 className="text-sm font-medium text-gray-900">
-            <span className="font-semibold">{displayName}</span> có một{" "}
-            <span className="font-semibold">siêu phẩm</span> vào ngày{" "}
+            <span className="font-semibold">{displayName}</span> {t("có một")}{" "}
+            <span className="font-semibold">{t("siêu phẩm")}</span> {t("vào ngày")}{" "}
             <span className="font-semibold">{formattedDate}</span>
             {getStatusBadge()}
           </h4>

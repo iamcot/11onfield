@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, cssVars } from './ui';
+import { useT } from '@/i18n/I18nProvider';
+import { rich } from '@/i18n/rich';
 
 function useCountdown(target: Date | null) {
   const [now, setNow] = useState<number | null>(null);
@@ -43,6 +45,7 @@ export default function Hero({
   season: number | null;
   ctaHref: string;
 }) {
+  const t = useT();
   const cd = useCountdown(registrationEnd);
   const tiltRef = useRef<HTMLDivElement>(null);
 
@@ -78,56 +81,57 @@ export default function Hero({
           <div className="of-in flex flex-wrap gap-2" style={cssVars({ '--i': -3 })}>
             <span className="of-chip">
               <span className="of-dot" />
-              {registrationOpen ? 'Đang nhận hồ sơ' : 'Sắp mở đăng ký'}
+              {registrationOpen ? t('Đang nhận hồ sơ') : t('Sắp mở đăng ký')}
             </span>
-            <span className="of-chip of-chip--gold">Mùa {season ?? 1} · 2027</span>
+            <span className="of-chip of-chip--gold">{t('Mùa {n}', { n: season ?? 1 })} · 2027</span>
           </div>
 
           <h1 className="of-display mt-5 text-[64px] text-white sm:text-[84px] lg:text-[112px]" style={{ textShadow: '0 0 40px rgba(166,227,90,.4), 0 4px 0 rgba(0,0,0,.35)' }}>
             <span className="of-line">
-              <span style={cssVars({ '--i': 0 })}>Tìm kiếm</span>
+              <span style={cssVars({ '--i': 0 })}>{t('Tìm kiếm')}</span>
             </span>
             <span className="of-line">
               <span style={cssVars({ '--i': 1 })}>
                 <em className="of-shine-gold pr-[0.06em] not-italic" style={{ fontStyle: 'italic' }}>
                   11
                 </em>{' '}
-                người
+                {t('người')}
               </span>
             </span>
             <span className="of-line">
-              <span style={cssVars({ '--i': 2 })}>ra sân</span>
+              <span style={cssVars({ '--i': 2 })}>{t('ra sân')}</span>
             </span>
           </h1>
 
           <div className="of-in of-display mt-4 text-[17px] font-bold !leading-[1.3] tracking-[0.12em] sm:text-[22px] sm:tracking-[0.18em]" style={cssVars({ '--i': 0 })}>
-            <span className="of-shine-gold">Từ Đường Phố ra Sân Vận Động</span>
+            <span className="of-shine-gold">{t('Từ Đường Phố ra Sân Vận Động')}</span>
           </div>
 
           <p className="of-in mt-5 max-w-[560px] text-[16px] text-[#E2EAE4] sm:text-[18px]" style={cssVars({ '--i': 1 })}>
-            Cơ hội cho tài năng <strong className="text-white">16–21 tuổi</strong> theo đuổi giấc mơ sân cỏ. Huấn luyện cùng{' '}
-            <strong className="text-white">chuyên gia quốc tế đến từ La Liga</strong>, Top 11 đi World Cup Tour, ra sân vận động quốc gia gặp{' '}
-            <strong className="text-white">hàng triệu</strong> khán giả.
+            {rich(
+              t('Cơ hội cho tài năng <b>16–21 tuổi</b> theo đuổi giấc mơ sân cỏ. Huấn luyện cùng <b>chuyên gia quốc tế đến từ La Liga</b>, Top 11 đi World Cup Tour, ra sân vận động quốc gia gặp <b>hàng triệu</b> khán giả.'),
+              { b: (c) => <strong className="text-white">{c}</strong> }
+            )}
           </p>
 
           <div className="of-in mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap" style={cssVars({ '--i': 2 })}>
             <Link href={ctaHref} className="of-btn">
-              Đăng ký miễn phí <ArrowRight />
+              {t('Đăng ký miễn phí')} <ArrowRight />
             </Link>
           </div>
 
           {cd && (
             <div className="of-in mt-7 flex flex-wrap items-center gap-3" style={cssVars({ '--i': 3 })}>
               <div className="of-hud text-[11px] text-[color:var(--lime)]">
-                Hạn đăng ký
+                {t('Hạn đăng ký')}
                 <br />
-                còn
+                {t('còn')}
               </div>
               <div className="flex gap-1.5" aria-live="off">
-                <Cell v={cd.d} label="Ngày" />
-                <Cell v={cd.h} label="Giờ" />
-                <Cell v={cd.m} label="Phút" />
-                <Cell v={cd.s} label="Giây" />
+                <Cell v={cd.d} label={t('Ngày')} />
+                <Cell v={cd.h} label={t('Giờ')} />
+                <Cell v={cd.m} label={t('Phút')} />
+                <Cell v={cd.s} label={t('Giây')} />
               </div>
             </div>
           )}
@@ -137,7 +141,7 @@ export default function Hero({
           <div ref={tiltRef} className="of-tilt relative mx-auto max-w-[560px] lg:mr-0">
             <div className="of-cut of-cut--lg of-run of-cut--b2 bg-[rgba(6,20,14,.45)] p-2 sm:p-2.5">
               <div className="of-hero-photo of-cut" style={cssVars({ '--c': '20px', '--ring': 'rgba(0,0,0,0)' })}>
-                <img src="/images/home/player.jpg" alt="Cầu thủ áo xanh số 10 đi bóng dưới ánh đèn sân vận động" width={662} height={706} />
+                <img src="/images/home/player.jpg" alt={t('Cầu thủ áo xanh số 10 đi bóng dưới ánh đèn sân vận động')} width={662} height={706} />
                 <div className="of-reticle" style={{ left: '20%', top: '66%', width: '32%' }} aria-hidden="true">
                   <svg viewBox="0 0 100 100" fill="none">
                     <g className="of-rot">
@@ -157,10 +161,10 @@ export default function Hero({
             </div>
 
             <div className="of-float of-glass of-cut of-cut--sm absolute -bottom-6 -left-2 z-[6] px-4 py-3 sm:-left-6">
-              <div className="of-hud text-[10px] text-[color:var(--lime)]">Chấm điểm bằng</div>
+              <div className="of-hud text-[10px] text-[color:var(--lime)]">{t('Chấm điểm bằng')}</div>
               <div className="of-display mt-1 text-[22px] sm:text-[24px]">
-                Dữ liệu · Chuyên môn
-                <br />· Khán giả
+                {t('Dữ liệu · Chuyên môn')}
+                <br />· {t('Khán giả')}
               </div>
             </div>
             <div className="of-float of-float--b of-glass of-cut of-cut--sm absolute -right-1 top-[38%] z-[6] hidden px-4 py-3 sm:block lg:-right-6">
@@ -179,7 +183,7 @@ export default function Hero({
 
       <div className="of-in mt-14 hidden flex-col items-center gap-2 lg:flex" style={cssVars({ '--i': 5 })} aria-hidden="true">
         <div className="of-scroll-cue" />
-        <div className="of-hud text-[10px] text-[color:var(--mute)]">Cuộn xuống</div>
+        <div className="of-hud text-[10px] text-[color:var(--mute)]">{t('Cuộn xuống')}</div>
       </div>
     </section>
   );

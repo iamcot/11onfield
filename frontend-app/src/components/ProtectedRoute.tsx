@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useT } from '@/i18n/I18nProvider';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ export function ProtectedRoute({
   requireAuth = true,
   redirectTo = '/auth/login',
 }: ProtectedRouteProps) {
+  const t = useT();
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
@@ -29,7 +31,7 @@ export function ProtectedRoute({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">{t('Đang tải...')}</p>
         </div>
       </div>
     );

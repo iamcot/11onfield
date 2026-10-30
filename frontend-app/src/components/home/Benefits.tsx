@@ -1,4 +1,7 @@
+'use client';
+
 import { Icons, SectionHead, revealDelay } from './ui';
+import { useT } from '@/i18n/I18nProvider';
 
 const BENEFITS = [
   { icon: Icons.coach, title: 'Huấn luyện chuẩn chuyên nghiệp', text: '4 tháng cùng chuyên gia quốc tế đến từ La Liga và chuyên gia hàng đầu Việt Nam.' },
@@ -10,10 +13,11 @@ const BENEFITS = [
 ];
 
 export default function Benefits() {
+  const t = useT();
   return (
     <section id="quyen-loi" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1240px]">
-        <SectionHead eyebrow="Không chỉ hào quang" title="Bạn nhận được gì?" lede="Không chỉ trao cúp, chúng tôi trao cơ hội sự nghiệp." />
+        <SectionHead eyebrow={t('Không chỉ hào quang')} title={t('Bạn nhận được gì?')} lede={t('Không chỉ trao cúp, chúng tôi trao cơ hội sự nghiệp.')} />
         <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3 lg:gap-5">
           {BENEFITS.map((b, i) => (
             <article
@@ -32,8 +36,8 @@ export default function Benefits() {
               <div className={b.gold ? 'text-[color:var(--gold-2)]' : 'text-[color:var(--lime-2)]'} style={{ filter: `drop-shadow(0 0 8px ${b.gold ? 'rgba(227,194,126,.7)' : 'rgba(166,227,90,.75)'})` }}>
                 {b.icon}
               </div>
-              <h3 className={`of-display mt-4 text-[26px] lg:text-[30px] ${b.gold ? 'of-gold' : ''}`}>{b.title}</h3>
-              <p className="mt-1.5 text-[14.5px] text-[#CBD6CF] lg:text-[15px]">{b.text}</p>
+              <h3 className={`of-display mt-4 text-[26px] lg:text-[30px] ${b.gold ? 'of-gold' : ''}`}>{t(b.title)}</h3>
+              <p className="mt-1.5 text-[14.5px] text-[#CBD6CF] lg:text-[15px]">{t(b.text)}</p>
             </article>
           ))}
         </div>

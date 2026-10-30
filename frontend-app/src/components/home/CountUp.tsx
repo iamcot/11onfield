@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-
-const fmt = (n: number) => n.toLocaleString('vi-VN');
+import { useI18n } from '@/i18n/I18nProvider';
 
 /** Counts from `from` to `to` the first time it scrolls into view. */
 export default function CountUp({ to, from = 0, duration = 1600 }: { to: number; from?: number; duration?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [val, setVal] = useState(to);
+  const { intlLocale } = useI18n();
 
   useEffect(() => {
     const el = ref.current;
@@ -36,5 +36,5 @@ export default function CountUp({ to, from = 0, duration = 1600 }: { to: number;
     };
   }, [to, from, duration]);
 
-  return <span ref={ref}>{fmt(val)}</span>;
+  return <span ref={ref}>{val.toLocaleString(intlLocale)}</span>;
 }

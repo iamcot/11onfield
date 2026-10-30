@@ -25,6 +25,7 @@ import { UserListItem } from "@/types/user";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface UserProfile {
   username: string;
@@ -57,6 +58,7 @@ interface UserProfile {
 }
 
 export default function UserProfilePage() {
+  const { t, intlLocale } = useI18n();
   const {
     user: currentUser,
     isAuthenticated,
@@ -126,7 +128,7 @@ export default function UserProfilePage() {
     // Show confirmation for unfollow
     if (isFollowing) {
       const confirmed = window.confirm(
-        `Bạn có chắc muốn bỏ theo dõi ${profileUser?.fullName || "người dùng này"}?`,
+        t("Bạn có chắc muốn bỏ theo dõi {name}?", { name: profileUser?.fullName || t("người dùng này") }),
       );
       if (!confirmed) return;
     }
@@ -224,7 +226,7 @@ export default function UserProfilePage() {
         if (user) {
           setProfileUser(user);
         } else {
-          setError("Không tìm thấy người dùng");
+          setError(t("Không tìm thấy người dùng"));
         }
         setIsLoading(false);
       } else {
@@ -278,7 +280,7 @@ export default function UserProfilePage() {
             });
           } catch (err: any) {
             console.error("Error fetching user profile:", err);
-            setError(err.message || "Không tìm thấy người dùng");
+            setError(t(err.message || "Không tìm thấy người dùng"));
             setIsLoading(false);
           }
         };
@@ -412,10 +414,10 @@ export default function UserProfilePage() {
     try {
       await eventService.joinEvent(eventId);
       // Optionally refresh events list or show success message
-      alert("Đã tham gia sự kiện thành công!");
+      alert(t("Đã tham gia sự kiện thành công!"));
     } catch (err: any) {
       console.error("Error joining event:", err);
-      alert(err.message || "Không thể tham gia sự kiện");
+      alert(t(err.message || "Không thể tham gia sự kiện"));
     } finally {
       setJoiningEventId(null);
     }
@@ -424,7 +426,7 @@ export default function UserProfilePage() {
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Đang tải...</p>
+        <p>{t("Đang tải...")}</p>
       </div>
     );
   }
@@ -439,7 +441,7 @@ export default function UserProfilePage() {
               href="/profile"
               className="text-green-600 hover:text-green-500"
             >
-              Quay lại trang cá nhân của bạn
+              {t("Quay lại trang cá nhân của bạn")}
             </Link>
             <button
               onClick={() => {
@@ -448,7 +450,7 @@ export default function UserProfilePage() {
               }}
               className="text-red-600 hover:text-red-500 underline"
             >
-              Đăng xuất
+              {t("Đăng xuất")}
             </button>
           </div>
         </div>
@@ -497,8 +499,8 @@ export default function UserProfilePage() {
             <div className="bg-gradient-to-r from-green-900 via-green-800 to-green-950 p-4">
               <h2 className="text-white text-lg font-semibold">
                 {sidebarView === "followers"
-                  ? "Người theo dõi"
-                  : "Đang theo dõi"}
+                  ? t("Người theo dõi")
+                  : t("Đang theo dõi")}
               </h2>
             </div>
 
@@ -508,8 +510,8 @@ export default function UserProfilePage() {
                 .length === 0 ? (
                 <p className="text-center text-gray-500 py-8">
                   {sidebarView === "followers"
-                    ? "Chưa có người theo dõi"
-                    : "Chưa theo dõi ai"}
+                    ? t("Chưa có người theo dõi")
+                    : t("Chưa theo dõi ai")}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -594,7 +596,7 @@ export default function UserProfilePage() {
                     d="M15 19l-7-7 7-7"
                   />
                 </svg>
-                <span>Quay lại</span>
+                <span>{t("Quay lại")}</span>
               </button>
             )}
 
@@ -642,11 +644,11 @@ export default function UserProfilePage() {
                                 clipRule="evenodd"
                               />
                             </svg>
-                            Đã xác minh
+                            {t("Đã xác minh")}
                           </span>
                         ) : (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700">
-                            Chưa xác minh
+                            {t("Chưa xác minh")}
                           </span>
                         )}
                       </>
@@ -660,11 +662,11 @@ export default function UserProfilePage() {
                           key={position}
                           className="px-2 md:px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
                         >
-                          {position === "striker" && "Tiền đạo"}
-                          {position === "midfielder" && "Tiền vệ"}
-                          {position === "centerback" && "Trung vệ"}
-                          {position === "defender" && "Hậu vệ"}
-                          {position === "goalkeeper" && "Thủ môn"}
+                          {position === "striker" && t("Tiền đạo")}
+                          {position === "midfielder" && t("Tiền vệ")}
+                          {position === "centerback" && t("Trung vệ")}
+                          {position === "defender" && t("Hậu vệ")}
+                          {position === "goalkeeper" && t("Thủ môn")}
                         </span>
                       ))}
                     </div>
@@ -682,7 +684,7 @@ export default function UserProfilePage() {
                           <span className="font-medium">
                             {profileUser.followingCount}
                           </span>{" "}
-                          đang theo dõi
+                          {t("đang theo dõi")}
                         </button>
                         {" · "}
                         <button
@@ -692,7 +694,7 @@ export default function UserProfilePage() {
                           <span className="font-medium">
                             {profileUser.followersCount}
                           </span>{" "}
-                          người theo dõi
+                          {t("người theo dõi")}
                         </button>
                       </div>
                     )}
@@ -704,12 +706,12 @@ export default function UserProfilePage() {
                         <span className="font-medium">
                           {profileUser.followingCount}
                         </span>{" "}
-                        đang theo dõi
+                        {t("đang theo dõi")}
                         {" · "}
                         <span className="font-medium">
                           {profileUser.followersCount}
                         </span>{" "}
-                        người theo dõi
+                        {t("người theo dõi")}
                       </div>
                     )}
                 </div>
@@ -728,8 +730,8 @@ export default function UserProfilePage() {
                     {followLoading
                       ? "..."
                       : isFollowing
-                        ? "Đang theo dõi"
-                        : "Theo dõi"}
+                        ? t("Đang theo dõi")
+                        : t("Theo dõi")}
                   </button>
                 )}
               </div>
@@ -748,8 +750,8 @@ export default function UserProfilePage() {
                   {followLoading
                     ? "..."
                     : isFollowing
-                      ? "Đang theo dõi"
-                      : "Theo dõi"}
+                      ? t("Đang theo dõi")
+                      : t("Theo dõi")}
                 </button>
               )}
             </div>
@@ -765,7 +767,7 @@ export default function UserProfilePage() {
                       : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
-                  Trang cá nhân
+                  {t("Trang cá nhân")}
                 </button>
                 <button
                   onClick={() => setActiveTab("matches")}
@@ -776,7 +778,7 @@ export default function UserProfilePage() {
                       : "text-gray-500"
                   }`}
                 >
-                  Trận đấu <span className="ml-1 text-xs md:text-sm">(0)</span>
+                  {t("Trận đấu")} <span className="ml-1 text-xs md:text-sm">(0)</span>
                 </button>
               </div>
             </div>
@@ -788,7 +790,7 @@ export default function UserProfilePage() {
                 <div className="lg:col-span-3">
                   <div className="bg-white mb-4 p-4 md:p-6 rounded-lg shadow ">
                     <h3 className="text-lg font-semibold mb-4">
-                      Thông tin cá nhân
+                      {t("Thông tin cá nhân")}
                     </h3>
                     <div className="space-y-3">
                       {/* Phone - Only for own profile or admin */}
@@ -854,14 +856,14 @@ export default function UserProfilePage() {
                           <span className="text-sm text-gray-900">
                             {isOwnProfile
                               ? new Date(profileUser.dob).toLocaleDateString(
-                                  "vi-VN",
+                                  intlLocale,
                                   {
                                     year: "numeric",
                                     month: "long",
                                     day: "numeric",
                                   },
                                 )
-                              : `Năm sinh: ${new Date(profileUser.dob).getFullYear()}`}
+                              : t("Năm sinh: {year}", { year: new Date(profileUser.dob).getFullYear() })}
                           </span>
                         </div>
                       )}
@@ -911,9 +913,9 @@ export default function UserProfilePage() {
                             />
                           </svg>
                           <span className="text-sm text-gray-900">
-                            Thành viên từ{" "}
+                            {t("Thành viên từ")}{" "}
                             {new Date(profileUser.createdAt).toLocaleDateString(
-                              "vi-VN",
+                              intlLocale,
                               {
                                 year: "numeric",
                                 month: "long",
@@ -1018,7 +1020,7 @@ export default function UserProfilePage() {
                   {profileUser.isPlayer && profileUser.bio && (
                     <div className="bg-white p-4 md:p-6 rounded-lg shadow ">
                       <div className="">
-                        <h3 className="text-lg font-semibold mb-4">Tiểu sử</h3>
+                        <h3 className="text-lg font-semibold mb-4">{t("Tiểu sử")}</h3>
                         <p className="text-sm font-medium text-gray-900 leading-relaxed whitespace-pre-wrap text-justify">
                           {profileUser.bio}
                         </p>
@@ -1030,11 +1032,11 @@ export default function UserProfilePage() {
                 {/* Middle: Recent Events - Wider */}
                 <div className="lg:col-span-6">
                   <h3 className="text-lg font-semibold mb-4">
-                    Hoạt động gần đây
+                    {t("Hoạt động gần đây")}
                   </h3>
                   {recentEventsLoading ? (
                     <div className="text-center py-8 text-gray-500">
-                      Đang tải...
+                      {t("Đang tải...")}
                     </div>
                   ) : (
                     <FeedList
@@ -1052,7 +1054,7 @@ export default function UserProfilePage() {
                       <div>
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-lg font-semibold">
-                            Người theo dõi
+                            {t("Người theo dõi")}
                           </h3>
                           <button
                             onClick={() => setSidebarView("default")}
@@ -1064,7 +1066,7 @@ export default function UserProfilePage() {
                         <div className="space-y-3">
                           {followersList.length === 0 ? (
                             <p className="text-center text-gray-500 py-8">
-                              Chưa có người theo dõi
+                              {t("Chưa có người theo dõi")}
                             </p>
                           ) : (
                             followersList.map((follower) => (
@@ -1103,7 +1105,7 @@ export default function UserProfilePage() {
                       <div>
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-lg font-semibold">
-                            Đang theo dõi
+                            {t("Đang theo dõi")}
                           </h3>
                           <button
                             onClick={() => setSidebarView("default")}
@@ -1115,7 +1117,7 @@ export default function UserProfilePage() {
                         <div className="space-y-3">
                           {followingPlayers.length === 0 ? (
                             <p className="text-center text-gray-500 py-8">
-                              Chưa theo dõi ai
+                              {t("Chưa theo dõi ai")}
                             </p>
                           ) : (
                             followingPlayers.map((player) => (
@@ -1154,11 +1156,11 @@ export default function UserProfilePage() {
                         {/* Basic Info */}
                         <div>
                           <h3 className="text-lg font-semibold mb-4">
-                            Thông tin cầu thủ
+                            {t("Thông tin cầu thủ")}
                           </h3>
                           <div className="space-y-2">
                             <StatRow
-                              label="Chiều cao"
+                              label={t("Chiều cao")}
                               value={
                                 profileUser.height
                                   ? `${profileUser.height} cm`
@@ -1166,7 +1168,7 @@ export default function UserProfilePage() {
                               }
                             />
                             <StatRow
-                              label="Cân nặng"
+                              label={t("Cân nặng")}
                               value={
                                 profileUser.weight
                                   ? `${profileUser.weight} kg`
@@ -1174,40 +1176,40 @@ export default function UserProfilePage() {
                               }
                             />
                             <StatRow
-                              label="Chân thuận"
+                              label={t("Chân thuận")}
                               value={
                                 profileUser.preferredFoot === "left"
-                                  ? "Trái"
+                                  ? t("Trái")
                                   : profileUser.preferredFoot === "right"
-                                    ? "Phải"
+                                    ? t("Phải")
                                     : profileUser.preferredFoot === "both"
-                                      ? "Cả hai"
+                                      ? t("Cả hai")
                                       : "N/A"
                               }
                             />
                             <StatRow
-                              label="Cấp độ"
+                              label={t("Cấp độ")}
                               value={
                                 profileUser.level === "CAU_THU_MOI"
-                                  ? "Cầu thủ mới"
+                                  ? t("Cầu thủ mới")
                                   : profileUser.level === "NGHIEP_DU"
-                                    ? "Nghiệp dư"
+                                    ? t("Nghiệp dư")
                                     : profileUser.level === "TUYEN_TRE"
-                                      ? "Tuyển trẻ"
+                                      ? t("Tuyển trẻ")
                                       : profileUser.level === "CHUYEN_NGHIEP"
-                                        ? "Chuyên nghiệp"
+                                        ? t("Chuyên nghiệp")
                                         : "N/A"
                               }
                             />
                             {profileUser.academy && (
                               <StatRow
-                                label="Học viện"
+                                label={t("Học viện")}
                                 value={profileUser.academy}
                               />
                             )}
                             {profileUser.club && (
                               <StatRow
-                                label="Đội bóng"
+                                label={t("Đội bóng")}
                                 value={profileUser.club}
                               />
                             )}
@@ -1217,7 +1219,7 @@ export default function UserProfilePage() {
                         {/* Skills - Hexagon Chart */}
                         <div className="mt-6">
                           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            Kỹ năng
+                            {t("Kỹ năng")}
                             {profileUser?.attributes &&
                               profileUser.attributes.length > 0 &&
                               profileUser.attributes[0]?.isSynthetic && (
@@ -1226,7 +1228,7 @@ export default function UserProfilePage() {
                                     setShowSyntheticInfoModal(true)
                                   }
                                   className="text-blue-500 hover:text-blue-600 transition-colors"
-                                  title="Thông tin về chỉ số tự động"
+                                  title={t("Thông tin về chỉ số tự động")}
                                 >
                                   <svg
                                     className="w-5 h-5"
@@ -1253,7 +1255,7 @@ export default function UserProfilePage() {
                             ) : (
                               <div className="text-center py-8 text-gray-400">
                                 <p className="text-sm">
-                                  Chưa có dữ liệu chỉ số
+                                  {t("Chưa có dữ liệu chỉ số")}
                                 </p>
                               </div>
                             )}
@@ -1263,39 +1265,39 @@ export default function UserProfilePage() {
                         {/* Stats */}
                         <div className="mt-6">
                           <h3 className="text-lg font-semibold mb-4">
-                            Thông số
+                            {t("Thông số")}
                           </h3>
                           <div className="grid grid-cols-2 gap-3">
                             <StatCard
-                              title="Trận đấu"
+                              title={t("Trận đấu")}
                               value={mockStats.matches}
                             />
                             <StatCard
-                              title="Trận thắng"
+                              title={t("Trận thắng")}
                               value={mockStats.wins}
                             />
                             <StatCard
-                              title="Trận thua"
+                              title={t("Trận thua")}
                               value={mockStats.losses}
                             />
                             <StatCard
-                              title="Phút thi đấu"
+                              title={t("Phút thi đấu")}
                               value={mockStats.minutes}
                             />
                             <StatCard
-                              title="Bàn thắng"
+                              title={t("Bàn thắng")}
                               value={mockStats.goals}
                             />
                             <StatCard
-                              title="Kiến tạo"
+                              title={t("Kiến tạo")}
                               value={mockStats.assists}
                             />
                             <StatCard
-                              title="Thẻ đỏ"
+                              title={t("Thẻ đỏ")}
                               value={mockStats.redCards}
                             />
                             <StatCard
-                              title="Thẻ vàng"
+                              title={t("Thẻ vàng")}
                               value={mockStats.yellowCards}
                             />
                           </div>
@@ -1305,11 +1307,11 @@ export default function UserProfilePage() {
                       <>
                         {/* Following List for Non-Players */}
                         <h3 className="text-lg font-semibold mb-4">
-                          Đang theo dõi
+                          {t("Đang theo dõi")}
                         </h3>
                         {followingPlayers.length === 0 ? (
                           <p className="text-center text-gray-500 py-8 text-sm">
-                            Chưa theo dõi ai
+                            {t("Chưa theo dõi ai")}
                           </p>
                         ) : (
                           <div className="space-y-3">
@@ -1350,7 +1352,7 @@ export default function UserProfilePage() {
 
             {activeTab === "matches" && (
               <div className="text-center py-8 text-gray-500">
-                Danh sách trận đấu sẽ được hiển thị ở đây
+                {t("Danh sách trận đấu sẽ được hiển thị ở đây")}
               </div>
             )}
 
@@ -1358,11 +1360,11 @@ export default function UserProfilePage() {
               <div className="space-y-4">
                 {eventsLoading ? (
                   <div className="text-center py-8 text-gray-500">
-                    Đang tải...
+                    {t("Đang tải...")}
                   </div>
                 ) : events.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    Chưa tham gia sự kiện nào
+                    {t("Chưa tham gia sự kiện nào")}
                   </div>
                 ) : (
                   <>
@@ -1387,10 +1389,10 @@ export default function UserProfilePage() {
                           disabled={eventsPage === 0}
                           className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                         >
-                          Trước
+                          {t("Trước")}
                         </button>
                         <span className="px-4 py-2 text-gray-700">
-                          Trang {eventsPage + 1} / {eventsTotalPages}
+                          {t("Trang {page} / {total}", { page: eventsPage + 1, total: eventsTotalPages })}
                         </span>
                         <button
                           onClick={() =>
@@ -1401,7 +1403,7 @@ export default function UserProfilePage() {
                           disabled={eventsPage >= eventsTotalPages - 1}
                           className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                         >
-                          Sau
+                          {t("Sau")}
                         </button>
                       </div>
                     )}
@@ -1432,7 +1434,7 @@ export default function UserProfilePage() {
           >
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-xl font-bold text-gray-900">
-                Chỉ số tự động (Synthetic Attributes)
+                {t("Chỉ số tự động (Synthetic Attributes)")}
               </h3>
               <button
                 onClick={() => setShowSyntheticInfoModal(false)}
@@ -1454,47 +1456,37 @@ export default function UserProfilePage() {
 
             <div className="space-y-4 text-sm text-gray-700">
               <p>
-                <strong>Chỉ số tự động</strong> được hệ thống tính toán dựa trên
-                thông tin profile của cầu thủ. Đây là chỉ số tạm thời để so sánh
-                khi chưa có đánh giá chuyên môn.
+                <strong>{t("Chỉ số tự động")}</strong> {t("được hệ thống tính toán dựa trên thông tin profile của cầu thủ. Đây là chỉ số tạm thời để so sánh khi chưa có đánh giá chuyên môn.")}
               </p>
 
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h4 className="font-semibold mb-2 text-blue-900">
-                  Công thức tính:
+                  {t("Công thức tính:")}
                 </h4>
                 <ul className="space-y-2">
                   <li>
-                    <strong>Thể chất (FIT):</strong> Tính từ chiều cao, cân nặng
-                    (BMI), và tuổi
+                    <strong>{t("Thể chất (FIT):")}</strong> {t("Tính từ chiều cao, cân nặng (BMI), và tuổi")}
                   </li>
                   <li>
-                    <strong>Kinh nghiệm (EXP):</strong> Số năm kinh nghiệm và
-                    level cầu thủ
+                    <strong>{t("Kinh nghiệm (EXP):")}</strong> {t("Số năm kinh nghiệm và level cầu thủ")}
                   </li>
                   <li>
-                    <strong>Kỹ năng (SKL):</strong> Số vị trí có thể chơi và
-                    chân thuận
+                    <strong>{t("Kỹ năng (SKL):")}</strong> {t("Số vị trí có thể chơi và chân thuận")}
                   </li>
                   <li>
-                    <strong>Hoàn thiện profile (PRF):</strong> % các trường
-                    thông tin đã điền
+                    <strong>{t("Hoàn thiện profile (PRF):")}</strong> {t("% các trường thông tin đã điền")}
                   </li>
                   <li>
-                    <strong>Thành tích (ACH):</strong> Số thành tích đã được
-                    duyệt
+                    <strong>{t("Thành tích (ACH):")}</strong> {t("Số thành tích đã được duyệt")}
                   </li>
                   <li>
-                    <strong>Highlights (HLT):</strong> Số video highlights đã
-                    được duyệt
+                    <strong>Highlights (HLT):</strong> {t("Số video highlights đã được duyệt")}
                   </li>
                 </ul>
               </div>
 
               <p className="text-gray-600 text-xs">
-                💡 <strong>Lưu ý:</strong> Chỉ số này chỉ mang tính tham khảo.
-                Chỉ số thực tế sẽ được đánh giá bởi huấn luyện viên hoặc Chuyên
-                viên 11 On Field.
+                💡 <strong>{t("Lưu ý:")}</strong> {t("Chỉ số này chỉ mang tính tham khảo. Chỉ số thực tế sẽ được đánh giá bởi huấn luyện viên hoặc Chuyên viên 11 On Field.")}
               </p>
             </div>
           </div>

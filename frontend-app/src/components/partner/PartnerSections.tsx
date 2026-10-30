@@ -5,6 +5,10 @@ import CountUp from '../home/CountUp';
 import { useScrollProgress } from '../home/effects';
 import { ArrowRight, SectionHead, cssVars, revealDelay } from '../home/ui';
 import { PIcons } from './icons';
+import { useT } from '@/i18n/I18nProvider';
+import { rich } from '@/i18n/rich';
+
+const strong = (cls = 'text-white') => ({ b: (c: string) => <strong className={cls}>{c}</strong> });
 
 const glow = (gold = false) => ({ filter: `drop-shadow(0 0 8px ${gold ? 'rgba(227,194,126,.7)' : 'rgba(166,227,90,.75)'})` });
 
@@ -19,6 +23,7 @@ const FUNNEL = [
 ];
 
 export function PartnerHero() {
+  const t = useT();
   return (
     <section id="top" className="relative px-4 pb-16 lg:px-6 lg:pb-24" style={{ paddingTop: 'calc(var(--header-h) + 28px)' }}>
       <div className="relative mx-auto grid max-w-[1240px] items-center gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-14 lg:pt-6">
@@ -28,7 +33,7 @@ export function PartnerHero() {
               <span className="of-dot" />
               Sportainment reality show
             </span>
-            <span className="of-chip of-chip--gold">Mùa 1 · 2027</span>
+            <span className="of-chip of-chip--gold">{t('Mùa {n}', { n: 1 })} · 2027</span>
           </div>
           <h1 className="of-display mt-5 text-[60px] text-white sm:text-[84px] lg:text-[104px]" style={{ textShadow: '0 0 40px rgba(166,227,90,.4), 0 4px 0 rgba(0,0,0,.35)' }}>
             <span className="of-line">
@@ -36,26 +41,28 @@ export function PartnerHero() {
                 <em className="of-shine-gold pr-[0.06em]" style={{ fontStyle: 'italic' }}>
                   11
                 </em>{' '}
-                người
+                {t('người')}
               </span>
             </span>
             <span className="of-line">
-              <span style={cssVars({ '--i': 1 })}>ra sân</span>
+              <span style={cssVars({ '--i': 1 })}>{t('ra sân')}</span>
             </span>
           </h1>
           <div className="of-in of-display mt-4 text-[17px] font-bold !leading-[1.25] tracking-[0.3em] sm:text-[22px]" style={cssVars({ '--i': 0 })}>
             <span className="of-shine-gold">From the street to the stadium</span>
           </div>
           <p className="of-in mt-5 max-w-[560px] text-[17px] text-[#E2EAE4] sm:text-[19px]" style={cssVars({ '--i': 1 })}>
-            Format truyền hình thực tế bóng đá <strong className="text-white">tiêu chuẩn quốc tế đầu tiên</strong> tại Việt Nam: tìm kiếm, đào tạo và đưa 11 tài năng
-            trẻ ra sân vận động quốc gia.
+            {rich(
+              t('Format truyền hình thực tế bóng đá <b>tiêu chuẩn quốc tế đầu tiên</b> tại Việt Nam: tìm kiếm, đào tạo và đưa 11 tài năng trẻ ra sân vận động quốc gia.'),
+              strong()
+            )}
           </p>
           <div className="of-in mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap" style={cssVars({ '--i': 2 })}>
             <a href="#lien-he" className="of-btn">
-              Nhận hồ sơ hợp tác <ArrowRight />
+              {t('Nhận hồ sơ hợp tác')} <ArrowRight />
             </a>
             <a href="#format" className="of-btn-ghost of-cut">
-              Xem format 12 tập
+              {t('Xem format 12 tập')}
             </a>
           </div>
         </div>
@@ -64,7 +71,7 @@ export function PartnerHero() {
           <div data-reveal="" className="of-glass of-cut of-cut--lg of-cut--b2 of-run relative mx-auto max-w-[520px] p-5 lg:mr-0 lg:p-7">
             <div className="of-brackets" />
             <div className="flex items-center justify-between">
-              <div className="of-hud text-[11px] text-[color:var(--lime)]">Phễu tuyển chọn</div>
+              <div className="of-hud text-[11px] text-[color:var(--lime)]">{t('Phễu tuyển chọn')}</div>
               <div className="of-hud flex items-center gap-2 text-[10px] text-[color:var(--mute)]">
                 <span className="of-dot of-dot--red" /> Live
               </div>
@@ -73,8 +80,8 @@ export function PartnerHero() {
               {FUNNEL.map((f, i) => (
                 <li key={f.label} className="of-in" style={cssVars({ '--i': 2 + i })}>
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="of-hud text-[10px] text-[color:var(--mute)]">{f.label}</span>
-                    <span className="truncate text-[12px] text-[#AFC0B6]">{f.sub}</span>
+                    <span className="of-hud text-[10px] text-[color:var(--mute)]">{t(f.label)}</span>
+                    <span className="truncate text-[12px] text-[#AFC0B6]">{t(f.sub)}</span>
                   </div>
                   <div className="mt-1 flex items-center gap-3">
                     <span className={`of-display w-[112px] shrink-0 text-[30px] ${f.gold ? 'of-gold' : 'text-white'}`}>{f.value}</span>
@@ -101,6 +108,7 @@ const USP = [
 ];
 
 export function Mission() {
+  const t = useT();
   return (
     <section id="su-menh" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1240px]">
@@ -108,27 +116,31 @@ export function Mission() {
           <div data-reveal="left">
             <div className="of-eyebrow of-eyebrow--left">Insight</div>
             <p className="of-display mt-4 text-[38px] text-white lg:text-[54px]">
-              Sự cuồng nhiệt của gần <span className="of-neon">100 triệu</span> người và hàng vạn tài năng đường phố.
+              {rich(t('Sự cuồng nhiệt của gần <n>100 triệu</n> người và hàng vạn tài năng đường phố.'), {
+                n: (c) => <span className="of-neon">{c}</span>,
+              })}
             </p>
           </div>
           <div data-reveal="right" className="of-glass of-cut of-cut--lg of-run-hover of-spot p-6 lg:p-8">
-            <div className="of-hud text-[11px] text-[color:var(--lime)]">Sứ mệnh</div>
+            <div className="of-hud text-[11px] text-[color:var(--lime)]">{t('Sứ mệnh')}</div>
             <h2 className="of-display mt-2 text-[34px] lg:text-[42px]">
-              Biến bản năng thành <span className="of-gold">chuyên nghiệp</span>
+              {rich(t('Biến bản năng thành <g>chuyên nghiệp</g>'), { g: (c) => <span className="of-gold">{c}</span> })}
             </h2>
             <p className="mt-3 text-[#CBD6CF]">
-              Chương trình mô phỏng giai đoạn <strong className="text-white">after academy – before pro</strong>: sau khi được tuyển chọn và đào tạo, làm sao để cầu thủ hoàn
-              thiện mình và vụt sáng thành sao.
+              {rich(
+                t('Chương trình mô phỏng giai đoạn <b>after academy – before pro</b>: sau khi được tuyển chọn và đào tạo, làm sao để cầu thủ hoàn thiện mình và vụt sáng thành sao.'),
+                strong()
+              )}
             </p>
             <div className="of-rule my-5" />
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <div className="text-[13px] text-[#AFC0B6]">Không chỉ hào quang</div>
-                <div className="of-display text-[22px]">chúng tôi tạo cơ hội thật</div>
+                <div className="text-[13px] text-[#AFC0B6]">{t('Không chỉ hào quang')}</div>
+                <div className="of-display text-[22px]">{t('chúng tôi tạo cơ hội thật')}</div>
               </div>
               <div>
-                <div className="text-[13px] text-[#AFC0B6]">Không chỉ tặng cúp</div>
-                <div className="of-display text-[22px]">chúng tôi trao hợp đồng sự nghiệp</div>
+                <div className="text-[13px] text-[#AFC0B6]">{t('Không chỉ tặng cúp')}</div>
+                <div className="of-display text-[22px]">{t('chúng tôi trao hợp đồng sự nghiệp')}</div>
               </div>
             </div>
           </div>
@@ -139,8 +151,8 @@ export function Mission() {
               <div className="of-display of-outline pointer-events-none absolute right-3 top-1 text-[84px]" aria-hidden="true">
                 0{i + 1}
               </div>
-              <h3 className="of-display max-w-[85%] text-[26px] lg:text-[28px]">{u.title}</h3>
-              <p className="mt-2 text-[14.5px] text-[#CBD6CF]">{u.text}</p>
+              <h3 className="of-display max-w-[85%] text-[26px] lg:text-[28px]">{t(u.title)}</h3>
+              <p className="mt-2 text-[14.5px] text-[#CBD6CF]">{t(u.text)}</p>
             </article>
           ))}
         </div>
@@ -152,27 +164,28 @@ export function Mission() {
 /* ---------------------------------------------------------------- market */
 
 export function Market() {
+  const t = useT();
   return (
     <section id="thi-truong" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1240px]">
-        <SectionHead eyebrow="Cơ hội thị trường" title="Khai phá đại dương xanh" />
+        <SectionHead eyebrow={t('Cơ hội thị trường')} title={t('Khai phá đại dương xanh')} />
         <div className="mt-12 grid items-center gap-4 lg:grid-cols-[1fr_auto_1.2fr_auto_1fr] lg:gap-6">
           <div data-reveal="left" className="of-glass of-cut p-6 text-center">
-            <div className="of-hud text-[11px] text-[color:var(--mute)]">Bóng đá phong trào</div>
-            <div className="of-display mt-2 text-[28px]">Đông đảo nhưng rời rạc</div>
-            <div className="mt-1 text-[14px] text-[#CBD6CF]">Đam mê nhưng thiếu định hướng</div>
+            <div className="of-hud text-[11px] text-[color:var(--mute)]">{t('Bóng đá phong trào')}</div>
+            <div className="of-display mt-2 text-[28px]">{t('Đông đảo nhưng rời rạc')}</div>
+            <div className="mt-1 text-[14px] text-[#CBD6CF]">{t('Đam mê nhưng thiếu định hướng')}</div>
           </div>
           <div className="of-flow mx-auto" aria-hidden="true" />
           <div data-reveal="zoom" className="of-gate of-glass-gold of-cut of-cut--lg of-cut--gold of-cut--b2 of-run p-8 text-center">
             <div className="of-hud text-[11px] text-[color:var(--gold-2)]">11 On Field</div>
-            <div className="of-display of-gold mt-2 text-[40px] lg:text-[46px]">Cánh cửa chuyển hóa</div>
-            <p className="mt-2 text-[14.5px] text-[#E3DCC8]">Cơ hội cuối cùng cho những tài năng bóng đá thực sự muốn chinh phục giấc mơ sân cỏ.</p>
+            <div className="of-display of-gold mt-2 text-[40px] lg:text-[46px]">{t('Cánh cửa chuyển hóa')}</div>
+            <p className="mt-2 text-[14.5px] text-[#E3DCC8]">{t('Cơ hội cuối cùng cho những tài năng bóng đá thực sự muốn chinh phục giấc mơ sân cỏ.')}</p>
           </div>
           <div className="of-flow mx-auto" aria-hidden="true" />
           <div data-reveal="right" className="of-glass of-cut p-6 text-center">
-            <div className="of-hud text-[11px] text-[color:var(--mute)]">Bóng đá chuyên nghiệp</div>
-            <div className="of-display mt-2 text-[28px]">Khắt khe</div>
-            <div className="mt-1 text-[14px] text-[#CBD6CF]">Khó tiếp cận</div>
+            <div className="of-hud text-[11px] text-[color:var(--mute)]">{t('Bóng đá chuyên nghiệp')}</div>
+            <div className="of-display mt-2 text-[28px]">{t('Khắt khe')}</div>
+            <div className="mt-1 text-[14px] text-[#CBD6CF]">{t('Khó tiếp cận')}</div>
           </div>
         </div>
       </div>
@@ -194,10 +207,11 @@ const EPISODES = [
 export function Format() {
   const ref = useRef<HTMLDivElement>(null);
   const p = useScrollProgress(ref);
+  const t = useT();
   return (
     <section id="format" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1240px]">
-        <SectionHead eyebrow="Format · 4 tháng · 12 tập × 90 phút" title="Lộ trình 12 tập" lede="Hành trình chuyển hóa từ đường phố đến sân vận động." />
+        <SectionHead eyebrow={t('Format · 4 tháng · 12 tập × 90 phút')} title={t('Lộ trình 12 tập')} lede={t('Hành trình chuyển hóa từ đường phố đến sân vận động.')} />
         <div ref={ref} className="relative mt-12 lg:mt-16" style={cssVars({ '--p': p })}>
           <div className="of-rail left-[31px] top-[32px] bottom-[32px] w-[2px] lg:left-[8%] lg:right-[8%] lg:top-[41px] lg:bottom-auto lg:h-[3px] lg:w-auto" aria-hidden="true">
             <i />
@@ -209,9 +223,9 @@ export function Format() {
                 <li key={e.ep} className={`of-step flex items-center gap-5 lg:flex-col lg:text-center ${e.gold ? 'of-step--gold' : ''} ${lit ? 'is-lit' : ''}`}>
                   <div className="of-node">{e.ep}</div>
                   <div className="of-step-body min-w-0">
-                    <div className="of-hud text-[10px] text-[color:var(--lime)] lg:mt-2">Tập {Number(e.ep)}</div>
+                    <div className="of-hud text-[10px] text-[color:var(--lime)] lg:mt-2">{t('Tập {n}', { n: Number(e.ep) })}</div>
                     <h3 className={`of-display text-[26px] ${e.gold ? 'of-gold' : ''}`}>{e.title}</h3>
-                    <p className="text-[14px] text-[#CBD6CF]">{e.text}</p>
+                    <p className="text-[14px] text-[#CBD6CF]">{t(e.text)}</p>
                   </div>
                 </li>
               );
@@ -219,9 +233,9 @@ export function Format() {
           </ol>
         </div>
         <div className="mt-12 flex flex-wrap justify-center gap-2" data-reveal="">
-          {['Thể lực', 'Kỹ thuật', 'Chiến thuật', 'Tâm lý tư duy', 'Kỹ năng mềm'].map((t) => (
-            <span key={t} className="of-chip !px-4 !py-1.5 !text-[12px]">
-              {t}
+          {['Thể lực', 'Kỹ thuật', 'Chiến thuật', 'Tâm lý tư duy', 'Kỹ năng mềm'].map((pillar) => (
+            <span key={pillar} className="of-chip !px-4 !py-1.5 !text-[12px]">
+              {t(pillar)}
             </span>
           ))}
         </div>
@@ -239,13 +253,14 @@ const PRODUCTION = [
 ];
 
 export function Production() {
+  const t = useT();
   return (
     <section id="san-xuat" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1240px]">
         <SectionHead
-          eyebrow="Tiêu chuẩn sản xuất quốc tế"
-          title="Không chỉ là gameshow"
-          lede="11 ON FIELD được định vị như một premium football entertainment experience."
+          eyebrow={t('Tiêu chuẩn sản xuất quốc tế')}
+          title={t('Không chỉ là gameshow')}
+          lede={t('11 ON FIELD được định vị như một premium football entertainment experience.')}
         />
         <div className="mt-10 grid gap-3 lg:mt-14 lg:grid-cols-3 lg:gap-5">
           {PRODUCTION.map((x, i) => (
@@ -254,8 +269,8 @@ export function Production() {
                 {x.icon}
               </div>
               <div className="of-hud mt-4 text-[11px] text-[color:var(--lime)]">{x.tag}</div>
-              <h3 className="of-display mt-1 text-[28px] lg:text-[32px]">{x.title}</h3>
-              <p className="mt-2 text-[14.5px] text-[#CBD6CF]">{x.text}</p>
+              <h3 className="of-display mt-1 text-[28px] lg:text-[32px]">{t(x.title)}</h3>
+              <p className="mt-2 text-[14.5px] text-[#CBD6CF]">{t(x.text)}</p>
             </article>
           ))}
         </div>
@@ -273,12 +288,13 @@ const COACHES = [
 ];
 const GUESTS = [
   { name: 'Quang Hải', mono: 'QH' },
-  { name: 'Đình Bắc', mono: 'ĐB' },
+  { name: 'Đình Bắc', mono: 'ĐB' }, // i18n-ignore
   { name: 'Xuân Son', mono: 'XS' },
   { name: 'Đặng Văn Lâm', mono: 'VL' },
 ];
 
 function Person({ name, role, mono, gold, d }: { name: string; role?: string; mono: string; gold?: boolean; d: number }) {
+  const t = useT();
   return (
     <div className="of-coach text-center" data-reveal="" style={revealDelay(d)}>
       <div className={`${gold ? 'of-glass-gold of-cut--gold of-run' : 'of-glass of-run-hover'} of-cut of-spot flex aspect-[3/4] items-center justify-center overflow-hidden`}>
@@ -290,32 +306,33 @@ function Person({ name, role, mono, gold, d }: { name: string; role?: string; mo
           {mono}
         </span>
       </div>
-      <div className={`of-display mt-3 text-[20px] lg:text-[22px] ${gold ? 'of-gold' : ''}`}>{name}</div>
-      {role && <div className={`text-[12.5px] ${gold ? 'text-[color:var(--gold-2)]' : 'text-[#BFCCC4]'}`}>{role}</div>}
+      <div className={`of-display mt-3 text-[20px] lg:text-[22px] ${gold ? 'of-gold' : ''}`}>{t(name)}</div>
+      {role && <div className={`text-[12.5px] ${gold ? 'text-[color:var(--gold-2)]' : 'text-[#BFCCC4]'}`}>{t(role)}</div>}
     </div>
   );
 }
 
 export function Cast() {
+  const t = useT();
   return (
     <section id="nhan-vat" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1240px]">
-        <SectionHead eyebrow="Nhân vật trung tâm" title="Thí sinh · Ban huấn luyện · Ngôi sao" />
+        <SectionHead eyebrow={t('Nhân vật trung tâm')} title={t('Thí sinh · Ban huấn luyện · Ngôi sao')} />
         <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-[0.9fr_1.1fr_1.4fr] lg:gap-8">
           <div data-reveal="left" className="of-glass of-cut of-cut--lg of-run-hover of-spot flex flex-col justify-end overflow-hidden p-6 lg:p-8">
             <div className="of-display pointer-events-none absolute -right-2 -top-4 text-[150px] lg:text-[170px]" style={{ color: 'transparent', WebkitTextStroke: '1.5px rgba(227,194,126,.45)' }} aria-hidden="true">
               16
             </div>
-            <div className="of-hud text-[11px] text-[color:var(--lime)]">Thí sinh</div>
+            <div className="of-hud text-[11px] text-[color:var(--lime)]">{t('Thí sinh')}</div>
             <div className="of-display mt-1 text-[44px]">
-              <span className="of-neon">16 – 21</span> tuổi
+              <span className="of-neon">16 – 21</span> {t('tuổi')}
             </div>
             <p className="mt-2 text-[14.5px] text-[#CBD6CF]">
-              Người Việt trong nước và toàn cầu: học sinh, sinh viên, cầu thủ phong trào, lò đào tạo chuyên nghiệp.
+              {t('Người Việt trong nước và toàn cầu: học sinh, sinh viên, cầu thủ phong trào, lò đào tạo chuyên nghiệp.')}
             </p>
           </div>
           <div>
-            <div className="of-hud mb-3 text-[11px] text-[color:var(--lime)]">Ban huấn luyện</div>
+            <div className="of-hud mb-3 text-[11px] text-[color:var(--lime)]">{t('Ban huấn luyện')}</div>
             <div className="grid grid-cols-3 gap-3">
               {COACHES.map((c, i) => (
                 <Person key={c.name} {...c} d={i} />
@@ -323,7 +340,7 @@ export function Cast() {
             </div>
           </div>
           <div>
-            <div className="of-hud mb-3 text-[11px] text-[color:var(--lime)]">Khách mời ngôi sao</div>
+            <div className="of-hud mb-3 text-[11px] text-[color:var(--lime)]">{t('Khách mời ngôi sao')}</div>
             <div className="grid grid-cols-4 gap-3">
               {GUESTS.map((g, i) => (
                 <Person key={g.name} {...g} d={i + 1} />
@@ -355,19 +372,20 @@ const IP_ASSETS = [
 ];
 
 export function Ecosystem() {
+  const t = useT();
   return (
     <section id="he-sinh-thai" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto grid max-w-[1240px] gap-10 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
         <div>
-          <SectionHead align="left" eyebrow="Bảo chứng" title="Hệ sinh thái bóng đá sẵn sàng" />
+          <SectionHead align="left" eyebrow={t('Bảo chứng')} title={t('Hệ sinh thái bóng đá sẵn sàng')} />
           <div className="mt-8 grid grid-cols-2 gap-3 lg:gap-4">
             {BACKERS.map((b, i) => (
               <div key={b.title} data-reveal="" style={revealDelay(i)} className="of-glass of-cut of-spot of-lift of-run-hover p-5 lg:p-6">
                 <div className="text-[color:var(--lime-2)]" style={glow()}>
                   {b.icon}
                 </div>
-                <div className="of-display mt-3 text-[24px] lg:text-[28px]">{b.title}</div>
-                <div className="text-[13.5px] text-[#CBD6CF]">{b.text}</div>
+                <div className="of-display mt-3 text-[24px] lg:text-[28px]">{t(b.title)}</div>
+                <div className="text-[13.5px] text-[#CBD6CF]">{t(b.text)}</div>
               </div>
             ))}
           </div>
@@ -375,18 +393,18 @@ export function Ecosystem() {
             <span className="of-display of-neon text-[44px] leading-none">
               <CountUp to={30} />+
             </span>
-            <span className="text-[14px] text-[#CBD6CF]">thành viên ban cố vấn chuyên môn: bóng đá, sản xuất, truyền thông, công nghệ</span>
+            <span className="text-[14px] text-[#CBD6CF]">{t('thành viên ban cố vấn chuyên môn: bóng đá, sản xuất, truyền thông, công nghệ')}</span>
           </div>
         </div>
         <div data-reveal="right" className="of-glass-gold of-cut of-cut--lg of-cut--gold of-run self-start p-6 lg:p-8">
           <div className="of-brackets" />
-          <div className="of-hud text-[11px] text-[color:var(--gold-2)]">Tài sản IP</div>
-          <div className="of-display of-gold mt-1 text-[36px]">Sẵn sàng triển khai</div>
+          <div className="of-hud text-[11px] text-[color:var(--gold-2)]">{t('Tài sản IP')}</div>
+          <div className="of-display of-gold mt-1 text-[36px]">{t('Sẵn sàng triển khai')}</div>
           <ul className="mt-5 flex flex-col gap-3">
             {IP_ASSETS.map((a) => (
               <li key={a} className="flex items-center gap-3 text-[15px]">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-[rgba(227,194,126,.6)] text-[color:var(--gold-2)]">{PIcons.check}</span>
-                {a}
+                {t(a)}
               </li>
             ))}
           </ul>
@@ -410,19 +428,20 @@ const CHANNELS = [
 ];
 
 export function Audience() {
+  const t = useT();
   return (
     <section id="khan-gia" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1240px]">
-        <SectionHead eyebrow="Giải trí đại chúng × Cộng đồng bóng đá × Giá trị dài hạn" title="Khán giả mục tiêu & sức lan tỏa" />
+        <SectionHead eyebrow={t('Giải trí đại chúng × Cộng đồng bóng đá × Giá trị dài hạn')} title={t('Khán giả mục tiêu & sức lan tỏa')} />
         <div className="mt-10 grid gap-3 lg:mt-14 lg:grid-cols-3 lg:gap-5">
           {AUDIENCE.map((a, i) => (
             <div key={a.label} data-reveal="zoom" style={revealDelay(i)} className={`${a.gold ? 'of-glass-gold of-cut--gold of-run' : 'of-glass of-run-hover'} of-cut of-cut--lg of-spot p-6 text-center lg:p-8`}>
-              <div className={`of-hud text-[11px] ${a.gold ? 'text-[color:var(--gold-2)]' : 'text-[color:var(--lime)]'}`}>{a.label}</div>
+              <div className={`of-hud text-[11px] ${a.gold ? 'text-[color:var(--gold-2)]' : 'text-[color:var(--lime)]'}`}>{t(a.label)}</div>
               <div className={`of-display mt-2 text-[64px] lg:text-[80px] ${a.gold ? 'of-gold' : 'of-neon'}`}>
                 {a.prefix}
-                <CountUp to={a.n} /> <span className="text-[0.5em]">triệu</span>
+                <CountUp to={a.n} /> <span className="text-[0.5em]">{t('triệu')}</span>
               </div>
-              <div className="text-[14px] text-[#CBD6CF]">{a.text}</div>
+              <div className="text-[14px] text-[#CBD6CF]">{t(a.text)}</div>
             </div>
           ))}
         </div>
@@ -433,8 +452,8 @@ export function Audience() {
                 {c.icon}
               </div>
               <div>
-                <div className="font-bold">{c.title}</div>
-                <div className="text-[14px] text-[#CBD6CF]">{c.text}</div>
+                <div className="font-bold">{t(c.title)}</div>
+                <div className="text-[14px] text-[#CBD6CF]">{t(c.text)}</div>
               </div>
             </div>
           ))}
@@ -456,20 +475,21 @@ const REVENUE = [
 ];
 
 export function Revenue() {
+  const t = useT();
   return (
     <section id="doanh-thu" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1240px]">
-        <SectionHead eyebrow="Mô hình kinh doanh" title="6 nguồn doanh thu từ một IP" />
+        <SectionHead eyebrow={t('Mô hình kinh doanh')} title={t('6 nguồn doanh thu từ một IP')} />
         <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3 lg:gap-5">
           {REVENUE.map((r, i) => (
             <article key={r.title} data-reveal={i % 2 ? 'right' : 'left'} style={revealDelay(i % 3)} className="of-glass of-cut of-spot of-lift of-run-hover overflow-hidden p-6">
               <div className="of-display of-outline pointer-events-none absolute right-3 top-1 text-[76px]" aria-hidden="true">
                 0{i + 1}
               </div>
-              <h3 className="of-display max-w-[80%] text-[26px]">{r.title}</h3>
-              <div className="mt-3 text-[14px] text-[#CBD6CF]">{r.from}</div>
+              <h3 className="of-display max-w-[80%] text-[26px]">{t(r.title)}</h3>
+              <div className="mt-3 text-[14px] text-[#CBD6CF]">{t(r.from)}</div>
               <div className="mt-1 flex items-center gap-2 text-[14px] font-semibold text-[color:var(--lime-2)]">
-                <ArrowRight size={16} /> {r.to}
+                <ArrowRight size={16} /> {t(r.to)}
               </div>
             </article>
           ))}
@@ -489,49 +509,50 @@ const TIERS = [
 ];
 
 export function Packages() {
+  const t = useT();
   return (
     <section id="hop-tac" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1240px]">
-        <SectionHead eyebrow="Cơ hội hợp tác" title="Cùng khai phá đại dương xanh" />
+        <SectionHead eyebrow={t('Cơ hội hợp tác')} title={t('Cùng khai phá đại dương xanh')} />
         <div className="mt-6 flex justify-center" data-reveal="">
           <span className="of-chip of-chip--gold !px-4 !py-1.5 !text-[12px]">
-            <span className="of-dot" /> ~20 nhãn hàng đang chờ ký kết, gồm nhà tài trợ kim cương
+            <span className="of-dot" /> {t('~20 nhãn hàng đang chờ ký kết, gồm nhà tài trợ kim cương')}
           </span>
         </div>
 
         <div data-reveal="zoom" className="of-glass of-cut of-cut--lg of-run of-sweep mt-10 grid items-center gap-5 p-6 lg:grid-cols-[1fr_auto] lg:p-8">
           <div>
-            <div className="of-hud text-[11px] text-[color:var(--lime)]">Mùa 1 · Thị trường Việt Nam</div>
-            <div className="of-display mt-1 text-[34px] lg:text-[42px]">Bán quyền khai thác thương mại IP</div>
-            <p className="mt-1 text-[#CBD6CF]">Sản xuất, truyền thông, tổ chức sự kiện, quảng cáo và thương mại.</p>
+            <div className="of-hud text-[11px] text-[color:var(--lime)]">{t('Mùa 1 · Thị trường Việt Nam')}</div>
+            <div className="of-display mt-1 text-[34px] lg:text-[42px]">{t('Bán quyền khai thác thương mại IP')}</div>
+            <p className="mt-1 text-[#CBD6CF]">{t('Sản xuất, truyền thông, tổ chức sự kiện, quảng cáo và thương mại.')}</p>
           </div>
           <a href="#lien-he" className="of-btn">
-            Yêu cầu term sheet <ArrowRight />
+            {t('Yêu cầu term sheet')} <ArrowRight />
           </a>
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:mt-5 lg:grid-cols-4 lg:gap-5">
-          {TIERS.map((t, i) => (
+          {TIERS.map((tier, i) => (
             <article
-              key={t.name}
+              key={tier.name}
               data-reveal=""
               style={revealDelay(i)}
-              className={`${t.gold ? 'of-glass-gold of-cut--gold of-cut--b2 of-run' : 'of-glass of-run-hover'} of-cut of-cut--lg of-spot of-lift flex flex-col p-6`}
+              className={`${tier.gold ? 'of-glass-gold of-cut--gold of-cut--b2 of-run' : 'of-glass of-run-hover'} of-cut of-cut--lg of-spot of-lift flex flex-col p-6`}
             >
-              <div className={`of-hud text-[11px] ${t.gold ? 'text-[color:var(--gold-2)]' : 'text-[color:var(--lime)]'}`}>{t.kind}</div>
-              <div className={`of-display mt-1 text-[34px] ${t.gold ? 'of-gold' : ''}`}>{t.name}</div>
-              <div className={`of-display mt-3 ${t.price ? 'of-gold text-[56px]' : 'text-[26px] text-[#E2EAE4]'}`}>
-                {t.price ? (
+              <div className={`of-hud text-[11px] ${tier.gold ? 'text-[color:var(--gold-2)]' : 'text-[color:var(--lime)]'}`}>{t(tier.kind)}</div>
+              <div className={`of-display mt-1 text-[34px] ${tier.gold ? 'of-gold' : ''}`}>{t(tier.name)}</div>
+              <div className={`of-display mt-3 ${tier.price ? 'of-gold text-[56px]' : 'text-[26px] text-[#E2EAE4]'}`}>
+                {tier.price ? (
                   <>
-                    <CountUp to={t.price} /> <span className="text-[0.5em]">tỷ</span>
+                    <CountUp to={tier.price} /> <span className="text-[0.5em]">{t('tỷ')}</span>
                   </>
                 ) : (
-                  'Liên hệ'
+                  t('Liên hệ')
                 )}
               </div>
-              <p className="mt-2 flex-1 text-[14px] text-[#CBD6CF]">{t.perk}</p>
-              <a href="#lien-he" className={`${t.gold ? 'of-btn' : 'of-btn-ghost of-cut'} mt-5 !min-h-[46px] !text-[17px]`}>
-                Nhận bảng quyền lợi
+              <p className="mt-2 flex-1 text-[14px] text-[#CBD6CF]">{t(tier.perk)}</p>
+              <a href="#lien-he" className={`${tier.gold ? 'of-btn' : 'of-btn-ghost of-cut'} mt-5 !min-h-[46px] !text-[17px]`}>
+                {t('Nhận bảng quyền lợi')}
               </a>
             </article>
           ))}
@@ -544,26 +565,28 @@ export function Packages() {
 /* ----------------------------------------------------------------- quote */
 
 export function Quote() {
+  const t = useT();
   return (
     <section className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto max-w-[1040px]" data-reveal="zoom">
-        <div className="of-eyebrow mx-auto flex w-fit">Kiến tạo di sản thể thao Việt Nam</div>
+        <div className="of-eyebrow mx-auto flex w-fit">{t('Kiến tạo di sản thể thao Việt Nam')}</div>
         <div className="of-glass-gold of-cut of-cut--lg of-cut--gold of-sweep mt-6 p-7 lg:p-12">
           <div className="of-display of-gold pointer-events-none absolute left-4 top-0 text-[140px] leading-none opacity-40" aria-hidden="true">
             “
           </div>
           <blockquote className="relative text-[17px] leading-[1.7] text-[#F1EEE4] lg:text-[21px]">
-            11 ON FIELD không chỉ là một chương trình truyền hình, đó là <strong className="text-[color:var(--gold-3)]">Sứ mệnh</strong>: tìm kiếm và kiến tạo thế hệ ngôi sao
-            bóng đá mới của Việt Nam đạt chuẩn trên đấu trường thể thao toàn cầu. Để chinh phục 28 triệu gia đình Việt Nam và thúc đẩy 22 triệu thanh thiếu niên phát triển
-            toàn diện, chúng tôi trân trọng kính mời Quý vị trở thành <strong className="text-[color:var(--gold-3)]">Đối tác chiến lược</strong>.
+            {rich(
+              t('11 ON FIELD không chỉ là một chương trình truyền hình, đó là <b>Sứ mệnh</b>: tìm kiếm và kiến tạo thế hệ ngôi sao bóng đá mới của Việt Nam đạt chuẩn trên đấu trường thể thao toàn cầu. Để chinh phục 28 triệu gia đình Việt Nam và thúc đẩy 22 triệu thanh thiếu niên phát triển toàn diện, chúng tôi trân trọng kính mời Quý vị trở thành <b>Đối tác chiến lược</b>.'),
+              strong('text-[color:var(--gold-3)]')
+            )}
           </blockquote>
           <div className="relative mt-7 flex items-center gap-4">
             <div className="of-cut of-cut--sm of-cut--gold flex h-14 w-14 items-center justify-center bg-[rgba(227,194,126,.12)]">
               <span className="of-display of-gold text-[24px]">HT</span>
             </div>
             <div>
-              <div className="of-display text-[24px] text-white">Đặng Thị Hoài Trinh</div>
-              <div className="text-[14px] text-[color:var(--gold-2)]">Giám đốc Dự án 11 On Field</div>
+              <div className="of-display text-[24px] text-white">{t('Đặng Thị Hoài Trinh')}</div>
+              <div className="text-[14px] text-[color:var(--gold-2)]">{t('Giám đốc Dự án 11 On Field')}</div>
             </div>
           </div>
         </div>

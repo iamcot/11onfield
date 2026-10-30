@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useState } from "react";
 import NotificationDropdown from "./NotificationDropdown";
 import RightNavigator from "./RightNavigator";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { useT } from "@/i18n/I18nProvider";
 
 interface TopBarProps {
   onMenuToggle?: () => void;
@@ -17,6 +19,7 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
+  const t = useT();
 
   const handleAvatarClick = () => {
     setShowRightNav(!showRightNav);
@@ -30,8 +33,10 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 h-20">
         <div className="of-appbar relative h-16">
           <div className="flex items-center justify-between h-full px-4">
-            {/* Left spacer for centering */}
-            <div className="w-20"></div>
+            {/* Left: language (also keeps the logo centred) */}
+            <div className="w-20">
+              <LanguageSwitcher className="w-fit" />
+            </div>
 
             {/* Center Logo */}
             <div className="flex-1 flex justify-center">
@@ -52,7 +57,7 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative p-1 text-white hover:bg-white/20 rounded-full transition"
-                aria-label="Notifications"
+                aria-label={t("Thông báo")}
               >
                 <svg
                   className="w-5 h-5"
@@ -86,7 +91,7 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
               <button
                 onClick={handleAvatarClick}
                 className="relative p-0.5 hover:bg-white/20 rounded-full transition"
-                aria-label="User menu"
+                aria-label={t("Menu người dùng")}
               >
                 {user?.avatar ? (
                   <img

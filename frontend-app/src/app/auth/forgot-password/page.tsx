@@ -6,8 +6,10 @@ import { useState } from "react";
 import { authService } from "@/services/auth.service";
 import AuthCard, { FieldLabel, Notice, errorMessage } from "@/components/shell/AuthCard";
 import { ArrowRight } from "@/components/home/ui";
+import { useT } from "@/i18n/I18nProvider";
 
 export default function ForgotPasswordPage() {
+  const t = useT();
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +23,7 @@ export default function ForgotPasswordPage() {
 
     // Validate phone
     if (!/^0\d{9}$/.test(phone)) {
-      setError("Số điện thoại không hợp lệ (phải có 10 chữ số, bắt đầu bằng 0)");
+      setError(t("Số điện thoại không hợp lệ (phải có 10 chữ số, bắt đầu bằng 0)"));
       return;
     }
 
@@ -29,13 +31,13 @@ export default function ForgotPasswordPage() {
 
     try {
       await authService.forgotPassword(phone);
-      setMessage("Mã OTP đã được gửi đến số điện thoại của bạn");
+      setMessage(t("Mã OTP đã được gửi đến số điện thoại của bạn"));
       // Redirect to verify OTP page after 2 seconds
       setTimeout(() => {
         router.push(`/auth/verify-otp?phone=${phone}`);
       }, 2000);
     } catch (err: unknown) {
-      setError(errorMessage(err, "Có lỗi xảy ra. Vui lòng thử lại."));
+      setError(errorMessage(err, "Có lỗi xảy ra. Vui lòng thử lại.", t));
     } finally {
       setIsLoading(false);
     }
@@ -43,19 +45,19 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthCard
-      eyebrow="Khôi phục tài khoản"
-      title="Quên mật khẩu"
-      subtitle="Nhập số điện thoại đã đăng ký để nhận mã OTP qua Zalo."
+      eyebrow={t("Khôi phục tài khoản")}
+      title={t("Quên mật khẩu")}
+      subtitle={t("Nhập số điện thoại đã đăng ký để nhận mã OTP qua Zalo.")}
       aside={{
-        eyebrow: "Bước 1 / 3",
+        eyebrow: t("Bước 1 / 3"),
         title: (
           <>
-            Lấy lại
+            {t("Lấy lại")}
             <br />
-            <span className="of-neon">mật khẩu</span>
+            <span className="of-neon">{t("mật khẩu")}</span>
           </>
         ),
-        text: "Chỉ mất chưa đến một phút: nhận mã OTP, xác minh và đặt mật khẩu mới.",
+        text: t("Chỉ mất chưa đến một phút: nhận mã OTP, xác minh và đặt mật khẩu mới."),
       }}
     >
       <form className="grid gap-4" onSubmit={handleSubmit}>
@@ -63,7 +65,7 @@ export default function ForgotPasswordPage() {
         {message && <Notice tone="ok">{message}</Notice>}
 
         <label className="block">
-          <FieldLabel>Số điện thoại</FieldLabel>
+          <FieldLabel>{t("Số điện thoại")}</FieldLabel>
           <input
             id="phone"
             name="phone"
@@ -79,11 +81,11 @@ export default function ForgotPasswordPage() {
         </label>
 
         <button type="submit" disabled={isLoading} className="of-btn mt-2 w-full">
-          {isLoading ? "Đang gửi…" : "Gửi mã OTP"} {!isLoading && <ArrowRight />}
+          {isLoading ? t("Đang gửi…") : t("Gửi mã OTP")} {!isLoading && <ArrowRight />}
         </button>
 
         <Link href="/auth/login" className="text-center text-[14px] font-semibold hover:!text-white" style={{ color: "var(--lime-2)" }}>
-          ‹ Quay lại đăng nhập
+          {t("‹ Quay lại đăng nhập")}
         </Link>
       </form>
     </AuthCard>

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cssVars } from './ui';
+import { useT } from '@/i18n/I18nProvider';
+import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 
 type NavLink = { id: string; label: string };
 
@@ -24,6 +26,7 @@ export default function HomeHeader({
   variant?: 'player' | 'partner';
 }) {
   const { user, isAuthenticated } = useAuth();
+  const t = useT();
   const [solid, setSolid] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState('');
@@ -59,20 +62,20 @@ export default function HomeHeader({
 
   const profileHref = isAuthenticated && user ? `/profile/${user.userid}` : null;
   const primary = isPartner
-    ? { href: '#lien-he', label: 'Hợp tác', long: 'Nhận hồ sơ hợp tác' }
+    ? { href: '#lien-he', label: t('Hợp tác'), long: t('Nhận hồ sơ hợp tác') }
     : profileHref
-      ? { href: profileHref, label: 'Hồ sơ', long: 'Hồ sơ của tôi' }
-      : { href: '/auth/register', label: 'Đăng ký', long: 'Đăng ký miễn phí' };
+      ? { href: profileHref, label: t('Hồ sơ'), long: t('Hồ sơ của tôi') }
+      : { href: '/auth/register', label: t('Đăng ký'), long: t('Đăng ký miễn phí') };
   // the partner page is password-protected and not linked from the public site
-  const cross = isPartner ? { href: '/', label: 'Cầu thủ' } : null;
-  const extra = [...(cross ? [cross] : []), { href: '/competitions', label: 'Chương trình' }];
+  const cross = isPartner ? { href: '/', label: t('Cầu thủ') } : null;
+  const extra = [...(cross ? [cross] : []), { href: '/competitions', label: t('Chương trình') }];
   const showLogin = !isPartner && !isAuthenticated;
 
   return (
     <>
       <header className={`of-header ${solid ? 'is-solid' : ''}`}>
         <div className="mx-auto flex h-full max-w-[1240px] items-center gap-3 px-4 lg:gap-8 lg:px-6">
-          <Link href="/" className="flex shrink-0 items-center" aria-label="11 On Field – Trang chủ">
+          <Link href="/" className="flex shrink-0 items-center" aria-label={`11 On Field – ${t('Trang chủ')}`}>
             <Image
               src="/images/logo-white-full.png"
               alt="11 On Field"
@@ -83,10 +86,10 @@ export default function HomeHeader({
             />
           </Link>
 
-          <nav aria-label="Điều hướng chính" className="hidden flex-1 items-center gap-6 lg:flex xl:gap-7">
+          <nav aria-label={t('Điều hướng chính')} className="hidden flex-1 items-center gap-6 lg:flex xl:gap-7">
             {links.map((l) => (
               <a key={l.id} href={`#${l.id}`} className={`of-navlink ${active === l.id ? 'is-active' : ''}`}>
-                {l.label}
+                {t(l.label)}
               </a>
             ))}
           </nav>
@@ -97,9 +100,10 @@ export default function HomeHeader({
                 {cross.label} ›
               </Link>
             )}
+            <LanguageSwitcher className="hidden sm:inline-flex" />
             {showLogin && (
               <Link href="/auth/login" className="of-navlink hidden xl:inline-block">
-                Đăng nhập
+                {t('Đăng nhập')}
               </Link>
             )}
             <Link href={primary.href} className="of-btn of-btn--sm lg:!min-h-[44px] lg:!px-6 lg:!text-lg">
@@ -109,7 +113,7 @@ export default function HomeHeader({
               type="button"
               className="of-iconbtn of-iconbtn--mobile of-cut of-cut--sm"
               style={cssVars({ '--c': '8px' })}
-              aria-label={open ? 'Đóng menu' : 'Mở menu'}
+              aria-label={open ? t('Đóng menu') : t('Mở menu')}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
             >
@@ -122,16 +126,16 @@ export default function HomeHeader({
         <div className="of-header-progress" />
       </header>
 
-      <div className={`of-menu ${open ? 'is-open' : ''}`} role="dialog" aria-modal="true" aria-label="Menu" aria-hidden={!open}>
+      <div className={`of-menu ${open ? 'is-open' : ''}`} role="dialog" aria-modal="true" aria-label={t('Menu')} aria-hidden={!open}>
         <div className="flex items-center justify-between px-4" style={{ height: 'var(--header-h)' }}>
           <Image src="/images/logo-white-full.png" alt="11 On Field" width={142} height={28} className="h-[28px] w-auto" />
-          <button type="button" className="of-iconbtn of-cut" style={cssVars({ '--c': '8px' })} aria-label="Đóng menu" onClick={() => setOpen(false)}>
+          <button type="button" className="of-iconbtn of-cut" style={cssVars({ '--c': '8px' })} aria-label={t('Đóng menu')} onClick={() => setOpen(false)}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </button>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 pt-6" aria-label="Menu di động">
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 pt-6" aria-label={t('Menu di động')}>
           {links.map((l, i) => (
             <a
               key={l.id}
@@ -141,7 +145,7 @@ export default function HomeHeader({
               style={cssVars({ '--i': i })}
             >
               <span className="of-num text-sm text-[color:var(--lime)]">0{i + 1}</span>
-              {l.label}
+              {t(l.label)}
             </a>
           ))}
           {extra.map((l, j) => (
@@ -157,13 +161,14 @@ export default function HomeHeader({
             </Link>
           ))}
         </nav>
-        <div className="of-menu-item flex gap-3 p-6" style={cssVars({ '--i': links.length + extra.length })}>
+        <div className="of-menu-item flex flex-wrap items-center gap-3 p-6" style={cssVars({ '--i': links.length + extra.length })}>
+          <LanguageSwitcher className="sm:hidden" />
           {showLogin && (
-            <Link href="/auth/login" className="of-btn-ghost of-cut flex-1" onClick={() => setOpen(false)}>
-              Đăng nhập
+            <Link href="/auth/login" className="of-btn-ghost of-cut flex-1 whitespace-nowrap" onClick={() => setOpen(false)}>
+              {t('Đăng nhập')}
             </Link>
           )}
-          <Link href={primary.href} className="of-btn flex-1" onClick={() => setOpen(false)}>
+          <Link href={primary.href} className="of-btn flex-1 whitespace-nowrap" onClick={() => setOpen(false)}>
             {primary.long}
           </Link>
         </div>

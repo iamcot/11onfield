@@ -1,11 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import type { Stage } from '@/services/competition.service';
 import { revealDelay } from './ui';
+import { useT } from '@/i18n/I18nProvider';
 
 const REGIONS = [
-  { key: 'HANOI_NORTH', name: <>Hà Nội &amp;<br />Miền Bắc</>, mark: 'BẮC' },
-  { key: 'DANANG_CENTRAL', name: <>Đà Nẵng &amp;<br />Miền Trung</>, mark: 'TRUNG' },
-  { key: 'HCMC_SOUTH', name: <>TP HCM &amp;<br />Miền Nam</>, mark: 'NAM' },
+  { key: 'HANOI_NORTH', city: 'Hà Nội &', area: 'Miền Bắc', mark: 'BẮC' },
+  { key: 'DANANG_CENTRAL', city: 'Đà Nẵng &', area: 'Miền Trung', mark: 'TRUNG' },
+  { key: 'HCMC_SOUTH', city: 'TP HCM &', area: 'Miền Nam', mark: 'NAM' },
 ];
 
 const STATUS: Record<string, string> = {
@@ -23,6 +26,7 @@ function formatDate(d: string) {
 const SHOW_DATES = false;
 
 export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref: string }) {
+  const t = useT();
   const byRegion = (key: string) =>
     !SHOW_DATES
       ? undefined
@@ -33,11 +37,11 @@ export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref:
       <div className="mx-auto max-w-[1240px]">
         <div className="flex flex-wrap items-end justify-between gap-5" data-reveal="">
           <div>
-            <div className="of-eyebrow of-eyebrow--left">Vòng khu vực</div>
-            <h2 className="of-h2 mt-3">Lịch tuyển trạch</h2>
+            <div className="of-eyebrow of-eyebrow--left">{t('Vòng khu vực')}</div>
+            <h2 className="of-h2 mt-3">{t('Lịch tuyển trạch')}</h2>
           </div>
           <Link href="/competitions" className="of-hud text-[13px] text-[color:var(--lime-2)] hover:text-white">
-            Toàn bộ lịch chương trình ›
+            {t('Toàn bộ lịch chương trình')} ›
           </Link>
         </div>
 
@@ -53,13 +57,17 @@ export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref:
                 className={`of-glass of-cut of-cut--lg of-spot of-lift flex flex-col gap-2.5 overflow-hidden p-6 lg:p-7 ${active ? 'of-run' : 'of-run-hover'}`}
               >
                 <div className="of-display of-outline pointer-events-none absolute -right-2 top-1 text-[110px] !leading-[1.2] opacity-70 lg:text-[130px]" aria-hidden="true">
-                  {r.mark}
+                  {t(r.mark)}
                 </div>
                 <span className={`of-chip self-start ${active ? '' : '!border-white/40 !bg-transparent !text-[#E2EAE4]'}`}>
                   {active && <span className="of-dot" />}
-                  {stage ? STATUS[stage.status] ?? 'Sắp diễn ra' : 'Sắp công bố'}
+                  {t(stage ? STATUS[stage.status] ?? 'Sắp diễn ra' : 'Sắp công bố')}
                 </span>
-                <h3 className="of-display text-[34px] lg:text-[38px]">{r.name}</h3>
+                <h3 className="of-display text-[34px] lg:text-[38px]">
+                  {t(r.city)}
+                  <br />
+                  {t(r.area)}
+                </h3>
                 <div className="of-num text-[14px] text-[#CBD6CF]">
                   {stage ? (
                     <>
@@ -68,11 +76,11 @@ export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref:
                       {stage.title ? <span className="block font-medium normal-case">{stage.title}</span> : null}
                     </>
                   ) : (
-                    'Lịch thi đấu sẽ được thông báo tới thí sinh đã đăng ký'
+                    t('Lịch thi đấu sẽ được thông báo tới thí sinh đã đăng ký')
                   )}
                 </div>
                 <Link href={ctaHref} className={`${active ? 'of-btn' : 'of-btn-ghost of-cut'} mt-auto !min-h-[48px] !text-[18px]`}>
-                  Đăng ký khu vực này
+                  {t('Đăng ký khu vực này')}
                 </Link>
               </article>
             );
