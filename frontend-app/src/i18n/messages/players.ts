@@ -210,6 +210,12 @@ const players: Messages = {
     '보낸 하이라이트는 수정할 수 없습니다. 바꾸려면 삭제 후 다시 추가해 재검토를 받으세요.',
   ],
   'Tải lên': ['Upload', 'Subir', '업로드'],
+  'Phát': ['Play', 'Reproducir', '재생'],
+  'Tạm dừng': ['Pause', 'Pausa', '일시정지'],
+  'Mở trên {n}': ['Open on {n}', 'Abrir en {n}', '{n}에서 열기'],
+  'trang gốc': ['the original site', 'el sitio original', '원본 사이트'],
+  'Clip trước': ['Previous clip', 'Clip anterior', '이전 클립'],
+  'Clip sau': ['Next clip', 'Clip siguiente', '다음 클립'],
   'Chưa có highlight.': ['No highlights yet.', 'Aún sin highlights.', '아직 하이라이트가 없습니다.'],
   'Chưa có highlight. Bấm cây bút để thêm link hoặc tải video lên.': [
     'No highlights yet. Tap the pencil to add a link or upload a video.',

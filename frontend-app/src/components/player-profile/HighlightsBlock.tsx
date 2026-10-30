@@ -6,23 +6,25 @@ import { useT } from '@/i18n/I18nProvider';
 import { mediaService, type MediaConfig } from '@/services/media.service';
 import type { Highlight } from '@/services/user.service';
 import { VideoGuide } from './Guides';
+import HighlightViewer, { youtubeId } from './HighlightViewer';
 import { ItemActions, ReviewFlag } from './ItemStatus';
 
-/** YouTube thumbnail of a link, when we can tell the video id. */
-function youtubeThumb(url: string): string | null {
-  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/);
-  return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : null;
+/** Picture of a clip: the Bunny poster, else the YouTube thumbnail when we can tell the video id. */
+function posterOf(h: Highlight): string | null {
+  if (h.kind === 'VIDEO') return h.posterUrl ?? null;
+  const id = youtubeId(h.url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
 }
 
-/** A 9:16 card. Not approved yet (or no picture) = light grey card with the title and the review badge inside. */
-function Clip({ h, badge }: { h: Highlight; badge?: ReactNode }) {
+/** A 9:16 card that opens the full-screen viewer. Not approved yet (or no picture) = light grey card with the title and the review badge inside. */
+function Clip({ h, badge, onOpen }: { h: Highlight; badge?: ReactNode; onOpen: () => void }) {
   const t = useT();
-  const [playing, setPlaying] = useState(false);
   const [noPoster, setNoPoster] = useState(false);
-  const poster = h.kind === 'VIDEO' ? h.posterUrl : youtubeThumb(h.url);
+  const poster = posterOf(h);
   const caption = h.title || (h.kind === 'VIDEO' ? t('Video highlight') : h.platform || t('Video highlight'));
-  const body = (
-    <>
+  const grey = h.approvalStatus !== 'APPROVED' || !poster || noPoster ? ' grey' : '';
+  return (
+    <button type="button" className={`pp-clip${grey}`} onClick={onOpen} aria-label={t('Xem {n}', { n: caption })}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {poster && !noPoster && <img src={poster} alt="" loading="lazy" onError={() => setNoPoster(true)} />}
       {badge ? <span className="badge">{badge}</span> : <span className="src">{h.kind === 'VIDEO' ? '11 On Field' : h.platform || t('Link')}</span>}
@@ -30,24 +32,7 @@ function Clip({ h, badge }: { h: Highlight; badge?: ReactNode }) {
         <IconPlay />
       </span>
       <span className="cap">{caption}</span>
-    </>
-  );
-  const grey = h.approvalStatus !== 'APPROVED' || !poster || noPoster ? ' grey' : '';
-  if (h.kind === 'VIDEO' && h.embedUrl) {
-    return playing ? (
-      <div className="pp-clip playing">
-        <iframe src={h.embedUrl.replace('autoplay=false', 'autoplay=true')} title={caption} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen loading="lazy" />
-      </div>
-    ) : (
-      <button type="button" className={`pp-clip${grey}`} onClick={() => setPlaying(true)} aria-label={t('Xem {n}', { n: caption })}>
-        {body}
-      </button>
-    );
-  }
-  return (
-    <a className={`pp-clip${grey}`} href={h.url} target="_blank" rel="noopener noreferrer" aria-label={t('Xem {n}', { n: caption })}>
-      {body}
-    </a>
+    </button>
   );
 }
 
@@ -77,6 +62,7 @@ export default function HighlightsBlock({
   const [error, setError] = useState('');
   const [progress, setProgress] = useState<number | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
   const maxBytes = config?.maxVideoBytes ?? 50 * 1024 * 1024;
   const maxMb = Math.round(maxBytes / 1024 / 1024);
 
@@ -195,10 +181,10 @@ export default function HighlightsBlock({
         </p>
       ) : (
         <div className="pp-reel">
-          {items.map((h) => (
+          {items.map((h, i) => (
             <div key={h.id} className="pp-item-wrap">
               <div className={h.hidden ? 'pp-pending' : undefined}>
-                <Clip h={h} badge={owner && (h.approvalStatus !== 'APPROVED' || h.hidden) ? <ReviewFlag status={h.approvalStatus} hidden={h.hidden} /> : undefined} />
+                <Clip h={h} onOpen={() => setOpen(i)} badge={owner && (h.approvalStatus !== 'APPROVED' || h.hidden) ? <ReviewFlag status={h.approvalStatus} hidden={h.hidden} /> : undefined} />
               </div>
               {owner && (
                 <>
@@ -214,6 +200,7 @@ export default function HighlightsBlock({
           ))}
         </div>
       )}
+      {open !== null && <HighlightViewer items={items} start={open} posterOf={posterOf} onClose={() => setOpen(null)} />}
     </div>
   );
 }

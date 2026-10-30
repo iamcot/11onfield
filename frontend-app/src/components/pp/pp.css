@@ -430,3 +430,24 @@
 @media (prefers-reduced-motion: reduce) {
   .pp *, .pp *::before, .pp *::after { animation: none !important; transition: none !important; }
 }
+
+/* full-screen highlight viewer: one clip per screen, vertical swipe (scroll snap) */
+.pp-hv { position: fixed; inset: 0; z-index: 90; background: #000; color: #fff; }
+.pp-hv-list { position: absolute; inset: 0; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none; }
+.pp-hv-list::-webkit-scrollbar { display: none; }
+.pp-hv-cell { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; position: relative; }
+.pp-hv-slide { position: absolute; inset: 0; display: grid; place-items: center; }
+.pp-hv-slide iframe { width: min(100%, calc(100dvh * 9 / 16)); height: 100%; border: 0; background: #000; }
+.pp-hv-catch { position: absolute; inset: 64px 0 96px; background: transparent; border: 0; display: grid; place-items: center; cursor: pointer; }
+.pp-hv-catch .play { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: rgba(0, 0, 0, 0.5); color: #fff; }
+.pp-hv-catch .play svg { width: 30px; height: 30px; margin-left: 4px; }
+.pp-hv-poster { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(160deg, #3b4045, #15181a); }
+.pp-hv-poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0.6; }
+.pp-hv-poster .pp-btn { position: relative; z-index: 1; }
+.pp-hv-cap { position: absolute; left: 16px; right: 72px; bottom: max(20px, env(safe-area-inset-bottom)); font-weight: 700; font-size: 15px; line-height: 1.35; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8); pointer-events: none; }
+.pp-hv-top { position: absolute; top: max(10px, env(safe-area-inset-top)); left: 16px; right: 10px; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+.pp-hv-top > * { pointer-events: auto; }
+.pp-hv-nav { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: grid; gap: 10px; }
+.pp-hv-nav .pp-icb svg { transform: rotate(90deg); }
+.pp-hv-nav .pp-icb:disabled { opacity: 0.3; }
+@media (hover: none) { .pp-hv-nav { display: none; } }
