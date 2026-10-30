@@ -3,8 +3,10 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useT } from "@/i18n/I18nProvider";
 
 export default function ProfilePage() {
+  const t = useT();
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
@@ -20,7 +22,7 @@ export default function ProfilePage() {
   // Show loading while redirecting
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <p>Đang tải...</p>
+      <p>{t("Đang tải...")}</p>
     </div>
   );
 }

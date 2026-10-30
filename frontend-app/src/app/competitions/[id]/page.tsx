@@ -18,6 +18,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import PlayersSection from "@/components/players/PlayersSection";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const REGION_LABELS: Record<string, string> = {
   HANOI_NORTH: "Hà Nội & Miền Bắc",
@@ -72,6 +73,7 @@ function CountdownBadge({
   stages: CompetitionDetail["stages"];
   competitionStatus: string;
 }) {
+  const { t, intlLocale } = useI18n();
   const now = Date.now();
 
   // For registration/draft/completed — show status directly, skip stage logic
@@ -104,7 +106,7 @@ function CountdownBadge({
     const tick = () => {
       const diff = target - Date.now();
       if (diff <= 0) {
-        setCountdown("Đã bắt đầu");
+        setCountdown(t("Đã bắt đầu"));
         return;
       }
       const d = Math.floor(diff / 86400000);
@@ -112,7 +114,7 @@ function CountdownBadge({
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
       setCountdown(
-        `${d} ngày ${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
+        `${t("{d} ngày", { d })} ${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`,
       );
     };
     tick();
@@ -124,7 +126,7 @@ function CountdownBadge({
     return (
       <div className="inline-flex items-center gap-2 bg-green-500/30 border border-green-400 px-4 py-2 rounded">
         <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-        <span className="font-semibold">Đang diễn ra: {activeStage.title}</span>
+        <span className="font-semibold">{t("Đang diễn ra:")} {activeStage.title}</span>
       </div>
     );
   }
@@ -132,7 +134,7 @@ function CountdownBadge({
     return (
       <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded">
         <span className="font-mono font-bold text-lg">{countdown}</span>
-        <span className="text-white/80">đến {nextStage.title}</span>
+        <span className="text-white/80">{t("đến")} {nextStage.title}</span>
       </div>
     );
   }
@@ -142,7 +144,7 @@ function CountdownBadge({
       <div
         className={`inline-flex items-center gap-2 px-4 py-2 rounded ${statusInfo.className}`}
       >
-        <span className="font-semibold">{statusInfo.label}</span>
+        <span className="font-semibold">{t(statusInfo.label)}</span>
       </div>
     );
   }
@@ -150,6 +152,7 @@ function CountdownBadge({
 }
 
 export default function CompetitionDetailPage() {
+  const { t, intlLocale } = useI18n();
   const params = useParams();
   const competitionId = parseInt(params.id as string);
 
@@ -189,7 +192,7 @@ export default function CompetitionDetailPage() {
   if (!competition) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Không tìm thấy cuộc thi</p>
+        <p>{t("Không tìm thấy cuộc thi")}</p>
       </div>
     );
   }
@@ -216,7 +219,7 @@ export default function CompetitionDetailPage() {
     ? [activeStage, ...nextUpcoming]
     : nextUpcoming;
 
-  const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString("vi-VN") : "Đang cập nhật");
+  const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString(intlLocale) : t("Đang cập nhật"));
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
@@ -235,11 +238,11 @@ export default function CompetitionDetailPage() {
           <div className="flex flex-wrap items-center gap-4">
             <div className="bg-white/20 px-4 py-2 rounded">
               <span className="font-semibold">
-                {competition.participantCount} người tham gia
+                {competition.participantCount} {t("người tham gia")}
               </span>
             </div>
             <div className="bg-white/20 px-4 py-2 rounded">
-              <span className="font-semibold">5 vòng tuyển chọn</span>
+              <span className="font-semibold">{t("5 vòng tuyển chọn")}</span>
             </div>
             <CountdownBadge
               stages={competition.stages}
@@ -256,7 +259,7 @@ export default function CompetitionDetailPage() {
                   textShadow: "0 0 8px rgba(0,255,80,0.8)",
                 }}
               >
-                Đăng ký ngay →
+                {t("Đăng ký ngay →")}
               </Link>
             )}
           </div>
@@ -286,7 +289,7 @@ export default function CompetitionDetailPage() {
                       ) : (
                         <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                           <span className="text-gray-400 text-sm">
-                            Không có ảnh
+                            {t("Không có ảnh")}
                           </span>
                         </div>
                       )}
@@ -363,7 +366,7 @@ export default function CompetitionDetailPage() {
                 </a>
               ) : (
                 <div className="h-full min-h-[200px] border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-300 text-sm">
-                  Vị trí quảng cáo
+                  {t("Vị trí quảng cáo")}
                 </div>
               )}
             </div>
@@ -373,7 +376,7 @@ export default function CompetitionDetailPage() {
         {/* Upcoming stages */}
         {upcomingStages.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-xl font-bold mb-3">Lịch trình sắp tới</h3>
+            <h3 className="text-xl font-bold mb-3">{t("Lịch trình sắp tới")}</h3>
             <div className="grid md:grid-cols-3 gap-4">
               {upcomingStages.map((stage) => (
                 <div
@@ -381,7 +384,7 @@ export default function CompetitionDetailPage() {
                   className="bg-white p-5 rounded-lg shadow hover:shadow-md transition"
                 >
                   <div className="text-xs text-gray-500 mb-1">
-                    Giai đoạn {stage.stageNumber}
+                    {t("Giai đoạn")} {stage.stageNumber}
                   </div>
                   <h4 className="font-bold mb-2">{stage.title}</h4>
                   <div className="text-sm text-gray-600">
@@ -390,7 +393,7 @@ export default function CompetitionDetailPage() {
                     <div className="flex flex-wrap gap-1 mt-2">
                       {stage.region && (
                         <span className="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs">
-                          {REGION_LABELS[stage.region] ?? stage.region}
+                          {t(REGION_LABELS[stage.region] ?? stage.region)}
                         </span>
                       )}
                       {(() => {
@@ -399,7 +402,7 @@ export default function CompetitionDetailPage() {
                           <span
                             className={`inline-block px-2 py-0.5 rounded text-xs ${s.className}`}
                           >
-                            {s.label}
+                            {t(s.label)}
                           </span>
                         ) : null;
                       })()}
@@ -447,11 +450,11 @@ export default function CompetitionDetailPage() {
           <div className="mb-12">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">Tin tức mới nhất</h3>
-                <p className="text-sm text-gray-500 mt-1">Cập nhật lịch tuyển trạch, hậu trường chương trình và câu chuyện cầu thủ</p>
+                <h3 className="text-2xl font-bold text-gray-900">{t("Tin tức mới nhất")}</h3>
+                <p className="text-sm text-gray-500 mt-1">{t("Cập nhật lịch tuyển trạch, hậu trường chương trình và câu chuyện cầu thủ")}</p>
               </div>
               <Link href={`/competitions/${competitionId}/news`} className="text-green-700 hover:underline text-sm font-bold whitespace-nowrap ml-4 mt-1">
-                Xem tất cả tin tức →
+                {t("Xem tất cả tin tức →")}
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -470,7 +473,7 @@ export default function CompetitionDetailPage() {
                     {article.shortContent && (
                       <p className="text-sm text-gray-600 line-clamp-2 mb-3">{article.shortContent}</p>
                     )}
-                    <span className="text-green-700 text-sm font-bold">Đọc tiếp →</span>
+                    <span className="text-green-700 text-sm font-bold">{t("Đọc tiếp →")}</span>
                   </div>
                 </Link>
               ))}

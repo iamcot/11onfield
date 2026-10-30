@@ -1,5 +1,7 @@
 "use client";
 
+import { useT } from "@/i18n/I18nProvider";
+
 interface PlayerAttribute {
   attributeKey: string;
   attributeName: string;
@@ -26,6 +28,7 @@ export default function HexagonChart({
   labelFontSize = 14,
   className = "",
 }: HexagonChartProps) {
+  const t = useT();
   // Filter and get up to 6 hexagon attributes
   const hexagonAttrs = attributes.filter((attr) => attr.isHexagon).slice(0, 6);
 
@@ -36,7 +39,7 @@ export default function HexagonChart({
         className={`flex items-center justify-center ${className}`}
         style={{ width: size, height: size }}
       >
-        <p className="text-gray-400 text-sm">Chưa có dữ liệu chỉ số</p>
+        <p className="text-gray-400 text-sm">{t("Chưa có dữ liệu chỉ số")}</p>
       </div>
     );
   }

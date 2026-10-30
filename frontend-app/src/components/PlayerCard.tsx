@@ -1,5 +1,7 @@
 "use client";
 
+import { useT } from "@/i18n/I18nProvider";
+
 interface PlayerAttribute {
   attributeKey: string;
   attributeName: string;
@@ -38,6 +40,7 @@ export default function PlayerCard({
   attributes = [],
   className = "",
 }: PlayerCardProps) {
+  const t = useT();
   // Filter hexagon attributes and get first 6
   const hexagonAttrs = attributes.filter((attr) => attr.isHexagon).slice(0, 6);
 
@@ -46,7 +49,7 @@ export default function PlayerCard({
   while (displayAttrs.length < 6) {
     displayAttrs.push({
       attributeKey: `placeholder-${displayAttrs.length}`,
-      attributeName: `Chỉ số ${displayAttrs.length + 1}`,
+      attributeName: t("Chỉ số {n}", { n: displayAttrs.length + 1 }),
       attributeValue: -1, // Use -1 as placeholder indicator
       isHexagon: true,
     });

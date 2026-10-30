@@ -15,12 +15,14 @@ import {
   StageResult,
   CompetitionDetail,
 } from "@/services/competition.service";
+import { useT } from "@/i18n/I18nProvider";
 
 export default function MyResultsPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = useT();
   const resolvedParams = use(params);
   const competitionId = parseInt(resolvedParams.id);
   const router = useRouter();
@@ -73,21 +75,21 @@ export default function MyResultsPage({
     if (stageTitle.includes("Vòng tuyển trạch")) {
       return (
         <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-          Vòng tuyển trạch
+          {t("Vòng tuyển trạch")}
         </span>
       );
     }
     if (stageTitle.includes("Tập")) {
       return (
         <span className="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-          Đào tạo (Nội bộ)
+          {t("Đào tạo (Nội bộ)")}
         </span>
       );
     }
     if (stageTitle.includes("Chung kết")) {
       return (
         <span className="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
-          Chung kết
+          {t("Chung kết")}
         </span>
       );
     }
@@ -96,7 +98,7 @@ export default function MyResultsPage({
 
   const formatDate = (stageNumber: number) => {
     // This is a simple helper - ideally you'd fetch stage dates from the API
-    return `Vòng ${stageNumber}`;
+    return t("Vòng {stageNumber}", { stageNumber });
   };
 
   return (
@@ -111,26 +113,26 @@ export default function MyResultsPage({
               href={`/competitions/${competitionId}`}
               className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
             >
-              Trang chủ
+              {t("Trang chủ")}
             </Link>
             <Link
               href={`/competitions/${competitionId}/news`}
               className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
             >
-              Tin tức
+              {t("Tin tức")}
             </Link>
             <Link
               href={`/competitions/${competitionId}/leaderboard`}
               className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
             >
-              Bảng xếp hạng
+              {t("Bảng xếp hạng")}
             </Link>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Kết quả của tôi</h1>
+        <h1 className="text-3xl font-bold mb-6">{t("Kết quả của tôi")}</h1>
 
         {loading ? (
           <div className="flex justify-center py-12">
@@ -139,19 +141,19 @@ export default function MyResultsPage({
         ) : !isRegistered ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <p className="text-gray-500 mb-4">
-              Bạn chưa đăng ký tham gia cuộc thi này
+              {t("Bạn chưa đăng ký tham gia cuộc thi này")}
             </p>
             <Link
               href={`/competitions/${competitionId}`}
               className="inline-block bg-green-700 text-white px-6 py-3 rounded-lg hover:bg-green-800 transition"
             >
-              Quay lại trang chủ
+              {t("Quay lại trang chủ")}
             </Link>
           </div>
         ) : results.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <p className="text-gray-500">
-              Chưa có kết quả nào được công bố cho bạn
+              {t("Chưa có kết quả nào được công bố cho bạn")}
             </p>
           </div>
         ) : (
@@ -179,13 +181,13 @@ export default function MyResultsPage({
                   {/* Score and Rank */}
                   <div className="grid grid-cols-2 gap-6 mb-6">
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-600 text-sm mb-1">Điểm số</p>
+                      <p className="text-gray-600 text-sm mb-1">{t("Điểm số")}</p>
                       <p className="text-3xl font-bold text-green-700">
                         {result.score ? result.score.toFixed(2) : "N/A"}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-600 text-sm mb-1">Xếp hạng</p>
+                      <p className="text-gray-600 text-sm mb-1">{t("Xếp hạng")}</p>
                       <p className="text-3xl font-bold text-green-700">
                         {result.rankPosition ? `#${result.rankPosition}` : "N/A"}
                       </p>
@@ -196,7 +198,7 @@ export default function MyResultsPage({
                   {result.performanceNotes && (
                     <div className="mb-6">
                       <h3 className="text-gray-800 font-semibold mb-2">
-                        Nhận xét
+                        {t("Nhận xét")}
                       </h3>
                       <div className="bg-gray-50 rounded-lg p-4">
                         <p className="text-gray-700 whitespace-pre-wrap">
@@ -210,7 +212,7 @@ export default function MyResultsPage({
                   {result.videoUrl && (
                     <div>
                       <h3 className="text-gray-800 font-semibold mb-2">
-                        Video thi đấu
+                        {t("Video thi đấu")}
                       </h3>
                       <div className="aspect-video bg-black rounded-lg overflow-hidden">
                         <iframe
@@ -227,7 +229,7 @@ export default function MyResultsPage({
                   {!result.isPublic && (
                     <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                       <p className="text-yellow-800 text-sm">
-                        ℹ️ Kết quả này chỉ dành cho bạn và ban tổ chức (không hiển thị công khai)
+                        {t("ℹ️ Kết quả này chỉ dành cho bạn và ban tổ chức (không hiển thị công khai)")}
                       </p>
                     </div>
                   )}

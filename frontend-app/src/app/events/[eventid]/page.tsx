@@ -9,8 +9,10 @@ import { EventDetail, getStatusDisplayName, getStatusBadgeColor } from "@/types/
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import { formatDateOnly } from "@/utils/timezone";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export default function EventDetailPage() {
+  const { t, intlLocale } = useI18n();
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const { track } = useAnalytics();
   const router = useRouter();
@@ -54,7 +56,7 @@ export default function EventDetailPage() {
         }
       } catch (err: any) {
         console.error("Error fetching event:", err);
-        setError(err.message || "Không thể tải thông tin sự kiện");
+        setError(t(err.message || "Không thể tải thông tin sự kiện"));
       } finally {
         setIsLoading(false);
       }
@@ -75,7 +77,7 @@ export default function EventDetailPage() {
 
     // Confirmation for leaving
     if (isJoined) {
-      if (!confirm("Bạn có chắc chắn muốn rời khỏi sự kiện này?")) {
+      if (!confirm(t("Bạn có chắc chắn muốn rời khỏi sự kiện này?"))) {
         return;
       }
     }
@@ -120,7 +122,7 @@ export default function EventDetailPage() {
       }
     } catch (err: any) {
       console.error("Failed to toggle join:", err);
-      alert(err.message || "Có lỗi xảy ra. Vui lòng thử lại.");
+      alert(t(err.message || "Có lỗi xảy ra. Vui lòng thử lại."));
     } finally {
       setJoinLoading(false);
     }
@@ -128,13 +130,13 @@ export default function EventDetailPage() {
 
   const formatDate = (dateStr: string, timeStr: string | null) => {
     const date = new Date(dateStr);
-    const dateFormatted = date.toLocaleDateString("vi-VN", {
+    const dateFormatted = date.toLocaleDateString(intlLocale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
     if (timeStr) {
-      return `${dateFormatted} lúc ${timeStr}`;
+      return t("{dateFormatted} lúc {timeStr}", { dateFormatted, timeStr });
     }
     return dateFormatted;
   };
@@ -175,25 +177,25 @@ export default function EventDetailPage() {
       );
 
       if (daysLeft > 0) {
-        return `Còn ${daysLeft} ngày để đăng ký`;
+        return t("Còn {daysLeft} ngày để đăng ký", { daysLeft });
       } else {
-        return "Hết hạn đăng ký";
+        return t("Hết hạn đăng ký");
       }
     } else if (event.status === "CLOSE_REGISTER") {
-      return "Đã đóng đăng ký";
+      return t("Đã đóng đăng ký");
     } else if (event.status === "COMPLETE") {
-      return "Sự kiện đã kết thúc";
+      return t("Sự kiện đã kết thúc");
     } else if (event.status === "CANCELLED") {
-      return "Sự kiện đã hủy";
+      return t("Sự kiện đã hủy");
     } else {
-      return "Đang lên kế hoạch";
+      return t("Đang lên kế hoạch");
     }
   };
 
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Đang tải...</p>
+        <p>{t("Đang tải...")}</p>
       </div>
     );
   }
@@ -205,12 +207,12 @@ export default function EventDetailPage() {
         <main className="flex-1 p-4 md:p-8 mb-16 md:mb-0">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-red-600">{error || "Không tìm thấy sự kiện"}</p>
+              <p className="text-red-600">{error || t("Không tìm thấy sự kiện")}</p>
               <button
                 onClick={() => router.push("/events")}
                 className="mt-4 px-4 py-2 btn-primary text-white rounded-md transition"
               >
-                Quay lại danh sách
+                {t("Quay lại danh sách")}
               </button>
             </div>
           </div>
@@ -233,7 +235,7 @@ export default function EventDetailPage() {
             onClick={() => router.push("/events")}
             className="mb-4 text-green-600 hover:text-green-700 flex items-center gap-2"
           >
-            ← Quay lại danh sách
+            {t("← Quay lại danh sách")}
           </button>
 
           {/* Event Image */}
@@ -257,7 +259,7 @@ export default function EventDetailPage() {
                   event.status
                 )}`}
               >
-                {getStatusDisplayName(event.status)}
+                {t(getStatusDisplayName(event.status))}
               </span>
             </div>
 
@@ -270,14 +272,14 @@ export default function EventDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               {/* Event Time */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 mb-1">Thời gian</h3>
+                <h3 className="text-sm font-semibold text-gray-500 mb-1">{t("Thời gian")}</h3>
                 <p className="text-gray-800">{formatEventTime()}</p>
               </div>
 
               {/* Location */}
               {event.location && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 mb-1">Địa điểm</h3>
+                  <h3 className="text-sm font-semibold text-gray-500 mb-1">{t("Địa điểm")}</h3>
                   <p className="text-gray-800">{event.location}</p>
                   {event.provinceName && (
                     <p className="text-sm text-gray-500">{event.provinceName}</p>
@@ -287,8 +289,8 @@ export default function EventDetailPage() {
 
               {/* Participants */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 mb-1">Người tham gia</h3>
-                <p className="text-gray-800">{event.participantCount} người</p>
+                <h3 className="text-sm font-semibold text-gray-500 mb-1">{t("Người tham gia")}</h3>
+                <p className="text-gray-800">{t("{n} người", { n: event.participantCount })}</p>
               </div>
             </div>
 
@@ -310,7 +312,7 @@ export default function EventDetailPage() {
                         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                     }`}
                   >
-                    {joinLoading ? "..." : "Đã tham gia (Nhấn để rời)"}
+                    {joinLoading ? "..." : t("Đã tham gia (Nhấn để rời)")}
                   </button>
                 ) : (
                   <button
@@ -322,7 +324,7 @@ export default function EventDetailPage() {
                         : "bg-green-600 text-white hover:bg-green-700"
                     }`}
                   >
-                    {joinLoading ? "..." : "Tham gia sự kiện"}
+                    {joinLoading ? "..." : t("Tham gia sự kiện")}
                   </button>
                 )}
               </div>
@@ -334,7 +336,7 @@ export default function EventDetailPage() {
                   onClick={() => router.push("/auth/login")}
                   className="w-full md:w-auto px-6 py-3 btn-primary text-white rounded-md transition"
                 >
-                  Đăng nhập để tham gia
+                  {t("Đăng nhập để tham gia")}
                 </button>
               </div>
             )}
@@ -342,7 +344,7 @@ export default function EventDetailPage() {
             {/* Full Content */}
             {event.content && (
               <div className="border-t pt-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Chi tiết</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">{t("Chi tiết")}</h2>
                 <div
                   className="prose max-w-none text-gray-700 whitespace-pre-wrap"
                   dangerouslySetInnerHTML={{ __html: event.content }}

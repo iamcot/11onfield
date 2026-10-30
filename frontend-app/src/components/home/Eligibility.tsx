@@ -1,15 +1,20 @@
-import { revealDelay } from './ui';
+'use client';
 
-const ITEMS = [
-  { label: 'Đối tượng', title: <>Nam <span className="of-neon">16–21</span></>, sub: 'Sinh từ 2006 đến 2011' },
-  { label: 'Ai cũng có thể', title: <>HS · SV · Phong trào</>, sub: 'và cầu thủ học viện' },
-  { label: 'Phạm vi', title: <>Người Việt <span className="of-neon">toàn cầu</span></>, sub: 'Tuyển trạch 3 miền' },
-  { label: 'Chi phí', title: <span className="of-gold">Miễn phí</span>, sub: 'Đăng ký online trong 5 phút' },
-];
+import { revealDelay } from './ui';
+import { useT } from '@/i18n/I18nProvider';
+import { rich } from '@/i18n/rich';
 
 export default function Eligibility() {
+  const t = useT();
+  const neon = { n: (c: string) => <span className="of-neon">{c}</span> };
+  const ITEMS = [
+    { label: t('Đối tượng'), title: rich(t('Nam <n>16–21</n>'), neon), sub: t('Sinh từ 2006 đến 2011') },
+    { label: t('Ai cũng có thể'), title: t('HS · SV · Phong trào'), sub: t('và cầu thủ học viện') },
+    { label: t('Phạm vi'), title: rich(t('Người Việt <n>toàn cầu</n>'), neon), sub: t('Tuyển trạch 3 miền') },
+    { label: t('Chi phí'), title: <span className="of-gold">{t('Miễn phí')}</span>, sub: t('Đăng ký online trong 5 phút') },
+  ];
   return (
-    <section aria-label="Điều kiện tham gia" className="relative z-[2] px-4 lg:px-6">
+    <section aria-label={t('Điều kiện tham gia')} className="relative z-[2] px-4 lg:px-6">
       <div className="mx-auto grid max-w-[1240px] grid-cols-2 gap-3 lg:gap-4 xl:grid-cols-4">
         {ITEMS.map((it, i) => (
           <div

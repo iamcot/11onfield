@@ -4,6 +4,7 @@ import { FeedItem } from "@/types/feed";
 import FeedAchievementCard from "./FeedAchievementCard";
 import FeedHighlightCard from "./FeedHighlightCard";
 import FeedEventCard from "./FeedEventCard";
+import { useT } from "@/i18n/I18nProvider";
 
 interface FeedListProps {
   feeds: FeedItem[];
@@ -11,10 +12,11 @@ interface FeedListProps {
 }
 
 export default function FeedList({ feeds, currentUserid }: FeedListProps) {
+  const t = useT();
   if (!feeds || feeds.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        Chưa có hoạt động nào
+        {t("Chưa có hoạt động nào")}
       </div>
     );
   }

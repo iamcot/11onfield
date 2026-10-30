@@ -1,4 +1,7 @@
-interface DynamicFieldListProps {
+'use client';
+
+
+import { useT } from "@/i18n/I18nProvider";interface DynamicFieldListProps {
   label: string;
   placeholder: string;
   helpText?: string;
@@ -13,6 +16,7 @@ export default function DynamicFieldList({
   values,
   onChange
 }: DynamicFieldListProps) {
+  const t = useT();
   const addField = () => {
     onChange([...values, ""]);
   };
@@ -49,7 +53,7 @@ export default function DynamicFieldList({
               type="button"
               onClick={() => removeField(index)}
               className="px-3 py-2 border border-red-600 text-red-600 hover:bg-red-50 rounded-md transition font-medium text-sm"
-              title="Xóa"
+              title={t("Xóa")}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -63,7 +67,7 @@ export default function DynamicFieldList({
           className="flex items-center gap-2 px-4 py-2 text-sm text-green-700 hover:bg-green-50 rounded-md border border-green-300 transition"
         >
           <span>+</span>
-          <span>Thêm {label.toLowerCase()}</span>
+          <span>{t("Thêm")} {label.toLowerCase()}</span>
         </button>
       </div>
     </div>

@@ -39,6 +39,7 @@ export function middleware(req: NextRequest) {
       // malformed header: fall through to the challenge
     }
   }
+  // i18n-ignore
   return new NextResponse('Cần đăng nhập để xem trang đối tác.', {
     status: 401,
     headers: { 'WWW-Authenticate': 'Basic realm="11 On Field - Doi tac", charset="UTF-8"', 'Content-Type': 'text/plain; charset=utf-8' },

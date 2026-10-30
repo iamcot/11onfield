@@ -4,6 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { competitionService } from '@/services/competition.service';
+import { useT } from '@/i18n/I18nProvider';
+import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 
 const SOCIALS = [
   {
@@ -25,6 +27,7 @@ const SOCIALS = [
 
 export default function HomeFooter() {
   const [newsHref, setNewsHref] = useState('/competitions');
+  const t = useT();
 
   useEffect(() => {
     competitionService.getCurrentCompetition().then((c) => {
@@ -33,12 +36,12 @@ export default function HomeFooter() {
   }, []);
 
   const links = [
-    { label: 'Dành cho cầu thủ', href: '/' },
-    { label: 'Chương trình', href: '/competitions' },
-    { label: 'Tin tức', href: newsHref },
-    { label: 'Điều khoản tham gia', href: '/terms' },
-    { label: 'Chính sách bảo mật thông tin', href: '/privacy' },
-    { label: 'Chính sách sử dụng hình ảnh/video', href: '/media-policy' },
+    { label: t('Dành cho cầu thủ'), href: '/' },
+    { label: t('Chương trình'), href: '/competitions' },
+    { label: t('Tin tức'), href: newsHref },
+    { label: t('Điều khoản tham gia'), href: '/terms' },
+    { label: t('Chính sách bảo mật thông tin'), href: '/privacy' },
+    { label: t('Chính sách sử dụng hình ảnh/video'), href: '/media-policy' },
   ];
 
   return (
@@ -46,7 +49,7 @@ export default function HomeFooter() {
       <div className="mx-auto grid max-w-[1240px] gap-10 lg:grid-cols-[1.2fr_1fr_1fr]">
         <div>
           <Image src="/images/logo-white-full.png" alt="11 On Field" width={182} height={36} className="h-9 w-auto" />
-          <p className="of-display of-shine-gold mt-4 text-[20px] !leading-[1.25] tracking-[0.2em]">From the street to the stadium</p>
+          <p className="of-display of-shine-gold mt-4 text-[20px] !leading-[1.25] tracking-[0.14em]">{t('Từ Đường Phố ra Sân Vận Động')}</p>
           <div className="mt-5 flex gap-2.5">
             {SOCIALS.map((s) => (
               <a
@@ -66,8 +69,8 @@ export default function HomeFooter() {
           </div>
         </div>
 
-        <nav aria-label="Liên kết" className="flex flex-col gap-2.5 text-[14px]">
-          <div className="of-hud mb-1 text-[11px] text-[color:var(--lime)]">Thông tin</div>
+        <nav aria-label={t('Liên kết')} className="flex flex-col gap-2.5 text-[14px]">
+          <div className="of-hud mb-1 text-[11px] text-[color:var(--lime)]">{t('Thông tin')}</div>
           {links.map((l) => (
             <Link key={l.label} href={l.href} className="text-[#D5DED8] transition-colors hover:text-[color:var(--lime-2)]">
               {l.label}
@@ -76,22 +79,25 @@ export default function HomeFooter() {
         </nav>
 
         <div className="flex flex-col gap-2.5 text-[14px] text-[#D5DED8]">
-          <div className="of-hud mb-1 text-[11px] text-[color:var(--lime)]">Liên hệ</div>
+          <div className="of-hud mb-1 text-[11px] text-[color:var(--lime)]">{t('Liên hệ')}</div>
           <a href="mailto:11nguoirasan@11onfield.com" className="hover:text-[color:var(--lime-2)]">11nguoirasan@11onfield.com</a>
           <a href="tel:+84902383511" className="hover:text-[color:var(--lime-2)]">090 2383 511</a>
           <div className="mt-2 text-[13px] text-[#9FB0A6]">
             <a href="http://anylearn.vn" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-              Đơn vị bản quyền: Công ty CP ĐT&amp;GD anyLEARN
+              {t('Đơn vị bản quyền')}: {t('Công ty CP ĐT&GD anyLEARN')}
             </a>
-            <div>MST: 0316363793</div>
+            <div>{t('MST')}: 0316363793</div>
             <a href="https://www.binhanmedia.com" target="_blank" rel="noopener noreferrer" className="hover:text-white">
-              Đơn vị sản xuất
+              {t('Đơn vị sản xuất')}
             </a>
           </div>
         </div>
       </div>
       <div className="of-rule mx-auto mt-10 max-w-[1240px]" />
-      <div className="of-num mx-auto mt-5 max-w-[1240px] text-[12px] text-[#8FA197]">© {new Date().getFullYear()} 11 ON FIELD</div>
+      <div className="mx-auto mt-5 flex max-w-[1240px] items-center justify-between gap-4">
+        <div className="of-num text-[12px] text-[#8FA197]">© {new Date().getFullYear()} 11 ON FIELD</div>
+        <LanguageSwitcher />
+      </div>
     </footer>
   );
 }
