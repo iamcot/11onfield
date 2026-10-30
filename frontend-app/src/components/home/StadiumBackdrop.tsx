@@ -79,19 +79,34 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
       raf = requestAnimationFrame(frame);
     };
 
-    const onVisibility = () => {
+    // Paused while the page is hidden or the user is typing: on phones the full-screen canvas redrawn every
+    // frame competes with the keyboard and makes typed characters show up late.
+    let typing = false;
+    const run = () => {
       cancelAnimationFrame(raf);
-      if (!document.hidden) raf = requestAnimationFrame(frame);
+      if (!document.hidden && !typing) raf = requestAnimationFrame(frame);
+    };
+    const onVisibility = run;
+    const isField = (t: EventTarget | null) => t instanceof HTMLElement && t.matches('input, textarea, select, [contenteditable]');
+    const onFocusIn = (e: FocusEvent) => {
+      if (isField(e.target)) { typing = true; run(); }
+    };
+    const onFocusOut = (e: FocusEvent) => {
+      if (isField(e.target) && !isField(e.relatedTarget)) { typing = false; run(); }
     };
 
     resize();
     raf = requestAnimationFrame(frame);
     window.addEventListener('resize', resize);
     document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
       document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
     };
   }, [ref]);
 }
