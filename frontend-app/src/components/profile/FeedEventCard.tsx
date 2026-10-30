@@ -2,7 +2,7 @@
 
 import { FeedItem } from "@/types/feed";
 import Link from "next/link";
-import { useT } from "@/i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface FeedEventCardProps {
   feed: FeedItem;
@@ -10,7 +10,7 @@ interface FeedEventCardProps {
 }
 
 export default function FeedEventCard({ feed, isOwnProfile }: FeedEventCardProps) {
-  const t = useT();
+  const { t, intlLocale } = useI18n();
   if (!feed.event) return null;
 
   const { event, fullName } = feed;
@@ -18,7 +18,7 @@ export default function FeedEventCard({ feed, isOwnProfile }: FeedEventCardProps
   const formatEventDate = () => {
     try {
       const startDate = new Date(event.startDate);
-      const dateStr = startDate.toLocaleDateString("vi-VN", {
+      const dateStr = startDate.toLocaleDateString(intlLocale, {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -115,7 +115,7 @@ export default function FeedEventCard({ feed, isOwnProfile }: FeedEventCardProps
               <span
                 className={`flex-shrink-0 px-2 py-1 text-xs font-medium text-white rounded ${getStatusBadgeColor(event.status)}`}
               >
-                {getStatusDisplayName(event.status)}
+                {t(getStatusDisplayName(event.status))}
               </span>
             </div>
 

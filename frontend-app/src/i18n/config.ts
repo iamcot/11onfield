@@ -5,7 +5,7 @@ export const DEFAULT_LOCALE: Locale = 'vi';
 export const LOCALE_COOKIE = 'NEXT_LOCALE';
 
 export const LOCALE_LABELS: Record<Locale, { short: string; name: string }> = {
-  vi: { short: 'VI', name: 'Tiếng Việt' },
+  vi: { short: 'VI', name: 'Tiếng Việt' }, // i18n-ignore
   en: { short: 'EN', name: 'English' },
   es: { short: 'ES', name: 'Español' },
   ko: { short: 'KO', name: '한국어' },

@@ -2,15 +2,17 @@
 
 import { useNotifications } from "@/contexts/NotificationContext";
 import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
-import { useT } from "@/i18n/I18nProvider";
+import { enGB, es, ko, vi } from "date-fns/locale";
+import { useI18n } from "@/i18n/I18nProvider";
+
+const DATE_LOCALES = { vi, en: enGB, es, ko };
 
 interface NotificationDropdownProps {
   onClose: () => void;
 }
 
 export default function NotificationDropdown({ onClose }: NotificationDropdownProps) {
-  const t = useT();
+  const { t, locale } = useI18n();
   const { notifications, markAsRead, markAllAsRead, hasMore, isLoading, loadMoreNotifications } = useNotifications();
 
   const handleNotificationClick = async (id: number, isRead: boolean) => {
@@ -73,7 +75,7 @@ export default function NotificationDropdown({ onClose }: NotificationDropdownPr
                         <p className="text-xs text-gray-400 mt-2">
                           {formatDistanceToNow(new Date(notification.createdAt), {
                             addSuffix: true,
-                            locale: vi,
+                            locale: DATE_LOCALES[locale],
                           })}
                         </p>
                       </div>

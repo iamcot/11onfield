@@ -12,6 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NotificationDropdown from "./NotificationDropdown";
 import { useT } from "@/i18n/I18nProvider";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 
 export default function TopUserCard() {
   const t = useT();
@@ -119,14 +120,15 @@ export default function TopUserCard() {
           </nav>
         </div>
 
-        {/* Right: Notifications and User */}
+        {/* Right: language, notifications and user */}
         <div className="flex items-center gap-4">
+          <LanguageSwitcher tone="light" />
           {/* Bell Icon */}
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative p-2 text-gray-700 hover:bg-gray-100 rounded-full transition"
-              aria-label="Notifications"
+              aria-label={t("Thông báo")}
             >
               <svg
                 className="w-5 h-5"
@@ -160,7 +162,7 @@ export default function TopUserCard() {
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 hover:bg-gray-100 rounded-lg px-3 py-2 transition"
-              aria-label="User menu"
+              aria-label={t("Menu người dùng")}
             >
               {user?.avatar ? (
                 <img

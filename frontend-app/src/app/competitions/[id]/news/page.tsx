@@ -15,10 +15,10 @@ import {
   CompetitionNews,
   CompetitionDetail,
 } from "@/services/competition.service";
-import { useT } from "@/i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export default function NewsPage() {
-  const t = useT();
+  const { t, intlLocale } = useI18n();
   const params = useParams();
   const competitionId = parseInt(params.id as string);
 
@@ -60,7 +60,7 @@ export default function NewsPage() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
+    return date.toLocaleDateString(intlLocale, {
       year: "numeric",
       month: "long",
       day: "numeric",

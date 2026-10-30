@@ -759,7 +759,7 @@ function PlayersContent() {
                                       key={pos}
                                       className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
                                     >
-                                      {getPositionDisplayName(pos)}
+                                      {t(getPositionDisplayName(pos))}
                                     </span>
                                   ))}
                                   {player.positions.length > 2 && (
@@ -771,14 +771,14 @@ function PlayersContent() {
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-600">
                                 {player.preferredFoot
-                                  ? getPreferredFootDisplayName(
+                                  ? t(getPreferredFootDisplayName(
                                       player.preferredFoot,
-                                    )
+                                    ))
                                   : "N/A"}
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-600">
                                 {player.level
-                                  ? getLevelDisplayName(player.level)
+                                  ? t(getLevelDisplayName(player.level))
                                   : "N/A"}
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-600">
@@ -879,9 +879,9 @@ function PlayersContent() {
                             <span className="text-gray-500">{t("Chân:")}</span>{" "}
                             <span className="font-medium text-gray-900">
                               {player.preferredFoot
-                                ? getPreferredFootDisplayName(
+                                ? t(getPreferredFootDisplayName(
                                     player.preferredFoot,
-                                  )
+                                  ))
                                 : "N/A"}
                             </span>
                           </div>
@@ -889,7 +889,7 @@ function PlayersContent() {
                             <span className="text-gray-500">{t("Cấp độ:")}</span>{" "}
                             <span className="font-medium text-gray-900">
                               {player.level
-                                ? getLevelDisplayName(player.level)
+                                ? t(getLevelDisplayName(player.level))
                                 : "N/A"}
                             </span>
                           </div>
@@ -977,7 +977,7 @@ function PlayersContent() {
                 disabled={pagination.page >= pagination.totalPages - 1}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sau →
+                {t("Sau →")}
               </button>
             </div>
           )}

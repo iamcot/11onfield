@@ -1,3 +1,5 @@
+"use client";
+
 import { EventListItem, getStatusBadgeColor, getStatusDisplayName } from "@/types/event";
 import Image from "next/image";
 import Link from "next/link";
@@ -69,7 +71,7 @@ export default function EventCard({
                 <span
                   className={`flex-shrink-0 px-2 py-1 text-xs font-medium text-white rounded ${getStatusBadgeColor(event.status)}`}
                 >
-                  {getStatusDisplayName(event.status)}
+                  {t(getStatusDisplayName(event.status))}
                 </span>
               </div>
 

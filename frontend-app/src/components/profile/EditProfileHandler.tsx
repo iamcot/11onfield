@@ -568,7 +568,7 @@ export default function EditProfileHandler() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400 placeholder:opacity-50"
                   >
                     <option value="">{t("Chọn giới tính")}</option>
-                    <option value="MALE">Nam</option>
+                    <option value="MALE">{t("Nam")}</option>
                     <option value="FEMALE">{t("Nữ")}</option>
                     <option value="OTHER">{t("Khác")}</option>
                   </select>
@@ -876,7 +876,7 @@ export default function EditProfileHandler() {
               {/* Section 4: Media & social */}
               <div className="border-t pt-6">
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                  Media & social
+                  {t("Media & mạng xã hội")}
                 </h4>
                 <p className="text-sm text-gray-600 mb-4">
                   {t("Highlights sẽ được hiển thị trên trang feed của bạn sau khi admin duyệt")}

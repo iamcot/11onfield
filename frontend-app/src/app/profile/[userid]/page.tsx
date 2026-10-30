@@ -25,7 +25,7 @@ import { UserListItem } from "@/types/user";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useT } from "@/i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface UserProfile {
   username: string;
@@ -58,7 +58,7 @@ interface UserProfile {
 }
 
 export default function UserProfilePage() {
-  const t = useT();
+  const { t, intlLocale } = useI18n();
   const {
     user: currentUser,
     isAuthenticated,
@@ -856,7 +856,7 @@ export default function UserProfilePage() {
                           <span className="text-sm text-gray-900">
                             {isOwnProfile
                               ? new Date(profileUser.dob).toLocaleDateString(
-                                  "vi-VN",
+                                  intlLocale,
                                   {
                                     year: "numeric",
                                     month: "long",
@@ -915,7 +915,7 @@ export default function UserProfilePage() {
                           <span className="text-sm text-gray-900">
                             {t("Thành viên từ")}{" "}
                             {new Date(profileUser.createdAt).toLocaleDateString(
-                              "vi-VN",
+                              intlLocale,
                               {
                                 year: "numeric",
                                 month: "long",
@@ -1392,7 +1392,7 @@ export default function UserProfilePage() {
                           {t("Trước")}
                         </button>
                         <span className="px-4 py-2 text-gray-700">
-                          Trang {eventsPage + 1} / {eventsTotalPages}
+                          {t("Trang {page} / {total}", { page: eventsPage + 1, total: eventsTotalPages })}
                         </span>
                         <button
                           onClick={() =>
@@ -1403,7 +1403,7 @@ export default function UserProfilePage() {
                           disabled={eventsPage >= eventsTotalPages - 1}
                           className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                         >
-                          Sau
+                          {t("Sau")}
                         </button>
                       </div>
                     )}

@@ -18,7 +18,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import PlayersSection from "@/components/players/PlayersSection";
-import { useT } from "@/i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const REGION_LABELS: Record<string, string> = {
   HANOI_NORTH: "Hà Nội & Miền Bắc",
@@ -73,7 +73,7 @@ function CountdownBadge({
   stages: CompetitionDetail["stages"];
   competitionStatus: string;
 }) {
-  const t = useT();
+  const { t, intlLocale } = useI18n();
   const now = Date.now();
 
   // For registration/draft/completed — show status directly, skip stage logic
@@ -152,7 +152,7 @@ function CountdownBadge({
 }
 
 export default function CompetitionDetailPage() {
-  const t = useT();
+  const { t, intlLocale } = useI18n();
   const params = useParams();
   const competitionId = parseInt(params.id as string);
 
@@ -219,7 +219,7 @@ export default function CompetitionDetailPage() {
     ? [activeStage, ...nextUpcoming]
     : nextUpcoming;
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString("vi-VN");
+  const formatDate = (d: string) => new Date(d).toLocaleDateString(intlLocale);
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16">

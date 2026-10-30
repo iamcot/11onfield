@@ -75,7 +75,7 @@ export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen
         <button
           onClick={onClose}
           className="absolute right-2 top-2 bg-white text-gray-600 hover:text-gray-800 rounded-full p-1.5 shadow-md border border-gray-200 transition z-10"
-          aria-label="Close menu"
+          aria-label={t("Đóng menu")}
         >
           <svg
             className="w-4 h-4"

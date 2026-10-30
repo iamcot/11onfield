@@ -1,3 +1,5 @@
+'use client';
+
 
 import { useT } from "@/i18n/I18nProvider";interface DynamicFieldListProps {
   label: string;

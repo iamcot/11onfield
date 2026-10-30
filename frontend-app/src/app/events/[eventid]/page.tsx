@@ -9,10 +9,10 @@ import { EventDetail, getStatusDisplayName, getStatusBadgeColor } from "@/types/
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import { formatDateOnly } from "@/utils/timezone";
-import { useT } from "@/i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export default function EventDetailPage() {
-  const t = useT();
+  const { t, intlLocale } = useI18n();
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const { track } = useAnalytics();
   const router = useRouter();
@@ -130,7 +130,7 @@ export default function EventDetailPage() {
 
   const formatDate = (dateStr: string, timeStr: string | null) => {
     const date = new Date(dateStr);
-    const dateFormatted = date.toLocaleDateString("vi-VN", {
+    const dateFormatted = date.toLocaleDateString(intlLocale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -259,7 +259,7 @@ export default function EventDetailPage() {
                   event.status
                 )}`}
               >
-                {getStatusDisplayName(event.status)}
+                {t(getStatusDisplayName(event.status))}
               </span>
             </div>
 
@@ -290,7 +290,7 @@ export default function EventDetailPage() {
               {/* Participants */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 mb-1">{t("Người tham gia")}</h3>
-                <p className="text-gray-800">{event.participantCount} {t("người")}</p>
+                <p className="text-gray-800">{t("{n} người", { n: event.participantCount })}</p>
               </div>
             </div>
 

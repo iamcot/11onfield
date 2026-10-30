@@ -167,7 +167,7 @@ function PlayerCard({ form, done = false }: { form: Form; done?: boolean }) {
       <div className="of-glass-gold of-cut of-cut--lg of-cut--gold of-cut--b2 of-run of-sweep relative aspect-[3/4] overflow-hidden p-5">
         <div className="flex items-start justify-between">
           <div>
-            <div className="of-display of-gold text-[44px] leading-none">{pos?.code ?? '--'}</div>
+            <div className="of-display of-gold text-[44px] leading-none">{pos ? t(pos.code) : '--'}</div>
             <div className="of-hud mt-1 text-[10px] text-[color:var(--gold-2)]">{pos ? t(pos.label) : t('Vị trí')}</div>
           </div>
           <Image src="/images/logo-color-small.png" alt="" width={44} height={44} className="h-11 w-11 object-contain opacity-90" />
@@ -182,7 +182,7 @@ function PlayerCard({ form, done = false }: { form: Form; done?: boolean }) {
             {[
               [t('Tuổi'), age ?? '--'],
               [t('Chân'), foot ? t(foot.label) : '--'],
-              ['Cao', form.height ? `${form.height}` : '--'],
+              [t('Cao'), form.height ? `${form.height}` : '--'],
               [t('Nặng'), form.weight ? `${form.weight}` : '--'],
             ].map(([k, v]) => (
               <div key={k as string}>
@@ -417,7 +417,7 @@ export default function RegisterFlow() {
                   {screen === 'account' && (
                     <>
                       <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">{t('Tạo tài khoản')}</h2>
-                      <p className="mt-1 text-[14.5px] text-[#CBD6CF]">{t('Nam, sinh từ 2006 đến 2011 · Miễn phí · Người Việt trong nước &amp; toàn cầu')}</p>
+                      <p className="mt-1 text-[14.5px] text-[#CBD6CF]">{t('Nam, sinh từ 2006 đến 2011 · Miễn phí · Người Việt trong nước & toàn cầu')}</p>
                       <div className="mt-5 grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('Bạn tham gia với tư cách')}>
                         {[
                           { v: true, t: t('Đăng ký thi đấu'), s: t('Dành cho cầu thủ') },
@@ -574,7 +574,7 @@ export default function RegisterFlow() {
 
                   {screen === 'confirm' && (
                     <>
-                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">{t('Xác nhận &amp; gửi')}</h2>
+                      <h2 className="of-display mt-1 text-[38px] lg:text-[48px]">{t('Xác nhận & gửi')}</h2>
                       <dl className="mt-5 grid gap-x-6 gap-y-3 sm:grid-cols-2">
                         {[
                           [t('Họ tên'), form.fullName],

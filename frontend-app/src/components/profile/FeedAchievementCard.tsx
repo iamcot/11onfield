@@ -1,7 +1,7 @@
 "use client";
 
 import { FeedItem } from "@/types/feed";
-import { useT } from "@/i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface FeedAchievementCardProps {
   feed: FeedItem;
@@ -9,12 +9,12 @@ interface FeedAchievementCardProps {
 }
 
 export default function FeedAchievementCard({ feed, isOwnProfile }: FeedAchievementCardProps) {
-  const t = useT();
+  const { t, intlLocale } = useI18n();
   if (!feed.achievement) return null;
 
   const { achievement, fullName, date } = feed;
 
-  const formattedDate = new Date(date).toLocaleDateString("vi-VN", {
+  const formattedDate = new Date(date).toLocaleDateString(intlLocale, {
     year: "numeric",
     month: "long",
     day: "numeric",

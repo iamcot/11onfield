@@ -11,10 +11,10 @@ import TopBar from "@/components/layout/TopBar";
 import MobileNav from "@/components/layout/MobileNav";
 import HomeFooter from "@/components/home/HomeFooter";
 import { competitionService, CompetitionNews } from "@/services/competition.service";
-import { useT } from "@/i18n/I18nProvider";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export default function NewsDetailPage() {
-  const t = useT();
+  const { t, intlLocale } = useI18n();
   const params = useParams();
   const competitionId = parseInt(params.id as string);
   const newsId = parseInt(params.newsId as string);
@@ -41,7 +41,7 @@ export default function NewsDetailPage() {
   }, [competitionId, newsId]);
 
   const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("vi-VN", {
+    new Date(dateString).toLocaleDateString(intlLocale, {
       year: "numeric", month: "long", day: "numeric",
       hour: "2-digit", minute: "2-digit",
     });

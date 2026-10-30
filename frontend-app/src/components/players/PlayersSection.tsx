@@ -126,7 +126,7 @@ export default function PlayersSection() {
 
         {/* Mobile: Filter chips */}
         <div className="md:hidden flex gap-2 overflow-x-auto pb-2">
-          {(["striker:Tiền đạo", "midfielder:Tiền vệ", "defender:Hậu vệ", "centerback:Trung vệ", "goalkeeper:Thủ môn"] as string[]).map((p) => {
+          {(["striker:Tiền đạo", "midfielder:Tiền vệ", "defender:Hậu vệ", "centerback:Trung vệ", "goalkeeper:Thủ môn"] as string[]).map((p) => { // i18n-ignore: value:label pairs, label translated below
             const [val, label] = p.split(":");
             return (
               <button key={val} onClick={() => handleFilterChange("positions", filters.positions?.[0] === val ? [] : [val])}
@@ -246,12 +246,12 @@ export default function PlayersSection() {
                           <td className="px-4 py-3 text-sm text-gray-600">{player.weight ? `${player.weight} kg` : "N/A"}</td>
                           <td className="px-4 py-3">
                             <div className="flex gap-1 flex-wrap">
-                              {player.positions.slice(0, 2).map((pos) => <span key={pos} className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">{getPositionDisplayName(pos)}</span>)}
+                              {player.positions.slice(0, 2).map((pos) => <span key={pos} className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">{t(getPositionDisplayName(pos))}</span>)}
                               {player.positions.length > 2 && <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">+{player.positions.length - 2}</span>}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{player.preferredFoot ? getPreferredFootDisplayName(player.preferredFoot) : "N/A"}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{player.level ? getLevelDisplayName(player.level) : "N/A"}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{player.preferredFoot ? t(getPreferredFootDisplayName(player.preferredFoot)) : "N/A"}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{player.level ? t(getLevelDisplayName(player.level)) : "N/A"}</td>
                           <td className="px-4 py-3 text-sm text-gray-600">{player.provinceName || "N/A"}</td>
                         </tr>
                       ))}
@@ -290,7 +290,7 @@ export default function PlayersSection() {
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div><span className="text-gray-500">{t("Vị trí:")}</span> <span className="font-medium">{player.positions.length > 0 ? player.positions.map(getPositionDisplayName).join(", ") : "N/A"}</span></div>
-                      <div><span className="text-gray-500">{t("Chân:")}</span> <span className="font-medium">{player.preferredFoot ? getPreferredFootDisplayName(player.preferredFoot) : "N/A"}</span></div>
+                      <div><span className="text-gray-500">{t("Chân:")}</span> <span className="font-medium">{player.preferredFoot ? t(getPreferredFootDisplayName(player.preferredFoot)) : "N/A"}</span></div>
                       <div><span className="text-gray-500">{t("Tỉnh/TP:")}</span> <span className="font-medium">{player.provinceName || "N/A"}</span></div>
                     </div>
                   </div>
@@ -329,7 +329,7 @@ export default function PlayersSection() {
           </div>
           <button onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))} disabled={pagination.page >= pagination.totalPages - 1}
             className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-            Sau →
+            {t("Sau →")}
           </button>
         </div>
       )}

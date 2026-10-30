@@ -484,7 +484,7 @@ function EventsContent() {
                             event.status,
                           )}`}
                         >
-                          {getStatusDisplayName(event.status)}
+                          {t(getStatusDisplayName(event.status))}
                         </span>
                       </div>
 
@@ -575,14 +575,14 @@ function EventsContent() {
                     {t("Trước")}
                   </button>
                   <span className="text-sm text-gray-600">
-                    Trang {pagination.page + 1} / {pagination.totalPages}
+                    {t("Trang {page} / {total}", { page: pagination.page + 1, total: pagination.totalPages })}
                   </span>
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page >= pagination.totalPages - 1}
                     className="px-4 py-2 bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Sau
+                    {t("Sau")}
                   </button>
                 </div>
               )}
