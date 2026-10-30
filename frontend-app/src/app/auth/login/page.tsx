@@ -1,15 +1,17 @@
 "use client";
 
-import { useAuth } from "@/contexts/AuthContext";
-import { useAnalytics } from "@/hooks/useAnalytics";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import ThemeShell from "@/components/shell/ThemeShell";
+import { ArrowRight } from "@/components/home/ui";
 
 export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -42,25 +44,25 @@ export default function LoginPage() {
     try {
       await login({ phone, password });
 
-      // Track successful login
-      track('user_login', {
-        method: 'phone_password',
-        role: user?.role || 'unknown'
+      track("user_login", {
+        method: "phone_password",
+        role: user?.role || "unknown",
       });
 
       router.push("/profile");
-    } catch (err: any) {
-      // Track login error
-      track('api_error', {
-        endpoint: '/auth/login',
+    } catch (err: unknown) {
+      const raw = (err as { message?: string })?.message;
+      track("api_error", {
+        endpoint: "/auth/login",
         status_code: 401,
-        error_message: err.message || 'Login failed',
-        user_action: 'login_attempt'
+        error_message: raw || "Login failed",
+        user_action: "login_attempt",
       });
-
+      // fetch() rejects with a TypeError when the API is unreachable or blocked by CORS
       setError(
-        err.message ||
-          "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.",
+        err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw ?? "")
+          ? "Không kết nối được máy chủ. Kiểm tra mạng và thử lại sau ít phút."
+          : raw || "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.",
       );
     } finally {
       setIsLoading(false);
@@ -68,300 +70,98 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Mobile Layout */}
-      <div className="lg:hidden min-h-screen flex flex-col">
-        {/* Top section - Logo */}
-        <div className="relative py-4 bg-white">
-          <div className="flex items-center justify-center">
-            <Link href="/" className="text-center px-8">
-              <Image
-                src="/images/logo-color-full.png"
-                alt="11of Logo"
-                width={250}
-                height={60}
-                className="mx-auto cursor-pointer hover:opacity-80 transition"
-                priority
-              />
+    <ThemeShell footer={false}>
+      <div className="mx-auto grid min-h-[calc(100svh-var(--header-h))] max-w-[1240px] items-center gap-10 px-4 py-10 lg:grid-cols-[1fr_460px] lg:gap-16 lg:px-6">
+        <div className="hidden lg:block" data-reveal="">
+          <div className="of-eyebrow of-eyebrow--left">Mùa 1 · 2026</div>
+          <h1 className="of-display mt-3 text-[88px] leading-[0.9]">
+            Trở lại
+            <br />
+            <span className="of-neon">sân cỏ</span>
+          </h1>
+          <p className="of-lede mt-5 max-w-md !text-[#CBD6CF]">
+            Đăng nhập để cập nhật hồ sơ cầu thủ, xem lịch tuyển trạch khu vực và theo dõi kết quả của bạn.
+          </p>
+          <Link href="/competitions" className="of-navlink mt-8 inline-block" style={{ color: "var(--gold-2)" }}>
+            Chương trình 11 người ra sân 2026 ›
+          </Link>
+        </div>
+
+        <div className="of-glass of-cut of-cut--lg of-cut--b2 of-run of-step-in relative p-6 lg:p-9">
+          <div className="of-brackets" />
+          <div className="of-hud text-[11px] text-[color:var(--lime)]">Tài khoản</div>
+          <h2 className="of-display mt-1 text-[40px] lg:text-[48px]">Đăng nhập</h2>
+          <p className="mt-1 text-[14.5px] text-[#CBD6CF]">
+            Chưa có tài khoản?{" "}
+            <Link href="/auth/register" className="font-semibold hover:!text-white" style={{ color: "var(--lime-2)" }}>
+              Đăng ký miễn phí
             </Link>
-          </div>
-        </div>
+          </p>
 
-        {/* Bottom section - Form with white background */}
-        <div className="flex-1 flex items-center justify-center px-4 py-12 bg-white">
-          <div className="max-w-md w-full space-y-8">
-            <div>
-              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Đăng nhập tài khoản
-              </h2>
-              <p className="mt-2 text-center text-sm text-gray-600">
-                Hoặc{" "}
-                <Link
-                  href="/auth/register"
-                  className="font-medium text-green-700 hover:text-green-600"
-                >
-                  tạo tài khoản mới
+          <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+            {successMessage && (
+              <div className="border border-[rgba(166,227,90,0.45)] bg-[rgba(166,227,90,0.1)] px-4 py-3 text-[14px] text-[#E2F5CF]">
+                {successMessage}
+              </div>
+            )}
+            {error && (
+              <div className="border border-[rgba(255,138,128,0.5)] bg-[rgba(255,138,128,0.08)] px-4 py-3 text-[14px] text-[#FFD2CD]" role="alert">
+                {error}
+              </div>
+            )}
+
+            <label className="block">
+              <span className="of-hud text-[10px] text-[color:var(--mute)]">Số điện thoại</span>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="of-field mt-1"
+                placeholder="0901234567"
+              />
+            </label>
+
+            <label className="block">
+              <span className="flex items-center justify-between">
+                <span className="of-hud text-[10px] text-[color:var(--mute)]">Mật khẩu</span>
+                <Link href="/auth/forgot-password" className="text-[13px] font-semibold text-[color:var(--lime-2)] hover:text-white">
+                  Quên mật khẩu?
                 </Link>
-              </p>
-              <p className="mt-2 text-center text-sm text-gray-600">
-                <Link
-                  href="/competitions"
-                  className="font-medium text-green-700 hover:text-green-600"
-                >
-                  Chương trình 11 người ra sân 2026
-                </Link>
-              </p>
-            </div>
-
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              {successMessage && (
-                <div className="rounded-md bg-green-50 p-4 border border-green-200">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="h-5 w-5 text-green-400"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-green-800">
-                        {successMessage}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Số điện thoại *
-                  </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                    placeholder="0123456789"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Mật khẩu *
-                  </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                    placeholder="Nhập mật khẩu"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end">
-                <div className="text-sm">
-                  <Link
-                    href="/auth/forgot-password"
-                    className="font-medium text-green-700 hover:text-green-600"
-                  >
-                    Quên mật khẩu?
-                  </Link>
-                </div>
-              </div>
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white btn-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Layout */}
-      <div className="hidden lg:grid lg:grid-cols-[auto_1fr] min-h-screen">
-        {/* Left column - Hero Image - Sticky */}
-        <div className="sticky top-0 h-screen flex items-center justify-center">
-          {/* Background image */}
-          <img
-            src="/images/banner_register.jpg"
-            alt="Login Banner"
-            className="h-full w-auto object-contain"
-          />
-        </div>
-
-        {/* Right column - Form - Scrollable */}
-        <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white min-h-screen">
-          <div className="max-w-md w-full space-y-8">
-            {/* Logo */}
-            <div className="flex justify-center mb-8">
-              <Link href="/">
-                <Image
-                  src="/images/logo-color-full.png"
-                  alt="11of Logo"
-                  width={250}
-                  height={60}
-                  className="cursor-pointer hover:opacity-80 transition"
-                  priority
+              </span>
+              <span className="relative mt-1 block">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="of-field !pr-16"
+                  placeholder="Nhập mật khẩu"
                 />
-              </Link>
-            </div>
-
-            <div>
-              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Đăng nhập tài khoản
-              </h2>
-              <p className="mt-2 text-center text-sm text-gray-600">
-                Hoặc{" "}
-                <Link
-                  href="/auth/register"
-                  className="font-medium text-green-700 hover:text-green-600"
-                >
-                  tạo tài khoản mới
-                </Link>
-              </p>
-              <p className="mt-2 text-center text-sm text-gray-600">
-                <Link
-                  href="/competitions"
-                  className="font-medium text-green-700 hover:text-green-600"
-                >
-                  Chương trình 11 người ra sân 2026
-                </Link>
-              </p>
-            </div>
-
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              {successMessage && (
-                <div className="rounded-md bg-green-50 p-4 border border-green-200">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="h-5 w-5 text-green-400"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-green-800">
-                        {successMessage}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Số điện thoại *
-                  </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                    placeholder="0123456789"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Mật khẩu *
-                  </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                    placeholder="Nhập mật khẩu"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end">
-                <div className="text-sm">
-                  <Link
-                    href="/auth/forgot-password"
-                    className="font-medium text-green-700 hover:text-green-600"
-                  >
-                    Quên mật khẩu?
-                  </Link>
-                </div>
-              </div>
-
-              <div>
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white btn-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="of-hud absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[color:var(--lime-2)]"
+                  aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                 >
-                  {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+                  {showPassword ? "Ẩn" : "Hiện"}
                 </button>
-              </div>
-            </form>
-          </div>
+              </span>
+            </label>
+
+            <button type="submit" disabled={isLoading} className="of-btn mt-2 w-full">
+              {isLoading ? "Đang đăng nhập…" : "Đăng nhập"} {!isLoading && <ArrowRight />}
+            </button>
+          </form>
         </div>
       </div>
-    </div>
+    </ThemeShell>
   );
 }

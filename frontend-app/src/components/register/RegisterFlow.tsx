@@ -316,7 +316,12 @@ export default function RegisterFlow() {
       setDone(true);
       scrollTop();
     } catch (err: unknown) {
-      const message = (err as { message?: string })?.message || 'Đăng ký thất bại. Vui lòng thử lại.';
+      const raw = (err as { message?: string })?.message;
+      // fetch() rejects with a TypeError when the API is unreachable or blocked by CORS
+      const message =
+        err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw ?? '')
+          ? 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại sau ít phút.'
+          : raw || 'Đăng ký thất bại. Vui lòng thử lại.';
       track('api_error', { endpoint: '/auth/register', error_message: message, user_action: 'registration_attempt' });
       if (/điện thoại/i.test(message)) {
         setStep(0);

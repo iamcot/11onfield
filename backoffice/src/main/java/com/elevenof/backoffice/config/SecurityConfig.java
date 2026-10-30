@@ -3,6 +3,7 @@ package com.elevenof.backoffice.config;
 import com.elevenof.backoffice.security.JwtAuthenticationFilter;
 import com.elevenof.backoffice.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -16,6 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,6 +29,9 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Value("${app.frontend.url:}")
+    private String frontendUrl;
 
     /**
      * Security configuration for REST API endpoints (/api/**)
@@ -118,12 +123,21 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
+        List<String> origins = new ArrayList<>(List.of(
             "http://localhost",
             "http://localhost:80",
+            "http://localhost:3000",
+            "http://localhost:7070",
             "https://11onfield.com",
-            "http://11onfield.com"
+            "http://11onfield.com",
+            "https://www.11onfield.com",
+            "http://www.11onfield.com"
         ));
+        // the deployed frontend (e.g. the test domain) comes from FRONTEND_URL
+        if (frontendUrl != null && !frontendUrl.isBlank()) {
+            origins.add(frontendUrl.replaceAll("/+$", ""));
+        }
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

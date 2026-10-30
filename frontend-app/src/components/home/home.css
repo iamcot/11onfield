@@ -1426,6 +1426,92 @@ html body .of-root .of-field:focus {
 }
 
 /* ==========================================================================
+   Legal documents (terms, privacy, media policy)
+   ========================================================================== */
+.of-legal {
+  color: #d5ded8;
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+.of-legal section,
+.of-legal-contact {
+  position: relative;
+  margin-top: 16px;
+  padding: 22px 20px;
+  background: linear-gradient(160deg, rgba(14, 40, 26, 0.72), rgba(5, 16, 11, 0.78));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-left: 2px solid rgba(166, 227, 90, 0.5);
+}
+@media (min-width: 1024px) {
+  .of-legal section,
+  .of-legal-contact {
+    padding: 28px 34px;
+  }
+}
+.of-legal h2,
+.of-legal h3 {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 12px;
+}
+.of-legal h2 {
+  font-size: 26px;
+}
+.of-legal h3 {
+  font-size: 22px;
+}
+@media (min-width: 1024px) {
+  .of-legal h2 {
+    font-size: 30px;
+  }
+}
+.of-legal p + p,
+.of-legal p + ul,
+.of-legal ul + p {
+  margin-top: 10px;
+}
+.of-legal ul {
+  display: grid;
+  gap: 10px;
+}
+.of-legal li {
+  position: relative;
+  padding-left: 20px;
+}
+.of-legal li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.72em;
+  width: 7px;
+  height: 7px;
+  background: var(--lime);
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px rgba(166, 227, 90, 0.6);
+}
+.of-legal strong {
+  color: #fff;
+  font-weight: 700;
+}
+.of-legal a {
+  color: var(--lime-2);
+  font-weight: 600;
+}
+.of-legal a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+.of-legal-contact {
+  margin-top: 28px;
+  border-left-color: var(--gold-2);
+  background: linear-gradient(160deg, rgba(60, 46, 18, 0.55), rgba(10, 16, 10, 0.8));
+}
+
+/* ==========================================================================
    Reduced motion
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
