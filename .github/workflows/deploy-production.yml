@@ -204,6 +204,10 @@ jobs:
 
           echo "✓ Systemd service files updated with Java path: $JAVA21_HOME"
 
+      - name: Clear previous backend artifact
+        # download-artifact merges into the folder, so stale builds pile up without this
+        run: rm -rf /tmp/artifacts/backend
+
       - name: Download backend artifact
         uses: actions/download-artifact@v4
         with:
@@ -259,6 +263,10 @@ jobs:
           bash deployment/scripts/deploy-backend.sh \
             /tmp/artifacts/backend/backoffice-0.0.1-SNAPSHOT.jar
 
+      - name: Remove backend artifact
+        if: always()
+        run: rm -rf /tmp/artifacts/backend
+
       - name: Wait for backend startup
         run: sleep 30
 
@@ -284,6 +292,10 @@ jobs:
           sudo cp deployment/systemd/11of-frontend.service /etc/systemd/system/
           sudo systemctl daemon-reload
           echo "✓ Frontend systemd service file updated"
+
+      - name: Clear previous frontend artifact
+        # download-artifact merges into the folder, so stale builds pile up without this
+        run: rm -rf /tmp/artifacts/frontend
 
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
@@ -316,6 +328,10 @@ jobs:
         run: |
           bash ${{ env.DEPLOY_PATH }}/scripts/deploy-frontend.sh \
             /tmp/artifacts/frontend
+
+      - name: Remove frontend artifact
+        if: always()
+        run: rm -rf /tmp/artifacts/frontend
 
       - name: Wait for frontend startup
         run: sleep 10
