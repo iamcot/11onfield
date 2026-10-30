@@ -236,7 +236,7 @@ export default function RegisterFlow() {
 
   const stageFor = useMemo(
     () => (region: Region) =>
-      stages.filter((s) => s.region === region && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => a.stageDate.localeCompare(b.stageDate))[0],
+      stages.filter((s) => s.region === region && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => (a.stageDate ?? '9999').localeCompare(b.stageDate ?? '9999'))[0],
     [stages]
   );
 
@@ -563,7 +563,7 @@ export default function RegisterFlow() {
                             <button key={r.id} type="button" role="radio" aria-checked={on} onClick={() => set('region', r.id)} className={`of-choice of-cut of-choice--big ${on ? 'is-on' : ''}`}>
                               <span className="of-radio" aria-hidden="true" />
                               <span className="of-display text-[26px] text-white">{t(r.label)}</span>
-                              <span className="of-num text-[13px] text-[#AFC0B6]">{st ? `${formatDate(st.stageDate)}${st.title ? ` · ${st.title}` : ''}` : t('Lịch sẽ thông báo sau')}</span>
+                              <span className="of-num text-[13px] text-[#AFC0B6]">{st ? `${st.stageDate ? formatDate(st.stageDate) : t('Đang cập nhật')}${st.title ? ` · ${st.title}` : ''}` : t('Lịch sẽ thông báo sau')}</span>
                             </button>
                           );
                         })}

@@ -30,7 +30,7 @@ export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref:
   const byRegion = (key: string) =>
     !SHOW_DATES
       ? undefined
-      : stages.filter((s) => s.region === key && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => a.stageDate.localeCompare(b.stageDate))[0];
+      : stages.filter((s) => s.region === key && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => (a.stageDate ?? '9999').localeCompare(b.stageDate ?? '9999'))[0];
 
   return (
     <section id="lich" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
@@ -71,7 +71,7 @@ export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref:
                 <div className="of-num text-[14px] text-[#CBD6CF]">
                   {stage ? (
                     <>
-                      {formatDate(stage.stageDate)}
+                      {stage.stageDate ? formatDate(stage.stageDate) : t('Đang cập nhật')}
                       {stage.stageTime ? ` · ${stage.stageTime.slice(0, 5)}` : ''}
                       {stage.title ? <span className="block font-medium normal-case">{stage.title}</span> : null}
                     </>

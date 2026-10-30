@@ -70,6 +70,7 @@ export default function RoundRail({ rounds, active }: { rounds: Stage[]; active:
   };
 
   const date = (s: Stage) => {
+    if (!s.stageDate) return t('Đang cập nhật');
     const d = new Date(s.stageDate);
     if (Number.isNaN(d.getTime())) return '';
     const day = d.toLocaleDateString(intlLocale, { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -93,7 +94,7 @@ export default function RoundRail({ rounds, active }: { rounds: Stage[]; active:
         {rounds.map((r, i) => {
           const st = roundState(i, active, r);
           const isFinal = i === finalIdx;
-          const start = new Date(r.stageDate).getTime();
+          const start = r.stageDate ? new Date(r.stageDate).getTime() : NaN;
           return (
             <article key={r.id} className={`pp-rcard of-cut ${st} ${isFinal ? 'final' : ''} ${st === 'now' ? 'of-run' : ''}`}>
               <div className="top">

@@ -22,7 +22,8 @@ export interface Stage {
   stageNumber: number;
   title: string;
   description: string;
-  stageDate: string;
+  /** null while the date is not announced yet (UI shows "Đang cập nhật") */
+  stageDate: string | null;
   stageTime: string;
   stageType: string;
   region: string | null;

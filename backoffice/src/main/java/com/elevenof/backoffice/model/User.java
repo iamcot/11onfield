@@ -107,6 +107,7 @@ public class User {
         COACH,        // Coach with coach profile
         SCOUTER,      // Scouter with scouter profile
         EDITOR,       // Content editor
+        BGK,          // Judge (Ban giam khao), scoring only
         ADMIN,        // Administrator
         SUPER_USER    // Super administrator
     }

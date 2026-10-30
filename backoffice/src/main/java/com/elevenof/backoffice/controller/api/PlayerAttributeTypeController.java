@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,6 +72,7 @@ public class PlayerAttributeTypeController {
         return ResponseEntity.ok(attributeTypes);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     @PostMapping
     public ResponseEntity<PlayerAttributeType> createAttributeType(
             @RequestBody PlayerAttributeType attributeType,
@@ -81,6 +83,7 @@ public class PlayerAttributeTypeController {
         return ResponseEntity.ok(created);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     @PutMapping("/{id}")
     public ResponseEntity<PlayerAttributeType> updateAttributeType(
             @PathVariable Long id,
@@ -92,6 +95,7 @@ public class PlayerAttributeTypeController {
         return ResponseEntity.ok(updated);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAttributeType(@PathVariable Long id) {
         attributeTypeService.deleteAttributeType(id);

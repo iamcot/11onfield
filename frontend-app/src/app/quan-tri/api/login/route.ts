@@ -1,0 +1,39 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { ADMIN_COOKIE, ADMIN_ROLES, ADMIN_SESSION_SECONDS, backendUrl } from '@/lib/admin/session';
+
+export async function POST(req: NextRequest) {
+  const { phone, password } = await req.json().catch(() => ({}));
+  if (!phone || !password) {
+    return NextResponse.json({ message: 'Vui lòng nhập tài khoản và mật khẩu' }, { status: 400 });
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(`${backendUrl()}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, password }),
+      cache: 'no-store',
+    });
+  } catch {
+    return NextResponse.json({ message: 'Không kết nối được máy chủ' }, { status: 502 });
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return NextResponse.json({ message: data.message || 'Tài khoản hoặc mật khẩu không đúng' }, { status: res.status });
+  }
+  if (!ADMIN_ROLES.includes(data.user?.role)) {
+    return NextResponse.json({ message: 'Tài khoản này không có quyền vào trang quản trị' }, { status: 403 });
+  }
+
+  const out = NextResponse.json({ role: data.user.role, fullName: data.user.fullName });
+  out.cookies.set(ADMIN_COOKIE, data.tokens.accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/quan-tri',
+    maxAge: ADMIN_SESSION_SECONDS,
+  });
+  return out;
+}

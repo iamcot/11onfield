@@ -135,6 +135,9 @@ zalo:
     codeVerifier: ${ZALO_CODE_VERIFIER:anylearn}
     otpTemplateId: ${ZALO_OTP_TEMPLATE_ID:275670}
     testMode: ${ZALO_TEST_MODE:true}
+    # Send OTPs through AnyLearn (e.g. https://anylearn.vn/v2/api/open/zns/otp); empty = use our own OA token.
+    relayUrl: ${ZNS_RELAY_URL:}
+    relayApiKey: ${ZNS_RELAY_API_KEY:}
 
 app:
   frontend:

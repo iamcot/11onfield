@@ -1,6 +1,7 @@
 "use client";
 
 import HomeFooter from "@/components/home/HomeFooter";
+import { looksLikeHtml, sanitizeHtml } from "@/lib/sanitize-html";
 import MobileNav from "@/components/layout/MobileNav";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
@@ -585,7 +586,7 @@ export default function UserProfilePage() {
                 <span>
                   {t("Vòng hiện tại")}: <b>{rounds[active].title}</b>
                 </span>
-                <span className="pp-mute">{new Date(rounds[active].stageDate).toLocaleDateString(intlLocale)}</span>
+                <span className="pp-mute">{rounds[active].stageDate ? new Date(rounds[active].stageDate!).toLocaleDateString(intlLocale) : t("Đang cập nhật")}</span>
               </div>
             )}
           </div>
@@ -690,7 +691,12 @@ export default function UserProfilePage() {
               <Actions onCancel={() => setEditing(null)} onSave={() => save("bio")} saving={saving} />
             </div>
           ) : (
-            <p className="pp-bio">{profile.bio?.trim() || (owner ? t("Chưa có giới thiệu. Bấm cây bút để viết vài dòng về bạn.") : t("Chưa có giới thiệu."))}</p>
+            profile.bio?.trim() && looksLikeHtml(profile.bio) ? (
+              // a bio written in the admin can be rich text; only allow-listed tags survive
+              <div className="pp-bio" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio) }} />
+            ) : (
+              <p className="pp-bio">{profile.bio?.trim() || (owner ? t("Chưa có giới thiệu. Bấm cây bút để viết vài dòng về bạn.") : t("Chưa có giới thiệu."))}</p>
+            )
           )}
         </Box>
 

@@ -30,6 +30,9 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Value("${CORS_EXTRA_ORIGINS:}")
+    private String extraOriginPatterns;
+
     @Value("${app.frontend.url:}")
     private String frontendUrl;
 
@@ -66,6 +69,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/competitions/{id}/news/{newsId}").permitAll()
                 .requestMatchers("/api/competitions/{id}/sponsors").permitAll()
                 .requestMatchers("/api/competitions/{id}/stages").permitAll()
+                .requestMatchers("/api/admin/**").hasAnyRole("EDITOR", "BGK", "ADMIN", "SUPER_USER") // per-endpoint rules via @PreAuthorize
                 .anyRequest().authenticated()
             )
             .logout(logout -> logout.disable())
@@ -138,6 +142,11 @@ public class SecurityConfig {
             origins.add(frontendUrl.replaceAll("/+$", ""));
         }
         configuration.setAllowedOrigins(origins);
+        // Opt-in extra origins from CORS_EXTRA_ORIGINS (comma separated, patterns allowed), e.g. a tunnel URL
+        // while testing a developer machine from a phone. Empty by default.
+        for (String p : extraOriginPatterns.split(",")) {
+            if (!p.isBlank()) configuration.addAllowedOriginPattern(p.trim());
+        }
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

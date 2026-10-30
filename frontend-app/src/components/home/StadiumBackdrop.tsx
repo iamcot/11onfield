@@ -10,6 +10,8 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
     const canvas = ref.current;
     if (!canvas) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Desktop only: on phones and tablets the motes cost more than they add (CoT, 2026-10-30)
+    if (window.matchMedia('(hover: none)').matches) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -17,8 +19,7 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
     let h = 0;
     let raf = 0;
     let motes: Mote[] = [];
-    const touch = window.matchMedia('(hover: none)').matches;
-    const dpr = touch ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     // pre-rendered glow sprites: building a radial gradient per mote per frame is costly on phones
     const sprite = (c: string) => {
@@ -80,11 +81,21 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
       raf = requestAnimationFrame(frame);
     };
 
-    // runs only while the tab is visible and the fireflies switch (lib/fx) is on
-    const onVisibility = () => {
+    // Paused while the page is hidden, the fireflies switch (lib/fx) is off, or the user is typing: on phones the
+    // full-screen canvas redrawn every frame competes with the keyboard and makes typed characters show up late.
+    let typing = false;
+    const run = () => {
       cancelAnimationFrame(raf);
-      ctx.clearRect(0, 0, w, h);
-      if (!document.hidden && fxEnabled()) raf = requestAnimationFrame(frame);
+      if (!fxEnabled()) ctx.clearRect(0, 0, w, h);
+      if (!document.hidden && !typing && fxEnabled()) raf = requestAnimationFrame(frame);
+    };
+    const onVisibility = run;
+    const isField = (t: EventTarget | null) => t instanceof HTMLElement && t.matches('input, textarea, select, [contenteditable]');
+    const onFocusIn = (e: FocusEvent) => {
+      if (isField(e.target)) { typing = true; run(); }
+    };
+    const onFocusOut = (e: FocusEvent) => {
+      if (isField(e.target) && !isField(e.relatedTarget)) { typing = false; run(); }
     };
 
     resize();
@@ -92,11 +103,15 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
     const unsubscribe = subscribeFx(onVisibility);
     window.addEventListener('resize', resize);
     document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
     return () => {
       cancelAnimationFrame(raf);
       unsubscribe();
       window.removeEventListener('resize', resize);
       document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener('focusout', onFocusOut);
     };
   }, [ref]);
 }

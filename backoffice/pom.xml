@@ -125,6 +125,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Excel export for the admin -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+
         <!-- JWT Token Support -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

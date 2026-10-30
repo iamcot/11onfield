@@ -36,7 +36,7 @@ public class CompetitionStage {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
+    /** Nullable: date not announced yet. */
     private LocalDate stageDate;
 
     @Column(length = 10)

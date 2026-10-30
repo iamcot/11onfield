@@ -2,7 +2,7 @@
 
 export interface RoundLike {
   stageNumber: number;
-  stageDate: string;
+  stageDate: string | null; // null = date not set yet ("Đang cập nhật")
   status: string; // UPCOMING | LIVE | COMPLETED (ACTIVE accepted from older data)
   stageType?: string;
 }
@@ -10,7 +10,7 @@ export interface RoundLike {
 const isOpen = (s: string) => s === 'LIVE' || s === 'ACTIVE';
 
 export function sortRounds<T extends RoundLike>(rounds: T[]): T[] {
-  return [...rounds].sort((a, b) => a.stageNumber - b.stageNumber || a.stageDate.localeCompare(b.stageDate));
+  return [...rounds].sort((a, b) => a.stageNumber - b.stageNumber || (a.stageDate ?? '').localeCompare(b.stageDate ?? ''));
 }
 
 /**
@@ -21,7 +21,7 @@ export function activeRoundIndex(rounds: RoundLike[], now: number = Date.now()):
   if (rounds.length === 0) return -1;
   const live = rounds.findIndex((r) => isOpen(r.status));
   if (live >= 0) return live;
-  const next = rounds.findIndex((r) => r.status === 'UPCOMING' && new Date(r.stageDate).getTime() >= now - 86400000);
+  const next = rounds.findIndex((r) => r.status === 'UPCOMING' && !!r.stageDate && new Date(r.stageDate).getTime() >= now - 86400000);
   if (next >= 0) return next;
   const firstUpcoming = rounds.findIndex((r) => r.status === 'UPCOMING');
   return firstUpcoming >= 0 ? firstUpcoming : rounds.length - 1;

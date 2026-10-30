@@ -2053,3 +2053,15 @@ html body .of-app select option { background: #0b1f15; color: #fff; }
   .of-lang-wipe.is-in > i, .of-lang-wipe.is-hold > i { transform: translateX(0) skewX(-14deg); }
   .of-lang-wipe.is-in .of-lang-wipe-label, .of-lang-wipe.is-hold .of-lang-wipe-label { opacity: 1; transform: none; }
 }
+
+/* Touch devices: the streak running around a big form card repaints the whole card ring every frame
+   (animated conic-gradient), which makes typing on the login and register forms stutter. Keep the
+   still ring there; the streak stays on the rest of the site. */
+@media (hover: none) {
+  .of-particles { display: none; } /* motes are drawn on desktop only (StadiumBackdrop) */
+  .of-run:has(form)::before,
+  .of-run:has(input)::before {
+    animation: none;
+    background: linear-gradient(var(--ring), var(--ring));
+  }
+}

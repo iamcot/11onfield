@@ -105,10 +105,12 @@ html body textarea {
 
 /* Fix iOS Safari dark mode issues with form elements */
 @supports (-webkit-touch-callout: none) {
-  /* Target iOS Safari - Force light mode for ALL form elements */
+  /* Target iOS Safari - Force light mode for ALL form elements.
+     16px or more: iOS zooms the page when a smaller field gets focus. */
   input,
   select,
   textarea {
+    font-size: 16px !important;
     background-color: white !important;
     color: #374151 !important;
     -webkit-text-fill-color: #374151 !important;
