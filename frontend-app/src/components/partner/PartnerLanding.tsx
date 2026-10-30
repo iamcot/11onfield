@@ -12,6 +12,7 @@ import PartnerContact from './PartnerContact';
 import '../home/home.css';
 
 const LINKS = [
+  // labels and ticker items are translated where they render
   { id: 'format', label: 'Format' },
   { id: 'he-sinh-thai', label: 'Hệ sinh thái' },
   { id: 'khan-gia', label: 'Khán giả' },

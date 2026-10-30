@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { SectionHead, revealDelay } from './ui';
+import { useT } from '@/i18n/I18nProvider';
+import { rich } from '@/i18n/rich';
 
 const FAQS = [
   {
@@ -36,21 +38,26 @@ const FAQS = [
 
 export default function Faq() {
   const [open, setOpen] = useState(0);
+  const t = useT();
+  const lime = 'font-semibold text-[color:var(--lime-2)] hover:text-white';
   return (
     <section id="hoi-dap" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">
       <div className="mx-auto grid max-w-[1240px] gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <SectionHead align="left" eyebrow="Hỏi đáp" title={<>Câu hỏi<br />thường gặp</>} />
+          <SectionHead align="left" eyebrow={t('Hỏi đáp')} title={<>{t('Câu hỏi')}<br />{t('thường gặp')}</>} />
           <p className="mt-4 text-[#CBD6CF]" data-reveal="">
-            Chưa thấy câu trả lời? Gọi{' '}
-            <a href="tel:+84902383511" className="font-semibold text-[color:var(--lime-2)] hover:text-white">
-              090 2383 511
-            </a>{' '}
-            hoặc email{' '}
-            <a href="mailto:11nguoirasan@11onfield.com" className="font-semibold text-[color:var(--lime-2)] hover:text-white">
-              11nguoirasan@11onfield.com
-            </a>
-            .
+            {rich(t('Chưa thấy câu trả lời? Gọi <tel>090 2383 511</tel> hoặc email <mail>11nguoirasan@11onfield.com</mail>.'), {
+              tel: (c) => (
+                <a href="tel:+84902383511" className={lime}>
+                  {c}
+                </a>
+              ),
+              mail: (c) => (
+                <a href="mailto:11nguoirasan@11onfield.com" className={lime}>
+                  {c}
+                </a>
+              ),
+            })}
           </p>
         </div>
         <div className="flex flex-col gap-3">
@@ -69,12 +76,12 @@ export default function Faq() {
                   aria-expanded={isOpen}
                   onClick={() => setOpen(isOpen ? -1 : i)}
                 >
-                  {f.q}
+                  {t(f.q)}
                   <span className="of-plus of-neon shrink-0 text-[26px] leading-none">+</span>
                 </button>
                 <div className="of-acc-body">
                   <div>
-                    <p className="px-5 pb-5 text-[#CBD6CF] lg:px-6">{f.a}</p>
+                    <p className="px-5 pb-5 text-[#CBD6CF] lg:px-6">{t(f.a)}</p>
                   </div>
                 </div>
               </div>
