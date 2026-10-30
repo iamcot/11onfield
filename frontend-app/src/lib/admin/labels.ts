@@ -69,3 +69,16 @@ export const PARTICIPANT_STATUS: Record<string, { label: string; tone: 'green' |
   SELECTED_TOP11: { label: 'Top 11', tone: 'green' },
   ELIMINATED: { label: 'Bị loại', tone: 'red' },
 };
+
+export const ROLES: Record<string, string> = {
+  USER: 'Người dùng',
+  PLAYER: 'Cầu thủ',
+  COACH: 'Huấn luyện viên',
+  SCOUTER: 'Tuyển trạch viên',
+  EDITOR: 'Biên tập viên',
+  BGK: 'Ban giám khảo',
+  ADMIN: 'Admin',
+  SUPER_USER: 'Super user',
+};
+export const STAFF_ROLE_KEYS = ['EDITOR', 'BGK', 'ADMIN', 'SUPER_USER'];
+export const CHANNELS: Record<string, string> = { EMAIL: 'Email', IN_APP: 'Trong ứng dụng', INAPP: 'Trong ứng dụng', ZNS: 'Zalo ZNS' };

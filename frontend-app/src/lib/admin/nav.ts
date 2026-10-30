@@ -19,7 +19,7 @@ export const NAV: NavItem[] = [
   { label: 'Chờ duyệt', href: '/quan-tri/duyet', roles: STAFF },
   { label: 'Sự kiện', href: '/quan-tri/su-kien', roles: STAFF },
   { label: 'Loại chỉ số', href: '/quan-tri/loai-chi-so', roles: MANAGERS },
-  { label: 'Thông báo', legacy: '/admin/notifications', roles: MANAGERS },
-  { label: 'Zalo ZNS', legacy: '/admin/zns', roles: MANAGERS },
-  { label: 'Tài khoản', legacy: '/admin/users', roles: ['SUPER_USER'] },
+  { label: 'Thông báo', href: '/quan-tri/thong-bao', roles: MANAGERS },
+  { label: 'Zalo ZNS', href: '/quan-tri/zns', roles: MANAGERS },
+  { label: 'Tài khoản', href: '/quan-tri/tai-khoan', roles: ['SUPER_USER'] },
 ];
