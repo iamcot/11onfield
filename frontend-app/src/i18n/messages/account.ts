@@ -46,7 +46,12 @@ const account: Messages = {
     'Inicia sesión para actualizar tu perfil, ver el calendario de pruebas de tu región y seguir tus resultados.',
     '로그인해 선수 프로필을 업데이트하고, 지역 선발 일정과 결과를 확인하세요.',
   ],
-  'Chương trình 11 người ra sân 2026': ['The 11 On Field 2026 programme', 'El programa 11 On Field 2026', '11 On Field 2026 프로그램'],
+  'Đăng nhập để cập nhật hồ sơ cầu thủ và theo dõi các chương trình, sự kiện bóng đá.': [
+    'Sign in to update your player profile and follow programmes and football events.',
+    'Inicia sesión para actualizar tu perfil de jugador y seguir programas y eventos de fútbol.',
+    '로그인하여 선수 프로필을 업데이트하고 프로그램과 축구 이벤트를 확인하세요.',
+  ],
+  'Xem các chương trình': ['See programmes', 'Ver programas', '프로그램 보기'],
   'Chưa có tài khoản?': ["Don't have an account?", '¿No tienes cuenta?', '계정이 없으신가요?'],
   'Quên mật khẩu?': ['Forgot password?', '¿Has olvidado la contraseña?', '비밀번호를 잊으셨나요?'],
   'Nhập mật khẩu': ['Enter your password', 'Introduce tu contraseña', '비밀번호 입력'],
