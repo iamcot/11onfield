@@ -7,9 +7,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -22,6 +25,13 @@ import java.util.Base64;
 @RequiredArgsConstructor
 @Slf4j
 public class BackgroundRemovalService {
+
+    /**
+     * A synchronous Lambda call takes at most 6MB of payload and base64 adds a third, so bigger photos are
+     * shrunk first; otherwise the call fails and the photo silently keeps its background.
+     */
+    static final int MAX_SEND_BYTES = 3 * 1024 * 1024;
+    static final int MAX_EDGE = 2000;
 
     private final AWSLambda lambdaClient;
     private final ObjectMapper objectMapper;
@@ -40,6 +50,8 @@ public class BackgroundRemovalService {
         log.info("Starting background removal, image size: {} bytes", imageBytes.length);
 
         try {
+            imageBytes = shrinkForLambda(imageBytes);
+
             // Encode image to Base64
             String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
 
@@ -89,6 +101,19 @@ public class BackgroundRemovalService {
             log.error("Error removing background", e);
             throw e;
         }
+    }
+
+    /** Big photos become a JPEG of at most MAX_EDGE px on the long side, rotated as the camera said. */
+    static byte[] shrinkForLambda(byte[] imageBytes) throws java.io.IOException {
+        if (imageBytes.length <= MAX_SEND_BYTES) return imageBytes;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Thumbnails.of(new ByteArrayInputStream(imageBytes))
+            .size(MAX_EDGE, MAX_EDGE)
+            .outputFormat("jpg")
+            .outputQuality(0.9)
+            .toOutputStream(out);
+        log.info("Shrunk image for background removal: {} -> {} bytes", imageBytes.length, out.size());
+        return out.toByteArray();
     }
 
     /**
