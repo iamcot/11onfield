@@ -38,8 +38,15 @@ public class BackgroundRemovalService {
     public BackgroundRemovalService(
             @Value("${app.rembg.command:/opt/rembg/bin/python /opt/rembg/cutout.py}") String command,
             @Value("${app.rembg.model-dir:/opt/rembg/models}") String modelDir) {
-        this.command = Arrays.stream(command.trim().split("\\s+")).toList();
-        this.modelDir = modelDir;
+        this.command = Arrays.stream(command.trim().split("\\s+")).map(BackgroundRemovalService::expandHome).toList();
+        this.modelDir = expandHome(modelDir.trim());
+    }
+
+    /** Lets a local .env say $HOME/... or ~/... (an env file does not expand them by itself). */
+    static String expandHome(String path) {
+        String home = System.getProperty("user.home");
+        if (path.startsWith("~/")) return home + path.substring(1);
+        return path.replace("${HOME}", home).replace("$HOME", home);
     }
 
     /**
