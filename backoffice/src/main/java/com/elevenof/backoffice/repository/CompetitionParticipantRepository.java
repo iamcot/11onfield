@@ -68,4 +68,7 @@ public interface CompetitionParticipantRepository extends JpaRepository<Competit
 
     @Query("SELECT p FROM CompetitionParticipant p JOIN FETCH p.user WHERE p.competition.id = :competitionId ORDER BY p.registrationDate ASC")
     List<CompetitionParticipant> findByCompetitionIdWithUserOrderByRegistrationDate(@Param("competitionId") Long competitionId);
+
+    @Query("SELECT p FROM CompetitionParticipant p JOIN FETCH p.competition WHERE p.user.id IN :userIds")
+    List<CompetitionParticipant> findByUserIdInWithCompetition(@Param("userIds") java.util.Collection<Long> userIds);
 }

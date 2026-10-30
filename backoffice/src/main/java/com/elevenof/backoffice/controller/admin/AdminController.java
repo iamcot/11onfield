@@ -518,7 +518,7 @@ public class AdminController {
             @PathVariable Integer stageNumber,
             @RequestParam String title,
             @RequestParam(required = false) String description,
-            @RequestParam String stageDate,
+            @RequestParam(required = false) String stageDate,
             @RequestParam(required = false) String stageTime,
             @RequestParam boolean isPublicScoring,
             RedirectAttributes redirectAttributes) {
@@ -529,7 +529,7 @@ public class AdminController {
 
         stage.setTitle(title);
         stage.setDescription(description);
-        stage.setStageDate(java.time.LocalDate.parse(stageDate));
+        stage.setStageDate(stageDate != null && !stageDate.isBlank() ? java.time.LocalDate.parse(stageDate) : null);
         stage.setStageTime(stageTime);
         stage.setIsPublicScoring(isPublicScoring);
 

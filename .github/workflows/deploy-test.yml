@@ -229,10 +229,7 @@ jobs:
           echo "Updated service file:"
           grep -E "JAVA_HOME|ExecStart=" deployment/systemd/11of-backend.service
 
-          # Stop service if running to clear any cached config
-          echo "Stopping backend service..."
-          sudo systemctl stop 11of-backend.service || true
-
+          # The service is not stopped here: the old release keeps serving until the deploy script restarts it.
           # Copy updated service file and reload
           sudo cp deployment/systemd/11of-backend.service /etc/systemd/system/
           sudo systemctl daemon-reload

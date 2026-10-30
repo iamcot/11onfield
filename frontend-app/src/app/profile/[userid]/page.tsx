@@ -1,5 +1,6 @@
 "use client";
 
+import { looksLikeHtml, sanitizeHtml } from "@/lib/sanitize-html";
 import HexagonChart from "@/components/HexagonChart";
 import HomeFooter from "@/components/home/HomeFooter";
 import MobileNav from "@/components/layout/MobileNav";
@@ -1021,9 +1022,16 @@ export default function UserProfilePage() {
                     <div className="bg-white p-4 md:p-6 rounded-lg shadow ">
                       <div className="">
                         <h3 className="text-lg font-semibold mb-4">{t("Tiểu sử")}</h3>
-                        <p className="text-sm font-medium text-gray-900 leading-relaxed whitespace-pre-wrap text-justify">
-                          {profileUser.bio}
-                        </p>
+                        {looksLikeHtml(profileUser.bio) ? (
+                          <div
+                            className="text-sm font-medium text-gray-900 leading-relaxed text-justify [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-2 [&_ul]:list-disc"
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(profileUser.bio) }}
+                          />
+                        ) : (
+                          <p className="text-sm font-medium text-gray-900 leading-relaxed whitespace-pre-wrap text-justify">
+                            {profileUser.bio}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}

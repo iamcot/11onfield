@@ -32,6 +32,14 @@ Update API endpoint in environment variables:
 NEXT_PUBLIC_API_URL=http://localhost:7071/api
 ```
 
+To open the site from another device (ngrok, a phone on the LAN), use a path instead, so the browser calls
+the API on the same origin and Next.js forwards it to Spring (`API_PROXY_TARGET`, default `ADMIN_API_URL`,
+else `http://localhost:7071/api`). Both are read at build time, so rebuild after changing them:
+
+```env
+NEXT_PUBLIC_API_URL=/api
+```
+
 ## Project Structure
 
 ```

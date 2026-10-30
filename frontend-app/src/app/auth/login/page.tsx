@@ -59,7 +59,9 @@ export default function LoginPage() {
         role: user?.role || "unknown",
       });
 
-      router.push("/profile");
+      // ?redirect=/path brings the player back where they came from (e.g. the QR check-in page).
+      const next = new URLSearchParams(window.location.search).get("redirect");
+      router.push(next && next.startsWith("/") && !next.startsWith("//") ? next : "/profile");
     } catch (err: unknown) {
       const raw = (err as { message?: string })?.message;
       track("api_error", {

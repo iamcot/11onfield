@@ -17,7 +17,8 @@ import java.util.List;
  * REST API for managing competition assessment structure and results
  */
 @RestController
-@RequestMapping("/admin/api/competitions/{competitionId}/stages/{stageNumber}")
+@RequestMapping({"/admin/api/competitions/{competitionId}/stages/{stageNumber}", "/api/admin/competitions/{competitionId}/stages/{stageNumber}"})
+@org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
 @RequiredArgsConstructor
 @Slf4j
 public class CompetitionAssessmentController {
@@ -32,6 +33,7 @@ public class CompetitionAssessmentController {
     /**
      * Get full assessment structure for a stage
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/assessment-structure")
     public ResponseEntity<List<CompetitionAssessmentDay>> getAssessmentStructure(
             @PathVariable Long competitionId,
@@ -115,6 +117,7 @@ public class CompetitionAssessmentController {
     /**
      * Get rating scale for a step
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/assessment-steps/{stepId}/rating-scale")
     public ResponseEntity<List<CompetitionAssessmentStepRating>> getRatingScale(
             @PathVariable Long competitionId,
@@ -158,6 +161,29 @@ public class CompetitionAssessmentController {
     /**
      * Delete assessment day (cascade deletes everything under it)
      */
+    @PutMapping("/assessment-days/{dayId}")
+    public ResponseEntity<java.util.Map<String, String>> updateAssessmentDay(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
+                                                                        @PathVariable Long dayId, @RequestBody AssessmentDayRequest request) {
+        // Return a message, not the entity: its lazy children cannot be serialized outside the transaction.
+        structureService.updateAssessmentDay(dayId, request.getTitle(), request.getDescription(), request.getAssessmentDate());
+        return ResponseEntity.ok(java.util.Map.of("message", "Đã cập nhật ngày đánh giá"));
+    }
+
+    @PutMapping("/assessment-steps/{stepId}")
+    public ResponseEntity<java.util.Map<String, String>> updateAssessmentStep(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
+                                                                          @PathVariable Long stepId, @RequestBody AssessmentStepRequest request) {
+        structureService.updateAssessmentStep(stepId, request.getTitle(), request.getDescription(), request.getHasRatingScale());
+        return ResponseEntity.ok(java.util.Map.of("message", "Đã cập nhật bước đánh giá"));
+    }
+
+    @PutMapping("/assessments/{assessmentId}")
+    public ResponseEntity<java.util.Map<String, String>> updateAssessment(@PathVariable Long competitionId, @PathVariable Integer stageNumber,
+                                                                  @PathVariable Long assessmentId, @RequestBody AssessmentRequest request) {
+        structureService.updateAssessment(assessmentId, request.getTitle(), request.getDescription(),
+            request.getUnit(), request.getAttemptsCount(), request.getScoringMethod());
+        return ResponseEntity.ok(java.util.Map.of("message", "Đã cập nhật bài đánh giá"));
+    }
+
     @DeleteMapping("/assessment-days/{dayId}")
     public ResponseEntity<Void> deleteAssessmentDay(
             @PathVariable Long competitionId,
@@ -287,6 +313,7 @@ public class CompetitionAssessmentController {
     /**
      * Get all participants for a competition stage
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/participants")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<ParticipantDTO>> getParticipants(
@@ -320,6 +347,7 @@ public class CompetitionAssessmentController {
     /**
      * Get participant results breakdown
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/participants/{participantId}/results")
     public ResponseEntity<CompetitionAssessmentResultService.ParticipantAssessmentBreakdown> getParticipantResults(
             @PathVariable Long competitionId,
@@ -338,6 +366,7 @@ public class CompetitionAssessmentController {
     /**
      * Get list of stages with assessment structures (for copy source selection)
      */
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
     @GetMapping("/available-source-stages")
     public ResponseEntity<List<StageInfoDTO>> getAvailableSourceStages(
             @PathVariable Long competitionId,

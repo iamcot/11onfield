@@ -90,11 +90,11 @@ function CountdownBadge({
       ? [...stages]
           .filter(
             (s) =>
-              s.status === "UPCOMING" && new Date(s.stageDate).getTime() > now,
+              s.status === "UPCOMING" && !!s.stageDate && new Date(s.stageDate).getTime() > now,
           )
           .sort(
             (a, b) =>
-              new Date(a.stageDate).getTime() - new Date(b.stageDate).getTime(),
+              new Date(a.stageDate!).getTime() - new Date(b.stageDate!).getTime(),
           )[0]
       : null;
 
@@ -102,7 +102,7 @@ function CountdownBadge({
 
   useEffect(() => {
     if (!nextStage) return;
-    const target = new Date(nextStage.stageDate).getTime();
+    const target = new Date(nextStage.stageDate!).getTime();
     const tick = () => {
       const diff = target - Date.now();
       if (diff <= 0) {
@@ -219,7 +219,7 @@ export default function CompetitionDetailPage() {
     ? [activeStage, ...nextUpcoming]
     : nextUpcoming;
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString(intlLocale);
+  const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString(intlLocale) : t("Đang cập nhật"));
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16">

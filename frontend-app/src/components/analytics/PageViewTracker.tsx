@@ -18,6 +18,7 @@ export default function PageViewTracker() {
 
   useEffect(() => {
     if (!isInitialized) return;
+    if (pathname?.startsWith('/quan-tri')) return; // staff pages are not site traffic
 
     // Build full URL with search params
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');

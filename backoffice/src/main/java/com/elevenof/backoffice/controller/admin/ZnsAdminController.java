@@ -48,6 +48,6 @@ public class ZnsAdminController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to configure ZNS token: " + e.getMessage());
         }
-        return "redirect:/admin/zns";
+        return "redirect:/quan-tri/zns";
     }
 }

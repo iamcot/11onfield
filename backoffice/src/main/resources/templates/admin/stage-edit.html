@@ -66,15 +66,15 @@
                 <div class="row">
                   <div class="col-md-6">
                     <div class="form-group">
-                      <label for="stageDate">Ngày thi <span class="text-danger">*</span></label>
+                      <label for="stageDate">Ngày thi</label>
                       <input
                         type="date"
                         class="form-control"
                         id="stageDate"
                         name="stageDate"
                         th:value="${stage.stageDate}"
-                        required
                       />
+                      <small class="form-text text-muted">Để trống nếu chưa chốt ngày; website sẽ hiện "Đang cập nhật".</small>
                     </div>
                   </div>
 
