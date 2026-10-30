@@ -110,6 +110,8 @@ jobs:
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env.production
           echo "NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}" >> .env.production
           echo "NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}" >> .env.production
+          echo "PARTNER_PAGE_USER=${{ secrets.PARTNER_PAGE_USER }}" >> .env.production
+          echo "PARTNER_PAGE_PASSWORD=${{ secrets.PARTNER_PAGE_PASSWORD }}" >> .env.production
 
       - name: Build application
         working-directory: frontend-app
@@ -304,6 +306,8 @@ jobs:
           NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
           NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}
+          PARTNER_PAGE_USER=${{ secrets.PARTNER_PAGE_USER }}
+          PARTNER_PAGE_PASSWORD=${{ secrets.PARTNER_PAGE_PASSWORD }}
           EOF
           sg 11of-deploy -c "chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production" || true
           echo "✓ Environment file created"

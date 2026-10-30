@@ -163,6 +163,10 @@ public class CompetitionService {
      * Enrolls in any competition with REGISTRATION_OPEN or REGIONAL_AUDITION status
      */
     public void autoEnrollInCurrentCompetitionIfEligible(User user) {
+        autoEnrollInCurrentCompetitionIfEligible(user, null);
+    }
+
+    public void autoEnrollInCurrentCompetitionIfEligible(User user, Region selectedRegion) {
         if (user.getRole() != User.Role.PLAYER) {
             return;
         }
@@ -188,11 +192,12 @@ public class CompetitionService {
             .user(user)
             .enrollmentType(EnrollmentType.AUTO_ENROLLED)
             .status(ParticipantStatus.REGISTERED)
+            .selectedRegion(selectedRegion)
             .registrationDate(LocalDateTime.now())
             .build();
 
         participantRepository.save(participant);
-        log.info("Auto-enrolled user {} in competition {} (season {})", user.getId(), competition.getId(), competition.getSeason());
+        log.info("Auto-enrolled user {} in competition {} (season {}), region {}", user.getId(), competition.getId(), competition.getSeason(), selectedRegion);
     }
 
     /**

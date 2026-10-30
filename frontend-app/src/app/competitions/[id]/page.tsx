@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import LandingFooter from "@/components/landing/LandingFooter";
+import HomeFooter from "@/components/home/HomeFooter";
 import MobileNav from "@/components/layout/MobileNav";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
@@ -479,7 +479,7 @@ export default function CompetitionDetailPage() {
         )}
       </div>
 
-      <LandingFooter />
+      <HomeFooter />
       <MobileNav />
     </div>
   );

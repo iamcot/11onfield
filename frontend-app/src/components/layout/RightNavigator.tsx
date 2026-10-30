@@ -45,7 +45,15 @@ export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen
     onClose();
   };
 
-  if (!isOpen) return null;
+  // the change-password modal must outlive the drawer: opening it closes the drawer
+  const passwordModal = (
+    <ChangePasswordModal
+      isOpen={showChangePasswordModal}
+      onClose={() => setShowChangePasswordModal(false)}
+    />
+  );
+
+  if (!isOpen) return passwordModal;
 
   return (
     <>
@@ -218,11 +226,7 @@ export default function RightNavigator({ isOpen, onClose, children, scrollOnOpen
         </div>
       </div>
 
-      {/* Change Password Modal */}
-      <ChangePasswordModal
-        isOpen={showChangePasswordModal}
-        onClose={() => setShowChangePasswordModal(false)}
-      />
+      {passwordModal}
     </>
   );
 }

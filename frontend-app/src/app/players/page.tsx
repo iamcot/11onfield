@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import HexagonChart from "@/components/HexagonChart";
-import LandingFooter from "@/components/landing/LandingFooter";
+import HomeFooter from "@/components/home/HomeFooter";
 import MobileNav from "@/components/layout/MobileNav";
 import RightNavigator from "@/components/layout/RightNavigator";
 import Sidebar from "@/components/layout/Sidebar";
@@ -983,7 +983,7 @@ function PlayersContent() {
 
         {/* Footer */}
         <div className="hidden md:block">
-          <LandingFooter />
+          <HomeFooter />
         </div>
       </main>
 

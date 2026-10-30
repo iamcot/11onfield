@@ -1,5 +1,8 @@
 "use client";
 
+import { barlowCondensed, chakraPetch } from "@/components/home/fonts";
+import "@/components/home/home.css";
+
 import DynamicAchievementList from "@/components/forms/DynamicAchievementList";
 import DynamicFieldList from "@/components/forms/DynamicFieldList";
 import DynamicHighlightList from "@/components/forms/DynamicHighlightList";
@@ -381,6 +384,7 @@ export default function EditProfileHandler() {
   if (!showEditModal) return null;
 
   return (
+    <div className={`of-root of-app of-modal ${barlowCondensed.variable} ${chakraPetch.variable}`}>
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
@@ -916,6 +920,7 @@ export default function EditProfileHandler() {
           </button>
         </div>
       </div>
+    </div>
     </div>
   );
 }

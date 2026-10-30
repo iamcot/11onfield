@@ -9,7 +9,7 @@ import Image from "next/image";
 import TopUserCard from "@/components/layout/TopUserCard";
 import TopBar from "@/components/layout/TopBar";
 import MobileNav from "@/components/layout/MobileNav";
-import LandingFooter from "@/components/landing/LandingFooter";
+import HomeFooter from "@/components/home/HomeFooter";
 import {
   competitionService,
   LeaderboardEntry,
@@ -246,7 +246,7 @@ export default function LeaderboardPage() {
           </>
         )}
       </div>
-      <LandingFooter />
+      <HomeFooter />
       <MobileNav />
     </div>
   );

@@ -29,6 +29,8 @@ export interface RegisterData {
   role: 'USER' | 'PLAYER' | 'COACH' | 'SCOUTER';
   provinceId?: number;
   email?: string;
+  dob?: string; // yyyy-MM-dd
+  selectedRegion?: 'HANOI_NORTH' | 'DANANG_CENTRAL' | 'HCMC_SOUTH';
   playerProfile?: {
     positions?: string[];
     height?: string;

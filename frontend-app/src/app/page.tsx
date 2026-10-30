@@ -1,11 +1,4 @@
-import HeroSection from '@/components/landing/HeroSection';
-import RecruitmentInfoSection from '@/components/landing/RecruitmentInfoSection';
-import WhyChooseSection from '@/components/landing/WhyChooseSection';
-import SelectionProcessSection from '@/components/landing/SelectionProcessSection';
-import TrainingProgramSection from '@/components/landing/TrainingProgramSection';
-import FAQSection from '@/components/landing/FAQSection';
-import CTABanner from '@/components/landing/CTABanner';
-import LandingFooter from '@/components/landing/LandingFooter';
+import PlayerLanding from '@/components/home/PlayerLanding';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -19,16 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return (
-    <div className="min-h-screen bg-white font-[family-name:var(--font-be-vietnam-pro)]">
-      <HeroSection />
-      <RecruitmentInfoSection />
-      <WhyChooseSection />
-      <SelectionProcessSection />
-      <TrainingProgramSection />
-      <FAQSection />
-      <CTABanner />
-      <LandingFooter />
-    </div>
-  );
+  return <PlayerLanding />;
 }

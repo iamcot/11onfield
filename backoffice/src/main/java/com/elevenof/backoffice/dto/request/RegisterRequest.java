@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class RegisterRequest {
     @NotBlank(message = "Họ và tên không được để trống")
@@ -28,6 +30,11 @@ public class RegisterRequest {
 
     private Long provinceId;
 
+    private LocalDate dob;
+
     // Only for PLAYER role
     private PlayerProfileRequest playerProfile;
+
+    // Only for PLAYER role: HANOI_NORTH, DANANG_CENTRAL, HCMC_SOUTH
+    private String selectedRegion;
 }

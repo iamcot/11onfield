@@ -131,6 +131,8 @@ jobs:
         working-directory: frontend-app
         run: |
           echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env.production
+          echo "PARTNER_PAGE_USER=${{ secrets.PARTNER_PAGE_USER }}" >> .env.production
+          echo "PARTNER_PAGE_PASSWORD=${{ secrets.PARTNER_PAGE_PASSWORD }}" >> .env.production
 
       - name: Build application
         working-directory: frontend-app
@@ -320,6 +322,8 @@ jobs:
           mkdir -p ${{ env.DEPLOY_PATH }}/frontend
           sudo -u 11of-app tee ${{ env.DEPLOY_PATH }}/frontend/.env.production > /dev/null << 'EOF'
           NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          PARTNER_PAGE_USER=${{ secrets.PARTNER_PAGE_USER }}
+          PARTNER_PAGE_PASSWORD=${{ secrets.PARTNER_PAGE_PASSWORD }}
           EOF
           sudo chmod 640 ${{ env.DEPLOY_PATH }}/frontend/.env.production
           echo "Environment file created. Checking:"

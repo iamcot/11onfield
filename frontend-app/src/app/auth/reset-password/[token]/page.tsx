@@ -1,10 +1,11 @@
 "use client";
 
-import { authService } from "@/services/auth.service";
-import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { authService } from "@/services/auth.service";
+import AuthCard, { FieldLabel, Notice, errorMessage } from "@/components/shell/AuthCard";
+import { ArrowRight } from "@/components/home/ui";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -35,206 +36,76 @@ export default function ResetPasswordPage() {
 
     try {
       await authService.resetPassword(token, newPassword);
-      alert("Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.");
+      // the login page shows this once
+      sessionStorage.setItem(
+        "loginMessage",
+        JSON.stringify({ type: "success", message: "Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại." }),
+      );
       router.push("/auth/login");
-    } catch (err: any) {
-      setError(err.message || "Có lỗi xảy ra. Vui lòng thử lại.");
+    } catch (err: unknown) {
+      setError(errorMessage(err, "Có lỗi xảy ra. Vui lòng thử lại."));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Mobile Layout */}
-      <div className="lg:hidden min-h-screen flex flex-col">
-        {/* Top section - Logo */}
-        <div className="relative py-4 bg-white">
-          <div className="flex items-center justify-center">
-            <Link href="/" className="text-center px-8">
-              <Image
-                src="/images/logo-color-full.png"
-                alt="11of Logo"
-                width={250}
-                height={60}
-                className="mx-auto cursor-pointer hover:opacity-80 transition"
-                priority
-              />
-            </Link>
-          </div>
-        </div>
+    <AuthCard
+      eyebrow="Khôi phục tài khoản"
+      title="Mật khẩu mới"
+      subtitle="Chọn mật khẩu ít nhất 8 ký tự mà bạn chưa dùng ở nơi khác."
+      aside={{
+        eyebrow: "Bước 3 / 3",
+        title: (
+          <>
+            Sẵn sàng
+            <br />
+            <span className="of-neon">ra sân</span>
+          </>
+        ),
+        text: "Đặt mật khẩu mới xong là bạn có thể đăng nhập và tiếp tục hồ sơ cầu thủ của mình.",
+      }}
+    >
+      <form className="grid gap-4" onSubmit={handleSubmit}>
+        {error && <Notice tone="error">{error}</Notice>}
 
-        {/* Bottom section - Form with white background */}
-        <div className="flex-1 flex items-center justify-center px-4 py-12 bg-white">
-          <div className="max-w-md w-full space-y-8">
-            <div>
-              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Đặt lại mật khẩu
-              </h2>
-              <p className="mt-2 text-center text-sm text-gray-600">
-                Nhập mật khẩu mới của bạn
-              </p>
-            </div>
-
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              )}
-
-              <div>
-                <label
-                  htmlFor="newPassword"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Mật khẩu mới *
-                </label>
-                <input
-                  id="newPassword"
-                  name="newPassword"
-                  type="password"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                  placeholder="Ít nhất 8 ký tự"
-                  autoComplete="new-password"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Xác nhận mật khẩu *
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                  placeholder="Nhập lại mật khẩu"
-                  autoComplete="new-password"
-                />
-              </div>
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center py-2 px-4 btn-primary text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Layout */}
-      <div className="hidden lg:grid lg:grid-cols-[auto_1fr] min-h-screen">
-        {/* Left column - Hero Image - Sticky */}
-        <div className="sticky top-0 h-screen flex items-center justify-center">
-          {/* Background image */}
-          <img
-            src="/images/banner_register.jpg"
-            alt="Reset Password Banner"
-            className="h-full w-auto object-contain"
+        <label className="block">
+          <FieldLabel>Mật khẩu mới</FieldLabel>
+          <input
+            id="newPassword"
+            name="newPassword"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="of-field mt-1"
+            placeholder="Ít nhất 8 ký tự"
           />
-        </div>
+        </label>
 
-        {/* Right column - Form - Scrollable */}
-        <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white min-h-screen">
-          <div className="max-w-md w-full space-y-8">
-            {/* Logo */}
-            <div className="flex justify-center mb-8">
-              <Link href="/">
-                <Image
-                  src="/images/logo-color-full.png"
-                  alt="11of Logo"
-                  width={250}
-                  height={60}
-                  className="cursor-pointer hover:opacity-80 transition"
-                  priority
-                />
-              </Link>
-            </div>
+        <label className="block">
+          <FieldLabel>Nhập lại mật khẩu</FieldLabel>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="of-field mt-1"
+          />
+        </label>
 
-            <div>
-              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Đặt lại mật khẩu
-              </h2>
-              <p className="mt-2 text-center text-sm text-gray-600">
-                Nhập mật khẩu mới của bạn
-              </p>
-            </div>
+        <button type="submit" disabled={isLoading} className="of-btn mt-2 w-full">
+          {isLoading ? "Đang lưu…" : "Đặt lại mật khẩu"} {!isLoading && <ArrowRight />}
+        </button>
 
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              )}
-
-              <div>
-                <label
-                  htmlFor="newPassword"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Mật khẩu mới *
-                </label>
-                <input
-                  id="newPassword"
-                  name="newPassword"
-                  type="password"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                  placeholder="Ít nhất 8 ký tự"
-                  autoComplete="new-password"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Xác nhận mật khẩu *
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-green-700 focus:border-green-700 sm:text-sm"
-                  placeholder="Nhập lại mật khẩu"
-                  autoComplete="new-password"
-                />
-              </div>
-
-              <div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center py-2 px-4 btn-primary text-white rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Link href="/auth/login" className="text-center text-[14px] font-semibold hover:!text-white" style={{ color: "var(--lime-2)" }}>
+          ‹ Quay lại đăng nhập
+        </Link>
+      </form>
+    </AuthCard>
   );
 }

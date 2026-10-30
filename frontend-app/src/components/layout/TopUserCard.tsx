@@ -67,7 +67,7 @@ export default function TopUserCard() {
   ];
 
   return (
-    <div className="hidden md:block fixed top-0 left-0 right-0 z-50 shadow-sm bg-white">
+    <div className="of-appbar hidden md:block fixed top-0 left-0 right-0 z-50">
 
       <div className="relative flex items-center justify-between px-6 h-16">
         {/* Left: Logo and Navigation */}
@@ -75,7 +75,7 @@ export default function TopUserCard() {
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <Image
-              src="/images/logo-color-full.png"
+              src="/images/logo-white-full.png"
               alt="11of Logo"
               width={120}
               height={32}
@@ -90,7 +90,7 @@ export default function TopUserCard() {
               const Icon = item.icon;
               return (
                 <Link
-                  key={item.href}
+                  key={item.label}
                   href={item.href}
                   className={`flex items-center gap-2 px-4 relative transition ${
                     item.isActive
