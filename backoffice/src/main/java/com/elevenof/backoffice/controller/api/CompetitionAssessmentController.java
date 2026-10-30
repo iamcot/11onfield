@@ -325,6 +325,7 @@ public class CompetitionAssessmentController {
 
         // Map to DTOs within transaction to avoid lazy loading issues
         List<ParticipantDTO> participants = participantList.stream()
+            .filter(p -> p.getStatus() != ParticipantStatus.WITHDRAWN)
             .map(p -> {
                 // Force load user to avoid lazy proxy
                 User user = p.getUser();

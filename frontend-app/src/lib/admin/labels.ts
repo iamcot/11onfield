@@ -68,6 +68,7 @@ export const PARTICIPANT_STATUS: Record<string, { label: string; tone: 'green' |
   SELECTED_TOP30: { label: 'Top 30', tone: 'gold' },
   SELECTED_TOP11: { label: 'Top 11', tone: 'green' },
   ELIMINATED: { label: 'Bị loại', tone: 'red' },
+  WITHDRAWN: { label: 'Đã rút', tone: 'gray' },
 };
 
 export const ROLES: Record<string, string> = {

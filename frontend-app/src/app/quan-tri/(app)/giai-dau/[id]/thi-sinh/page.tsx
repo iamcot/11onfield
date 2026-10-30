@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useApi } from '@/lib/admin/client';
+import { api, useApi } from '@/lib/admin/client';
 import AddContestantModal from '@/components/admin/AddContestantModal';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
 import { useIsManager } from '@/components/admin/me';
-import { Badge, Button, ChevronCell, ClickRow, Input, Loading, Select, Table, Td } from '@/components/admin/ui';
+import { Badge, Button, ChevronCell, ClickRow, Input, Loading, Select, Table, Td, useUi } from '@/components/admin/ui';
 import { fmtDateTime, PARTICIPANT_STATUS, REGIONS } from '@/lib/admin/labels';
 
 interface Contestant {
@@ -22,6 +22,21 @@ export default function ContestantsPage() {
   const [status, setStatus] = useState('');
   const [region, setRegion] = useState('');
   const [adding, setAdding] = useState(false);
+  const { toast, confirm } = useUi();
+
+  const setOut = async (c: Contestant, out: boolean) => {
+    const text = out
+      ? `Cho ${c.fullName} ra khỏi giải? Điểm và check-in vẫn được giữ, có thể đưa lại sau.`
+      : `Đưa ${c.fullName} trở lại giải?`;
+    if (!(await confirm(text))) return;
+    try {
+      const r = await api<{ message: string }>(`competitions/${id}/participants/${c.id}/${out ? 'withdraw' : 'restore'}`, { method: 'POST' });
+      toast(r.message);
+      list.reload();
+    } catch (e) {
+      toast((e as Error).message, 'error');
+    }
+  };
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -62,11 +77,11 @@ export default function ContestantsPage() {
       </div>
       <Loading error={list.error} loading={list.loading && !list.data} />
       {list.data && (
-        <Table head={['SBD', 'Thí sinh', 'Điện thoại', 'Khu vực', 'Trạng thái', 'Check-in gần nhất', 'Đăng ký lúc', '']} empty="Không có thí sinh phù hợp.">
+        <Table head={['SBD', 'Thí sinh', 'Điện thoại', 'Khu vực', 'Trạng thái', 'Check-in gần nhất', 'Đăng ký lúc', ...(manager ? [''] : []), '']} empty="Không có thí sinh phù hợp.">
           {rows.map((c) => {
             const st = PARTICIPANT_STATUS[c.status];
             return (
-              <ClickRow key={c.id} href={c.playerId ? `/quan-tri/cau-thu/${c.playerId}?back=${encodeURIComponent(`/quan-tri/giai-dau/${id}/thi-sinh`)}&backLabel=${encodeURIComponent('Danh sách thí sinh')}` : null}>
+              <ClickRow key={c.id} className={c.status === 'WITHDRAWN' ? 'opacity-60' : ''} href={c.playerId ? `/quan-tri/cau-thu/${c.playerId}?back=${encodeURIComponent(`/quan-tri/giai-dau/${id}/thi-sinh`)}&backLabel=${encodeURIComponent('Danh sách thí sinh')}` : null}>
                 <Td className="tabular-nums">{c.sbd}</Td>
                 <Td className="font-medium">{c.fullName}</Td>
                 <Td className="tabular-nums">{c.phone}</Td>
@@ -76,6 +91,13 @@ export default function ContestantsPage() {
                   {c.lastCheckin ? <><div className="text-[#10231A]">{c.lastCheckin.stageTitle}</div>{fmtDateTime(c.lastCheckin.at)}</> : '—'}
                 </Td>
                 <Td className="text-[13px] text-[#46564D]">{fmtDateTime(c.registrationDate)}</Td>
+                {manager && (
+                  <Td className="whitespace-nowrap">
+                    {c.status === 'WITHDRAWN'
+                      ? <Button small onClick={() => setOut(c, false)}>Đưa lại vào giải</Button>
+                      : <Button small onClick={() => setOut(c, true)}>Cho ra khỏi giải</Button>}
+                  </Td>
+                )}
                 <ChevronCell show={!!c.playerId} />
               </ClickRow>
             );
