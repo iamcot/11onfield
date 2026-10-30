@@ -181,6 +181,7 @@ jobs:
           sparse-checkout: |
             deployment/scripts
             deployment/systemd
+            deployment/rembg
           sparse-checkout-cone-mode: false
 
       - name: Update systemd service files
@@ -240,6 +241,9 @@ jobs:
 
           echo "✓ Systemd service files updated with Java path: $JAVA21_HOME"
 
+      - name: Install background removal (rembg, once)
+        run: bash deployment/rembg/install.sh || echo "::warning::rembg install failed; photos keep their background"
+
       - name: Clear previous backend artifact
         # download-artifact merges into the folder, so stale builds pile up without this
         run: rm -rf /tmp/artifacts/backend
@@ -264,6 +268,9 @@ jobs:
           AWS_REGION=${{ secrets.AWS_REGION }}
           AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}
           FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          BUNNY_STREAM_LIBRARY_ID=${{ secrets.BUNNY_STREAM_LIBRARY_ID }}
+          BUNNY_STREAM_API_KEY=${{ secrets.BUNNY_STREAM_API_KEY }}
+          BUNNY_STREAM_CDN_HOST=${{ secrets.BUNNY_STREAM_CDN_HOST }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
           sudo chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env

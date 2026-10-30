@@ -90,6 +90,10 @@ AWS_SECRET_ACCESS_KEY=your-aws-secret
 AWS_REGION=ap-southeast-1
 AWS_S3_BUCKET=11of
 FRONTEND_URL=https://yourdomain.com:7070
+# Bunny Stream library for highlight videos uploaded by players (any empty = video upload off)
+BUNNY_STREAM_LIBRARY_ID=123456
+BUNNY_STREAM_API_KEY=your-library-api-key
+BUNNY_STREAM_CDN_HOST=vz-xxxxxxxx-xxx.b-cdn.net
 SPRING_PROFILES_ACTIVE=prod
 ```
 
@@ -130,6 +134,8 @@ In your GitHub repository, go to Settings → Secrets and variables → Actions,
 - `AWS_REGION`
 - `AWS_S3_BUCKET`
 - `FRONTEND_URL`
+- `BUNNY_STREAM_LIBRARY_ID`, `BUNNY_STREAM_API_KEY`, `BUNNY_STREAM_CDN_HOST` (Bunny Stream > the library > API: library id,
+  API key and CDN hostname; highlight video upload is hidden while any of them is empty)
 
 **Frontend Secrets:**
 - `NEXT_PUBLIC_API_URL`
@@ -233,6 +239,33 @@ readlink /opt/11of/frontend/current
 sudo systemctl restart 11of-backend.service
 sudo systemctl restart 11of-frontend.service
 ```
+
+## Background Removal (rembg)
+
+Player avatars and full-body photos get their background removed on the server by
+[rembg](https://github.com/danielgatis/rembg) with the `isnet-general-use` model (the same library the
+anylearn sticker artwork was cut out with). There is no service running all the time: the backend starts
+`deployment/rembg/cutout.py` once per uploaded photo, at most one at a time, after shrinking the photo to
+1280 px on the long side.
+
+- Installed into `/opt/rembg` (venv + model, about 1.5 GB disk) by `deployment/rembg/install.sh`, which
+  both deploy workflows run on every backend deploy (it does nothing once installed). Run it by hand with
+  `sudo bash deployment/rembg/install.sh` if needed.
+- Measured on a sample photo: about 4 s and a peak of about 1 GB RAM per photo, then the memory is freed.
+  The box is shared with anylearn, so keep 2 GB of swap (`sudo fallocate -l 2G /swapfile && sudo chmod 600
+  /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile`, then add it to `/etc/fstab`).
+- The backend runs as `11of-app` with a read-only system and no home (systemd hardening), so pymatting's numba
+  cache lives in `/opt/rembg/numba-cache` (owned by `11of-app`, listed in the service's `ReadWritePaths`). The
+  installer warms it once; without it every first photo after a restart spends about 40 s compiling.
+- Not installed or failing = the photo keeps its background (logged as a warning), uploads never fail.
+- Local development: install rembg (`pip install "rembg[cpu]"`) and set `APP_REMBG_COMMAND="python
+  /path/to/deployment/rembg/cutout.py"` and `APP_REMBG_MODEL_DIR=~/.u2net`; without it photos keep their
+  background.
+- The first run downloads the model (about 180 MB) into the model dir and the upload waits for it; download it
+  ahead with `U2NET_HOME=~/.u2net python -c "from rembg import new_session; new_session('isnet-general-use')"`.
+  Check the setup without the backend: `python deployment/rembg/cutout.py < photo.jpg > out.png`.
+- The backend logs the command it uses at start (`Background removal: ...`) and, when it fails, the end of the
+  script's error output (`Background removal failed, using original image: ...`).
 
 ## Reverse Proxy Setup (Optional but Recommended)
 

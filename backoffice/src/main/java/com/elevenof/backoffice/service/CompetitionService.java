@@ -77,25 +77,34 @@ public class CompetitionService {
 
         // Validate user role
         if (user.getRole() != User.Role.PLAYER) {
-            throw new IllegalStateException("Only PLAYER users can register for competitions");
+            throw new IllegalStateException("Chỉ tài khoản cầu thủ mới đăng ký tham gia được");
         }
 
-        // Validate registration period
-        if (competition.getStatus() != CompetitionStatus.REGISTRATION_OPEN) {
-            throw new IllegalStateException("Registration is not currently open for this competition");
+        // Same window as the automatic enrollment at sign-up: registration open or regional audition
+        if (!isEnrollable(competition)) {
+            throw new IllegalStateException("Cuộc thi hiện không nhận đăng ký");
         }
 
         LocalDate today = LocalDate.now();
-        if (competition.getRegistrationStartDate() != null && today.isBefore(competition.getRegistrationStartDate())) {
-            throw new IllegalStateException("Registration has not started yet");
-        }
-        if (competition.getRegistrationEndDate() != null && today.isAfter(competition.getRegistrationEndDate())) {
-            throw new IllegalStateException("Registration period has ended");
+        if (competition.getStatus() == CompetitionStatus.REGISTRATION_OPEN) {
+            if (competition.getRegistrationStartDate() != null && today.isBefore(competition.getRegistrationStartDate())) {
+                throw new IllegalStateException("Chưa đến ngày mở đăng ký");
+            }
+            if (competition.getRegistrationEndDate() != null && today.isAfter(competition.getRegistrationEndDate())) {
+                throw new IllegalStateException("Đã hết hạn đăng ký");
+            }
         }
 
-        // Check if already registered
-        if (participantRepository.existsByCompetitionIdAndUserId(competitionId, userId)) {
-            throw new IllegalStateException("User is already registered for this competition");
+        // Already in: a withdrawn player joins again, anyone else is told they are registered
+        Optional<CompetitionParticipant> existing = participantRepository.findByCompetitionIdAndUserId(competitionId, userId);
+        if (existing.isPresent()) {
+            CompetitionParticipant p = existing.get();
+            if (p.getStatus() != ParticipantStatus.WITHDRAWN) {
+                throw new IllegalStateException("Bạn đã đăng ký cuộc thi này");
+            }
+            p.setStatus(ParticipantStatus.REGISTERED);
+            p.setRegistrationDate(LocalDateTime.now());
+            return participantRepository.save(p);
         }
 
         // Create participant record
@@ -122,6 +131,12 @@ public class CompetitionService {
 
         log.info("User {} successfully registered for competition {}", userId, competitionId);
         return participant;
+    }
+
+    /** A player can join while registration is open or during the regional audition. */
+    public static boolean isEnrollable(Competition competition) {
+        return competition.getStatus() == CompetitionStatus.REGISTRATION_OPEN
+            || competition.getStatus() == CompetitionStatus.REGIONAL_AUDITION;
     }
 
     /**
@@ -178,8 +193,7 @@ public class CompetitionService {
 
         Competition competition = currentOpt.get();
 
-        if (competition.getStatus() != CompetitionStatus.REGISTRATION_OPEN &&
-            competition.getStatus() != CompetitionStatus.REGIONAL_AUDITION) {
+        if (!isEnrollable(competition)) {
             return;
         }
 

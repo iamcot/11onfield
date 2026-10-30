@@ -13,9 +13,11 @@ import com.elevenof.backoffice.repository.CompetitionSponsorRepository;
 import com.elevenof.backoffice.repository.EventRepository;
 import com.elevenof.backoffice.repository.ProvinceRepository;
 import com.elevenof.backoffice.repository.UserRepository;
+import com.elevenof.backoffice.service.BackgroundRemovalService;
 import com.elevenof.backoffice.service.EventService;
 import com.elevenof.backoffice.service.S3Service;
 import com.elevenof.backoffice.specification.EventSpecification;
+import com.elevenof.backoffice.util.ByteArrayMultipartFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -50,6 +52,7 @@ public class AdminContentApiController {
     private final CompetitionSponsorRepository sponsorRepository;
     private final UserRepository userRepository;
     private final S3Service s3Service;
+    private final BackgroundRemovalService backgroundRemovalService;
 
     private static ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("message", message));
@@ -70,17 +73,24 @@ public class AdminContentApiController {
 
     // ==================== UPLOADS ====================
 
-    /** Uploads one image to S3 and returns its public URL. type = event | news | sponsor | avatar. */
+    /**
+     * Uploads one image to S3 and returns its public URL. type = event | news | sponsor | avatar | fullbody.
+     * removeBackground (avatar and fullbody only) cuts the player out first, like the upload on the profile page.
+     */
     @PostMapping(value = "/uploads", consumes = "multipart/form-data")
-    public ResponseEntity<Map<String, Object>> upload(@RequestParam String type, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, Object>> upload(@RequestParam String type, @RequestParam("file") MultipartFile file,
+                                                      @RequestParam(defaultValue = "false") boolean removeBackground) {
         if (file == null || file.isEmpty()) return error(HttpStatus.BAD_REQUEST, "Chưa chọn file");
         if (!s3Service.isValidImageFile(file)) return error(HttpStatus.BAD_REQUEST, "File ảnh không hợp lệ");
         try {
+            if (removeBackground && (type.equals("avatar") || type.equals("fullbody"))) {
+                file = new ByteArrayMultipartFile(backgroundRemovalService.removeBackgroundWithFallback(file.getBytes()), type + ".png", "image/png");
+            }
             String url = switch (type) {
                 case "event" -> s3Service.uploadEventImage(file, 0L);
                 case "news" -> s3Service.uploadNewsImage(file, 0L);
                 case "sponsor" -> s3Service.uploadSponsorImage(file, 0L);
-                case "avatar" -> s3Service.uploadAvatar(file, 0L);
+                case "avatar", "fullbody" -> s3Service.uploadAvatar(file, 0L);
                 default -> null;
             };
             if (url == null) return error(HttpStatus.BAD_REQUEST, "Loại ảnh không hợp lệ");

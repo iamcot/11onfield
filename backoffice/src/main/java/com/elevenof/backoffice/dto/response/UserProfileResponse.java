@@ -32,6 +32,7 @@ public class UserProfileResponse {
     private String level;
     private String bio;
     private List<PlayerAttributeDTO> attributes;
+    private List<PlayerAttributeDTO> profileStats;  // FIT EXP SKL PRF ACH HLT
 
     // New extended player fields
     private String personalId;
@@ -40,6 +41,7 @@ public class UserProfileResponse {
     private String academy;
     private String club;
     private Boolean verified;  // Player verification status
+    private String fullBodyPhoto;  // Full-body photo with the background removed
 
     // New collections
     private List<AchievementDTO> individualAchievements;
@@ -63,6 +65,7 @@ public class UserProfileResponse {
         private String description;
         private LocalDate date;
         private String approvalStatus;  // PENDING, APPROVED, REJECTED
+        private Boolean hidden;  // only sent to the owner
     }
 
     /**
@@ -77,6 +80,10 @@ public class UserProfileResponse {
         private String title;
         private LocalDate date;
         private String approvalStatus;  // PENDING, APPROVED, REJECTED
+        private String kind;  // LINK or VIDEO (uploaded to Bunny)
+        private String posterUrl;
+        private String embedUrl;  // iframe player of an uploaded video
+        private Boolean hidden;  // only sent to the owner
     }
 
     /**

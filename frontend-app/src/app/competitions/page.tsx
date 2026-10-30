@@ -5,10 +5,14 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from "react";
 import { competitionService, CompetitionDetail } from "@/services/competition.service";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/I18nProvider";
+import "@/components/pp/pp.css";
 
+/** Sends visitors to the open competition (same rule as the login page); without one, says so without naming a season. */
 export default function CompetitionsPage() {
   const t = useT();
+  const router = useRouter();
   const [competition, setCompetition] = useState<CompetitionDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -16,34 +20,27 @@ export default function CompetitionsPage() {
     competitionService.getCurrentCompetition().then((data) => {
       setCompetition(data);
       setLoading(false);
+      if (data) router.replace(`/competitions/${data.id}`);
     });
-  }, []);
+  }, [router]);
 
-  if (loading) {
+  if (loading || competition) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
+      <div className="pp min-h-screen">
+        <div className="pp-spin" style={{ marginTop: "40vh" }} />
       </div>
     );
   }
 
-  if (!competition) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
-        <h1 className="text-2xl font-bold text-gray-800">11 On Field</h1>
-        <p className="text-gray-500 text-center">{t("Chương trình chưa mở. Hãy quay lại sớm nhé!")}</p>
-        <Link href="/" className="mt-4 px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition">
+  return (
+    <div className="pp min-h-screen">
+      <div className="pp-empty" style={{ paddingTop: "30vh" }}>
+        <h1 className="pp-disp" style={{ fontSize: 44, margin: 0, color: "#fff" }}>11 On Field</h1>
+        <p style={{ margin: 0 }}>{t("Chương trình chưa mở. Hãy quay lại sớm nhé!")}</p>
+        <Link href="/" className="pp-btn pp-btn-lime of-cut" style={{ marginTop: 16 }}>
           {t("Về trang chủ")}
         </Link>
       </div>
-    );
-  }
-
-  // Redirect to the open competition; without one the copy above stays generic (same as the login page).
-  window.location.replace(`/competitions/${competition.id}`);
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
     </div>
   );
 }

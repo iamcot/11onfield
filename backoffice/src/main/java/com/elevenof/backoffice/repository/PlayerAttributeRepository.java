@@ -49,6 +49,28 @@ public interface PlayerAttributeRepository extends JpaRepository<PlayerAttribute
         """)
     List<com.elevenof.backoffice.dto.response.PlayerAttributeDTO> getHexagonAttributesWithValues(@Param("playerId") Long playerId);
 
+    /**
+     * The six profile ("synthetic") stats FIT EXP SKL PRF ACH HLT computed from the player's profile, in that order;
+     * types the player has no value for are returned with a null value.
+     */
+    @Query("""
+        SELECT new com.elevenof.backoffice.dto.response.PlayerAttributeDTO(
+            at.attributeKey,
+            at.attributeName,
+            pa.attributeValue,
+            at.attributeGroup,
+            at.isHexagon,
+            at.isGoalKeeper,
+            pa.isSynthetic,
+            pa.generationTimestamp
+        )
+        FROM PlayerAttributeType at
+        LEFT JOIN PlayerAttribute pa ON pa.attributeType.id = at.id AND pa.player.id = :playerId
+        WHERE at.attributeKey IN ('FIT', 'EXP', 'SKL', 'PRF', 'ACH', 'HLT')
+        ORDER BY at.id
+        """)
+    List<com.elevenof.backoffice.dto.response.PlayerAttributeDTO> getProfileStatsWithValues(@Param("playerId") Long playerId);
+
     // Synthetic attributes support queries
 
     boolean existsByPlayerIdAndIsSynthetic(Long playerId, Boolean isSynthetic);

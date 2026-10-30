@@ -38,6 +38,11 @@ public class PlayerAchievement {
     @Column(name = "achievement_date")
     private LocalDate achievementDate;
 
+    /** Hidden by the player: kept, but only the owner sees it. */
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean hidden = false;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "approval_status", nullable = false, length = 20)
     private ApprovalStatus approvalStatus;

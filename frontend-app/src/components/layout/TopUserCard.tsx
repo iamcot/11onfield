@@ -8,7 +8,8 @@ import { useNotifications } from "@/contexts/NotificationContext";
 import { competitionService } from "@/services/competition.service";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { navSection, newsHrefOf } from "@/lib/nav";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NotificationDropdown from "./NotificationDropdown";
 import { useT } from "@/i18n/I18nProvider";
@@ -21,6 +22,8 @@ export default function TopUserCard() {
   const { openEditProfile } = useEditProfile();
   const router = useRouter();
   const pathname = usePathname();
+  const search = useSearchParams();
+  const section = navSection(pathname, search.get("tab"));
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -28,7 +31,7 @@ export default function TopUserCard() {
 
   useEffect(() => {
     competitionService.getCurrentCompetition().then((c) => {
-      if (c) setNewsHref(`/competitions/${c.id}/news`);
+      if (c) setNewsHref(newsHrefOf(c.id));
     });
   }, []);
 
@@ -53,19 +56,19 @@ export default function TopUserCard() {
       icon: HomeIcon,
       label: t("Hồ sơ"),
       href: user?.userid ? `/profile/${user.userid}` : "/",
-      isActive: pathname === "/" || pathname.startsWith("/profile"),
+      isActive: section === "profile",
     },
     {
       icon: CompetitionIcon,
       label: t("Chương trình"),
       href: "/competitions",
-      isActive: pathname.startsWith("/competitions") && !pathname.includes("/news"),
+      isActive: section === "competitions",
     },
     {
       icon: EventIcon,
       label: t("Tin tức"),
       href: newsHref,
-      isActive: pathname.includes("/news"),
+      isActive: section === "news",
     },
   ];
 

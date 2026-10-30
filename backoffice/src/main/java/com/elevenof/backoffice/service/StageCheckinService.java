@@ -124,6 +124,8 @@ public class StageCheckinService {
         List<Map<String, Object>> rows = jdbc.queryForList(
             "SELECT id, status FROM competition_participants WHERE competition_id = ? AND user_id = ?", competitionId, userId);
         if (rows.isEmpty()) throw new IllegalStateException("Bạn chưa đăng ký tham gia " + stage.get("ctitle") + ".");
+        if ("WITHDRAWN".equals(rows.get(0).get("status")))
+            throw new IllegalStateException("Bạn không còn trong danh sách thi đấu " + stage.get("ctitle") + ".");
         long participantId = ((Number) rows.get(0).get("id")).longValue();
 
         LocalDateTime at = LocalDateTime.now();

@@ -158,11 +158,11 @@
             <version>1.12.529</version>
         </dependency>
 
-        <!-- AWS SDK for Lambda -->
+        <!-- Shrinks big phone photos before background removal (keeps the EXIF rotation) -->
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-lambda</artifactId>
-            <version>1.12.529</version>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+            <version>0.4.20</version>
         </dependency>
     </dependencies>
 
