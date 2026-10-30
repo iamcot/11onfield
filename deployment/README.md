@@ -258,6 +258,11 @@ anylearn sticker artwork was cut out with). There is no service running all the 
 - Local development: install rembg (`pip install "rembg[cpu]"`) and set `APP_REMBG_COMMAND="python
   /path/to/deployment/rembg/cutout.py"` and `APP_REMBG_MODEL_DIR=~/.u2net`; without it photos keep their
   background.
+- The first run downloads the model (about 180 MB) into the model dir and the upload waits for it; download it
+  ahead with `U2NET_HOME=~/.u2net python -c "from rembg import new_session; new_session('isnet-general-use')"`.
+  Check the setup without the backend: `python deployment/rembg/cutout.py < photo.jpg > out.png`.
+- The backend logs the command it uses at start (`Background removal: ...`) and, when it fails, the end of the
+  script's error output (`Background removal failed, using original image: ...`).
 
 ## Reverse Proxy Setup (Optional but Recommended)
 

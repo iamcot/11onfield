@@ -120,6 +120,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        if (isClientGone(ex)) {
+            // the browser closed the connection (an SSE tab closed or reloaded): nothing to answer, nothing to log
+            log.debug("Client disconnected: {}", ex.getMessage());
+            return null;
+        }
         log.error("Unhandled exception", ex);
         ErrorResponse error = ErrorResponse.builder()
             .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -127,5 +132,15 @@ public class GlobalExceptionHandler {
             .timestamp(LocalDateTime.now())
             .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    private static boolean isClientGone(Throwable ex) {
+        for (Throwable t = ex; t != null; t = t.getCause()) {
+            if (t.getClass().getSimpleName().equals("ClientAbortException")) return true;
+            String msg = t.getMessage();
+            if (t instanceof java.io.IOException && msg != null
+                    && (msg.contains("Broken pipe") || msg.contains("Connection reset"))) return true;
+        }
+        return false;
     }
 }

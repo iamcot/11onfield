@@ -40,6 +40,7 @@ public class BackgroundRemovalService {
             @Value("${app.rembg.model-dir:/opt/rembg/models}") String modelDir) {
         this.command = Arrays.stream(command.trim().split("\\s+")).map(BackgroundRemovalService::expandHome).toList();
         this.modelDir = expandHome(modelDir.trim());
+        log.info("Background removal: {} (models in {})", String.join(" ", this.command), this.modelDir);
     }
 
     /** Lets a local .env say $HOME/... or ~/... (an env file does not expand them by itself). */
@@ -61,6 +62,7 @@ public class BackgroundRemovalService {
             throw new IllegalStateException("Background removal is busy");
         }
         long started = System.currentTimeMillis();
+        log.debug("Background removal started ({} bytes)", input.length);
         try {
             byte[] out = run(input);
             log.info("Background removed: {} -> {} bytes in {} ms", input.length, out.length, System.currentTimeMillis() - started);
@@ -82,6 +84,10 @@ public class BackgroundRemovalService {
         CompletableFuture<byte[]> stderr = CompletableFuture.supplyAsync(() -> readAll(process.getErrorStream()));
         try (OutputStream stdin = process.getOutputStream()) {
             stdin.write(input);
+        } catch (IOException e) {
+            // the script died before reading the photo (missing package, bad python): its stderr says why
+            process.waitFor(5, TimeUnit.SECONDS);
+            throw new IllegalStateException("Background removal exited early: " + tail(stderr.get(5, TimeUnit.SECONDS)));
         }
 
         if (!process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
@@ -90,11 +96,15 @@ public class BackgroundRemovalService {
         }
         byte[] out = stdout.get(5, TimeUnit.SECONDS);
         if (process.exitValue() != 0 || out.length == 0) {
-            String err = new String(stderr.get(5, TimeUnit.SECONDS));
             throw new IllegalStateException("Background removal failed (" + process.exitValue() + "): "
-                + err.substring(Math.max(0, err.length() - 500)));
+                + tail(stderr.get(5, TimeUnit.SECONDS)));
         }
         return out;
+    }
+
+    private static String tail(byte[] stderr) {
+        String err = new String(stderr).trim();
+        return err.substring(Math.max(0, err.length() - 500));
     }
 
     private static byte[] readAll(InputStream in) {
