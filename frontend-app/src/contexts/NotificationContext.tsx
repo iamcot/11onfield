@@ -18,6 +18,17 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+/** True when the JWT's exp claim is in the past (an unreadable token counts as usable). */
+function isTokenExpired(token: string): boolean {
+  try {
+    const part = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const { exp } = JSON.parse(atob(part));
+    return typeof exp === "number" && exp * 1000 <= Date.now();
+  } catch {
+    return false;
+  }
+}
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -66,7 +77,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     const token = localStorage.getItem("access_token");
-    if (!token) return;
+    if (!token || isTokenExpired(token)) return;
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api";
     const url = `${API_URL}/users/me/notifications/stream?token=${encodeURIComponent(token)}`;
@@ -92,6 +103,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       console.error("❌ SSE error:", error);
       es.close();
       eventSourceRef.current = null;
+
+      // An expired token will only ever get 403 again, so do not keep retrying
+      const current = localStorage.getItem("access_token");
+      if (!current || isTokenExpired(current)) return;
 
       // Reconnect after 5 seconds if still authenticated
       if (reconnectTimeoutRef.current) {
