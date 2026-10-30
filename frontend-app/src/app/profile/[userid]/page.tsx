@@ -512,7 +512,7 @@ export default function UserProfilePage() {
             <PlayerStage
               image={profile.fullBodyPhoto ?? null}
               bigText={String(ovr || "")}
-              name={family || given}
+              name={given}
               keys={set.keys}
               values={set.values}
               profile={!usePro}

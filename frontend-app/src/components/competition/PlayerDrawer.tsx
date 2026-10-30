@@ -141,7 +141,7 @@ export default function PlayerDrawer({
             <PlayerStage
               image={p.fullBody}
               bigText={String(p.ovr || '')}
-              name={family || given}
+              name={given}
               keys={set.keys}
               values={set.values}
               profile={!usePro}

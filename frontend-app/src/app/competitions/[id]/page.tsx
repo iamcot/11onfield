@@ -17,7 +17,9 @@ import {
   CompetitionNews,
   competitionService,
   CompetitionSponsor,
+  type ParticipantStatus,
 } from "@/services/competition.service";
+import { storage } from "@/lib/storage";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -46,6 +48,9 @@ export default function CompetitionDetailPage() {
   const [news, setNews] = useState<CompetitionNews[]>([]);
   const [sponsors, setSponsors] = useState<CompetitionSponsor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reg, setReg] = useState<ParticipantStatus | null>(null);
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -60,7 +65,23 @@ export default function CompetitionDetailPage() {
       })
       .catch(() => setCompetition(null))
       .finally(() => setLoading(false));
+    if (storage.getToken()) competitionService.checkRegistration(competitionId).then(setReg);
   }, [competitionId]);
+
+  // a signed-in player who is not in this competition yet joins it here (sign-up already enrolls in the open one)
+  const join = async () => {
+    setJoining(true);
+    setJoinError("");
+    try {
+      await competitionService.register(competitionId);
+      setReg({ isRegistered: true, status: "REGISTERED" });
+      setCompetition((c) => (c ? { ...c, participantCount: (c.participantCount ?? 0) + 1 } : c));
+    } catch (e) {
+      setJoinError((e as { message?: string })?.message || t("Có lỗi xảy ra. Vui lòng thử lại."));
+    } finally {
+      setJoining(false);
+    }
+  };
 
   const rounds = useMemo(() => sortRounds(competition?.stages ?? []), [competition]);
   const active = useMemo(() => activeRoundIndex(rounds), [rounds]);
@@ -102,6 +123,9 @@ export default function CompetitionDetailPage() {
     .filter((s) => s.isActive !== false && (s.adPosition === "BANNER_BELOW_STAGES" || s.adPosition === "SIDEBAR_FEATURED"))
     .filter((s) => s.bannerImageUrl || s.logoUrl)
     .slice(0, 2);
+  const signedIn = !!storage.getToken();
+  const enrollable = competition.status === "REGISTRATION_OPEN" || competition.status === "REGIONAL_AUDITION";
+  const joined = !!reg?.isRegistered && reg.status !== "WITHDRAWN";
   const live = active >= 0 && ["LIVE", "ACTIVE"].includes(rounds[active]?.status);
 
   return (
@@ -130,12 +154,23 @@ export default function CompetitionDetailPage() {
                 <span>{t("vòng thi")}</span>
               </div>
             )}
-            {competition.status === "REGISTRATION_OPEN" && (
+            {enrollable && !signedIn && (
               <Link href="/auth/register" className="pp-btn pp-btn-lime of-cut" style={{ alignSelf: "center" }}>
                 {t("Đăng ký ngay →")}
               </Link>
             )}
+            {enrollable && signedIn && reg && !joined && (
+              <button className="pp-btn pp-btn-lime of-cut" style={{ alignSelf: "center" }} onClick={join} disabled={joining}>
+                {joining ? t("Đang đăng ký...") : t("Đăng ký tham gia")}
+              </button>
+            )}
+            {signedIn && joined && (
+              <span className="pp-pill ok" style={{ alignSelf: "center" }}>
+                ✓ {t("Bạn đã đăng ký cuộc thi này")}
+              </span>
+            )}
           </div>
+          {joinError && <p className="err" style={{ marginTop: 8 }}>{joinError}</p>}
         </div>
         {rounds.length > 0 && <RoundRail rounds={rounds} active={active} />}
       </section>

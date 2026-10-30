@@ -4,8 +4,9 @@ import { CompetitionIcon, EventIcon, HomeIcon } from "@/components/icons/nav-ico
 import { useAuth } from "@/contexts/AuthContext";
 import { competitionService } from "@/services/competition.service";
 import Link from "next/link";
+import { navSection, newsHrefOf } from "@/lib/nav";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 interface MobileNavProps {
   backgroundImage?: string;
@@ -13,12 +14,14 @@ interface MobileNavProps {
 
 export default function MobileNav({ backgroundImage }: MobileNavProps) {
   const pathname = usePathname();
+  const search = useSearchParams();
+  const section = navSection(pathname, search.get("tab"));
   const { user } = useAuth();
   const [newsHref, setNewsHref] = useState("/competitions");
 
   useEffect(() => {
     competitionService.getCurrentCompetition().then((c) => {
-      if (c) setNewsHref(`/competitions/${c.id}/news`);
+      if (c) setNewsHref(newsHrefOf(c.id));
     });
   }, []);
 
@@ -44,7 +47,7 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
         <Link
           href={user?.userid ? `/profile/${user.userid}` : "/"}
           className={`flex flex-col items-center justify-center flex-1 transition ${
-            pathname === "/" || pathname.startsWith("/profile")
+            section === "profile"
               ? "text-white font-semibold"
               : "text-white/80 hover:text-white"
           }`}
@@ -56,7 +59,7 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
         <Link
           href="/competitions"
           className={`flex flex-col items-center justify-center flex-1 transition ${
-            pathname.startsWith("/competitions") && !pathname.includes("/news")
+            section === "competitions"
               ? "text-white font-semibold"
               : "text-white/80 hover:text-white"
           }`}
@@ -68,7 +71,7 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
         <Link
           href={newsHref}
           className={`flex flex-col items-center justify-center flex-1 transition ${
-            pathname.includes("/news")
+            section === "news"
               ? "text-white font-semibold"
               : "text-white/80 hover:text-white"
           }`}

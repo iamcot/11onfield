@@ -110,8 +110,8 @@ export function initials(name?: string | null): string {
 export function splitName(name?: string | null): { given: string; family: string } {
   const words = (name ?? '').trim().split(/\s+/).filter(Boolean);
   if (words.length <= 1) return { given: words[0] ?? '', family: '' };
-  const givenCount = words.length >= 3 ? 2 : 1;
-  return { given: words.slice(-givenCount).join(' '), family: words.slice(0, -givenCount).join(' ') };
+  // Vietnamese names: the last word is the name people are called by, so it is the big one everywhere
+  return { given: words[words.length - 1], family: words.slice(0, -1).join(' ') };
 }
 
 export function ageFrom(dob?: string | null, now: Date = new Date()): number | null {

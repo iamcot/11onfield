@@ -316,6 +316,7 @@
 .pp-inline input, .pp-inline select, .pp-inline textarea { min-height: 42px; padding: 8px 10px; background: rgba(0, 0, 0, 0.35) !important; border: 1px solid rgba(166, 227, 90, 0.35); border-radius: 6px; color: #fff !important; width: 100%; min-width: 0; font: inherit; font-size: 14px; }
 .pp-inline select option { background: #0b2216; }
 .pp-inline textarea { min-height: 96px; resize: vertical; }
+.pp .err { color: var(--pp-red); font-size: 12.5px; margin: 0; }
 .pp-inline .err { color: var(--pp-red); font-size: 12.5px; margin: 0; }
 .pp-acts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 .pp-guide { display: grid; gap: 10px; padding: 12px; background: rgba(0, 0, 0, 0.4); border: 1px dashed rgba(166, 227, 90, 0.5); border-radius: 8px; font-size: 13px; text-align: left; }

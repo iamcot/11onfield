@@ -27,8 +27,8 @@ public class AuthenticationService {
         User savedUser = userRepository.save(user);
         log.info("Created user with phone: {} and role: {}", savedUser.getPhone(), savedUser.getRole());
 
-        // Auto-enroll in Season 1 competition if eligible
-        competitionService.autoEnrollInSeason1IfEligible(savedUser);
+        // Auto-enroll in the competition that is open now (same rule as the player sign-up)
+        competitionService.autoEnrollInCurrentCompetitionIfEligible(savedUser);
 
         return savedUser;
     }
