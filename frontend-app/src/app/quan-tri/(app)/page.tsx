@@ -28,22 +28,23 @@ const REGION_LABEL: Record<string, string> = {
 
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="border border-white/10 bg-[#0F3324] p-4">
-      <div className="text-[11px] uppercase tracking-wider text-[#8FA597]">{label}</div>
-      <div className="mt-1 text-3xl font-semibold tabular-nums text-[#D6FA9E]">{value}</div>
+    <div className="relative overflow-hidden rounded-lg border border-[#DCE5DF] bg-white p-4 shadow-[0_1px_2px_rgba(16,35,26,0.06)]">
+      <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-[#A6E35A] to-[#1F7A3A]" aria-hidden="true" />
+      <div className="font-[family-name:var(--font-hud)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[#66766D]">{label}</div>
+      <div className="mt-1 font-[family-name:var(--font-display)] text-[40px] font-bold leading-none tabular-nums text-[#0F3324]">{value.toLocaleString('vi-VN')}</div>
     </div>
   );
 }
 
 function Breakdown({ title, rows }: { title: string; rows: [string, number][] }) {
   return (
-    <section className="border border-white/10 bg-[#0F3324] p-4">
-      <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-[#C4D0C8]">{title}</h2>
-      <ul className="divide-y divide-white/10 text-[14px]">
+    <section className="rounded-lg border border-[#DCE5DF] bg-white p-4 shadow-[0_1px_2px_rgba(16,35,26,0.06)]">
+      <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-[#46564D]">{title}</h2>
+      <ul className="divide-y divide-[#E6ECE8] text-[14px]">
         {rows.map(([name, n]) => (
           <li key={name} className="flex justify-between py-2">
             <span>{name}</span>
-            <span className="tabular-nums text-[#D6FA9E]">{n}</span>
+            <span className="tabular-nums text-[#1F6B32]">{n}</span>
           </li>
         ))}
       </ul>
@@ -57,18 +58,18 @@ export default async function AdminDashboardPage() {
     return (
       <>
         <h1 className="text-2xl font-semibold">Xin chào, {me.fullName || 'Ban giám khảo'}</h1>
-        <p className="mt-2 max-w-xl text-[#C4D0C8]">Bạn có quyền nhập điểm thi tại sân.</p>
-        <a href="/quan-tri/cham-diem" className="mt-4 inline-block bg-[#A6E35A] px-5 py-3 font-medium text-[#0B2419]">Mở màn hình chấm điểm</a>
+        <p className="mt-2 max-w-xl text-[#46564D]">Bạn có quyền nhập điểm thi tại sân.</p>
+        <a href="/quan-tri/cham-diem" className="mt-4 inline-block bg-[#0F3324] px-5 py-3 font-medium text-[#D6FA9E]">Mở màn hình chấm điểm</a>
       </>
     );
   }
 
   const { data } = await adminGet<Dashboard>('dashboard');
-  if (!data) return <p className="text-[#FFD2CD]">Không tải được số liệu tổng quan. Thử tải lại trang.</p>;
+  if (!data) return <p className="text-[#B42318]">Không tải được số liệu tổng quan. Thử tải lại trang.</p>;
 
   return (
     <>
-      <h1 className="text-2xl font-semibold">Tổng quan</h1>
+      <h1 className="text-[24px] font-semibold tracking-tight text-[#0F2A1C]">Tổng quan</h1>
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Cầu thủ" value={data.totalPlayers} />
         <Stat label="Tài khoản" value={data.totalUsers} />
@@ -89,16 +90,16 @@ export default async function AdminDashboardPage() {
             />
           </>
         )}
-        <section className="border border-white/10 bg-[#0F3324] p-4">
-          <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-[#C4D0C8]">Sự kiện sắp tới</h2>
+        <section className="rounded-lg border border-[#DCE5DF] bg-white p-4 shadow-[0_1px_2px_rgba(16,35,26,0.06)]">
+          <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-[#46564D]">Sự kiện sắp tới</h2>
           {data.upcomingEvents.length === 0 ? (
-            <p className="text-[14px] text-[#8FA597]">Chưa có sự kiện nào.</p>
+            <p className="text-[14px] text-[#66766D]">Chưa có sự kiện nào.</p>
           ) : (
-            <ul className="divide-y divide-white/10 text-[14px]">
+            <ul className="divide-y divide-[#E6ECE8] text-[14px]">
               {data.upcomingEvents.map((e) => (
                 <li key={e.id} className="py-2">
                   <div>{e.title}</div>
-                  <div className="text-[12px] text-[#8FA597]">
+                  <div className="text-[12px] text-[#66766D]">
                     {[e.startDate, e.location].filter(Boolean).join(' · ')}
                   </div>
                 </li>

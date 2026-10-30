@@ -78,12 +78,12 @@ export default function EventsPage() {
               <tr key={e.id}>
                 <Td>
                   <div className="flex items-center gap-3">
-                    {e.picture ? <img src={e.picture} alt="" className="h-10 w-14 shrink-0 object-cover" /> : <div className="h-10 w-14 shrink-0 bg-white/5" />}
+                    {e.picture ? <img src={e.picture} alt="" className="h-10 w-14 shrink-0 object-cover" /> : <div className="h-10 w-14 shrink-0 bg-[#F3F6F4]" />}
                     <span className="font-medium">{e.title}</span>
                   </div>
                 </Td>
-                <Td className="whitespace-nowrap text-[#C4D0C8]">{fmtDate(e.startDate)}{e.endDate !== e.startDate && ` – ${fmtDate(e.endDate)}`}</Td>
-                <Td className="text-[#C4D0C8]">{[e.location, e.provinceName].filter(Boolean).join(', ')}</Td>
+                <Td className="whitespace-nowrap text-[#46564D]">{fmtDate(e.startDate)}{e.endDate !== e.startDate && ` – ${fmtDate(e.endDate)}`}</Td>
+                <Td className="text-[#46564D]">{[e.location, e.provinceName].filter(Boolean).join(', ')}</Td>
                 <Td><Badge tone={EVENT_STATUS[e.status]?.tone}>{EVENT_STATUS[e.status]?.label || e.status}</Badge></Td>
                 <Td className="tabular-nums">{e.participantCount}</Td>
                 <Td className="whitespace-nowrap text-right">

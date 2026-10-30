@@ -62,7 +62,7 @@ export default function StageResultsPage() {
     <>
       <CompetitionTabs id={id} title={`Kết quả — vòng ${n}`}>
         <div className="flex gap-2">
-          <a className="inline-block border border-white/20 px-4 py-2 text-[14px] font-medium hover:border-[#A6E35A]" href={`/quan-tri/api/proxy/competitions/${id}/export/results`}>Xuất Excel</a>
+          <a className="inline-block border border-[#C9D5CD] px-4 py-2 text-[14px] font-medium hover:border-[#1F7A3A]" href={`/quan-tri/api/proxy/competitions/${id}/export/results`}>Xuất Excel</a>
           {manager && <Button onClick={recalc}>Tính lại điểm</Button>}
         </div>
       </CompetitionTabs>
@@ -76,7 +76,7 @@ export default function StageResultsPage() {
               <Td className="font-medium">{c.fullName}</Td>
               <Td className="tabular-nums">{r?.score != null ? Number(r.score).toFixed(2) : '—'}</Td>
               <Td className="tabular-nums">{r?.rankPosition ?? '—'}</Td>
-              <Td className="max-w-[260px] truncate text-[13px] text-[#C4D0C8]">{r?.performanceNotes || ''}</Td>
+              <Td className="max-w-[260px] truncate text-[13px] text-[#46564D]">{r?.performanceNotes || ''}</Td>
               <Td className="text-right">
                 {manager && <Button small onClick={() => setEdit({ c, score: r?.score != null ? String(r.score) : '', rank: r?.rankPosition != null ? String(r.rankPosition) : '', notes: r?.performanceNotes || '', video: r?.videoUrl || '' })}>Sửa</Button>}
               </Td>

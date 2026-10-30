@@ -75,7 +75,7 @@ export default function PlayerAttributesPage() {
               <div className="space-y-2">
                 {d.types.map((t) => (
                   <label key={t.id} className="flex items-center justify-between gap-3 text-[14px]">
-                    <span>{t.attributeName} <span className="text-[11px] text-[#8FA597]">{t.attributeKey}{t.isGoalKeeper ? ' · thủ môn' : ''}</span></span>
+                    <span>{t.attributeName} <span className="text-[11px] text-[#66766D]">{t.attributeKey}{t.isGoalKeeper ? ' · thủ môn' : ''}</span></span>
                     <Input className="!w-24" type="number" min={0} max={100} value={values[t.id] ?? ''} onChange={(e) => setValues((v) => ({ ...v, [t.id]: e.target.value }))} />
                   </label>
                 ))}
@@ -87,10 +87,10 @@ export default function PlayerAttributesPage() {
             ) : d.hasReal ? (
               <Table head={['Chỉ số', 'Nhóm', 'Giá trị']}>
                 {d.real.map((r) => (
-                  <tr key={r.typeId}><Td>{r.name}</Td><Td className="text-[#8FA597]">{r.group || '—'}</Td><Td className="tabular-nums text-[#D6FA9E]">{r.value}</Td></tr>
+                  <tr key={r.typeId}><Td>{r.name}</Td><Td className="text-[#66766D]">{r.group || '—'}</Td><Td className="tabular-nums text-[#1F6B32]">{r.value}</Td></tr>
                 ))}
               </Table>
-            ) : <p className="text-[14px] text-[#8FA597]">Chưa có chỉ số thật.</p>}
+            ) : <p className="text-[14px] text-[#66766D]">Chưa có chỉ số thật.</p>}
             {manager && d.hasReal && d.hasSynthetic && !editing && (
               <div className="mt-3"><Button small disabled={busy} onClick={() => act('switch-to-real', 'Đã xoá chỉ số giả lập', 'Xoá chỉ số giả lập và dùng chỉ số thật?')}>Dùng chỉ số thật (xoá giả lập)</Button></div>
             )}
@@ -99,15 +99,15 @@ export default function PlayerAttributesPage() {
           <Card title="Chỉ số giả lập (tự sinh)">
             <div className="mb-3 flex flex-wrap items-center gap-2 text-[13px]">
               <Badge tone={d.hasSynthetic ? 'green' : 'gray'}>{d.hasSynthetic ? 'Đã có' : 'Chưa có'}</Badge>
-              {d.generationTimestamp && <span className="text-[#8FA597]">Tạo lúc {fmtDateTime(d.generationTimestamp)}</span>}
+              {d.generationTimestamp && <span className="text-[#66766D]">Tạo lúc {fmtDateTime(d.generationTimestamp)}</span>}
             </div>
             {d.hasSynthetic ? (
               <Table head={['Chỉ số', 'Giá trị']}>
                 {d.synthetic.map((r) => (
-                  <tr key={r.typeId}><Td>{r.name}</Td><Td className="tabular-nums text-[#D6FA9E]">{r.value}</Td></tr>
+                  <tr key={r.typeId}><Td>{r.name}</Td><Td className="tabular-nums text-[#1F6B32]">{r.value}</Td></tr>
                 ))}
               </Table>
-            ) : <p className="text-[14px] text-[#8FA597]">Chưa có chỉ số giả lập.</p>}
+            ) : <p className="text-[14px] text-[#66766D]">Chưa có chỉ số giả lập.</p>}
             {manager && (
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button variant="primary" disabled={busy} onClick={() => act('generate', 'Đã tạo chỉ số giả lập', d.hasSynthetic ? 'Tạo lại chỉ số giả lập? Giá trị hiện tại sẽ bị thay.' : undefined)}>

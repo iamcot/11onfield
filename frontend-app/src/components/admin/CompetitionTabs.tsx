@@ -26,7 +26,7 @@ export default function CompetitionTabs({ id, title, children }: { id: string; t
       <PageTitle title={title || comp?.title || 'Giải đấu'} back={{ href: '/quan-tri/giai-dau', label: 'Danh sách giải đấu' }}>
         {children}
       </PageTitle>
-      <nav className="-mt-2 mb-5 flex gap-1 overflow-x-auto border-b border-white/10" aria-label="Mục của giải đấu">
+      <nav className="-mt-2 mb-5 flex gap-1 overflow-x-auto border-b border-[#DCE5DF]" aria-label="Mục của giải đấu">
         {TABS.map((t) => {
           const href = base + t.slug;
           const active = t.slug ? pathname.startsWith(href) : pathname === base;
@@ -34,7 +34,7 @@ export default function CompetitionTabs({ id, title, children }: { id: string; t
             <Link
               key={t.slug}
               href={href}
-              className={`whitespace-nowrap px-4 py-2.5 text-[14px] ${active ? 'border-b-2 border-[#A6E35A] text-[#D6FA9E]' : 'text-[#C4D0C8] hover:text-white'}`}
+              className={`whitespace-nowrap px-4 py-2.5 text-[14px] ${active ? 'border-b-2 border-[#1F7A3A] text-[#1F6B32]' : 'text-[#46564D] hover:text-[#10231A]'}`}
             >
               {t.label}
             </Link>

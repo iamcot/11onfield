@@ -37,9 +37,9 @@ export default function ContestantsPage() {
   return (
     <>
       <CompetitionTabs id={id}>
-        {manager && <a className="inline-block border border-white/20 px-4 py-2 text-[14px] font-medium hover:border-[#A6E35A]" href={`/quan-tri/api/proxy/competitions/${id}/export/participants`}>Xuất Excel</a>}
+        {manager && <a className="inline-block border border-[#C9D5CD] px-4 py-2 text-[14px] font-medium hover:border-[#1F7A3A]" href={`/quan-tri/api/proxy/competitions/${id}/export/participants`}>Xuất Excel</a>}
       </CompetitionTabs>
-      <p className="mb-3 text-[13px] text-[#C4D0C8]">
+      <p className="mb-3 text-[13px] text-[#46564D]">
         Tổng {list.data?.length ?? 0} thí sinh{Object.entries(REGIONS).map(([k, v]) => ` · ${v}: ${counts[k] || 0}`).join('')}. SBD tính theo thứ tự đăng ký.
       </p>
       <div className="mb-3 grid gap-2 sm:grid-cols-3">
@@ -65,7 +65,7 @@ export default function ContestantsPage() {
                 <Td className="tabular-nums">{c.phone}</Td>
                 <Td>{c.region ? REGIONS[c.region] || c.region : '—'}</Td>
                 <Td><Badge tone={st?.tone || 'gray'}>{st?.label || c.status}</Badge></Td>
-                <Td className="text-[13px] text-[#C4D0C8]">{fmtDateTime(c.registrationDate)}</Td>
+                <Td className="text-[13px] text-[#46564D]">{fmtDateTime(c.registrationDate)}</Td>
               </tr>
             );
           })}

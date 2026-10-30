@@ -35,10 +35,10 @@ export default function ImageField({
 
   return (
     <div>
-      <span className="mb-1 block text-[12px] uppercase tracking-wider text-[#8FA597]">{label}</span>
+      <span className="mb-1 block text-[12px] uppercase tracking-wider text-[#66766D]">{label}</span>
       <div className="flex items-start gap-3">
-        <div className="flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden border border-white/15 bg-[#0B2419]">
-          {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <span className="text-[12px] text-[#8FA597]">Chưa có ảnh</span>}
+        <div className="flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden border border-[#D2DDD6] bg-[#F6F9F7]">
+          {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <span className="text-[12px] text-[#66766D]">Chưa có ảnh</span>}
         </div>
         <div className="flex flex-col gap-2">
           <input ref={input} type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />

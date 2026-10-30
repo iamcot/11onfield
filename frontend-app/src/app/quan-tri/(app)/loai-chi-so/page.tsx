@@ -52,7 +52,7 @@ export default function AttributeTypesPage() {
             <tr key={t.id}>
               <Td className="font-mono text-[13px]">{t.attributeKey}</Td>
               <Td>{t.attributeName}</Td>
-              <Td className="text-[#C4D0C8]">{t.attributeGroup || '—'}</Td>
+              <Td className="text-[#46564D]">{t.attributeGroup || '—'}</Td>
               <Td>
                 <div className="flex gap-1">
                   {t.isHexagon && <Badge tone="green">Lục giác</Badge>}

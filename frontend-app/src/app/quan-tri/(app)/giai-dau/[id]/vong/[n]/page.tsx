@@ -124,14 +124,14 @@ export default function StructurePage() {
         </div>
       </CompetitionTabs>
       <Loading error={days.error} loading={days.loading && !days.data} />
-      {days.data && days.data.length === 0 && <p className="text-[#8FA597]">Vòng này chưa có cấu trúc chấm. {manager ? 'Thêm ngày thi hoặc sao chép từ vòng khác.' : ''}</p>}
+      {days.data && days.data.length === 0 && <p className="text-[#66766D]">Vòng này chưa có cấu trúc chấm. {manager ? 'Thêm ngày thi hoặc sao chép từ vòng khác.' : ''}</p>}
       <div className="space-y-4">
         {days.data?.map((d) => (
           <Card key={d.id}>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="text-[16px] font-semibold">Ngày {d.dayNumber}. {d.title}</h3>
-                {d.assessmentDate && <p className="text-[12px] text-[#8FA597]">{d.assessmentDate.split('-').reverse().join('/')}</p>}
+                {d.assessmentDate && <p className="text-[12px] text-[#66766D]">{d.assessmentDate.split('-').reverse().join('/')}</p>}
               </div>
               {manager && (
                 <div className="flex gap-2">
@@ -142,7 +142,7 @@ export default function StructurePage() {
             </div>
             <div className="mt-3 space-y-3">
               {d.assessmentSteps.map((s) => (
-                <div key={s.id} className="border border-white/10 bg-[#0B2419] p-3">
+                <div key={s.id} className="border border-[#DCE5DF] bg-[#F6F9F7] p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Bước {s.stepNumber}. {s.title}</span>
@@ -154,18 +154,18 @@ export default function StructurePage() {
                       {manager && <Button small variant="danger" onClick={() => remove(`assessment-steps/${s.id}`, `Xoá bước “${s.title}” và mọi bài thi, điểm bên trong?`)}>Xoá</Button>}
                     </div>
                   </div>
-                  <ul className="mt-2 divide-y divide-white/10 text-[14px]">
+                  <ul className="mt-2 divide-y divide-[#E6ECE8] text-[14px]">
                     {s.assessments.map((a) => (
                       <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
-                        <span>{a.assessmentNumber}. {a.title}{a.unit ? ` (${a.unit})` : ''} <span className="text-[12px] text-[#8FA597]">· {a.attemptsCount} lượt · {METHODS[a.scoringMethod] || a.scoringMethod}</span></span>
+                        <span>{a.assessmentNumber}. {a.title}{a.unit ? ` (${a.unit})` : ''} <span className="text-[12px] text-[#66766D]">· {a.attemptsCount} lượt · {METHODS[a.scoringMethod] || a.scoringMethod}</span></span>
                         {manager && <Button small variant="danger" onClick={() => remove(`assessments/${a.id}`, `Xoá bài thi “${a.title}” và điểm đã nhập?`)}>Xoá</Button>}
                       </li>
                     ))}
-                    {s.assessments.length === 0 && <li className="py-1.5 text-[#8FA597]">Chưa có bài thi.</li>}
+                    {s.assessments.length === 0 && <li className="py-1.5 text-[#66766D]">Chưa có bài thi.</li>}
                   </ul>
                 </div>
               ))}
-              {d.assessmentSteps.length === 0 && <p className="text-[13px] text-[#8FA597]">Chưa có bước nào.</p>}
+              {d.assessmentSteps.length === 0 && <p className="text-[13px] text-[#66766D]">Chưa có bước nào.</p>}
             </div>
           </Card>
         ))}
@@ -204,11 +204,11 @@ export default function StructurePage() {
             )}
             {dialog.kind === 'rating' && (
               <>
-                <p className="text-[13px] text-[#C4D0C8]">{dialog.title}. Mỗi mức tương ứng một ngưỡng kết quả: “Đúng bằng” hoặc “Trong khoảng”.</p>
+                <p className="text-[13px] text-[#46564D]">{dialog.title}. Mỗi mức tương ứng một ngưỡng kết quả: “Đúng bằng” hoặc “Trong khoảng”.</p>
                 <div className="space-y-2">
                   {dialog.levels.map((l, i) => (
                     <div key={i} className="grid grid-cols-[2.5rem_1fr] items-center gap-2 sm:grid-cols-[2.5rem_9rem_1fr_1fr_2rem]">
-                      <span className="tabular-nums text-[#8FA597]">#{i + 1}</span>
+                      <span className="tabular-nums text-[#66766D]">#{i + 1}</span>
                       <Select disabled={!manager} value={l.thresholdType} onChange={(e) => setLevel(i, { thresholdType: e.target.value as Level['thresholdType'] })}>
                         <option value="EXACT">Đúng bằng</option>
                         <option value="RANGE">Trong khoảng</option>
@@ -221,10 +221,10 @@ export default function StructurePage() {
                           <Input disabled={!manager} type="number" placeholder="Đến" value={l.rangeMax} onChange={(e) => setLevel(i, { rangeMax: e.target.value })} />
                         </>
                       )}
-                      {manager && <button type="button" aria-label="Xoá mức" className="text-[20px] text-[#FFB4AB]" onClick={() => setDialog((d) => (d && d.kind === 'rating' ? { ...d, levels: d.levels.filter((_, j) => j !== i) } : d))}>×</button>}
+                      {manager && <button type="button" aria-label="Xoá mức" className="text-[20px] text-[#B42318]" onClick={() => setDialog((d) => (d && d.kind === 'rating' ? { ...d, levels: d.levels.filter((_, j) => j !== i) } : d))}>×</button>}
                     </div>
                   ))}
-                  {dialog.levels.length === 0 && <p className="text-[#8FA597]">Chưa có mức nào.</p>}
+                  {dialog.levels.length === 0 && <p className="text-[#66766D]">Chưa có mức nào.</p>}
                 </div>
                 {manager && <Button small onClick={() => setDialog((d) => (d && d.kind === 'rating' ? { ...d, levels: [...d.levels, { level: d.levels.length + 1, thresholdType: 'RANGE', thresholdValue: '', rangeMin: '', rangeMax: '', description: '' }] } : d))}>+ Thêm mức</Button>}
               </>

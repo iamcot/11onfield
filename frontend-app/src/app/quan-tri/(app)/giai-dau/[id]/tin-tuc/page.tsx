@@ -44,15 +44,15 @@ export default function NewsListPage() {
             <tr key={n.id}>
               <Td>
                 <div className="flex items-center gap-3">
-                  {n.thumbnail ? <img src={n.thumbnail} alt="" className="h-10 w-14 shrink-0 object-cover" /> : <div className="h-10 w-14 shrink-0 bg-white/5" />}
+                  {n.thumbnail ? <img src={n.thumbnail} alt="" className="h-10 w-14 shrink-0 object-cover" /> : <div className="h-10 w-14 shrink-0 bg-[#F3F6F4]" />}
                   <div>
                     <div className="font-medium">{n.title} {n.isFeatured && <Badge tone="gold">Nổi bật</Badge>}</div>
-                    {n.authorByline && <div className="text-[12px] text-[#8FA597]">{n.authorByline}</div>}
+                    {n.authorByline && <div className="text-[12px] text-[#66766D]">{n.authorByline}</div>}
                   </div>
                 </div>
               </Td>
               <Td><Badge tone={n.status === 'PUBLISHED' ? 'green' : 'gray'}>{n.status === 'PUBLISHED' ? 'Đã đăng' : 'Nháp'}</Badge></Td>
-              <Td className="whitespace-nowrap text-[#C4D0C8]">{fmtDateTime(n.publishedAt)}</Td>
+              <Td className="whitespace-nowrap text-[#46564D]">{fmtDateTime(n.publishedAt)}</Td>
               <Td className="whitespace-nowrap text-right">
                 <LinkButton small href={`/quan-tri/giai-dau/${id}/tin-tuc/${n.id}`}>Sửa</LinkButton>{' '}
                 <Button small onClick={() => post(n, 'toggle-featured', n.isFeatured ? 'Đã bỏ nổi bật' : 'Đã đặt nổi bật')}>{n.isFeatured ? 'Bỏ nổi bật' : 'Nổi bật'}</Button>{' '}

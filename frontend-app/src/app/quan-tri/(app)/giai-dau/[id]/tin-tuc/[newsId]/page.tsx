@@ -58,7 +58,7 @@ export default function NewsEditPage() {
               <Field label="Tiêu đề *"><Input value={form.title} onChange={(e) => set('title')(e.target.value)} /></Field>
               <Field label="Mô tả ngắn"><Textarea value={form.shortContent} onChange={(e) => set('shortContent')(e.target.value)} /></Field>
               <div>
-                <span className="mb-1 block text-[12px] uppercase tracking-wider text-[#8FA597]">Nội dung</span>
+                <span className="mb-1 block text-[12px] uppercase tracking-wider text-[#66766D]">Nội dung</span>
                 <RichText value={form.content} onChange={set('content')} imageType="news" />
               </div>
             </div>

@@ -30,7 +30,7 @@ export default function CompetitionsPage() {
                 <Td className="tabular-nums">{c.season}</Td>
                 <Td className="font-medium">{c.title}</Td>
                 <Td><Badge tone={st?.tone || 'gray'}>{st?.label || c.status || '—'}</Badge></Td>
-                <Td className="text-[13px] text-[#C4D0C8]">{c.competitionStartDate ? `${fmtDate(c.competitionStartDate)} – ${fmtDate(c.competitionEndDate)}` : '—'}</Td>
+                <Td className="text-[13px] text-[#46564D]">{c.competitionStartDate ? `${fmtDate(c.competitionStartDate)} – ${fmtDate(c.competitionEndDate)}` : '—'}</Td>
                 <Td className="tabular-nums">{c.participantCount}</Td>
                 <Td className="tabular-nums">{c.stageCount}</Td>
                 <Td className="text-right"><LinkButton small href={`/quan-tri/giai-dau/${c.id}`}>Mở</LinkButton></Td>

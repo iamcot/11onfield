@@ -71,10 +71,10 @@ export default function AccountsPage() {
             {list.data.items.map((u) => (
               <tr key={u.id}>
                 <Td className="tabular-nums">{u.phone}</Td>
-                <Td>{u.fullName}<div className="text-[12px] text-[#8FA597]">{u.email}</div></Td>
+                <Td>{u.fullName}<div className="text-[12px] text-[#66766D]">{u.email}</div></Td>
                 <Td><Badge tone={STAFF_ROLE_KEYS.includes(u.role) ? 'green' : 'gray'}>{ROLES[u.role] || u.role}</Badge></Td>
                 <Td>{u.locked ? <Badge tone="red">Đã khoá</Badge> : u.enabled ? <Badge tone="green">Hoạt động</Badge> : <Badge tone="gold">Vô hiệu</Badge>}</Td>
-                <Td className="text-[13px] text-[#C4D0C8]">{fmtDate(u.createdAt?.split('T')[0])}</Td>
+                <Td className="text-[13px] text-[#46564D]">{fmtDate(u.createdAt?.split('T')[0])}</Td>
                 <Td className="text-right">
                   <div className="flex flex-wrap justify-end gap-2">
                     <Button small onClick={() => setForm({ id: u.id, phone: u.phone, fullName: u.fullName || '', email: u.email || '', role: u.role, password: '', enabled: u.enabled })}>Sửa</Button>
@@ -117,7 +117,7 @@ export default function AccountsPage() {
       {shown && (
         <Modal title="Mật khẩu mới" onClose={() => setShown(null)}>
           <p className="text-[14px]">Tài khoản <b>{shown.phone}</b> có mật khẩu mới. Hãy gửi cho người dùng ngay, màn hình này sẽ không hiện lại.</p>
-          <p className="mt-4 select-all border border-[#A6E35A] bg-[#0B2419] px-4 py-3 text-center font-mono text-[22px] tracking-wider text-[#D6FA9E]">{shown.password}</p>
+          <p className="mt-4 select-all border border-[#1F7A3A] bg-[#F6F9F7] px-4 py-3 text-center font-mono text-[22px] tracking-wider text-[#1F6B32]">{shown.password}</p>
           <div className="mt-4 flex justify-end"><Button variant="primary" onClick={() => setShown(null)}>Đã ghi lại</Button></div>
         </Modal>
       )}

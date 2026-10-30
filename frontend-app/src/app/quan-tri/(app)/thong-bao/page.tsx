@@ -24,7 +24,7 @@ export default function NotificationsPage() {
   return (
     <>
       <PageTitle title="Thông báo" />
-      <p className="mb-3 text-[13px] text-[#C4D0C8]">Bật hoặc tắt từng kênh cho mỗi tình huống, và chỉnh nội dung mẫu.</p>
+      <p className="mb-3 text-[13px] text-[#46564D]">Bật hoặc tắt từng kênh cho mỗi tình huống, và chỉnh nội dung mẫu.</p>
       <Loading error={list.error} loading={list.loading && !list.data} />
       {list.data && (
         <Table head={['Tình huống', 'Email', 'Trong ứng dụng', 'Zalo ZNS', '']} empty="Chưa có kịch bản nào.">
@@ -32,7 +32,7 @@ export default function NotificationsPage() {
             <tr key={s.id}>
               <Td>
                 <div className="font-medium">{s.name}</div>
-                {s.description && <div className="text-[12px] text-[#8FA597]">{s.description}</div>}
+                {s.description && <div className="text-[12px] text-[#66766D]">{s.description}</div>}
               </Td>
               <Td><Check label="" checked={s.emailEnabled} onChange={(v) => toggle(s, 'emailEnabled', v)} /></Td>
               <Td><Check label="" checked={s.inappEnabled} onChange={(v) => toggle(s, 'inappEnabled', v)} /></Td>

@@ -27,7 +27,7 @@ export default function ApprovalsPage() {
       <Button small variant="danger" onClick={() => decide(kind, id, 'reject')}>Từ chối</Button>
     </Td>
   );
-  const who = (id: number, name: string) => <Link className="text-[#D6FA9E] hover:underline" href={`/quan-tri/cau-thu/${id}`}>{name}</Link>;
+  const who = (id: number, name: string) => <Link className="text-[#1F6B32] hover:underline" href={`/quan-tri/cau-thu/${id}`}>{name}</Link>;
 
   return (
     <>
@@ -40,9 +40,9 @@ export default function ApprovalsPage() {
               {q.data.achievements.map((a) => (
                 <tr key={a.id}>
                   <Td>{who(a.playerId, a.playerName)}</Td>
-                  <Td className="text-[#C4D0C8]">{ACHIEVEMENT_TYPES[a.type] || a.type}</Td>
+                  <Td className="text-[#46564D]">{ACHIEVEMENT_TYPES[a.type] || a.type}</Td>
                   <Td>{a.title}</Td>
-                  <Td className="text-[#C4D0C8]">{fmtDate(a.date)}</Td>
+                  <Td className="text-[#46564D]">{fmtDate(a.date)}</Td>
                   {actions('achievements', a.id)}
                 </tr>
               ))}
@@ -53,8 +53,8 @@ export default function ApprovalsPage() {
               {q.data.highlights.map((h) => (
                 <tr key={h.id}>
                   <Td>{who(h.playerId, h.playerName)}</Td>
-                  <Td><a href={h.url} target="_blank" rel="noreferrer" className="break-all text-[#A6E35A] underline">{h.url}</a> {h.platform && <span className="text-[12px] text-[#8FA597]">({h.platform})</span>}</Td>
-                  <Td className="text-[#C4D0C8]">{fmtDate(h.date)}</Td>
+                  <Td><a href={h.url} target="_blank" rel="noreferrer" className="break-all text-[#1F7A3A] underline">{h.url}</a> {h.platform && <span className="text-[12px] text-[#66766D]">({h.platform})</span>}</Td>
+                  <Td className="text-[#46564D]">{fmtDate(h.date)}</Td>
                   {actions('highlights', h.id)}
                 </tr>
               ))}

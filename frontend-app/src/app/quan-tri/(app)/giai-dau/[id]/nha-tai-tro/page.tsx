@@ -51,14 +51,14 @@ export default function SponsorsPage() {
             <tr key={s.id}>
               <Td>
                 <div className="flex items-center gap-3">
-                  {s.logoUrl ? <img src={s.logoUrl} alt="" className="h-10 w-16 shrink-0 bg-white/90 object-contain p-1" /> : <div className="h-10 w-16 shrink-0 bg-white/5" />}
+                  {s.logoUrl ? <img src={s.logoUrl} alt="" className="h-10 w-16 shrink-0 bg-white/90 object-contain p-1" /> : <div className="h-10 w-16 shrink-0 bg-[#F3F6F4]" />}
                   <div>
                     <div className="font-medium">{s.name}</div>
-                    {s.websiteUrl && <a href={s.websiteUrl} target="_blank" rel="noreferrer" className="text-[12px] text-[#8FA597] hover:text-[#A6E35A]">{s.websiteUrl}</a>}
+                    {s.websiteUrl && <a href={s.websiteUrl} target="_blank" rel="noreferrer" className="text-[12px] text-[#66766D] hover:text-[#1F7A3A]">{s.websiteUrl}</a>}
                   </div>
                 </div>
               </Td>
-              <Td className="text-[#C4D0C8]">{s.adPosition || '—'}</Td>
+              <Td className="text-[#46564D]">{s.adPosition || '—'}</Td>
               <Td className="tabular-nums">{s.displayOrder}</Td>
               <Td><Badge tone={s.isActive ? 'green' : 'gray'}>{s.isActive ? 'Đang hiện' : 'Đã ẩn'}</Badge></Td>
               <Td className="whitespace-nowrap text-right">

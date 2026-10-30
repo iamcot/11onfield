@@ -40,18 +40,18 @@ function Picker({ id, kind, limit, manager }: { id: string; kind: 'top30' | 'top
   return (
     <Card title={`${kind === 'top30' ? 'Top 30' : 'Top 11'} — đã chọn ${picked.size}/${limit}`}>
       <Loading error={list.error} loading={list.loading && !list.data} />
-      {list.data && list.data.length === 0 && <p className="text-[#8FA597]">Chưa có thí sinh đủ điều kiện.</p>}
-      <ul className="divide-y divide-white/10">
+      {list.data && list.data.length === 0 && <p className="text-[#66766D]">Chưa có thí sinh đủ điều kiện.</p>}
+      <ul className="divide-y divide-[#E6ECE8]">
         {list.data?.map((c, i) => {
           const st = PARTICIPANT_STATUS[c.status];
           return (
             <li key={c.id}>
               <label className="flex cursor-pointer items-center gap-3 py-2 text-[14px]">
-                <input type="checkbox" className="h-4 w-4 accent-[#A6E35A]" disabled={!manager} checked={picked.has(c.id)} onChange={() => toggle(c.id)} />
-                <span className="w-6 tabular-nums text-[#8FA597]">{i + 1}</span>
+                <input type="checkbox" className="h-4 w-4 accent-[#1F7A3A]" disabled={!manager} checked={picked.has(c.id)} onChange={() => toggle(c.id)} />
+                <span className="w-6 tabular-nums text-[#66766D]">{i + 1}</span>
                 <span className="flex-1 font-medium">{c.fullName}</span>
-                <span className="hidden text-[12px] text-[#8FA597] sm:inline">{c.selectedRegion ? REGIONS[c.selectedRegion] : ''}</span>
-                <span className="tabular-nums text-[#D6FA9E]">{c.totalScore != null ? Number(c.totalScore).toFixed(2) : '—'}</span>
+                <span className="hidden text-[12px] text-[#66766D] sm:inline">{c.selectedRegion ? REGIONS[c.selectedRegion] : ''}</span>
+                <span className="tabular-nums text-[#1F6B32]">{c.totalScore != null ? Number(c.totalScore).toFixed(2) : '—'}</span>
                 <Badge tone={st?.tone || 'gray'}>{st?.label || c.status}</Badge>
               </label>
             </li>
@@ -69,7 +69,7 @@ export default function SelectionPage() {
   return (
     <>
       <CompetitionTabs id={id} />
-      <p className="mb-4 text-[13px] text-[#C4D0C8]">Danh sách xếp theo tổng điểm. Chọn Top 30 sau vòng tuyển trạch, sau đó chọn Top 11 từ Top 30. {manager ? '' : 'Bạn chỉ có quyền xem.'}</p>
+      <p className="mb-4 text-[13px] text-[#46564D]">Danh sách xếp theo tổng điểm. Chọn Top 30 sau vòng tuyển trạch, sau đó chọn Top 11 từ Top 30. {manager ? '' : 'Bạn chỉ có quyền xem.'}</p>
       <div className="grid gap-4 xl:grid-cols-2">
         <Picker id={id} kind="top30" limit={30} manager={manager} />
         <Picker id={id} kind="top11" limit={11} manager={manager} />

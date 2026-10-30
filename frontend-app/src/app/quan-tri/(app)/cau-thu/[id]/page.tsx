@@ -108,7 +108,7 @@ export default function PlayerEditPage() {
       <Loading error={detail.error} loading={detail.loading && !p} />
       {p && (
         <div className="space-y-4">
-          {!manager && <p className="border border-[rgba(217,180,108,0.4)] bg-[rgba(217,180,108,0.08)] px-3 py-2 text-[14px] text-[#E8CF9E]">Bạn chỉ có quyền xem hồ sơ và duyệt thành tích, highlight.</p>}
+          {!manager && <p className="border border-[#E9CF95] bg-[#FDF6E7] px-3 py-2 text-[14px] text-[#8A5A00]">Bạn chỉ có quyền xem hồ sơ và duyệt thành tích, highlight.</p>}
 
           <Card title="Thông tin cơ bản">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -177,9 +177,9 @@ export default function PlayerEditPage() {
 
           <Card title="Thành tích">
             <div className="space-y-2">
-              {achievements.length === 0 && <p className="text-[14px] text-[#8FA597]">Chưa có thành tích.</p>}
+              {achievements.length === 0 && <p className="text-[14px] text-[#66766D]">Chưa có thành tích.</p>}
               {achievements.map((a, i) => (
-                <div key={i} className="flex flex-wrap items-center gap-2 border border-white/10 p-2">
+                <div key={i} className="flex flex-wrap items-center gap-2 border border-[#DCE5DF] p-2">
                   <Select className="!w-32" value={a.type} disabled={!manager} onChange={(e) => setAchievements((l) => l.map((x, j) => (j === i ? { ...x, type: e.target.value } : x)))}>
                     {Object.entries(ACHIEVEMENT_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </Select>
@@ -195,12 +195,12 @@ export default function PlayerEditPage() {
 
           <Card title="Video highlight">
             <div className="space-y-2">
-              {highlights.length === 0 && <p className="text-[14px] text-[#8FA597]">Chưa có highlight.</p>}
+              {highlights.length === 0 && <p className="text-[14px] text-[#66766D]">Chưa có highlight.</p>}
               {highlights.map((h, i) => (
-                <div key={i} className="flex flex-wrap items-center gap-2 border border-white/10 p-2">
+                <div key={i} className="flex flex-wrap items-center gap-2 border border-[#DCE5DF] p-2">
                   <Input className="!w-auto min-w-[240px] flex-1" placeholder="https://" value={h.url} disabled={!manager} onChange={(e) => setHighlights((l) => l.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))} />
                   <Input className="!w-40" type="date" value={h.date} disabled={!manager} onChange={(e) => setHighlights((l) => l.map((x, j) => (j === i ? { ...x, date: e.target.value } : x)))} />
-                  {h.id && <a href={h.url} target="_blank" rel="noreferrer" className="text-[13px] text-[#A6E35A] underline">Mở</a>}
+                  {h.id && <a href={h.url} target="_blank" rel="noreferrer" className="text-[13px] text-[#1F7A3A] underline">Mở</a>}
                   <Decide kind="highlights" item={h} />
                   {manager && <Button small variant="danger" onClick={() => setHighlights((l) => l.filter((_, j) => j !== i))}>Bỏ</Button>}
                 </div>
@@ -227,7 +227,7 @@ export default function PlayerEditPage() {
               <Button onClick={() => router.push('/quan-tri/cau-thu')}>Quay lại</Button>
             </div>
           )}
-          <p className="text-[12px] text-[#8FA597]">Khi lưu, thành tích và highlight giữ nguyên trạng thái duyệt nếu nội dung không đổi; mục mới hoặc đã sửa sẽ chờ duyệt.</p>
+          <p className="text-[12px] text-[#66766D]">Khi lưu, thành tích và highlight giữ nguyên trạng thái duyệt nếu nội dung không đổi; mục mới hoặc đã sửa sẽ chờ duyệt.</p>
         </div>
       )}
     </>

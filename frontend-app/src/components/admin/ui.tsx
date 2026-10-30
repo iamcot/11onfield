@@ -8,12 +8,12 @@ export function PageTitle({ title, children, back }: { title: string; children?:
   return (
     <div className="mb-5">
       {back && (
-        <Link href={back.href} className="text-[13px] text-[#8FA597] hover:text-[#A6E35A]">
+        <Link href={back.href} className="text-[13px] text-[#66766D] hover:text-[#1F7A3A]">
           ← {back.label}
         </Link>
       )}
       <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">{title}</h1>
+        <h1 className="text-[24px] font-semibold tracking-tight text-[#0F2A1C]">{title}</h1>
         <div className="flex flex-wrap items-center gap-2">{children}</div>
       </div>
     </div>
@@ -22,8 +22,8 @@ export function PageTitle({ title, children, back }: { title: string; children?:
 
 export function Card({ title, children, className = '' }: { title?: string; children: ReactNode; className?: string }) {
   return (
-    <section className={`border border-white/10 bg-[#0F3324] p-4 ${className}`}>
-      {title && <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-[#C4D0C8]">{title}</h2>}
+    <section className={`rounded-lg border border-[#DCE5DF] bg-white p-4 shadow-[0_1px_2px_rgba(16,35,26,0.06)] lg:p-5 ${className}`}>
+      {title && <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-[#46564D]">{title}</h2>}
       {children}
     </section>
   );
@@ -31,9 +31,9 @@ export function Card({ title, children, className = '' }: { title?: string; chil
 
 // ---- controls ----
 const BTN = {
-  primary: 'bg-[#A6E35A] text-[#0B2419] hover:bg-[#B8F26A]',
-  ghost: 'border border-white/20 text-[#E8F0EA] hover:border-[#A6E35A] hover:text-[#D6FA9E]',
-  danger: 'border border-[rgba(255,138,128,0.6)] text-[#FFB4AB] hover:bg-[rgba(255,138,128,0.12)]',
+  primary: 'bg-[#0F3324] text-[#D6FA9E] hover:bg-[#18522F]',
+  ghost: 'border border-[#C9D5CD] bg-white text-[#10231A] hover:border-[#1F7A3A] hover:text-[#1F6B32]',
+  danger: 'border border-[#E8958B] text-[#B42318] hover:bg-[#FDE4E1]',
 } as const;
 
 export function Button({
@@ -46,27 +46,27 @@ export function Button({
     <button
       type="button"
       {...rest}
-      className={`${BTN[variant]} ${small ? 'px-2.5 py-1 text-[12px]' : 'px-4 py-2 text-[14px]'} font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`${BTN[variant]} ${small ? 'px-2.5 py-1 text-[12px]' : 'px-4 py-2 text-[14px]'} rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
     />
   );
 }
 
 export function LinkButton({ href, children, variant = 'ghost', small }: { href: string; children: ReactNode; variant?: keyof typeof BTN; small?: boolean }) {
   return (
-    <Link href={href} className={`${BTN[variant]} ${small ? 'px-2.5 py-1 text-[12px]' : 'px-4 py-2 text-[14px]'} inline-block font-medium transition-colors`}>
+    <Link href={href} className={`${BTN[variant]} ${small ? 'px-2.5 py-1 text-[12px]' : 'px-4 py-2 text-[14px]'} inline-block rounded-md font-medium transition-colors`}>
       {children}
     </Link>
   );
 }
 
-const FIELD = 'w-full border border-white/20 bg-[#0B2419] px-3 py-2 text-[14px] text-white outline-none focus:border-[#A6E35A] disabled:opacity-60';
+const FIELD = 'w-full rounded-md border border-[#C9D5CD] bg-white px-3 py-2 text-[14px] text-[#10231A] outline-none focus:border-[#1F7A3A] focus:ring-2 focus:ring-[#1F7A3A]/20 disabled:opacity-60';
 
 export function Field({ label, hint, children, className = '' }: { label: string; hint?: string; children: ReactNode; className?: string }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1 block text-[12px] uppercase tracking-wider text-[#8FA597]">{label}</span>
+      <span className="mb-1 block text-[12px] uppercase tracking-wider text-[#66766D]">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-[12px] text-[#8FA597]">{hint}</span>}
+      {hint && <span className="mt-1 block text-[12px] text-[#66766D]">{hint}</span>}
     </label>
   );
 }
@@ -77,7 +77,7 @@ export const Select = (p: SelectHTMLAttributes<HTMLSelectElement>) => <select {.
 export function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <label className="flex cursor-pointer items-center gap-2 text-[14px]">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 accent-[#A6E35A]" />
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-4 w-4 accent-[#1F7A3A]" />
       {label}
     </label>
   );
@@ -85,30 +85,30 @@ export function Check({ label, checked, onChange }: { label: string; checked: bo
 
 // ---- data display ----
 const TONES = {
-  green: 'bg-[rgba(166,227,90,0.15)] text-[#D6FA9E]',
-  gold: 'bg-[rgba(217,180,108,0.18)] text-[#E8CF9E]',
-  red: 'bg-[rgba(255,138,128,0.15)] text-[#FFB4AB]',
-  gray: 'bg-white/10 text-[#C4D0C8]',
+  green: 'bg-[#E4F3D6] text-[#1F6B32]',
+  gold: 'bg-[#FBEFD5] text-[#8A5A00]',
+  red: 'bg-[#FDE4E1] text-[#B42318]',
+  gray: 'bg-[#EEF2EF] text-[#46564D]',
 } as const;
 export function Badge({ tone = 'gray', children }: { tone?: keyof typeof TONES; children: ReactNode }) {
-  return <span className={`inline-block px-2 py-0.5 text-[11px] font-medium ${TONES[tone]}`}>{children}</span>;
+  return <span className={`inline-block rounded px-2 py-0.5 text-[11px] font-medium ${TONES[tone]}`}>{children}</span>;
 }
 
 export function Table({ head, children, empty }: { head: string[]; children: ReactNode; empty?: string }) {
   const rows = Array.isArray(children) ? children.length : children ? 1 : 0;
   return (
-    <div className="overflow-x-auto border border-white/10">
+    <div className="overflow-x-auto rounded-lg border border-[#DCE5DF] bg-white shadow-[0_1px_2px_rgba(16,35,26,0.06)]">
       <table className="w-full min-w-[640px] text-left text-[14px]">
-        <thead className="bg-[#0F3324] text-[11px] uppercase tracking-wider text-[#8FA597]">
+        <thead className="bg-[#F3F6F4] text-[11px] uppercase tracking-wider text-[#56665D]">
           <tr>
             {head.map((h) => (
               <th key={h} className="px-3 py-2.5 font-medium">{h}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/10">{children}</tbody>
+        <tbody className="divide-y divide-[#E6ECE8]">{children}</tbody>
       </table>
-      {rows === 0 && <p className="px-3 py-6 text-center text-[#8FA597]">{empty || 'Chưa có dữ liệu.'}</p>}
+      {rows === 0 && <p className="px-3 py-6 text-center text-[#66766D]">{empty || 'Chưa có dữ liệu.'}</p>}
     </div>
   );
 }
@@ -119,15 +119,15 @@ export function Pagination({ page, totalPages, onPage }: { page: number; totalPa
   return (
     <div className="mt-3 flex items-center justify-end gap-2 text-[13px]">
       <Button small disabled={page <= 0} onClick={() => onPage(page - 1)}>‹ Trước</Button>
-      <span className="text-[#C4D0C8]">Trang {page + 1} / {totalPages}</span>
+      <span className="text-[#46564D]">Trang {page + 1} / {totalPages}</span>
       <Button small disabled={page >= totalPages - 1} onClick={() => onPage(page + 1)}>Sau ›</Button>
     </div>
   );
 }
 
 export function Loading({ error, loading }: { error?: string; loading?: boolean }) {
-  if (error) return <p role="alert" className="border border-[rgba(255,138,128,0.5)] bg-[rgba(255,138,128,0.08)] px-3 py-2 text-[14px] text-[#FFD2CD]">{error}</p>;
-  if (loading) return <p className="text-[#8FA597]">Đang tải…</p>;
+  if (error) return <p role="alert" className="border border-[#F3B4AD] bg-[#FEF1EF] px-3 py-2 text-[14px] text-[#B42318]">{error}</p>;
+  if (loading) return <p className="text-[#66766D]">Đang tải…</p>;
   return null;
 }
 
@@ -156,14 +156,14 @@ export function UiProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="fixed bottom-4 right-4 z-[60] flex max-w-[calc(100vw-2rem)] flex-col gap-2" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className={`border px-4 py-2.5 text-[14px] shadow-lg ${t.tone === 'ok' ? 'border-[rgba(166,227,90,0.5)] bg-[#12402A] text-[#E2F5CF]' : 'border-[rgba(255,138,128,0.5)] bg-[#3A1D1A] text-[#FFD2CD]'}`}>
+          <div key={t.id} className={`border px-4 py-2.5 text-[14px] shadow-lg ${t.tone === 'ok' ? 'border-[#2F6B45] bg-[#0F3324] text-[#E2F5CF]' : 'border-[#7A1E14] bg-[#9B2C20] text-white'}`}>
             {t.message}
           </div>
         ))}
       </div>
       {ask && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
-          <div role="dialog" aria-modal="true" className="w-full max-w-sm border border-white/15 bg-[#0F3324] p-5">
+          <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-lg border border-[#D2DDD6] bg-white p-5 shadow-xl">
             <p className="text-[15px]">{ask.message}</p>
             <div className="mt-5 flex justify-end gap-2">
               <Button onClick={() => { ask.done(false); setAsk(null); }}>Huỷ</Button>
@@ -179,10 +179,10 @@ export function UiProvider({ children }: { children: ReactNode }) {
 export function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   return (
     <div className="fixed inset-0 z-[55] flex items-start justify-center overflow-y-auto bg-black/60 p-4">
-      <div role="dialog" aria-modal="true" className={`my-8 w-full ${wide ? 'max-w-3xl' : 'max-w-lg'} border border-white/15 bg-[#0F3324]`}>
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
+      <div role="dialog" aria-modal="true" className={`my-8 w-full ${wide ? 'max-w-3xl' : 'max-w-lg'} rounded-lg border border-[#D2DDD6] bg-white shadow-xl`}>
+        <div className="flex items-center justify-between border-b border-[#DCE5DF] px-5 py-3">
           <h2 className="text-[16px] font-semibold">{title}</h2>
-          <button type="button" aria-label="Đóng" className="text-[22px] leading-none text-[#C4D0C8] hover:text-white" onClick={onClose}>×</button>
+          <button type="button" aria-label="Đóng" className="text-[22px] leading-none text-[#46564D] hover:text-[#10231A]" onClick={onClose}>×</button>
         </div>
         <div className="p-5">{children}</div>
       </div>

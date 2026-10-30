@@ -66,18 +66,18 @@ export default function CompetitionInfoPage() {
                 <Field label="Bắt đầu giải"><Input type="date" disabled={readOnly || locked} value={form.competitionStartDate} onChange={set('competitionStartDate')} /></Field>
                 <Field label="Kết thúc giải"><Input type="date" disabled={readOnly} value={form.competitionEndDate} onChange={set('competitionEndDate')} /></Field>
               </div>
-              {locked && <p className="text-[13px] text-[#8FA597]">Giải đã bắt đầu nên không sửa được các ngày bắt đầu, chỉ sửa được ngày kết thúc.</p>}
+              {locked && <p className="text-[13px] text-[#66766D]">Giải đã bắt đầu nên không sửa được các ngày bắt đầu, chỉ sửa được ngày kết thúc.</p>}
               {manager ? (
                 <Button variant="primary" disabled={saving} onClick={save}>{saving ? 'Đang lưu…' : 'Lưu'}</Button>
               ) : (
-                <p className="text-[13px] text-[#8FA597]">Chỉ Admin được sửa thông tin giải đấu.</p>
+                <p className="text-[13px] text-[#66766D]">Chỉ Admin được sửa thông tin giải đấu.</p>
               )}
             </div>
           </Card>
           <Card title="Số liệu">
             <dl className="space-y-3 text-[14px]">
               {[['Thí sinh', c.participantCount], ['Vòng thi', c.stageCount], ['Tin tức', c.newsCount], ['Nhà tài trợ', c.sponsorCount]].map(([k, v]) => (
-                <div key={k as string} className="flex justify-between border-b border-white/10 pb-2"><dt className="text-[#C4D0C8]">{k}</dt><dd className="tabular-nums">{v}</dd></div>
+                <div key={k as string} className="flex justify-between border-b border-[#DCE5DF] pb-2"><dt className="text-[#46564D]">{k}</dt><dd className="tabular-nums">{v}</dd></div>
               ))}
             </dl>
           </Card>

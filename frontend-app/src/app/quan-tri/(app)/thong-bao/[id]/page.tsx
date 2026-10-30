@@ -50,7 +50,7 @@ export default function TemplatesPage() {
     <>
       <PageTitle title={data.data ? `Nội dung mẫu — ${data.data.scenario.name}` : 'Nội dung mẫu'} back={{ href: '/quan-tri/thong-bao', label: 'Thông báo' }} />
       <Loading error={data.error} loading={!ready && data.loading} />
-      {data.data?.templates.length === 0 && <p className="text-[#8FA597]">Kịch bản này chưa có template.</p>}
+      {data.data?.templates.length === 0 && <p className="text-[#66766D]">Kịch bản này chưa có template.</p>}
       <div className="grid max-w-4xl gap-4">{data.data?.templates.map((t) => <TemplateCard key={t.id} t={t} />)}</div>
     </>
   );

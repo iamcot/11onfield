@@ -102,7 +102,7 @@ export default function PlayersPage() {
           <option value="false">Chưa xác minh</option>
         </Select>
         <label className="flex items-center gap-2 text-[14px]">
-          <input type="checkbox" className="h-4 w-4 accent-[#A6E35A]" checked={f.pending} onChange={(e) => apply({ pending: e.target.checked })} />
+          <input type="checkbox" className="h-4 w-4 accent-[#1F7A3A]" checked={f.pending} onChange={(e) => apply({ pending: e.target.checked })} />
           Có mục chờ duyệt
         </label>
         <Button type="submit" variant="primary">Tìm</Button>
@@ -117,20 +117,20 @@ export default function PlayersPage() {
               <tr key={p.id} className={p.enabled ? '' : 'opacity-60'}>
                 <Td>
                   <div className="flex items-center gap-3">
-                    {p.avatar ? <img src={p.avatar} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <div className="h-10 w-10 shrink-0 rounded-full bg-white/10" />}
+                    {p.avatar ? <img src={p.avatar} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <div className="h-10 w-10 shrink-0 rounded-full bg-[#EEF2EF]" />}
                     <div>
                       <div className="font-medium">{p.fullName || '(chưa có tên)'}</div>
-                      <div className="text-[12px] text-[#8FA597]">{p.phone}</div>
+                      <div className="text-[12px] text-[#66766D]">{p.phone}</div>
                     </div>
                   </div>
                 </Td>
-                <Td className="text-[#C4D0C8]">{p.positions ? POSITIONS[p.positions] || p.positions : '—'}</Td>
-                <Td className="text-[#C4D0C8]">{p.level ? LEVELS[p.level] || p.level : '—'}</Td>
-                <Td className="text-[#C4D0C8]">{p.provinceName || '—'}</Td>
+                <Td className="text-[#46564D]">{p.positions ? POSITIONS[p.positions] || p.positions : '—'}</Td>
+                <Td className="text-[#46564D]">{p.level ? LEVELS[p.level] || p.level : '—'}</Td>
+                <Td className="text-[#46564D]">{p.provinceName || '—'}</Td>
                 <Td>
                   <Badge tone={p.attributeKind === 'none' ? 'gray' : 'green'}>{KIND[p.attributeKind]}</Badge>
                   {p.hexagon.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] tabular-nums text-[#8FA597]">
+                    <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] tabular-nums text-[#66766D]">
                       {p.hexagon.map((h) => <span key={h.key} title={h.name}>{h.key} {h.value}</span>)}
                     </div>
                   )}

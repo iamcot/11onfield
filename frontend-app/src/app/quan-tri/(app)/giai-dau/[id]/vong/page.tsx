@@ -72,28 +72,28 @@ export default function StagesPage() {
         {manager && <Button variant="primary" onClick={() => setEditing({ n: null, form: EMPTY })}>+ Thêm vòng thi</Button>}
       </CompetitionTabs>
       <Loading error={data.error} loading={data.loading && !data.data} />
-      {data.data && data.data.stages.length === 0 && <p className="text-[#8FA597]">Chưa có vòng thi nào.</p>}
+      {data.data && data.data.stages.length === 0 && <p className="text-[#66766D]">Chưa có vòng thi nào.</p>}
       <div className="space-y-3">
         {data.data?.stages.map((s) => {
           const st = STAGE_STATUS[s.status];
           const canRollback = s.status === 'COMPLETED' && live !== null && s.stageNumber === live - 1;
           return (
-            <section key={s.id} className="border border-white/10 bg-[#0F3324] p-4">
+            <section key={s.id} className="rounded-lg border border-[#DCE5DF] bg-white p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="tabular-nums text-[#8FA597]">Vòng {s.stageNumber}</span>
+                    <span className="tabular-nums text-[#66766D]">Vòng {s.stageNumber}</span>
                     <Badge tone={st?.tone || 'gray'}>{st?.label || s.status}</Badge>
                     {!s.isPublicScoring && <Badge>Nội bộ</Badge>}
                   </div>
                   <h3 className="mt-1 text-[16px] font-semibold">{s.title}</h3>
-                  <p className="mt-1 text-[13px] text-[#C4D0C8]">
+                  <p className="mt-1 text-[13px] text-[#46564D]">
                     {STAGE_TYPES[s.stageType] || s.stageType}
                     {s.region ? ` · ${REGIONS[s.region] || s.region}` : ''} ·{' '}
-                    {s.stageDate ? fmtDate(s.stageDate) : <span className="text-[#E8CF9E]">Đang cập nhật</span>}
+                    {s.stageDate ? fmtDate(s.stageDate) : <span className="text-[#8A5A00]">Đang cập nhật</span>}
                     {s.stageTime ? ` · ${s.stageTime}` : ''}
                   </p>
-                  <p className="mt-1 text-[12px] text-[#8FA597]">Cấu trúc chấm: {s.daysCount} ngày · {s.stepsCount} bước · {s.assessmentsCount} bài</p>
+                  <p className="mt-1 text-[12px] text-[#66766D]">Cấu trúc chấm: {s.daysCount} ngày · {s.stepsCount} bước · {s.assessmentsCount} bài</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <LinkButton small href={`/quan-tri/giai-dau/${id}/vong/${s.stageNumber}`}>Cấu trúc chấm</LinkButton>
