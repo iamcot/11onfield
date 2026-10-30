@@ -16,7 +16,23 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
     let h = 0;
     let raf = 0;
     let motes: Mote[] = [];
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const touch = window.matchMedia('(hover: none)').matches;
+    const dpr = touch ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
+
+    // pre-rendered glow sprites: building a radial gradient per mote per frame is costly on phones
+    const sprite = (c: string) => {
+      const s = document.createElement('canvas');
+      s.width = s.height = 32;
+      const sc = s.getContext('2d')!;
+      const g = sc.createRadialGradient(16, 16, 0, 16, 16, 16);
+      g.addColorStop(0, `rgba(${c},1)`);
+      g.addColorStop(1, `rgba(${c},0)`);
+      sc.fillStyle = g;
+      sc.fillRect(0, 0, 32, 32);
+      return s;
+    };
+    const goldSprite = sprite('243,223,175');
+    const limeSprite = sprite('214,250,170');
 
     const spawn = (anywhere: boolean): Mote => ({
       x: Math.random() * w,
@@ -30,13 +46,21 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
     });
 
     const resize = () => {
-      w = window.innerWidth;
-      h = window.innerHeight;
+      const nw = window.innerWidth;
+      // mobile browsers fire resize while the URL bar slides during a swipe: size to the tallest
+      // viewport once and only respawn when the width really changes
+      const nh = Math.max(window.innerHeight, h);
+      if (nw === w && nh === h) return;
+      const widthChanged = nw !== w;
+      w = nw;
+      h = nh;
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = w < 768 ? 38 : 80;
-      motes = Array.from({ length: count }, () => spawn(true));
+      if (widthChanged) {
+        const count = w < 768 ? 22 : 70;
+        motes = Array.from({ length: count }, () => spawn(true));
+      }
     };
 
     const frame = () => {
@@ -47,16 +71,11 @@ function useParticles(ref: React.RefObject<HTMLCanvasElement>) {
         m.y -= m.vy;
         m.x += m.vx + Math.sin(m.ph) * 0.12;
         if (m.y < -10 || m.x < -10 || m.x > w + 10) Object.assign(m, spawn(false));
-        const a = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(m.ph * 2));
-        const g = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.r * 4);
-        const c = m.gold ? '243,223,175' : '214,250,170';
-        g.addColorStop(0, `rgba(${c},${a})`);
-        g.addColorStop(1, `rgba(${c},0)`);
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, m.r * 4, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.globalAlpha = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(m.ph * 2));
+        const d = m.r * 8;
+        ctx.drawImage(m.gold ? goldSprite : limeSprite, m.x - d / 2, m.y - d / 2, d, d);
       }
+      ctx.globalAlpha = 1;
       raf = requestAnimationFrame(frame);
     };
 

@@ -27,6 +27,10 @@ export function usePageEffects(root: React.RefObject<HTMLDivElement>) {
     const mo = new MutationObserver(() => watch(el));
     mo.observe(el, { childList: true, subtree: true });
 
+    // Scroll/pointer vars go on the few elements that read them, never on the root:
+    // a custom property changed on the root restyles every descendant each frame (scroll jank).
+    const bg = el.querySelector<HTMLElement>('.of-bg');
+    const touch = window.matchMedia('(hover: none)').matches;
     const onPointer = (e: PointerEvent) => {
       const spot = (e.target as HTMLElement).closest?.('.of-spot') as HTMLElement | null;
       if (spot) {
@@ -34,9 +38,9 @@ export function usePageEffects(root: React.RefObject<HTMLDivElement>) {
         spot.style.setProperty('--px', `${e.clientX - r.left}px`);
         spot.style.setProperty('--py', `${e.clientY - r.top}px`);
       }
-      if (!reduced && e.pointerType === 'mouse') {
-        el.style.setProperty('--of-mx', ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
-        el.style.setProperty('--of-my', ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
+      if (!reduced && e.pointerType === 'mouse' && bg) {
+        bg.style.setProperty('--of-mx', ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
+        bg.style.setProperty('--of-my', ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
       }
     };
 
@@ -47,8 +51,10 @@ export function usePageEffects(root: React.RefObject<HTMLDivElement>) {
         raf = 0;
         const max = document.documentElement.scrollHeight - window.innerHeight;
         const y = window.scrollY;
-        el.style.setProperty('--of-progress', max > 0 ? (y / max).toFixed(4) : '0');
-        if (!reduced) el.style.setProperty('--of-sy', Math.min(1, y / (window.innerHeight * 2)).toFixed(4));
+        const progress = max > 0 ? (y / max).toFixed(4) : '0';
+        el.querySelectorAll<HTMLElement>('.of-header-progress').forEach((n) => n.style.setProperty('--of-progress', progress));
+        // background parallax is skipped on touch: moving the photo under blurred layers is costly there
+        if (!reduced && !touch && bg) bg.style.setProperty('--of-sy', Math.min(1, y / (window.innerHeight * 2)).toFixed(4));
       });
     };
 
@@ -81,7 +87,8 @@ export function useScrollProgress(ref: React.RefObject<HTMLElement>) {
       // desktop: fill while the row crosses the middle; mobile: follow the list
       const start = vh * (isDesktop ? 0.85 : 0.7);
       const span = isDesktop ? vh * 0.45 : r.height;
-      setP(Math.max(0, Math.min(1, (start - r.top) / span)));
+      // rounded so React skips re-renders while the value is unchanged
+      setP(Math.round(Math.max(0, Math.min(1, (start - r.top) / span)) * 100) / 100);
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
