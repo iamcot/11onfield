@@ -53,6 +53,13 @@ public class ZnsService {
     @Value("${zalo.zns.testMode:false}")
     private boolean testMode;
 
+    /** When set, OTPs go through AnyLearn's Zalo OA (POST .../api/open/zns/otp) instead of our own token. */
+    @Value("${zalo.zns.relayUrl:}")
+    private String relayUrl;
+
+    @Value("${zalo.zns.relayApiKey:}")
+    private String relayApiKey;
+
     private static final String TOKEN_CONFIG_KEY = "ZNS_TOKEN";
     private static final String OAUTH_TOKEN_URL = "https://oauth.zaloapp.com/v4/oa/access_token";
     private static final String OAUTH_AUTHORIZE_URL = "https://oauth.zaloapp.com/v4/oa/permission";
@@ -177,6 +184,10 @@ public class ZnsService {
 
     // Send ZNS message
     public void sendOtp(String phone, String otpCode) throws Exception {
+        if (relayUrl != null && !relayUrl.isBlank()) {
+            sendOtpViaRelay(phone, otpCode);
+            return;
+        }
         String accessToken = getValidAccessToken();
 
         // Normalize phone: 0123456789 -> 84123456789
@@ -236,6 +247,25 @@ public class ZnsService {
                 throw e;
             }
             log.error("Error sending ZNS message to {}: {}", phone, e.getMessage(), e);
+            throw new RuntimeException("Failed to send ZNS message");
+        }
+    }
+
+    private void sendOtpViaRelay(String phone, String otpCode) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-Api-Key", relayApiKey);
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(relayUrl,
+                    new HttpEntity<>(Map.of("phone", phone, "otp", otpCode), headers), Map.class);
+            Object resultCode = response.getBody() != null ? response.getBody().get("resultCode") : null;
+            if (!(resultCode instanceof Number) || ((Number) resultCode).intValue() != 1) {
+                log.error("ZNS relay refused OTP for {}: {}", phone, response.getBody());
+                throw new RuntimeException("Failed to send ZNS message");
+            }
+            log.info("ZNS OTP sent via relay to phone: {}", phone);
+        } catch (RuntimeException e) {
+            log.error("Error sending ZNS OTP via relay to {}: {}", phone, e.getMessage());
             throw new RuntimeException("Failed to send ZNS message");
         }
     }
