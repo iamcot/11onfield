@@ -5,6 +5,7 @@ import com.elevenof.backoffice.service.PlayerAttributeService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +35,7 @@ public class PlayerAttributeController {
         return ResponseEntity.ok(attributes);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     @PostMapping("/player/{playerId}")
     public ResponseEntity<PlayerAttribute> createOrUpdatePlayerAttribute(
             @PathVariable Long playerId,
@@ -50,6 +52,7 @@ public class PlayerAttributeController {
         return ResponseEntity.ok(attribute);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     @PostMapping("/player/{playerId}/bulk")
     public ResponseEntity<Void> bulkUpdatePlayerAttributes(
             @PathVariable Long playerId,
@@ -61,12 +64,14 @@ public class PlayerAttributeController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     @DeleteMapping("/{attributeId}")
     public ResponseEntity<Void> deletePlayerAttribute(@PathVariable Long attributeId) {
         attributeService.deletePlayerAttribute(attributeId);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
     @DeleteMapping("/player/{playerId}")
     public ResponseEntity<Void> deleteAllPlayerAttributes(@PathVariable Long playerId) {
         attributeService.deleteAllPlayerAttributes(playerId);
