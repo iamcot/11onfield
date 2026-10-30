@@ -54,7 +54,10 @@ export default function CheckinPage() {
     return () => clearInterval(t);
   }, [stageId, reload]);
 
-  const url = state.data?.qr?.url;
+  // Built from the address the admin opened (e.g. an ngrok tunnel), so the phone reaches the same site;
+  // the backend's url (FRONTEND_URL) is only a fallback.
+  const code = state.data?.qr?.code;
+  const url = code ? `${window.location.origin}/check-in?c=${encodeURIComponent(code)}` : state.data?.qr?.url;
   useEffect(() => {
     if (!url) return setQrImage('');
     QRCode.toDataURL(url, { margin: 1, width: 720, errorCorrectionLevel: 'M' }).then(setQrImage).catch(() => setQrImage(''));
