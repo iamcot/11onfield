@@ -14,14 +14,15 @@ const STATUS: Record<string, string> = {
   COMPLETED: 'Đã kết thúc',
 };
 
-function formatDate(d: string) {
+function formatDate(d: string | null) {
+  if (!d) return 'Đang cập nhật';
   const [y, m, day] = d.split('T')[0].split('-');
   return day && m && y ? `${day}/${m}/${y}` : d;
 }
 
 export default function Regions({ stages, ctaHref }: { stages: Stage[]; ctaHref: string }) {
   const byRegion = (key: string) =>
-    stages.filter((s) => s.region === key && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => a.stageDate.localeCompare(b.stageDate))[0];
+    stages.filter((s) => s.region === key && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => (a.stageDate ?? '9999').localeCompare(b.stageDate ?? '9999'))[0];
 
   return (
     <section id="lich" className="relative z-[2] px-4 py-20 lg:px-6 lg:py-28">

@@ -81,7 +81,8 @@ function initials(name: string) {
   return (parts.length > 1 ? parts[parts.length - 2][0] + parts[parts.length - 1][0] : parts[0].slice(0, 2)).toUpperCase();
 }
 
-function formatDate(d: string) {
+function formatDate(d: string | null) {
+  if (!d) return 'Đang cập nhật';
   const [y, m, day] = d.split('T')[0].split('-');
   return day && m && y ? `${day}/${m}/${y}` : d;
 }
@@ -232,7 +233,7 @@ export default function RegisterFlow() {
 
   const stageFor = useMemo(
     () => (region: Region) =>
-      stages.filter((s) => s.region === region && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => a.stageDate.localeCompare(b.stageDate))[0],
+      stages.filter((s) => s.region === region && s.stageType === 'REGIONAL_AUDITION').sort((a, b) => (a.stageDate ?? '9999').localeCompare(b.stageDate ?? '9999'))[0],
     [stages]
   );
 
