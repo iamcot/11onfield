@@ -215,6 +215,8 @@ const players: Messages = {
   'Bạn đã đăng ký cuộc thi này': ['You are registered for this competition', 'Ya estás inscrito en este torneo', '이 대회에 참가 신청했습니다'],
   'Phát': ['Play', 'Reproducir', '재생'],
   'Tạm dừng': ['Pause', 'Pausa', '일시정지'],
+  'Bật tiếng': ['Turn sound on', 'Activar sonido', '소리 켜기'],
+  'Chạm để bật tiếng': ['Tap for sound', 'Toca para activar el sonido', '탭하여 소리 켜기'],
   'Mở trên {n}': ['Open on {n}', 'Abrir en {n}', '{n}에서 열기'],
   'trang gốc': ['the original site', 'el sitio original', '원본 사이트'],
   'Clip trước': ['Previous clip', 'Clip anterior', '이전 클립'],
