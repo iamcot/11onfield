@@ -117,6 +117,8 @@ export default function StructurePage() {
       <CompetitionTabs id={id} title={`Cấu trúc chấm — vòng ${n}`}>
         <div className="flex flex-wrap gap-2">
           <LinkButton href={`/quan-tri/giai-dau/${id}/vong/${n}/ket-qua`}>Kết quả vòng</LinkButton>
+          <LinkButton href={`/quan-tri/giai-dau/${id}/vong/${n}/thang-diem`}>Thang điểm</LinkButton>
+          <LinkButton href={`/quan-tri/giai-dau/${id}/vong/${n}/doi-soat`}>Đối soát</LinkButton>
           {manager && (
             <>
               <Button onClick={openCopy}>Sao chép từ vòng khác</Button>
