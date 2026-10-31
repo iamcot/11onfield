@@ -52,7 +52,7 @@ const METHOD: Record<string, string> = { BEST_OF: 'lấy lượt tốt nhất', 
 // High-contrast, touch-first palette for outdoor use on a tablet.
 const INK = 'text-[#06140D]';
 const seg = (active: boolean) =>
-  `min-h-[60px] shrink-0 rounded-xl border-2 px-5 text-[18px] font-semibold transition-colors ${
+  `min-h-[48px] rounded-lg border-2 px-3 py-1.5 text-left text-[16px] font-semibold leading-tight transition-colors ${
     active ? 'border-[#0B2419] bg-[#0B2419] text-[#D6FA9E]' : `border-[#0B2419]/25 bg-white ${INK} active:bg-[#E4F3D6]`
   }`;
 
@@ -416,16 +416,16 @@ export default function FieldScoring() {
           <>
             {/* Day and step pickers */}
             <section className="space-y-3">
-              <div className="flex items-center gap-3 overflow-x-auto pb-1">
-                <span className="w-24 shrink-0 text-[15px] font-bold uppercase tracking-wide">Ngày thi</span>
-                {c.days?.map((d) => <button key={d.id} type="button" className={seg(dayId === d.id)} onClick={() => pickDay(d.id)}>{d.title}</button>)}
-                {c.days?.length === 0 && <span className="text-[17px]">Vòng này chưa có cấu trúc chấm.</span>}
+              <div className="flex items-start gap-3">
+                <span className="w-24 shrink-0 pt-3 text-[14px] font-bold uppercase tracking-wide">Ngày thi</span>
+                <div className="flex min-w-0 flex-1 flex-wrap gap-2">{c.days?.map((d) => <button key={d.id} type="button" className={seg(dayId === d.id)} onClick={() => pickDay(d.id)}>{d.title}</button>)}
+                {c.days?.length === 0 && <span className="text-[17px]">Vòng này chưa có cấu trúc chấm.</span>}</div>
               </div>
               {dayId && (
-                <div className="flex items-center gap-3 overflow-x-auto pb-1">
-                  <span className="w-24 shrink-0 text-[15px] font-bold uppercase tracking-wide">Bước thi</span>
-                  {c.steps?.filter((s) => s.scoreSource !== 'HLV' || me.role !== 'TTV').map((s) => <button key={s.id} type="button" className={seg(stepId === s.id)} onClick={() => pickStep(s.id)}>{s.title}{s.scoreSource === 'HLV' && <span className="ml-1.5 rounded bg-[#FDF1DE] px-1.5 text-[12px] font-semibold text-[#8A4F07]">Điểm HLV</span>}</button>)}
-                  {c.steps?.length === 0 && <span className="text-[17px]">Ngày này chưa có bước thi.</span>}
+                <div className="flex items-start gap-3">
+                  <span className="w-24 shrink-0 pt-3 text-[14px] font-bold uppercase tracking-wide">Bước thi</span>
+                  <div className="flex min-w-0 flex-1 flex-wrap gap-2">{c.steps?.filter((s) => s.scoreSource !== 'HLV' || me.role !== 'TTV').map((s) => <button key={s.id} type="button" className={seg(stepId === s.id)} onClick={() => pickStep(s.id)}>{s.title}{s.scoreSource === 'HLV' && <span className="ml-1.5 rounded bg-[#FDF1DE] px-1.5 text-[12px] font-semibold text-[#8A4F07]">Điểm HLV</span>}</button>)}
+                  {c.steps?.length === 0 && <span className="text-[17px]">Ngày này chưa có bước thi.</span>}</div>
                 </div>
               )}
             </section>
@@ -433,11 +433,12 @@ export default function FieldScoring() {
             {!stepId && <p className="mt-8 text-center text-[20px] font-medium">Chọn ngày thi và bước thi để bắt đầu chấm.</p>}
 
             {stepId && (
-              <div className="mt-4 flex items-center gap-3">
-                <span className="w-24 shrink-0 text-[15px] font-bold uppercase tracking-wide">Cách nhập</span>
+              <div className="mt-3 flex items-start gap-3">
+                <span className="w-24 shrink-0 pt-3 text-[14px] font-bold uppercase tracking-wide">Cách nhập</span>
+                <div className="flex min-w-0 flex-1 flex-wrap gap-2">
                 <button type="button" className={seg(mode === 'one')} onClick={() => setMode('one')}>Từng thí sinh</button>
                 <button type="button" className={seg(mode === 'group')} onClick={() => setMode('group')}>Theo nhóm thi</button>
-                <button type="button" className={seg(mode === 'table')} onClick={() => setMode('table')}>Bảng nhập bù</button>
+                <button type="button" className={seg(mode === 'table')} onClick={() => setMode('table')}>Bảng nhập bù</button></div>
               </div>
             )}
 
