@@ -30,6 +30,7 @@ public class AdminDayAdvanceController {
     private final ScoringService scoringService;
     private final CompetitionParticipantRepository participantRepository;
     private final UserRepository userRepository;
+    private final com.elevenof.backoffice.service.ParticipantFlagService flagService;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -64,7 +65,7 @@ public class AdminDayAdvanceController {
         if (next == null) return error(HttpStatus.BAD_REQUEST, "Không có ngày thi sau ngày này");
         Integer count = day.get("advance_count") == null ? null : ((Number) day.get("advance_count")).intValue();
         if (count == null) return error(HttpStatus.BAD_REQUEST, "Chưa nhập số người đi tiếp");
-        List<ScoringService.ParticipantDay> ranked = ranking(dayId);
+        List<ScoringService.ParticipantDay> ranked = ranking(dayId).stream().filter(p -> !flagService.isBlocked(p.participantId())).toList();
         if (ranked.isEmpty()) return error(HttpStatus.BAD_REQUEST, "Ngày này chưa có thí sinh nào đủ điểm để xếp hạng");
         Long userId = currentUserId();
         jdbc.update("DELETE FROM day_participants WHERE day_id = ? AND reason = 'TOP'", next);
@@ -154,6 +155,48 @@ public class AdminDayAdvanceController {
         }
         list.sort(Comparator.comparing((Map<String, Object> m) -> (Integer) m.get("rank"), Comparator.nullsLast(Comparator.naturalOrder())));
         out.put("list", list);
+
+        // Bảng chốt of this day: everyone who took part (checked in, on the day's list or with a measurement), what they
+        // have and where they stand. Blocked = taken out by the doctor; INCOMPLETE = a test still has no level.
+        Map<Long, String> onNext = new HashMap<>();
+        list.forEach(m -> onNext.put((Long) m.get("participantId"), String.valueOf(m.get("reason"))));
+        Map<Long, ScoringService.ParticipantDay> scored = new HashMap<>();
+        for (ScoringService.ParticipantDay pd : scoringService.scoreDay(dayId, null)) scored.put(pd.participantId(), pd);
+        List<Long> dayList = jdbc.queryForList("SELECT participant_id FROM day_participants WHERE day_id = ?", Long.class, dayId);
+        Set<Long> people = new LinkedHashSet<>(dayList.isEmpty()
+                ? jdbc.queryForList("SELECT participant_id FROM stage_checkins WHERE stage_id = ?", Long.class, day.get("stage_id"))
+                : dayList);
+        people.addAll(scored.keySet());
+        List<Map<String, Object>> standings = new ArrayList<>();
+        int complete = 0, incomplete = 0, blocked = 0, out_ = 0;
+        for (Long pid : people) {
+            ScoringService.ParticipantDay pd = scored.get(pid);
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("participantId", pid);
+            m.put("sbd", sbdOf.get(pid));
+            m.put("fullName", nameOf.get(pid));
+            m.put("total", pd != null ? pd.total() : null);
+            m.put("rank", rankOf.get(pid));
+            long missing = pd == null ? -1 : pd.steps().stream().filter(st -> st.level() == null && !"NOT_APPLICABLE".equals(st.status())).count();
+            m.put("missing", missing);
+            boolean isComplete = pd != null && pd.complete();
+            String status;
+            if (flagService.isBlocked(pid)) { status = "BLOCKED"; blocked++; }
+            else {
+                if (isComplete) complete++; else incomplete++;
+                if (onNext.containsKey(pid)) status = onNext.get(pid);
+                else if (!isComplete) status = "INCOMPLETE";
+                else if (onNext.isEmpty()) status = "COMPLETE";
+                else { status = "OUT"; out_++; }
+            }
+            m.put("status", status);
+            standings.add(m);
+        }
+        standings.sort(Comparator.comparing((Map<String, Object> m) -> (Integer) m.get("rank"), Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(m -> (Integer) m.get("sbd"), Comparator.nullsLast(Comparator.naturalOrder())));
+        out.put("standings", standings);
+        out.put("summary", Map.of("total", people.size(), "complete", complete, "incomplete", incomplete, "blocked", blocked,
+                "advancing", list.size(), "out", out_));
         return out;
     }
 

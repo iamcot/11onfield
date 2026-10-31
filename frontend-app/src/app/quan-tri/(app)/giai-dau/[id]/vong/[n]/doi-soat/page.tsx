@@ -204,6 +204,57 @@ function LockBar({ step, onChanged }: { step: Step; onChanged: () => void }) {
   );
 }
 
+/** Step-by-step help under the screen, so nobody has to remember how the review and the lock work. */
+function Guide() {
+  const H = 'mt-3 text-[14px] font-semibold text-[#10231A]';
+  return (
+    <details className="border border-[#DCE5DF] bg-white p-4 text-[13px] leading-relaxed text-[#2F3F36]" open>
+      <summary className="cursor-pointer text-[15px] font-semibold text-[#10231A]">Hướng dẫn đối soát và khoá sổ</summary>
+
+      <p className={H}>Đối soát là gì</p>
+      <p>Mỗi lượt thi có thể có nhiều bản ghi: TTV nhập tay, máy đo, file của máy, video. Hệ thống chọn ra <b>một số chính thức</b> cho mỗi lượt, và chỉ số chính thức mới được tính điểm.</p>
+      <ul className="ml-5 list-disc">
+        <li><b>Tự chốt</b>: lượt chỉ có một nguồn, hoặc các nguồn khớp nhau trong sai số, và số nằm trong ngưỡng hợp lý. Không cần làm gì.</li>
+        <li><b>Cần xem</b>: hệ thống không tự chọn được. Lượt này <b>chưa được tính điểm</b>, nên bài đó của thí sinh hiện “chưa đủ” cho tới khi có người chốt. Có 4 lý do:
+          <ul className="ml-5 list-[circle]">
+            <li>Hai nguồn lệch nhau quá sai số (ví dụ máy đo 4,05 s nhưng TTV ghi 4,50 s).</li>
+            <li>Số ngoài ngưỡng hợp lý của nội dung (thường là gõ nhầm, ví dụ 45 thay vì 4,5).</li>
+            <li>Số tới sau khi bài đã khoá sổ.</li>
+            <li>Số mới tới sau khi lượt đã được chốt tay.</li>
+          </ul>
+        </li>
+        <li><b>Đã chốt tay</b>: người có quyền đã chọn số đúng cho lượt cần xem.</li>
+        <li><b>Đã khoá</b>: bài đã khoá sổ, số không đổi nữa.</li>
+      </ul>
+
+      <p className={H}>Xử lý một lượt “Cần xem”</p>
+      <ol className="ml-5 list-decimal">
+        <li>Đọc lý do trên thẻ và các bản ghi của lượt (nguồn, giá trị, người nhập, giờ). Bấm <b>Lịch sử</b> để xem mọi bản ghi kể cả bản đã bị sửa.</li>
+        <li>Chọn bản ghi đúng. Nếu không bản nào đúng thì chọn “Nhập số đúng” rồi gõ số, hoặc chọn Lỗi kỹ thuật / Không thi.</li>
+        <li>Ghi <b>lý do chốt</b> (bắt buộc), ví dụ “xem lại video”, “TTV gõ nhầm dấu phẩy”.</li>
+        <li>Bấm <b>Chốt</b>. Lượt chuyển sang “Đã chốt tay” và được tính điểm ngay.</li>
+      </ol>
+
+      <p className={H}>Khoá sổ là gì</p>
+      <p>Khoá sổ là đóng một bài thi khi bài đó đã thi xong. Sau khi khoá, số của bài không đổi nữa, kể cả khi iPad gửi thêm số. Số tới sau sẽ vào hàng “Cần xem” với lý do “Số tới sau khi khoá sổ”, chứ không tự đổi điểm.</p>
+      <ul className="ml-5 list-disc">
+        <li><b>Điều kiện để khoá</b>: không còn lượt “Cần xem” nào của bài, và mọi thí sinh đã thi bài đều đủ lượt. Thiếu lượt thì ghi Không thi hoặc Lỗi ở màn Chấm điểm (chế độ Bảng nhập bù cho nhanh).</li>
+        <li><b>Mở khoá</b>: chỉ admin, bắt buộc ghi lý do. Lần mở khoá được lưu lại.</li>
+        <li>Thanh điều hướng hiện ✓ ở “Đối soát và khoá sổ” khi mọi bài tính điểm của vòng đã khoá.</li>
+      </ul>
+
+      <p className={H}>Trình tự cuối mỗi ngày thi</p>
+      <ol className="ml-5 list-decimal">
+        <li>Nhắc các TTV kiểm tra iPad: ô “chờ gửi” trên thanh trên cùng phải về 0 (có mạng là tự gửi).</li>
+        <li>Ở đây, chọn ngày thi rồi xử lý hết các lượt “Cần xem” (dùng bộ lọc Bài thi và Lý do cho gọn).</li>
+        <li>Nhập bù lượt còn thiếu ở Chấm điểm tại trạm → Bảng nhập bù.</li>
+        <li>Khoá sổ từng bài trong khung “Khoá sổ theo bài”.</li>
+        <li>Sang <b>Kết quả vòng</b>: bấm Tính lại điểm, xem bảng chốt (đủ điểm, thiếu điểm, y tế loại), rồi chuyển top x sang ngày sau.</li>
+      </ol>
+    </details>
+  );
+}
+
 export default function ReconcilePage() {
   const { id, n } = useParams<{ id: string; n: string }>();
   const manager = useIsManager();
@@ -275,6 +326,7 @@ export default function ReconcilePage() {
             </p>
           )}
           {items.map((it) => <ItemCard key={`${it.officialId}-${it.pickedRawId}-${it.records.length}`} item={it} readOnly={!manager} onDone={() => review.reload()} />)}
+          <Guide />
         </div>
       )}
     </>

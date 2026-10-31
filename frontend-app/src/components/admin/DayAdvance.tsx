@@ -17,7 +17,27 @@ interface Advance {
   nextDayNumber: number | null;
   ranked: number;
   list: { participantId: number; sbd: number; fullName: string; reason: 'TOP' | 'EXCEPTION'; note: string | null; rank: number | null; total: number | null }[];
+  summary: { total: number; complete: number; incomplete: number; blocked: number; advancing: number; out: number };
+  standings: Standing[];
 }
+type Status = 'TOP' | 'EXCEPTION' | 'OUT' | 'COMPLETE' | 'INCOMPLETE' | 'BLOCKED';
+interface Standing { participantId: number; sbd: number; fullName: string; total: number | null; rank: number | null; missing: number; status: Status }
+
+const STATUS: Record<Status, { label: string; cls: string }> = {
+  TOP: { label: 'Đi tiếp (top)', cls: 'bg-[#E4F1E8] text-[#1F6B32]' },
+  EXCEPTION: { label: 'Đi tiếp (ngoại lệ)', cls: 'bg-[#FDF1DE] text-[#8A4F07]' },
+  COMPLETE: { label: 'Đủ điểm', cls: 'bg-[#EEF2EF] text-[#10231A]' },
+  OUT: { label: 'Dừng', cls: 'bg-[#EEF2EF] text-[#66766D]' },
+  INCOMPLETE: { label: 'Thiếu điểm', cls: 'bg-[#FFF4D6] text-[#8A5A00]' },
+  BLOCKED: { label: 'Y tế loại', cls: 'bg-[#FDE4E1] text-[#B42318]' },
+};
+const FILTERS: { id: string; label: string; match: (s: Status) => boolean }[] = [
+  { id: 'all', label: 'Tất cả', match: () => true },
+  { id: 'go', label: 'Đi tiếp', match: (s) => s === 'TOP' || s === 'EXCEPTION' },
+  { id: 'out', label: 'Dừng', match: (s) => s === 'OUT' },
+  { id: 'inc', label: 'Thiếu điểm', match: (s) => s === 'INCOMPLETE' },
+  { id: 'blk', label: 'Y tế loại', match: (s) => s === 'BLOCKED' },
+];
 
 export default function DayAdvance({ days }: { days: { id: number; dayNumber: number }[] }) {
   const withNext = [...days].sort((a, b) => a.dayNumber - b.dayNumber).slice(0, -1);
@@ -37,6 +57,8 @@ function DayPanel({ dayId }: { dayId: number }) {
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
+  const [board, setBoard] = useState(false);
+  const [filter, setFilter] = useState('all');
 
   async function run(path: string, init: { method?: string; body?: unknown }, ok: string) {
     setBusy(true);
@@ -62,11 +84,21 @@ function DayPanel({ dayId }: { dayId: number }) {
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-0 flex-1">
           <h2 className="text-[16px] font-semibold">Đi tiếp từ Ngày {a.dayNumber} sang Ngày {a.nextDayNumber}</h2>
-          <p className="text-[13px] text-[#46564D]">
+          <div className="mt-2 flex flex-wrap gap-2 text-[13px]">
+            <span className="rounded bg-[#EEF2EF] px-2 py-1">Dự thi Ngày {a.dayNumber}: <b>{a.summary.total}</b></span>
+            <span className="rounded bg-[#E4F1E8] px-2 py-1 text-[#1F6B32]">Đủ điểm: <b>{a.summary.complete}</b></span>
+            <span className="rounded bg-[#FFF4D6] px-2 py-1 text-[#8A5A00]">Thiếu điểm: <b>{a.summary.incomplete}</b></span>
+            <span className="rounded bg-[#FDE4E1] px-2 py-1 text-[#B42318]">Y tế loại: <b>{a.summary.blocked}</b></span>
+            {a.list.length > 0 && <>
+              <span className="rounded bg-[#0F3324] px-2 py-1 text-[#D6FA9E]">Đi tiếp Ngày {a.nextDayNumber}: <b>{a.summary.advancing}</b> ({tops} top, {exceptions.length} ngoại lệ)</span>
+              <span className="rounded bg-[#EEF2EF] px-2 py-1 text-[#66766D]">Dừng: <b>{a.standings.filter((x) => x.status !== 'TOP' && x.status !== 'EXCEPTION').length}</b></span>
+            </>}
+          </div>
+          <p className="mt-1 text-[12px] text-[#66766D]">
             {a.list.length === 0
-              ? `Ngày ${a.nextDayNumber} chưa có danh sách, nên đang mở cho mọi thí sinh.`
-              : `Ngày ${a.nextDayNumber} có ${a.list.length} người: ${tops} người top, ${exceptions.length} ngoại lệ. Chỉ những người này được chấm và xếp hạng ở Ngày ${a.nextDayNumber}.`}
-            {' '}Ngày {a.dayNumber} đang có {a.ranked} người đủ điểm.
+              ? `Ngày ${a.nextDayNumber} chưa có danh sách nên đang mở cho mọi thí sinh. Chốt bằng nút chuyển top.`
+              : `Chỉ những người đi tiếp được chấm và xếp hạng ở Ngày ${a.nextDayNumber}.`}
+            {a.summary.incomplete > 0 && ` Còn ${a.summary.incomplete} người thiếu điểm: nhập bù trước khi chốt, hoặc họ sẽ không vào top.`}
           </p>
         </div>
         <label className="w-[150px] text-[13px] font-medium">
@@ -96,6 +128,42 @@ function DayPanel({ dayId }: { dayId: number }) {
           }}>Thêm ngoại lệ</Button>
         </div>
       )}
+
+      <div className="mt-3">
+        <button type="button" className="text-[13px] font-medium text-[#1F6B32] underline" onClick={() => setBoard((o) => !o)}>
+          {board ? 'Ẩn bảng chốt' : `Xem bảng chốt Ngày ${a.dayNumber} (${a.standings.length} người)`}
+        </button>
+        {board && (
+          <div className="mt-2">
+            <div className="flex flex-wrap gap-1">
+              {FILTERS.map((f) => (
+                <button key={f.id} type="button" onClick={() => setFilter(f.id)}
+                  className={`rounded-md border px-2.5 py-1 text-[12px] font-medium ${filter === f.id ? 'border-[#0F3324] bg-[#0F3324] text-[#D6FA9E]' : 'border-[#C9D5CD] bg-white'}`}>
+                  {f.label} ({a.standings.filter((x) => f.match(x.status)).length})
+                </button>
+              ))}
+            </div>
+            <table className="mt-2 w-full text-[13px]">
+              <thead><tr className="text-left text-[12px] uppercase text-[#66766D]"><th className="py-1">Hạng</th><th>SBD</th><th>Thí sinh</th><th>Điểm N{a.dayNumber}</th><th>Trạng thái</th></tr></thead>
+              <tbody>
+                {a.standings.filter((x) => FILTERS.find((f) => f.id === filter)!.match(x.status)).map((r) => (
+                  <tr key={r.participantId} className={`border-t ${filter === 'all' && a.advanceCount && r.rank === a.advanceCount ? 'border-b-2 border-b-[#1F7A3A]' : ''} border-[#EEF2EF]`}>
+                    <td className="py-1.5 tabular-nums">{r.rank ?? '—'}</td>
+                    <td className="tabular-nums">{r.sbd}</td>
+                    <td className="font-medium">{r.fullName}</td>
+                    <td className="tabular-nums">{r.total != null && r.status !== 'INCOMPLETE' ? Number(r.total).toFixed(2) : '—'}</td>
+                    <td>
+                      <span className={`rounded px-1.5 py-0.5 text-[12px] font-semibold ${STATUS[r.status].cls}`}>{STATUS[r.status].label}</span>
+                      {r.status === 'INCOMPLETE' && <span className="ml-2 text-[12px] text-[#8A5A00]">{r.missing < 0 ? 'chưa có số đo' : `thiếu ${r.missing} bài`}</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {filter === 'all' && a.advanceCount ? <p className="mt-1 text-[12px] text-[#66766D]">Vạch xanh đậm là vạch cắt top {a.advanceCount}.</p> : null}
+          </div>
+        )}
+      </div>
 
       {a.list.length > 0 && (
         <div className="mt-3">
