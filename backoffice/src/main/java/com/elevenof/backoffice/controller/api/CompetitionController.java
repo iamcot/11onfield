@@ -291,8 +291,9 @@ public class CompetitionController {
         List<CompetitionStage> stages = stageRepository
             .findByCompetitionIdOrderByStageNumberAsc(competition.getId());
 
-        long participantCount = competitionService
-            .getAllParticipants(competition.getId()).size();
+        // same rule as the competition's player list (/users/players?competitionId=)
+        long participantCount = userRepository.count(
+            com.elevenof.backoffice.specification.PlayerSpecification.registeredIn(competition.getId()));
 
         List<StageDTO> stageDTOs = stages.stream()
             .map(stage -> StageDTO.builder()

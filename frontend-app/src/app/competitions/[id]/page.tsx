@@ -197,7 +197,7 @@ export default function CompetitionDetailPage() {
             {news.length > 0 && <sup>{news.length}</sup>}
           </button>
         </div>
-        {tab === "players" ? <PlayersTab finalOpen={finalOpen} total={competition.participantCount} /> : <NewsTab competitionId={competitionId} news={news} />}
+        {tab === "players" ? <PlayersTab competitionId={competition.id} finalOpen={finalOpen} total={competition.participantCount} /> : <NewsTab competitionId={competitionId} news={news} />}
       </section>
 
       <HomeFooter />

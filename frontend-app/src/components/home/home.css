@@ -430,6 +430,29 @@
   transform: skewX(-20deg);
   animation: of-btn-shine 3.6s ease-in-out 2s infinite;
 }
+/* text link to the open competition, under a sign-up button */
+.of-root .of-comp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  font-family: var(--font-hud), sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lime, #a6e35a);
+  text-decoration: underline;
+  text-decoration-color: rgba(166, 227, 90, 0.45);
+  text-underline-offset: 5px;
+  transition: color 0.2s;
+}
+.of-root .of-comp-link:hover {
+  color: #fff;
+}
+.of-comp-link.of-in {
+  --i: 2.5;
+}
 .of-btn:hover {
   filter: brightness(1.08) drop-shadow(0 0 14px rgba(166, 227, 90, 0.6));
 }
@@ -1858,6 +1881,17 @@ html body .of-app select option { background: #0b1f15; color: #fff; }
   --ring: var(--lime, #a6e35a);
   --b: 2px;
   filter: brightness(1.08);
+}
+.of-lang-btn.of-lang-btn--round {
+  /* round, like the app bar's bell and avatar: no chamfer, ring from a box-shadow */
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  clip-path: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+.of-lang-btn--round::before {
+  display: none;
 }
 .of-lang-flag {
   display: block;

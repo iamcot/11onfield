@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { ArrowRight } from './ui';
+import CompetitionLink from './CompetitionLink';
 import { useT } from '@/i18n/I18nProvider';
 
-export default function FinalCta({ ctaHref }: { ctaHref: string }) {
+export default function FinalCta({ ctaHref, competitionHref }: { ctaHref: string; competitionHref: string | null }) {
   const t = useT();
   return (
     <section className="relative z-[2] px-4 pb-20 pt-6 lg:px-6 lg:pb-28">
@@ -24,6 +25,7 @@ export default function FinalCta({ ctaHref }: { ctaHref: string }) {
           <Link href={ctaHref} className="of-btn self-start">
             {t('Đăng ký ngay hôm nay')} <ArrowRight />
           </Link>
+          <CompetitionLink href={competitionHref} />
         </div>
       </div>
     </section>
