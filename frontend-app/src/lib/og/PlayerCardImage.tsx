@@ -26,6 +26,8 @@ export function PlayerCardImage({ p, photo, logo, width, t }: { p: PlayerView; p
   const c = 28 * u;
   const b = Math.max(2, 2 * u);
   const pad = 15 * u;
+  // stroked twice as wide as the ring: the outer half falls outside the card and is clipped away
+  const ring = `M${c} 0H${width}V${height - c}L${width - c} ${height}H0V${c}Z`;
   const name = p.name.toUpperCase();
   // the in-app card cuts a long name with an ellipsis; an image has room to shrink it instead
   const nameSize = Math.min(26, 205 / Math.max(1, name.length * 0.5)) * u;
@@ -37,16 +39,15 @@ export function PlayerCardImage({ p, photo, logo, width, t }: { p: PlayerView; p
   ];
 
   return (
-    <div style={{ position: 'relative', display: 'flex', width, height, background: RING, clipPath: cut(width, height, c) }}>
+    <div style={{ position: 'relative', display: 'flex', width, height, clipPath: cut(width, height, c) }}>
       <div
         style={{
           position: 'absolute',
-          left: b,
-          top: b,
-          width: width - 2 * b,
-          height: height - 2 * b,
+          left: 0,
+          top: 0,
+          width,
+          height,
           display: 'flex',
-          clipPath: cut(width - 2 * b, height - 2 * b, c - 0.586 * b),
           backgroundImage: 'linear-gradient(160deg, #46381a 0%, #2a2512 45%, #0f170e 100%)',
         }}
       >
@@ -64,7 +65,7 @@ export function PlayerCardImage({ p, photo, logo, width, t }: { p: PlayerView; p
           <img
             src={photo}
             alt=""
-            style={{ position: 'absolute', left: 0, top: 18 * u, width: width - 2 * b, height: 172 * u, objectFit: 'contain', objectPosition: 'bottom' }}
+            style={{ position: 'absolute', left: 0, top: 18 * u, width, height: 172 * u, objectFit: 'contain', objectPosition: 'bottom' }}
           />
         ) : (
           <div
@@ -140,6 +141,10 @@ export function PlayerCardImage({ p, photo, logo, width, t }: { p: PlayerView; p
           </div>
         </div>
       </div>
+      {/* gold ring drawn on top, so the chamfered edges get it too (.of-cut::before in the app) */}
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ position: 'absolute', left: 0, top: 0 }}>
+        <path d={ring} fill="none" stroke={RING} strokeWidth={b * 2} />
+      </svg>
     </div>
   );
 }

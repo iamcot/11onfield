@@ -28,10 +28,22 @@ export async function GET(req: Request, { params }: { params: { userid: string }
   const headers = { 'Cache-Control': 'public, max-age=300, s-maxage=300' };
 
   if (og) {
+    // the card a bit smaller than the preview's width, so the crop keeps at least its top half (face, score and
+    // position); the strip on the right carries the logo
+    const cardWidth = 930;
+    const [wordmark, stadium] = await Promise.all([publicImage('images/logo-white-full.png'), publicImage('images/home/stadium-bg.jpg')]);
     return new ImageResponse(
       (
-        <div style={{ display: 'flex', width: OG_SIZE.width, height: OG_SIZE.height, background: '#0b170f', overflow: 'hidden' }}>
-          <PlayerCardImage p={p} photo={photo} logo={logo} width={OG_SIZE.width} t={t} />
+        <div style={{ position: 'relative', display: 'flex', width: OG_SIZE.width, height: OG_SIZE.height, background: '#07130c', overflow: 'hidden' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={stadium} alt="" style={{ position: 'absolute', inset: 0, width: OG_SIZE.width, height: OG_SIZE.height, objectFit: 'cover', opacity: 0.4 }} />
+          <div style={{ position: 'absolute', left: 0, top: 0, display: 'flex' }}>
+            <PlayerCardImage p={p} photo={photo} logo={logo} width={cardWidth} t={t} />
+          </div>
+          <div style={{ position: 'absolute', left: cardWidth, right: 0, top: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={wordmark} alt="" style={{ width: 220, height: 43 }} />
+          </div>
         </div>
       ),
       { ...OG_SIZE, fonts, headers },

@@ -33,7 +33,7 @@ export const PROFILE_LABELS: Record<string, string> = {
   FIT: 'Thể chất',
   EXP: 'Kinh nghiệm',
   SKL: 'Kỹ năng',
-  PRF: 'Hoàn thiện',
+  PRF: 'Thông tin',
   ACH: 'Thành tích',
   HLT: 'Highlight',
 };

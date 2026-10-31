@@ -100,7 +100,6 @@ const players: Messages = {
   'Mã QR hồ sơ của {name}': ['Profile QR code of {name}', 'Código QR del perfil de {name}', '{name}님의 프로필 QR 코드'],
   'Quét bằng nút QR trong app để mở hồ sơ và theo dõi ngay.': ['Scan it with the QR button in the app to open the profile and follow right away.', 'Escanéalo con el botón QR de la app para abrir el perfil y seguirlo al instante.', '앱의 QR 버튼으로 스캔하면 프로필이 열리고 바로 팔로우됩니다.'],
   'Lưu ảnh QR': ['Save QR image', 'Guardar imagen QR', 'QR 이미지 저장'],
-  'Hoàn thiện': ['Completeness', 'Completitud', '완성도'],
   'Card cá nhân': ['Player card', 'Tarjeta de jugador', '선수 카드'],
   'Card cá nhân của {name}': ['Player card of {name}', 'Tarjeta de jugador de {name}', '{name} 선수 카드'],
   'Ảnh thẻ cầu thủ để tải về và đăng mạng xã hội': ['Your player card as a picture to save and post', 'Tu tarjeta de jugador en imagen para guardar y publicar', '저장하고 SNS에 올릴 수 있는 선수 카드 이미지'],
