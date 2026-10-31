@@ -200,6 +200,7 @@ public class AdminCombineController {
             t.setMaxPoints(max);
             t.setDisplayOrder(order++);
             t.setTieBreakOrder(m.get("tieBreakOrder") != null ? (int) num(m.get("tieBreakOrder")) : null);
+            t.setScoredBy("HLV".equals(str(m.get("scoredBy"))) ? "HLV" : null);
             keep.add(t);
         }
         if (!existing.isEmpty()) {
@@ -347,6 +348,7 @@ public class AdminCombineController {
         m.put("name", t.getName());
         m.put("maxPoints", t.getMaxPoints());
         m.put("tieBreakOrder", t.getTieBreakOrder());
+        m.put("scoredBy", t.getScoredBy());
         return m;
     }
 
@@ -414,7 +416,7 @@ public class AdminCombineController {
         String base = java.text.Normalizer.normalize(name.replace('đ', 'd').replace('Đ', 'D'), java.text.Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "").toUpperCase().replaceAll("[^A-Z0-9]+", "_").replaceAll("^_+|_+$", "");
         if (base.isEmpty()) base = "NHOM";
-        if (base.length() > 40) base = base.substring(0, 40);
+        if (base.length() > 26) base = base.substring(0, 26);
         String key = base;
         for (int n = 2; taken.contains(key); n++) key = base + "_" + n;
         return key;

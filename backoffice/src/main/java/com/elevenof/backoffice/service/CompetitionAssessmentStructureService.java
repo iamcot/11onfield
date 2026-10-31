@@ -363,7 +363,7 @@ public class CompetitionAssessmentStructureService {
             for (CompetitionScoreTopic t : topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(sourceDay.getId())) {
                 CompetitionScoreTopic copy = topicRepository.save(CompetitionScoreTopic.builder()
                     .assessmentDayId(newDay.getId()).topicKey(t.getTopicKey()).name(t.getName()).maxPoints(t.getMaxPoints())
-                    .displayOrder(t.getDisplayOrder()).tieBreakOrder(t.getTieBreakOrder()).build());
+                    .displayOrder(t.getDisplayOrder()).tieBreakOrder(t.getTieBreakOrder()).scoredBy(t.getScoredBy()).build());
                 topicIds.put(t.getId(), copy.getId());
             }
 

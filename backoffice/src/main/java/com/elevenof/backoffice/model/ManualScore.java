@@ -23,6 +23,12 @@ public class ManualScore {
     public static final String TACTICAL_7V7 = "TACTICAL_7V7";
     public static final String MIND_MEDIA = "MIND_MEDIA";
     public static final String GPS_AI = "GPS_AI";
+    /** Prefix of the key of a score group the head coach scores by hand: TOPIC_<topic id>. */
+    public static final String TOPIC_PREFIX = "TOPIC_";
+
+    public static String topicKey(Long topicId) {
+        return TOPIC_PREFIX + topicId;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

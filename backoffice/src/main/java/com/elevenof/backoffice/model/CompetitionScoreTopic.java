@@ -38,6 +38,10 @@ public class CompetitionScoreTopic {
 
     private Integer tieBreakOrder;
 
+    /** null: from the problems' levels; "HLV": entered by the head coach after the exam. */
+    @Column(length = 10)
+    private String scoredBy;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

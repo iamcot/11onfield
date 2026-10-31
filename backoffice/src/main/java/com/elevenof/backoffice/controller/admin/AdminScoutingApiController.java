@@ -53,6 +53,7 @@ public class AdminScoutingApiController {
     private final ParticipantFlagRepository flagRepository;
     private final GreenCardRepository greenCardRepository;
     private final ManualScoreRepository manualScoreRepository;
+    private final CompetitionScoreTopicRepository topicRepository;
     private final ParticipantFlagService flagService;
     private final com.elevenof.backoffice.service.PanelService panelService;
 
@@ -410,6 +411,7 @@ public class AdminScoutingApiController {
         }
         List<Map<String, Object>> components = new ArrayList<>();
         COMPONENTS.forEach((k, v) -> components.add(Map.of("key", k, "label", v[0], "max", v[1], "owner", ManualScore.BHL.equals(k) ? "HLV" : "TTV")));
+        handTopics(stageId).forEach((k, t) -> components.add(Map.of("key", k, "label", t.getName(), "max", t.getMaxPoints(), "owner", "HLV")));
         return ResponseEntity.ok(Map.of("components", components, "participants", rows));
     }
 
@@ -421,10 +423,12 @@ public class AdminScoutingApiController {
         if (!stageRepository.existsById(stageId)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy vòng thi");
         Long participantId = longOf(body.get("participantId"));
         String key = str(body.get("componentKey"));
-        if (participantId == null || key == null || !COMPONENTS.containsKey(key)) return error(HttpStatus.BAD_REQUEST, "Thiếu thí sinh hoặc hạng mục điểm");
-        // The coaching staff score is the head coach's; scouts enter the rest. Admins may correct any.
-        if (!hasRole(auth, "ADMIN") && !hasRole(auth, "HLV") && ManualScore.BHL.equals(key)) {
-            return error(HttpStatus.FORBIDDEN, "Điểm BHL do HLV nhập");
+        CompetitionScoreTopic handTopic = key == null ? null : handTopics(stageId).get(key);
+        if (participantId == null || key == null || (!COMPONENTS.containsKey(key) && handTopic == null)) return error(HttpStatus.BAD_REQUEST, "Thiếu thí sinh hoặc hạng mục điểm");
+        // The coaching staff score and the groups the head coach scores by hand are the HLV's; scouts enter the rest.
+        // Admins may correct any.
+        if (!hasRole(auth, "ADMIN") && !hasRole(auth, "HLV") && (ManualScore.BHL.equals(key) || handTopic != null)) {
+            return error(HttpStatus.FORBIDDEN, (handTopic != null ? "Điểm " + handTopic.getName() : "Điểm BHL") + " do HLV nhập");
         }
         if (!participantRepository.existsById(participantId)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy thí sinh");
         BigDecimal points;
@@ -433,8 +437,8 @@ public class AdminScoutingApiController {
         } catch (NumberFormatException e) {
             return error(HttpStatus.BAD_REQUEST, "Điểm không hợp lệ");
         }
-        int max = (Integer) COMPONENTS.get(key)[1];
-        if (points.signum() < 0 || points.compareTo(BigDecimal.valueOf(max)) > 0) return error(HttpStatus.BAD_REQUEST, "Điểm phải từ 0 đến " + max);
+        BigDecimal max = handTopic != null ? handTopic.getMaxPoints() : BigDecimal.valueOf((Integer) COMPONENTS.get(key)[1]);
+        if (points.signum() < 0 || points.compareTo(max) > 0) return error(HttpStatus.BAD_REQUEST, "Điểm phải từ 0 đến " + max.stripTrailingZeros().toPlainString());
         if (points.scale() > 2) return error(HttpStatus.BAD_REQUEST, "Điểm chỉ lấy tối đa 2 chữ số thập phân");
 
         ManualScore current = manualScoreRepository.findByStageIdAndParticipantIdOrderByIdAsc(stageId, participantId).stream()
@@ -574,5 +578,16 @@ public class AdminScoutingApiController {
 
     private static ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("message", message));
+    }
+
+    /** Score groups of this round that the head coach scores by hand, by their manual-score key (TOPIC_<id>). */
+    private Map<String, CompetitionScoreTopic> handTopics(Long stageId) {
+        Map<String, CompetitionScoreTopic> out = new LinkedHashMap<>();
+        for (CompetitionAssessmentDay d : dayRepository.findByStageIdOrderByDisplayOrderAsc(stageId)) {
+            for (CompetitionScoreTopic t : topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(d.getId())) {
+                if ("HLV".equals(t.getScoredBy())) out.put(ManualScore.topicKey(t.getId()), t);
+            }
+        }
+        return out;
     }
 }
