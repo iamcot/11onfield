@@ -203,10 +203,23 @@ Bộ gắn tay chuẩn (3 trận) là việc phải làm sớm: vừa để đo,
   - Tinh chỉnh trên ảnh sân của mình; dữ liệu mở như SoccerNet (tracking, calibration) dùng để khởi đầu, **cần kiểm điều
     khoản** (một số bộ chỉ cho nghiên cứu).
   - OCR số áo: mô hình phân loại chữ số nhỏ, huấn luyện trên ảnh cắt từ video của mình.
-- **Phần cứng**: chạy được trên **Mac Apple Silicon (M-series)** lẫn PC có GPU NVIDIA ≥ 8 GB VRAM. Lớp suy luận tách backend:
-  CUDA (PyTorch/TensorRT), MPS (PyTorch trên Mac, bật `PYTORCH_ENABLE_MPS_FALLBACK=1`), CoreML (mô hình phát hiện xuất sang
-  CoreML để chạy trên Neural Engine, nhanh nhất trên Mac). Giải mã video qua phần cứng (VideoToolbox / NVDEC). RAM ≥ 16 GB,
-  khuyên 24–32 GB cho video 4K. Tránh thư viện chỉ có CUDA. Đo tốc độ thật trên MacBook M5 ở M0.
+- **Chạy trên cả macOS và Windows** (bắt buộc), dùng qua lại được:
+  - Suy luận dùng **ONNX Runtime** làm định dạng chung: mỗi mô hình xuất một file `.onnx`, tự chọn bộ tăng tốc theo máy:
+    CoreML trên Mac Apple Silicon, CUDA (hoặc TensorRT) trên PC NVIDIA, DirectML trên Windows card AMD/Intel, CPU khi không
+    có gì. Huấn luyện/tinh chỉnh vẫn bằng PyTorch (CUDA hoặc MPS).
+  - Giải mã video bằng PyAV/FFmpeg, bật tăng tốc phần cứng theo máy (VideoToolbox trên Mac, NVDEC/D3D11VA trên Windows),
+    tự lùi về giải mã CPU nếu không có.
+  - **Thư mục dự án trận mang đi được**: chỉ dùng đường dẫn tương đối, UTF-8, không phụ thuộc ký tự phân cách thư mục;
+    video gốc có thể nằm ngoài thư mục và được tìm lại theo tên + kích thước + mã băm. Làm dở một trận trên Mac, chép sang
+    Windows (hoặc để trên ổ chung/cloud drive) mở tiếp được, và ngược lại.
+  - Kết quả hai máy khớp nhau trong sai số nhỏ (phát hiện có thể lệch vài pixel do bộ tăng tốc khác nhau); các bước sau
+    phát hiện là tất định. Có bài test so kết quả một đoạn video mẫu trên cả hai hệ điều hành.
+  - Môi trường bằng `uv` + `pyproject.toml` (một lệnh cài như nhau trên hai máy); giao diện web localhost nên không có phần
+    giao diện riêng theo hệ điều hành. CI chạy test trên runner macOS và Windows.
+  - Bản đóng gói (M4): `.dmg` cho Mac, `.exe`/`.msi` cho Windows.
+- **Phần cứng**: Mac Apple Silicon (MacBook M5 là máy chính), PC Windows có GPU NVIDIA ≥ 8 GB VRAM chạy nhanh nhất. RAM
+  ≥ 16 GB, khuyên 24–32 GB cho video 4K. Tránh thư viện chỉ chạy trên một hệ điều hành hoặc chỉ có CUDA. Đo tốc độ thật
+  trên cả hai máy ở M0.
 - **Điều kiện quay**: camera cố định cao 4–6 m giữa biên dọc, thấy trọn sân, 1080p 50/60 fps hoặc 4K 30 fps, khoá zoom/phơi
   sáng; áo bib số lớn; mốc sân rõ.
 
@@ -219,7 +232,7 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | A0.1 | Hướng dẫn quay + thu 3–5 video mẫu (có 1 trận đeo GPS) | M0 | — | Chờ chốt |
 | A0.2 | Thử nhanh 2–3 mô hình phát hiện trên video mẫu, chọn mô hình + phần cứng | M0 | A0.1 | Chưa làm |
 | A0.3 | Gắn tay chuẩn 3 trận (vị trí bóng theo mốc, sự kiện) | M0 | A0.1 | Chưa làm |
-| A1.1 | Khung ứng dụng: thư mục dự án trận, CLI, web localhost, nạp video nhiều phần, đặt mốc hiệp | M1 | — | Chưa làm |
+| A1.1 | Khung ứng dụng: thư mục dự án trận mang đi được, CLI, web localhost, nạp video nhiều phần, đặt mốc hiệp; chạy và CI trên macOS + Windows | M1 | — | Chưa làm |
 | A1.2 | Thiết lập sân: mẫu sân, bấm mốc, homography, lưới kiểm tra, sửa méo, lưu theo sân/camera | M1 | A1.1 | Chưa làm |
 | A1.3 | Roster: nhập tay/CSV, màu áo, thay người | M1 | A1.1 | Chưa làm |
 | A1.4 | Nhận diện + bám vết người, chia đội theo màu áo | M1 | A0.2 | Chưa làm |
@@ -240,14 +253,14 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | A4.1 | Nhiều camera, sân 11v11 | M4 | A3.4 | Chưa làm |
 | A4.2 | Xử lý theo lô, GPU đám mây tuỳ chọn | M4 | A1.8 | Chưa làm |
 | A4.3 | So sánh nhiều trận, phân vị theo vị trí/lứa tuổi, báo cáo cầu thủ theo mùa | M4 | A2.5 | Chưa làm |
-| A4.4 | Xuất chuẩn mở, đóng gói cài đặt (Windows/Linux) | M4 | A1.8 | Chưa làm |
+| A4.4 | Xuất chuẩn mở, đóng gói cài đặt (.dmg cho macOS, .exe cho Windows) | M4 | A1.8 | Chưa làm |
 
 ## 11. Câu hỏi cần chốt
 
 - [ ] Quay bằng gì: camera cố định trên cao, điện thoại trên chân máy, hay camera AI có sẵn (Veo, Pixellot…)? Camera có lia không?
 - [ ] Loại trận ưu tiên: 7v7 (kích thước sân thật?) trước, 11v11 sau?
 - [ ] Có áo bib in số cỡ lớn không?
-- [x] Máy xử lý: MacBook M5 (Apple Silicon); vẫn giữ đường CUDA cho PC GPU sau này.
+- [x] Máy xử lý: MacBook M5 và PC Windows, dùng qua lại được (mục 9).
 - [ ] Có GPS vest để kiểm chứng không, hãng nào?
 - [ ] Bộ ngưỡng tốc độ: chuẩn người lớn, theo lứa tuổi, hay tương đối theo từng cầu thủ?
 - [ ] Công cụ chỉ dùng nội bộ hay có thể phát hành/bán (quyết định chọn mô hình theo giấy phép)?
