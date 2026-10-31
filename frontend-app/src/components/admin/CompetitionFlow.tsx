@@ -59,6 +59,12 @@ export function CompetitionFlowLayout({ id, children }: { id: string; children: 
   const reloadStatus = statusApi.reload;
   // Marks follow the data: refresh them whenever the admin moves to another screen.
   useEffect(() => { reloadStatus(); }, [pathname, reloadStatus]);
+  // ...and after every save (the API client fires this event on each change).
+  useEffect(() => {
+    const on = () => reloadStatus();
+    window.addEventListener('admin:badges', on);
+    return () => window.removeEventListener('admin:badges', on);
+  }, [reloadStatus]);
 
   const current = stepOfPath(pathname, id);
   const comp = list.data?.find((c) => String(c.id) === id);
