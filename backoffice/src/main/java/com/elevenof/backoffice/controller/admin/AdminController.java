@@ -65,6 +65,7 @@ public class AdminController {
     private final com.elevenof.backoffice.service.AuthenticationService authenticationService;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final com.elevenof.backoffice.service.CompetitionAssessmentResultService assessmentResultService;
+    private final com.elevenof.backoffice.service.MeasurementService measurementService;
     private final com.elevenof.backoffice.repository.CompetitionAssessmentResultRepository assessmentResultRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final com.elevenof.backoffice.repository.NotificationScenarioRepository notificationScenarioRepository;
@@ -2640,6 +2641,8 @@ public class AdminController {
         try {
             java.util.List<com.elevenof.backoffice.model.CompetitionAssessment> assessments =
                 assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId);
+            String scorer = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+            Long scorerId = userRepository.findByPhone(scorer).map(com.elevenof.backoffice.model.User::getId).orElse(null);
 
             for (com.elevenof.backoffice.model.CompetitionAssessment assessment : assessments) {
                 for (int attempt = 1; attempt <= assessment.getAttemptsCount(); attempt++) {
@@ -2648,7 +2651,8 @@ public class AdminController {
                     if (val != null && !val.isBlank()) {
                         try {
                             java.math.BigDecimal value = new java.math.BigDecimal(val.trim());
-                            assessmentResultService.recordAttemptResult(assessment.getId(), participantId, attempt, value, null);
+                            measurementService.recordFromTablet(assessment.getId(), participantId, attempt, value,
+                                com.elevenof.backoffice.model.MeasurementStatus.OK, null, scorerId, null);
                         } catch (NumberFormatException ignored) {}
                     }
                 }

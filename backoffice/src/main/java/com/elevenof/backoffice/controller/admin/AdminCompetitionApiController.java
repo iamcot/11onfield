@@ -2,7 +2,9 @@ package com.elevenof.backoffice.controller.admin;
 
 import com.elevenof.backoffice.model.*;
 import com.elevenof.backoffice.repository.*;
+import com.elevenof.backoffice.scoring.ScoringEngine;
 import com.elevenof.backoffice.service.CompetitionAssessmentResultService;
+import com.elevenof.backoffice.service.MeasurementService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -47,6 +49,9 @@ public class AdminCompetitionApiController {
     private final PlayerRepository playerRepository;
     private final UserRepository userRepository;
     private final com.elevenof.backoffice.service.StageCheckinService checkinService;
+    private final com.elevenof.backoffice.service.MeasurementService measurementService;
+    private final com.elevenof.backoffice.service.ScoringService scoringService;
+    private final CompetitionAssessmentStepRatingRepository ratingRepository;
 
     // ==================== COMPETITIONS ====================
 
@@ -471,33 +476,110 @@ public class AdminCompetitionApiController {
         return out;
     }
 
-    /** body: { stepId, participantId, scores: { "<assessmentId>_<attempt>": value } } */
+    /**
+     * body: { stepId, participantId, scores: { "<assessmentId>_<attempt>": value },
+     *         statuses?: { "<assessmentId>_<attempt>": "FAULT" | "DNS" }, notes?: { key: text }, clientUuid? }.
+     * Every number goes through MeasurementService as a raw record; unchanged attempts are skipped.
+     * With clientUuid (one per save, from the offline queue) each attempt gets "<clientUuid>:<key>" so a resend is ignored.
+     */
     @PostMapping("/field-scoring/save")
     @PreAuthorize(SCORER)
+    @Transactional
     public ResponseEntity<?> fieldScoringSave(@RequestBody Map<String, Object> body) {
         Long stepId = longOf(body.get("stepId"));
         Long participantId = longOf(body.get("participantId"));
         if (stepId == null || participantId == null) return error(HttpStatus.BAD_REQUEST, "Thiếu thông tin thí sinh hoặc bài thi");
         Map<?, ?> scores = body.get("scores") instanceof Map<?, ?> m ? m : Map.of();
+        Map<?, ?> statuses = body.get("statuses") instanceof Map<?, ?> m ? m : Map.of();
+        Map<?, ?> notes = body.get("notes") instanceof Map<?, ?> m ? m : Map.of();
+        String clientUuid = str(body.get("clientUuid"));
+        Long userId = currentUserId();
+        List<Map<String, Object>> review = new ArrayList<>();
         try {
             for (CompetitionAssessment a : assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId)) {
                 for (int attempt = 1; attempt <= a.getAttemptsCount(); attempt++) {
-                    Object v = scores.get(a.getId() + "_" + attempt);
-                    String text = v == null ? "" : v.toString().trim();
-                    if (!text.isEmpty()) {
+                    String key = a.getId() + "_" + attempt;
+                    MeasurementStatus status = MeasurementStatus.OK;
+                    String statusText = str(statuses.get(key));
+                    if (statusText != null) {
                         try {
-                            assessmentResultService.recordAttemptResult(a.getId(), participantId, attempt, new BigDecimal(text), null);
-                        } catch (NumberFormatException ignored) {
+                            status = MeasurementStatus.valueOf(statusText);
+                        } catch (IllegalArgumentException e) {
+                            return error(HttpStatus.BAD_REQUEST, "Trạng thái lượt không hợp lệ: " + statusText);
                         }
                     }
+                    BigDecimal value = null;
+                    if (status == MeasurementStatus.OK) {
+                        String text = str(scores.get(key));
+                        if (text == null) continue;
+                        try {
+                            value = new BigDecimal(text.replace(',', '.'));
+                        } catch (NumberFormatException e) {
+                            return error(HttpStatus.BAD_REQUEST, a.getTitle() + " lượt " + attempt + ": số không hợp lệ");
+                        }
+                    }
+                    MeasurementService.RecordResult r = measurementService.recordFromTablet(a.getId(), participantId, attempt,
+                            value, status, str(notes.get(key)), userId, clientUuid != null ? clientUuid + ":" + key : null);
+                    if (r != null && r.official() != null && r.official().getState() == OfficialState.REVIEW) {
+                        review.add(Map.of("key", key, "reason", String.valueOf(r.official().getReviewReason())));
+                    }
                 }
-                try { assessmentResultService.calculateAssessmentFinalScore(a.getId(), participantId); } catch (Exception ignored) { }
             }
+            // Old-style steps keep their stored step score; combine steps are scored by ScoringService on read.
             try { assessmentResultService.calculateStepScore(stepId, participantId); } catch (Exception ignored) { }
-        } catch (Exception e) {
-            return error(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi lưu: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return error(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok(Map.of("message", "Đã lưu kết quả"));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("message", review.isEmpty() ? "Đã lưu kết quả" : "Đã lưu, có " + review.size() + " lượt cần BTC xem lại");
+        out.put("review", review);
+        return ResponseEntity.ok(out);
+    }
+
+    /** Level the entered values would get, without saving. body: { stepId, scores: { "<assessmentId>_<attempt>": value } } */
+    @PostMapping("/field-scoring/preview")
+    @PreAuthorize(SCORER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> fieldScoringPreview(@RequestBody Map<String, Object> body) {
+        Long stepId = longOf(body.get("stepId"));
+        if (stepId == null) return error(HttpStatus.BAD_REQUEST, "Thiếu bài thi");
+        Map<?, ?> scores = body.get("scores") instanceof Map<?, ?> m ? m : Map.of();
+        Map<Long, List<BigDecimal>> values = new HashMap<>();
+        List<Map<String, Object>> warnings = new ArrayList<>();
+        for (CompetitionAssessment a : assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId)) {
+            List<BigDecimal> attempts = new ArrayList<>();
+            for (int attempt = 1; attempt <= a.getAttemptsCount(); attempt++) {
+                String text = str(scores.get(a.getId() + "_" + attempt));
+                if (text == null) continue;
+                try {
+                    BigDecimal v = new BigDecimal(text.replace(',', '.'));
+                    attempts.add(v);
+                    if ((a.getPlausibleMin() != null && v.compareTo(a.getPlausibleMin()) < 0)
+                            || (a.getPlausibleMax() != null && v.compareTo(a.getPlausibleMax()) > 0)) {
+                        warnings.add(Map.of("key", a.getId() + "_" + attempt, "message", a.getTitle() + ": ngoài ngưỡng hợp lý "
+                                + a.getPlausibleMin() + "–" + a.getPlausibleMax()));
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            values.put(a.getId(), attempts);
+        }
+        ScoringEngine.Rating rating = scoringService.preview(stepId, values);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("level", rating != null ? rating.level() : null);
+        out.put("perAssessment", rating != null ? rating.perAssessment() : Map.of());
+        out.put("color", rating != null ? ratingRepository.findByAssessmentStepIdAndLevel(stepId, rating.level())
+                .map(CompetitionAssessmentStepRating::getColor).orElse(null) : null);
+        out.put("warnings", warnings);
+        return ResponseEntity.ok(out);
+    }
+
+    private Long currentUserId() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return null;
+        // JWT puts the userid in the principal, the old form login the phone.
+        return userRepository.findByUserid(auth.getName()).or(() -> userRepository.findByPhone(auth.getName()))
+                .map(User::getId).orElse(null);
     }
 
     // ==================== EXCEL EXPORT ====================

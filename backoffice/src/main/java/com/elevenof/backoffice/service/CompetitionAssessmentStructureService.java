@@ -1,7 +1,9 @@
 package com.elevenof.backoffice.service;
 
 import com.elevenof.backoffice.model.*;
+import com.elevenof.backoffice.exception.ScaleInvalidException;
 import com.elevenof.backoffice.repository.*;
+import com.elevenof.backoffice.scoring.ScoringEngine;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class CompetitionAssessmentStructureService {
     private final CompetitionAssessmentStepRepository assessmentStepRepository;
     private final CompetitionAssessmentRepository assessmentRepository;
     private final CompetitionAssessmentStepRatingRepository ratingRepository;
+    private final CompetitionScoreTopicRepository topicRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -221,6 +224,33 @@ public class CompetitionAssessmentStructureService {
             throw new IllegalArgumentException("Must provide exactly 5 rating scale levels");
         }
 
+        // A level with conditions follows the combine rules: check the whole scale before touching the stored one.
+        boolean conditional = levels.stream().anyMatch(d -> d.getConditions() != null && !d.getConditions().isEmpty());
+        if (conditional) {
+            List<CompetitionAssessment> stepAssessments = assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(assessmentStepId);
+            java.util.Map<Long, ScoringEngine.AssessmentSpec> specs = new java.util.LinkedHashMap<>();
+            for (CompetitionAssessment a : stepAssessments) {
+                specs.put(a.getId(), new ScoringEngine.AssessmentSpec(a.getTitle(), a.getDirection(), a.getPlausibleMin(), a.getPlausibleMax()));
+            }
+            List<ScoringEngine.Level> scale = new java.util.ArrayList<>();
+            List<String> problems = new java.util.ArrayList<>();
+            for (RatingScaleDefinition def : levels) {
+                java.util.Map<Long, ScoringEngine.Bound> bounds = new java.util.LinkedHashMap<>();
+                if (def.getConditions() != null) {
+                    for (ConditionDefinition c : def.getConditions()) {
+                        if (!specs.containsKey(c.getAssessmentId())) {
+                            problems.add("Mức " + def.getLevel() + ": nội dung thi " + c.getAssessmentId() + " không thuộc bài này");
+                            continue;
+                        }
+                        bounds.put(c.getAssessmentId(), new ScoringEngine.Bound(c.getMin(), c.getMax()));
+                    }
+                }
+                scale.add(new ScoringEngine.Level(def.getLevel() != null ? def.getLevel() : 0, bounds));
+            }
+            problems.addAll(ScoringEngine.validate(scale, specs));
+            if (!problems.isEmpty()) throw new ScaleInvalidException(problems);
+        }
+
         // Delete existing ratings
         ratingRepository.deleteByAssessmentStepId(assessmentStepId);
 
@@ -238,7 +268,17 @@ public class CompetitionAssessmentStructureService {
                 .rangeMin(def.getRangeMin())
                 .rangeMax(def.getRangeMax())
                 .description(def.getDescription())
+                .color(def.getColor())
+                .action(def.getAction() != null ? def.getAction() : RatingAction.NONE)
                 .build();
+            if (def.getConditions() != null) {
+                for (ConditionDefinition c : def.getConditions()) {
+                    rating.getConditions().add(CompetitionRatingCondition.builder()
+                        .rating(rating).assessmentId(c.getAssessmentId()).rangeMin(c.getMin()).rangeMax(c.getMax()).build());
+                }
+            } else if (def.getThresholdType() == null) {
+                throw new IllegalArgumentException("Mức " + def.getLevel() + " cần ngưỡng hoặc điều kiện");
+            }
             ratings.add(ratingRepository.save(rating));
         }
 
@@ -317,6 +357,14 @@ public class CompetitionAssessmentStructureService {
             newDay = assessmentDayRepository.save(newDay);
             log.debug("Copied day: {}", newDay.getTitle());
 
+            java.util.Map<Long, Long> topicIds = new java.util.HashMap<>();
+            for (CompetitionScoreTopic t : topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(sourceDay.getId())) {
+                CompetitionScoreTopic copy = topicRepository.save(CompetitionScoreTopic.builder()
+                    .assessmentDayId(newDay.getId()).topicKey(t.getTopicKey()).name(t.getName()).maxPoints(t.getMaxPoints())
+                    .displayOrder(t.getDisplayOrder()).tieBreakOrder(t.getTieBreakOrder()).build());
+                topicIds.put(t.getId(), copy.getId());
+            }
+
             // Copy steps for this day
             List<CompetitionAssessmentStep> sourceSteps = assessmentStepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(sourceDay.getId());
             for (CompetitionAssessmentStep sourceStep : sourceSteps) {
@@ -328,12 +376,16 @@ public class CompetitionAssessmentStructureService {
                     .description(sourceStep.getDescription())
                     .displayOrder(sourceStep.getDisplayOrder())
                     .hasRatingScale(sourceStep.getHasRatingScale())
+                    .isScored(sourceStep.getIsScored())
+                    .audience(sourceStep.getAudience())
+                    .topicId(sourceStep.getTopicId() != null ? topicIds.get(sourceStep.getTopicId()) : null)
                     .build();
                 newStep = assessmentStepRepository.save(newStep);
                 log.debug("  Copied step: {}", newStep.getTitle());
 
                 // Copy assessments for this step
                 List<CompetitionAssessment> sourceAssessments = assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(sourceStep.getId());
+                java.util.Map<Long, Long> assessmentIds = new java.util.HashMap<>();
                 for (CompetitionAssessment sourceAssessment : sourceAssessments) {
                     CompetitionAssessment newAssessment = CompetitionAssessment.builder()
                         .assessmentStep(newStep)
@@ -344,8 +396,14 @@ public class CompetitionAssessmentStructureService {
                         .attemptsCount(sourceAssessment.getAttemptsCount())
                         .scoringMethod(sourceAssessment.getScoringMethod())
                         .displayOrder(sourceAssessment.getDisplayOrder())
+                        .direction(sourceAssessment.getDirection())
+                        .plausibleMin(sourceAssessment.getPlausibleMin())
+                        .plausibleMax(sourceAssessment.getPlausibleMax())
+                        .tolerance(sourceAssessment.getTolerance())
+                        .valueType(sourceAssessment.getValueType())
                         .build();
-                    assessmentRepository.save(newAssessment);
+                    newAssessment = assessmentRepository.save(newAssessment);
+                    assessmentIds.put(sourceAssessment.getId(), newAssessment.getId());
                     log.debug("    Copied assessment: {}", newAssessment.getTitle());
                 }
 
@@ -360,7 +418,13 @@ public class CompetitionAssessmentStructureService {
                         .rangeMin(sourceRating.getRangeMin())
                         .rangeMax(sourceRating.getRangeMax())
                         .description(sourceRating.getDescription())
+                        .color(sourceRating.getColor())
+                        .action(sourceRating.getAction())
                         .build();
+                    for (CompetitionRatingCondition c : sourceRating.getConditions()) {
+                        newRating.getConditions().add(CompetitionRatingCondition.builder().rating(newRating)
+                            .assessmentId(assessmentIds.get(c.getAssessmentId())).rangeMin(c.getRangeMin()).rangeMax(c.getRangeMax()).build());
+                    }
                     ratingRepository.save(newRating);
                     log.debug("    Copied rating level: {}", newRating.getLevel());
                 }
@@ -394,5 +458,19 @@ public class CompetitionAssessmentStructureService {
         private java.math.BigDecimal rangeMin;
         private java.math.BigDecimal rangeMax;
         private String description;
+        private String color;
+        private RatingAction action;
+        /** Combine scale: one band per assessment; when set, the threshold fields are ignored. */
+        private List<ConditionDefinition> conditions;
+    }
+
+    @lombok.Data
+    @lombok.Builder
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class ConditionDefinition {
+        private Long assessmentId;
+        private java.math.BigDecimal min;
+        private java.math.BigDecimal max;
     }
 }

@@ -184,6 +184,7 @@ public class CompetitionAssessmentResultService {
 
         // Check levels from highest to lowest
         for (CompetitionAssessmentStepRating rating : ratings) {
+            if (rating.getThresholdType() == null) continue; // combine level, scored by ScoringService
             boolean matches = switch (rating.getThresholdType()) {
                 case EXACT -> totalScore.compareTo(rating.getThresholdValue()) >= 0;
                 case RANGE -> totalScore.compareTo(rating.getRangeMin()) >= 0

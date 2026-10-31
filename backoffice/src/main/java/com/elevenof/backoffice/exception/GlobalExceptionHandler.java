@@ -96,6 +96,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
+    @ExceptionHandler(ScaleInvalidException.class)
+    public ResponseEntity<Map<String, Object>> handleScaleInvalid(ScaleInvalidException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("message", ex.getMessage());
+        body.put("problems", ex.getProblems());
+        body.put("timestamp", LocalDateTime.now());
+        return ResponseEntity.badRequest().body(body);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         log.warn("Illegal argument: {}", ex.getMessage());

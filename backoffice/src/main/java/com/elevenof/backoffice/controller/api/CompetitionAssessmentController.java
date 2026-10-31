@@ -149,6 +149,9 @@ public class CompetitionAssessmentController {
                     .rangeMin(level.getRangeMin())
                     .rangeMax(level.getRangeMax())
                     .description(level.getDescription())
+                    .color(level.getColor())
+                    .action(level.getAction())
+                    .conditions(level.getConditions())
                     .build())
                 .toList();
 
@@ -461,6 +464,9 @@ public class CompetitionAssessmentController {
         private BigDecimal rangeMin;
         private BigDecimal rangeMax;
         private String description;
+        private String color;
+        private RatingAction action;
+        private List<CompetitionAssessmentStructureService.ConditionDefinition> conditions;
     }
 
     @Data

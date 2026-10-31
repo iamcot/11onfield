@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +52,26 @@ public class CompetitionAssessment {
     @Column(nullable = false)
     @Builder.Default
     private Integer displayOrder = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    @Builder.Default
+    private ValueDirection direction = ValueDirection.HIGHER;
+
+    /** Values outside the plausible range are saved but sent to review. */
+    @Column(precision = 10, scale = 3)
+    private BigDecimal plausibleMin;
+
+    @Column(precision = 10, scale = 3)
+    private BigDecimal plausibleMax;
+
+    /** Largest gap allowed between two sources of the same attempt. */
+    @Column(precision = 10, scale = 3)
+    private BigDecimal tolerance;
+
+    @Column(nullable = false, length = 12)
+    @Builder.Default
+    private String valueType = "NUMBER";
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
