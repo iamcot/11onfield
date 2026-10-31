@@ -59,7 +59,7 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | ID | Việc | GĐ | Trạng thái | PR |
 | --- | --- | --- | --- | --- |
 | 1.1 | Migration cấu hình: chiều tốt, ngưỡng hợp lý, sai số, đối tượng (cầu thủ/thủ môn) cho nội dung; nhóm điểm; điều kiện thang theo nội dung | 1 | Review | #15 |
-| 1.2 | Admin: màn cấu hình bài thi, nội dung, thang 5 mức nhiều điều kiện, kiểm tra hở/chồng | 1 | Chưa làm | |
+| 1.2 | Admin: màn cấu hình bài thi, nội dung, thang 5 mức nhiều điều kiện, kiểm tra hở/chồng | 1 | Review | PR con của #15 |
 | 1.3 | Nhóm điểm và công thức có phiên bản, khoá khi vòng bắt đầu | 1 | Chưa làm | |
 | 1.4 | Mẫu "Scouting Combine vòng 1" (15 bước, ngưỡng theo ảnh) + chép sang 3 khu vực | 1 | Chờ chốt | |
 | 1.5 | Bản ghi thô `measurement_raw` + chuyển dữ liệu cũ, lịch sử sửa | 1 | Review | #15 |
@@ -100,7 +100,8 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | 4.7 | So sánh với GPS trên trận 7v7 thật | 4 | Chưa làm | |
 
 Ghi chú tiến độ lõi (#15):
-- 1.8: xong backend (luật đối soát, hàng cần xem, chốt có lý do, khoá/mở khoá); còn màn `doi-soat`.
+- 1.8: xong backend và màn `doi-soat` (giao diện ở PR con).
+- 1.2: màn `thang-diem` (nhóm điểm của ngày, cấu hình bài/nội dung, thang 5 mức nhiều điều kiện, lỗi hở/chồng từ server, thử nhanh).
 - 1.9: xong lượt → mức → nhóm → ngày (`ScoringService`, có test); còn điểm vòng 30/20/40/10 và `score_snapshots` (V33, bỏ qua V31).
 - API cho các màn giao diện: [api-loi.md](api-loi.md).
 
