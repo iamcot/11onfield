@@ -372,7 +372,7 @@ export function TopicsEditor({ dayId, onSaved, readOnly }: { dayId: number; onSa
                     <td className="py-1.5"><div className="flex items-center gap-1"><Button small disabled={readOnly || i === 0} aria-label="Lên" onClick={() => move(i, -1)}>↑</Button><Button small disabled={readOnly || i === rows.length - 1} aria-label="Xuống" onClick={() => move(i, 1)}>↓</Button></div></td>
                     <td className="px-2"><Input disabled={readOnly} aria-label="Tên nhóm" value={t.name} onChange={(e) => set(i, { name: e.target.value })} /></td>
                     <td className="px-2"><Input disabled={readOnly} inputMode="decimal" aria-label="Điểm tối đa" value={String(t.maxPoints)} onChange={(e) => set(i, { maxPoints: e.target.value })} /></td>
-                    <td className="px-2"><Input disabled={readOnly} inputMode="numeric" aria-label="Ưu tiên đồng điểm" value={String(t.tieBreakOrder ?? '')} onChange={(e) => set(i, { tieBreakOrder: e.target.value })} /></td>
+                    <td className="px-2"><Input disabled={readOnly} inputMode="numeric" aria-label="Ưu tiên đồng điểm" placeholder="không xét" value={String(t.tieBreakOrder ?? '')} onChange={(e) => set(i, { tieBreakOrder: e.target.value })} /></td>
                     <td>{!readOnly && <button type="button" aria-label="Xoá nhóm" className="text-[20px] text-[#B42318]" onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))}>×</button>}</td>
                   </tr>
                 ))}
@@ -391,7 +391,7 @@ export function TopicsEditor({ dayId, onSaved, readOnly }: { dayId: number; onSa
               </div>
             )}
           </div>
-          {!readOnly && <p className="mt-2 text-[12px] text-[#66766D]">Xoá một nhóm thì các bài đang thuộc nhóm đó thành “không thuộc nhóm”. Điểm nhóm = tổng mức 1–5 của các bài, quy theo điểm tối đa của nhóm.</p>}
+          {!readOnly && <p className="mt-2 text-[12px] text-[#66766D]">Xoá một nhóm thì các bài đang thuộc nhóm đó thành “không thuộc nhóm”. Điểm nhóm = tổng mức 1–5 của các bài, quy theo điểm tối đa của nhóm. Ưu tiên đồng điểm: ghi 1 cho nhóm xét trước khi hai thí sinh bằng tổng điểm, 2 cho nhóm xét tiếp; để trống nếu không xét. Sau các nhóm, ai ít lỗi kỷ luật hơn xếp trên.</p>}
         </>
       )}
     </Card>

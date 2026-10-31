@@ -39,6 +39,7 @@ public class RoundScoringService {
     private final GreenCardRepository greenCardRepository;
     private final SelectionVoteRepository voteRepository;
     private final PlayerRepository playerRepository;
+    private final CompetitionScoreTopicRepository topicRepository;
     private final ScoringService scoringService;
     private final ObjectMapper objectMapper;
 
@@ -211,7 +212,7 @@ public class RoundScoringService {
         List<Long> stages = stageIds != null && !stageIds.isEmpty() ? new ArrayList<>(stageIds)
                 : stageRepository.findByCompetitionIdOrderByStageNumberAsc(competitionId).stream().map(CompetitionStage::getId).toList();
         if (stages.isEmpty()) return List.of();
-        RoundFormula formula = formula(stages.get(0)).definition();
+        RoundFormula formula = withTopicTieBreak(formula(stages.get(0)).definition(), stages.get(0));
 
         Map<Long, ScoreSnapshot> latest = new HashMap<>();
         for (ScoreSnapshot s : snapshotRepository.findByStageIdIn(stages)) {
@@ -331,5 +332,21 @@ public class RoundScoringService {
         } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * Ties are broken by the score groups in the order the admin numbered them on the round setup ("Ưu tiên đồng
+     * điểm"), then by fewer discipline flags. Without any numbered group, the formula's own tie-break applies.
+     */
+    private RoundFormula withTopicTieBreak(RoundFormula formula, Long stageId) {
+        List<String> keys = dayRepository.findByStageIdOrderByDisplayOrderAsc(stageId).stream()
+                .flatMap(d -> topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(d.getId()).stream())
+                .filter(t -> t.getTieBreakOrder() != null)
+                .sorted(Comparator.comparing(CompetitionScoreTopic::getTieBreakOrder))
+                .map(CompetitionScoreTopic::getTopicKey)
+                .collect(Collectors.toCollection(ArrayList::new));
+        if (keys.isEmpty()) return formula;
+        keys.add(RoundFormula.DISCIPLINE);
+        return new RoundFormula(formula.components(), formula.topicManual(), formula.classes(), keys);
     }
 }
