@@ -203,7 +203,10 @@ Bộ gắn tay chuẩn (3 trận) là việc phải làm sớm: vừa để đo,
   - Tinh chỉnh trên ảnh sân của mình; dữ liệu mở như SoccerNet (tracking, calibration) dùng để khởi đầu, **cần kiểm điều
     khoản** (một số bộ chỉ cho nghiên cứu).
   - OCR số áo: mô hình phân loại chữ số nhỏ, huấn luyện trên ảnh cắt từ video của mình.
-- **Phần cứng (giả định)**: GPU NVIDIA ≥ 8 GB VRAM (RTX 3060–4070), 32 GB RAM, SSD.
+- **Phần cứng**: chạy được trên **Mac Apple Silicon (M-series)** lẫn PC có GPU NVIDIA ≥ 8 GB VRAM. Lớp suy luận tách backend:
+  CUDA (PyTorch/TensorRT), MPS (PyTorch trên Mac, bật `PYTORCH_ENABLE_MPS_FALLBACK=1`), CoreML (mô hình phát hiện xuất sang
+  CoreML để chạy trên Neural Engine, nhanh nhất trên Mac). Giải mã video qua phần cứng (VideoToolbox / NVDEC). RAM ≥ 16 GB,
+  khuyên 24–32 GB cho video 4K. Tránh thư viện chỉ có CUDA. Đo tốc độ thật trên MacBook M5 ở M0.
 - **Điều kiện quay**: camera cố định cao 4–6 m giữa biên dọc, thấy trọn sân, 1080p 50/60 fps hoặc 4K 30 fps, khoá zoom/phơi
   sáng; áo bib số lớn; mốc sân rõ.
 
@@ -244,7 +247,7 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 - [ ] Quay bằng gì: camera cố định trên cao, điện thoại trên chân máy, hay camera AI có sẵn (Veo, Pixellot…)? Camera có lia không?
 - [ ] Loại trận ưu tiên: 7v7 (kích thước sân thật?) trước, 11v11 sau?
 - [ ] Có áo bib in số cỡ lớn không?
-- [ ] Máy xử lý: có GPU NVIDIA nào sẵn chưa, hay mua/thuê?
+- [x] Máy xử lý: MacBook M5 (Apple Silicon); vẫn giữ đường CUDA cho PC GPU sau này.
 - [ ] Có GPS vest để kiểm chứng không, hãng nào?
 - [ ] Bộ ngưỡng tốc độ: chuẩn người lớn, theo lứa tuổi, hay tương đối theo từng cầu thủ?
 - [ ] Công cụ chỉ dùng nội bộ hay có thể phát hành/bán (quyết định chọn mô hình theo giấy phép)?
