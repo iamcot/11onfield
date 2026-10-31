@@ -29,8 +29,14 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(User user) {
+        return generateToken(user, null);
+    }
+
+    /** @param panelRole HLV or TTV when the user sits on a scouting panel; read by the admin site for its menus */
+    public String generateToken(User user, String panelRole) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRole().name());
+        if (panelRole != null) claims.put("panel", panelRole);
         claims.put("phone", user.getPhone());
 
         return Jwts.builder()

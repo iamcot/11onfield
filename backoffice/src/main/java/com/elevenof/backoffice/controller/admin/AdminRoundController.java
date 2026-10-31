@@ -25,10 +25,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminRoundController {
 
-    private static final String STAFF_AND_JUDGES = "hasAnyRole('BGK', 'ADMIN', 'SUPER_USER')";
+    private static final String STAFF_AND_JUDGES = "hasAnyRole('HLV', 'TTV', 'ADMIN')";
+    private static final String PANEL = "hasAnyRole('HLV', 'TTV')";
     private static final int TOP30 = 30;
 
     private final RoundScoringService roundScoringService;
@@ -39,6 +40,7 @@ public class AdminRoundController {
     private final GreenCardRepository greenCardRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final com.elevenof.backoffice.service.PanelService panelService;
 
     // ==================== FORMULA ====================
 
@@ -82,7 +84,7 @@ public class AdminRoundController {
 
     // ==================== VOTES ====================
 
-    /** The caller's own picks, and (staff only) how many judges picked each participant. */
+    /** The caller's own picks, and (head coach and admins) how many panel members picked each participant. */
     @GetMapping("/competitions/{id}/selection/{roundKey}/votes")
     @PreAuthorize(STAFF_AND_JUDGES)
     @Transactional(readOnly = true)
@@ -92,7 +94,9 @@ public class AdminRoundController {
         out.put("mine", voteRepository.findByCompetitionIdAndRoundKeyAndJudgeUserId(id, roundKey, me.getId()).stream()
                 .map(SelectionVote::getParticipantId).toList());
         out.put("limit", TOP30);
-        if (me.getRole() != User.Role.BGK) {
+        boolean seesCounts = me.getRole() == User.Role.ADMIN
+                || panelService.roleIn(id, me.getId()).orElse(null) == CompetitionPanelMember.PanelRole.HLV;
+        if (seesCounts) {
             List<SelectionVote> all = voteRepository.findByCompetitionIdAndRoundKey(id, roundKey);
             out.put("counts", all.stream().collect(Collectors.groupingBy(SelectionVote::getParticipantId, Collectors.counting())));
             out.put("judges", all.stream().map(SelectionVote::getJudgeUserId).distinct().count());
@@ -102,7 +106,7 @@ public class AdminRoundController {
 
     /** Replaces the caller's picks. body: { participantIds: [...] }, at most 30. */
     @PutMapping("/competitions/{id}/selection/{roundKey}/votes")
-    @PreAuthorize(STAFF_AND_JUDGES)
+    @PreAuthorize(PANEL)
     @Transactional
     public ResponseEntity<?> vote(@PathVariable Long id, @PathVariable String roundKey, @RequestBody Map<String, Object> body) {
         List<Long> ids = ids(body.get("participantIds"));
@@ -111,6 +115,7 @@ public class AdminRoundController {
             return error(HttpStatus.CONFLICT, "Danh sách đã chốt, không bỏ phiếu được nữa");
         }
         User me = currentUser();
+        if (panelService.roleIn(id, me.getId()).isEmpty()) return error(HttpStatus.FORBIDDEN, "Bạn không ở trong hội đồng tuyển trạch của giải này");
         voteRepository.deleteAll(voteRepository.findByCompetitionIdAndRoundKeyAndJudgeUserId(id, roundKey, me.getId()));
         voteRepository.flush();
         LocalDateTime now = LocalDateTime.now();
@@ -132,16 +137,19 @@ public class AdminRoundController {
     }
 
     /**
-     * The head of the panel picks. body: { participantIds: [...], notes: { "<participantId>": "why" } }.
+     * The head coach (HLV) of the competition's panel picks. body: { participantIds: [...], notes: { "<participantId>": "why" } }.
      * Picking someone ranked below 30, or leaving out someone ranked in the top 30 with a complete score, needs a note;
      * a participant a Green Card was used on must be in the list. For TOP30 the list must hold exactly 30 and the
      * participants' statuses are updated (with notifications) as before.
      */
     @PostMapping("/competitions/{id}/selection/{roundKey}/decision")
-    @PreAuthorize("hasRole('SUPER_USER')")
+    @PreAuthorize("hasRole('HLV')")
     @Transactional
     public ResponseEntity<?> decide(@PathVariable Long id, @PathVariable String roundKey, @RequestBody Map<String, Object> body,
                                     @RequestParam(required = false) List<Long> stageIds) {
+        if (panelService.roleIn(id, currentUserId()).orElse(null) != CompetitionPanelMember.PanelRole.HLV) {
+            return error(HttpStatus.FORBIDDEN, "Chỉ HLV của hội đồng tuyển trạch giải này được chốt danh sách");
+        }
         List<Long> picked = new ArrayList<>(new LinkedHashSet<>(ids(body.get("participantIds"))));
         Map<String, String> notes = new HashMap<>();
         if (body.get("notes") instanceof Map<?, ?> m) {

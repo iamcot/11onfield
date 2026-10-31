@@ -97,7 +97,7 @@ export default function AccountsPage() {
             <Field label="Số điện thoại *"><Input disabled={form.id !== null} value={form.phone} onChange={(e) => set('phone')(e.target.value)} /></Field>
             <Field label="Họ tên"><Input value={form.fullName} onChange={(e) => set('fullName')(e.target.value)} /></Field>
             <Field label="Email"><Input type="email" value={form.email} onChange={(e) => set('email')(e.target.value)} /></Field>
-            <Field label="Vai trò" hint="BGK chỉ được vào màn hình chấm điểm, ghi nhận và check-in. Y tế đặt cờ không đủ điều kiện, Điều phối ghi vi phạm kỷ luật. Biên tập viên viết bài và duyệt nội dung cầu thủ.">
+            <Field label="Vai trò" hint="Admin quản trị web và cấu hình giải. Biên tập viên viết bài và duyệt nội dung cầu thủ. Y tế đặt cờ không đủ điều kiện cho thí sinh. HLV và tuyển trạch viên chỉ vào được trang quản trị khi admin thêm họ vào hội đồng tuyển trạch của giải (tab Hội đồng của giải đấu).">
               <Select value={form.role} onChange={(e) => set('role')(e.target.value)}>
                 {Object.entries(ROLES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </Select>

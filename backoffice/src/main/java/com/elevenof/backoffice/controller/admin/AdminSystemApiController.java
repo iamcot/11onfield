@@ -28,9 +28,9 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AdminSystemApiController {
 
-    private static final String MANAGER = "hasAnyRole('ADMIN', 'SUPER_USER')";
-    private static final String SUPER = "hasRole('SUPER_USER')";
-    private static final List<User.Role> STAFF_ROLES = List.of(User.Role.EDITOR, User.Role.BGK, User.Role.MEDICAL, User.Role.COORDINATOR, User.Role.ADMIN, User.Role.SUPER_USER);
+    private static final String MANAGER = "hasRole('ADMIN')";
+    private static final String SUPER = "hasRole('ADMIN')";
+    private static final List<User.Role> STAFF_ROLES = List.of(User.Role.EDITOR, User.Role.MEDICAL, User.Role.ADMIN);
 
     private final NotificationScenarioRepository scenarioRepository;
     private final NotificationTemplateService templateService;

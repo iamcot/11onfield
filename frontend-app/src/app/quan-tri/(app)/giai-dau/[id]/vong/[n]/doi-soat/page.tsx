@@ -192,8 +192,8 @@ function LockBar({ step, onChanged }: { step: Step; onChanged: () => void }) {
       <span className="min-w-[10rem] flex-1 text-[14px] font-medium">Bài {step.stepNumber}. {step.title}</span>
       {cfg.data && (locked ? <Badge tone="red">Đã khoá sổ</Badge> : <Badge tone="green">Đang mở</Badge>)}
       {cfg.data && !locked && <Button small onClick={lock}>Khoá sổ</Button>}
-      {locked && role === 'SUPER_USER' && reason === null && <Button small onClick={() => setReason('')}>Mở khoá</Button>}
-      {locked && role !== 'SUPER_USER' && <span className="text-[12px] text-[#66766D]">Chỉ SUPER_USER mở khoá</span>}
+      {locked && role === 'ADMIN' && reason === null && <Button small onClick={() => setReason('')}>Mở khoá</Button>}
+      {locked && role !== 'ADMIN' && <span className="text-[12px] text-[#66766D]">Chỉ admin mở khoá</span>}
       {reason !== null && (
         <span className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <Textarea rows={1} className="min-w-[220px]" placeholder="Lý do mở khoá" value={reason} onChange={(e) => setReason(e.target.value)} />

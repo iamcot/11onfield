@@ -107,11 +107,8 @@ public class User {
         COACH,        // Coach with coach profile
         SCOUTER,      // Scouter with scouter profile
         EDITOR,       // Content editor
-        BGK,          // Judge (Ban giam khao), scoring only
         MEDICAL,      // Doctor at the scouting round: may pull a contestant out for health reasons
-        COORDINATOR,  // Field coordinator: records discipline violations
-        ADMIN,        // Administrator
-        SUPER_USER    // Super administrator
+        ADMIN         // Administrator (website and competition setup)
     }
 
     public enum Gender {

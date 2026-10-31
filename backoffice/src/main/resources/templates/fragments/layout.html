@@ -148,7 +148,7 @@
               </li>
 
               <!-- Players (ADMIN/SUPER_USER only) -->
-              <li class="nav-item" sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')">
+              <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
                 <a
                   th:href="@{/admin/players}"
                   th:classappend="${title == 'Cầu thủ' ? 'active' : ''}"
@@ -160,7 +160,7 @@
               </li>
 
               <!-- Matches (ADMIN/SUPER_USER only) -->
-              <li class="nav-item" sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')">
+              <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
                 <a
                   th:href="@{/admin/matches}"
                   th:classappend="${title == 'Trận đấu' ? 'active' : ''}"
@@ -172,7 +172,7 @@
               </li>
 
               <!-- Events (ADMIN/SUPER_USER only) -->
-              <li class="nav-item" sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')">
+              <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
                 <a
                   th:href="@{/admin/events}"
                   th:classappend="${title == 'Sự kiện' ? 'active' : ''}"
@@ -184,7 +184,7 @@
               </li>
 
               <!-- Player Attribute Types (ADMIN/SUPER_USER only) -->
-              <li class="nav-item" sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')">
+              <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
                 <a
                   th:href="@{/admin/attribute-types}"
                   th:classappend="${title == 'Quản lý loại chỉ số' ? 'active' : ''}"
@@ -196,7 +196,7 @@
               </li>
 
               <!-- Users & ACL (SUPER_USER only) -->
-              <li class="nav-item" sec:authorize="hasRole('ROLE_SUPER_USER')">
+              <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
                 <a
                   th:href="@{/admin/users}"
                   th:classappend="${title == 'Tài khoản và phân quyền' ? 'active' : ''}"
@@ -208,7 +208,7 @@
               </li>
 
               <!-- ZNS Configuration (ADMIN/SUPER_USER only) -->
-              <li class="nav-item" sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')">
+              <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
                 <a
                   th:href="@{/admin/zns}"
                   th:classappend="${title == 'Quản lý ZNS Token' ? 'active' : ''}"
@@ -220,7 +220,7 @@
               </li>
 
               <!-- Notifications (ADMIN/SUPER_USER only) -->
-              <li class="nav-item" sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')">
+              <li class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')">
                 <a
                   th:href="@{/admin/notifications}"
                   th:classappend="${title == 'Quản lý thông báo' or title.startsWith('Quản lý template') ? 'active' : ''}"

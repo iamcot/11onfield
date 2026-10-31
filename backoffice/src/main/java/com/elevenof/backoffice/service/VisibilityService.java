@@ -19,9 +19,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class VisibilityService {
 
-    private static final Set<User.Role> STAFF = EnumSet.of(User.Role.ADMIN, User.Role.SUPER_USER, User.Role.BGK);
+    private static final Set<User.Role> STAFF = EnumSet.of(User.Role.ADMIN);
 
     private final VisibilityPolicyRepository policyRepository;
+    private final PanelService panelService;
     private final PlayerVisibilityRepository playerVisibilityRepository;
     private final CompetitionParticipantRepository participantRepository;
     private final CompetitionStageRepository stageRepository;
@@ -51,8 +52,8 @@ public class VisibilityService {
         }
     }
 
-    public static boolean isStaff(User viewer) {
-        return viewer != null && STAFF.contains(viewer.getRole());
+    public boolean isStaff(User viewer) {
+        return viewer != null && (STAFF.contains(viewer.getRole()) || panelService.highestRole(viewer.getId()).isPresent());
     }
 
     @Transactional(readOnly = true)

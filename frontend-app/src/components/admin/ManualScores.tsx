@@ -4,10 +4,12 @@
 
 import { useEffect, useState } from 'react';
 import { api, useApi } from '@/lib/admin/client';
+import { useMe } from '@/components/admin/me';
 import { Button, Card, Field, Input, Loading, Modal, Select, Table, Td, Textarea, useUi } from '@/components/admin/ui';
 import { fmtDateTime } from '@/lib/admin/labels';
 
-interface Component { key: string; label: string; max: number }
+/** owner: HLV for the coaching staff score (BHL), TTV for the rest. */
+interface Component { key: string; label: string; max: number; owner?: 'HLV' | 'TTV' }
 interface Row {
   id: number; sbd: number; fullName: string;
   scores: Record<string, number>;
@@ -16,8 +18,11 @@ interface Row {
 interface Data { components: Component[]; participants: Row[] }
 interface Entry { componentKey: string; points: number; enteredBy: string | null; enteredAt: string; reason: string | null }
 
-function ScoreModal({ stageId, row, comps, onClose, onSaved }: { stageId: number; row: Row; comps: Component[]; onClose: () => void; onSaved: () => void }) {
+function ScoreModal({ stageId, row, comps: all, onClose, onSaved }: { stageId: number; row: Row; comps: Component[]; onClose: () => void; onSaved: () => void }) {
   const { toast } = useUi();
+  const me = useMe();
+  // A scout (TTV) enters every score except the head coach's BHL.
+  const comps = me.role === 'TTV' ? all.filter((c) => c.owner !== 'HLV') : all;
   const history = useApi<Entry[]>(`stages/${stageId}/manual-scores/${row.id}/history`);
   const [key, setKey] = useState(comps[0].key);
   const [points, setPoints] = useState('');
@@ -107,7 +112,7 @@ export default function ManualScores({ stageId }: { stageId: number }) {
       </div>
       <Loading error={data.error} loading={data.loading && !data.data} />
       {data.data && (
-        <Table head={['SBD', 'Thí sinh', ...data.data.components.map((c) => `${c.label} /${c.max}`), 'BGK ghi nhận', '']} empty="Không có thí sinh.">
+        <Table head={['SBD', 'Thí sinh', ...data.data.components.map((c) => `${c.label} /${c.max}`), 'Ghi nhận', '']} empty="Không có thí sinh.">
           {data.data.participants.slice(0, 200).map((p) => (
             <tr key={p.id} className="cursor-pointer hover:bg-[#F6FAF7]" onClick={() => setOpen(p)}>
               <Td className="tabular-nums">{p.sbd}</Td>

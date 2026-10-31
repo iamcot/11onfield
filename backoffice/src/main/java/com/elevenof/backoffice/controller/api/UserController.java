@@ -200,7 +200,7 @@ public class UserController {
 
         // Contact details and national ID are private: only the owner and admins get them
         final boolean canSeePrivate = isOwner
-            || (viewer != null && (viewer.getRole() == User.Role.ADMIN || viewer.getRole() == User.Role.SUPER_USER));
+            || (viewer != null && (viewer.getRole() == User.Role.ADMIN));
 
         UserProfileResponse.UserProfileResponseBuilder responseBuilder = UserProfileResponse.builder()
             .id(user.getId())

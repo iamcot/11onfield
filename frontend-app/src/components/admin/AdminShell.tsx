@@ -25,7 +25,7 @@ export default function AdminShell({
   const [badges, setBadges] = useState<{ pendingApprovals: number; unverifiedPlayers: number; pendingAchievements: number; pendingHighlights: number } | null>(null);
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
-  const canSeeBadges = ['EDITOR', 'ADMIN', 'SUPER_USER'].includes(me.role);
+  const canSeeBadges = ['EDITOR', 'ADMIN'].includes(me.role);
 
   const loadBadges = useCallback(() => {
     if (!canSeeBadges) return;

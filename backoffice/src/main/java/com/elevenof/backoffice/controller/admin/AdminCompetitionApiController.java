@@ -28,11 +28,11 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+@PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
 public class AdminCompetitionApiController {
 
-    private static final String MANAGER = "hasAnyRole('ADMIN', 'SUPER_USER')";
-    private static final String SCORER = "hasAnyRole('BGK', 'ADMIN', 'SUPER_USER')";
+    private static final String MANAGER = "hasRole('ADMIN')";
+    private static final String SCORER = "hasAnyRole('HLV', 'TTV', 'ADMIN')";
 
     private final CompetitionRepository competitionRepository;
     private final CompetitionStageRepository stageRepository;
@@ -59,7 +59,7 @@ public class AdminCompetitionApiController {
     // ==================== COMPETITIONS ====================
 
     @GetMapping("/competitions")
-    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     public List<Map<String, Object>> competitions() {
         List<Map<String, Object>> out = new ArrayList<>();
         for (Competition c : competitionRepository.findAll()) {
@@ -396,7 +396,7 @@ public class AdminCompetitionApiController {
 
     // ==================== CHECK-IN (QR) ====================
 
-    private static final String ANY_STAFF = "hasAnyRole('EDITOR', 'BGK', 'ADMIN', 'SUPER_USER')";
+    private static final String ANY_STAFF = "hasAnyRole('EDITOR', 'HLV', 'TTV', 'ADMIN')";
 
     @GetMapping("/checkin/stages")
     @PreAuthorize(ANY_STAFF)

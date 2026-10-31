@@ -12,7 +12,7 @@
       <!-- Action buttons -->
       <div class="row mb-3">
         <div class="col-12 d-flex gap-2 flex-wrap">
-          <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
+          <a sec:authorize="hasRole('ROLE_ADMIN')"
              th:href="@{/admin/competitions/create}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Tạo cuộc thi mới
           </a>
@@ -76,27 +76,27 @@
                     </td>
                     <td>
                       <div class="btn-group btn-group-sm">
-                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
+                        <a sec:authorize="hasRole('ROLE_ADMIN')"
                           th:href="@{/admin/competitions/{id}/edit(id=${competition.id})}"
                           class="btn btn-secondary" title="Chỉnh sửa">
                           <i class="fas fa-edit"></i>
                         </a>
-                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
+                        <a sec:authorize="hasRole('ROLE_ADMIN')"
                           th:href="@{/admin/competitions/{id}/participants(id=${competition.id})}"
                           class="btn btn-info" title="Thí sinh">
                           <i class="fas fa-users"></i>
                         </a>
-                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
+                        <a sec:authorize="hasRole('ROLE_ADMIN')"
                           th:href="@{/admin/competitions/{id}/stages(id=${competition.id})}"
                           class="btn btn-primary" title="Vòng thi">
                           <i class="fas fa-tasks"></i>
                         </a>
-                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
+                        <a sec:authorize="hasRole('ROLE_ADMIN')"
                           th:href="@{/admin/competitions/{id}/news(id=${competition.id})}"
                           class="btn btn-success" title="Tin tức">
                           <i class="fas fa-newspaper"></i>
                         </a>
-                        <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
+                        <a sec:authorize="hasRole('ROLE_ADMIN')"
                           th:href="@{/admin/competitions/{id}/sponsors(id=${competition.id})}"
                           class="btn btn-warning" title="Nhà tài trợ">
                           <i class="fas fa-handshake"></i>

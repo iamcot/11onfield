@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminCombineController {
 
     private static final Set<String> VALUE_TYPES = Set.of("NUMBER", "DURATION", "COUNT");
@@ -43,7 +43,7 @@ public class AdminCombineController {
 
     /** Everything the scale editor needs for one step. */
     @GetMapping("/assessment-steps/{stepId}/combine-config")
-    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @Transactional(readOnly = true)
     public ResponseEntity<?> stepConfig(@PathVariable Long stepId) {
         CompetitionAssessmentStep step = stepRepository.findById(stepId).orElse(null);
@@ -148,7 +148,7 @@ public class AdminCombineController {
     }
 
     @GetMapping("/assessment-days/{dayId}/topics")
-    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @Transactional(readOnly = true)
     public ResponseEntity<?> topics(@PathVariable Long dayId) {
         if (!dayRepository.existsById(dayId)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy ngày thi");
@@ -319,9 +319,9 @@ public class AdminCombineController {
         }
     }
 
-    /** body: { reason }. Only SUPER_USER reopens a locked step. */
+    /** body: { reason }. Only an admin reopens a locked step. */
     @PostMapping("/assessment-steps/{stepId}/unlock")
-    @PreAuthorize("hasRole('SUPER_USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> unlock(@PathVariable Long stepId, @RequestBody Map<String, Object> body) {
         try {
             measurementService.unlockStep(stepId, currentUserId(), str(body.get("reason")));

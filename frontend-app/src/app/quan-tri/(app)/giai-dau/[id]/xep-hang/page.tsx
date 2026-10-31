@@ -20,7 +20,7 @@ export default function RankingPage() {
     <>
       <CompetitionTabs id={id} />
       <p className="mb-4 text-[13px] text-[#46564D]">
-        Xếp hạng chung 3 khu vực theo điểm vòng. Thủ môn xếp riêng. Hàng tô vàng là đồng điểm sau mọi tiêu chí phụ, BGK quyết. Trang này chỉ dành cho BTC và BGK, thí sinh không thấy thứ hạng.
+        Xếp hạng chung 3 khu vực theo điểm vòng. Thủ môn xếp riêng. Hàng tô vàng là đồng điểm sau mọi tiêu chí phụ, HLV quyết. Trang này chỉ dành cho BTC và hội đồng tuyển trạch, thí sinh không thấy thứ hạng.
       </p>
       <RankFilters group={group} onGroup={setGroup} region={region} onRegion={setRegion} />
       <Loading error={ranking.error} loading={ranking.loading && !ranking.data} />
@@ -53,7 +53,7 @@ export default function RankingPage() {
       <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[12px] text-[#56665D]">
         <span><Badge tone="gold">chưa đủ</Badge> thiếu phần BHL hoặc 7v7 của vòng đánh giá tay cuối, chưa có tổng.</span>
         <span>Điểm từng phần đã quy theo trọng số của công thức vòng.</span>
-        <span>Phiếu: số thành viên BGK đã chọn người này.</span>
+        <span>Phiếu: số thành viên hội đồng đã chọn người này.</span>
       </div>
     </>
   );

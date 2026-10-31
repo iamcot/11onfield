@@ -92,6 +92,6 @@ export function FlagBadges({ row }: { row: RankRow }) {
 export const RankCell = ({ row }: { row: RankRow }) => (
   <span className="flex items-center gap-1.5">
     <strong className="tabular-nums">{row.rank}</strong>
-    {row.tied && <span title="Đồng hạng thật sau mọi tiêu chí: BGK quyết" className="rounded bg-[#F2C94C] px-1.5 text-[10px] font-semibold uppercase text-[#5C3D00]">đồng hạng</span>}
+    {row.tied && <span title="Đồng hạng thật sau mọi tiêu chí: HLV quyết" className="rounded bg-[#F2C94C] px-1.5 text-[10px] font-semibold uppercase text-[#5C3D00]">đồng hạng</span>}
   </span>
 );

@@ -4,7 +4,7 @@ import { useApi } from '@/lib/admin/client';
 import Top30Selection from '@/components/admin/Top30Selection';
 import { Loading, PageTitle } from '@/components/admin/ui';
 
-/** Judges (BGK) have no access to the competition admin, so they get the same selection screen from the menu. */
+/** The scouting panel (HLV, TTV) has no access to the competition admin, so they get the same selection screen from the menu. */
 export default function JudgeSelectionPage() {
   const ctx = useApi<{ competition?: { id: number; title: string } }>('scouting/context');
   const comp = ctx.data?.competition;

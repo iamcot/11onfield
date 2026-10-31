@@ -72,3 +72,23 @@ Khi chốt: chọn người hạng > 30 (trừ người có Green Card) hoặc b
 thiếu thì 400 `{message, needNote:[pid]}`. Người có Green Card bắt buộc nằm trong danh sách. `roundKey = TOP30` phải đúng 30 người,
 chỉ chốt một lần (lần hai 409), và chuyển trạng thái thí sinh sang `SELECTED_TOP30` kèm thông báo như trang `tuyen-chon` cũ.
 Vòng khác (ví dụ danh sách ngắn) chốt lại được, lấy quyết định mới nhất.
+
+## Vai trò (V34)
+
+Vai trò web: Người dùng, Cầu thủ, Huấn luyện viên (COACH), Tuyển trạch viên (SCOUTER), Biên tập viên, Y tế, Admin. Bỏ BGK, Điều phối, Super user
+(BGK → SCOUTER và vào hội đồng mọi giải, Điều phối → Người dùng, Super user → Admin).
+
+Hội đồng tuyển trạch theo giải: admin gán tài khoản COACH/SCOUTER làm **HLV** hoặc **TTV** (`GET/PUT /api/admin/competitions/{id}/panel`,
+`GET .../panel/candidates?q=`). Thành viên nhận quyền `ROLE_HLV` / `ROLE_TTV`, token có claim `panel`; `/api/admin/me` trả `role: HLV|TTV`.
+
+| Việc | Ai |
+| --- | --- |
+| Check-in, chấm tại trạm, ghi nhận, kỷ luật, không thi | HLV, TTV (admin) |
+| Điểm BHL | HLV (admin) |
+| Điểm 7v7, tư duy, GPS | HLV, TTV (admin) |
+| Bỏ phiếu Top 30 | HLV, TTV của giải đó |
+| Xem số phiếu | HLV, admin |
+| Chốt Top 30 | HLV của giải đó |
+| Giữ Green Card | HLV của giải, admin gán |
+| Cờ y tế | Y tế (admin) |
+| Cấu hình, đối soát, khoá/mở khoá, tài khoản | Admin |

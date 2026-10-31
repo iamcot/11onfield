@@ -90,14 +90,16 @@ function FinalizeModal({
 }
 
 /**
- * Top 30 by hand: every judge ticks up to 30 players (their own vote), then the SUPER_USER marks the final 30 and
+ * Top 30 by hand: every judge ticks up to 30 players (their own vote), then the head coach (HLV) marks the final 30 and
  * finalises. Ranks come from the combined ranking and are only shown here, never to players.
  */
 export default function Top30Selection({ id }: { id: string }) {
   const { toast } = useUi();
   const me = useMe();
-  const superUser = me.role === 'SUPER_USER';
-  const staff = me.role !== 'BGK';
+  // HLV decides and sees everyone's votes; TTV votes; admins watch.
+  const superUser = me.role === 'HLV';
+  const staff = me.role === 'HLV' || me.role === 'ADMIN';
+  const canVote = me.role === 'HLV' || me.role === 'TTV';
   const [group, setGroup] = useState<Group>('ALL');
   const [region, setRegion] = useState('');
   const ranking = useRanking(id, '');
@@ -159,11 +161,11 @@ export default function Top30Selection({ id }: { id: string }) {
         <p className="max-w-3xl text-[13px] text-[#46564D]">
           {decided
             ? 'Top 30 đã chốt. Danh sách dưới đây là kết quả chính thức, kèm lý do khi chọn khác thứ tự điểm.'
-            : 'Mỗi thành viên BGK chọn tối đa 30 người làm phiếu của mình. Trưởng ban xem số phiếu và thứ hạng, rồi chọn tay 30 người cuối cùng. Hệ thống không tự cắt theo điểm.'}
+            : 'Mỗi thành viên hội đồng tuyển trạch chọn tối đa 30 người làm phiếu của mình. HLV xem số phiếu và thứ hạng, rồi chọn tay 30 người cuối cùng. Hệ thống không tự cắt theo điểm.'}
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          {!decided && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Phiếu của bạn {mine.size}/{LIMIT}</span>}
-          {!decided && <Button disabled={!dirty || savingVote} onClick={saveVotes}>{savingVote ? 'Đang lưu…' : 'Lưu phiếu'}</Button>}
+          {canVote && !decided && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Phiếu của bạn {mine.size}/{LIMIT}</span>}
+          {canVote && !decided && <Button disabled={!dirty || savingVote} onClick={saveVotes}>{savingVote ? 'Đang lưu…' : 'Lưu phiếu'}</Button>}
           {superUser && !decided && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Đã chọn {final.size}/{LIMIT}</span>}
           {superUser && !decided && (
             <Button variant="primary" disabled={final.size !== LIMIT || missingGreen.length > 0} onClick={() => setFinalizing(true)}>Chốt danh sách</Button>
@@ -186,8 +188,8 @@ export default function Top30Selection({ id }: { id: string }) {
           <table className="w-full min-w-[900px] text-left text-[14px] whitespace-nowrap">
             <thead className="bg-[#F3F6F4] text-[11px] uppercase tracking-wider text-[#56665D]">
               <tr>
-                {['Hạng', 'SBD', 'Họ tên', 'Khu vực', 'Vị trí', 'Tổng', ...(staff ? [`Phiếu BGK${judges != null ? ` (/${judges})` : ''}`] : []), 'Cờ'].map((h) => <th key={h} className="px-3 py-2.5 font-medium">{h}</th>)}
-                {!decided && <th className="px-3 py-2.5 font-medium">Phiếu của tôi</th>}
+                {['Hạng', 'SBD', 'Họ tên', 'Khu vực', 'Vị trí', 'Tổng', ...(staff ? [`Phiếu${judges != null ? ` (/${judges})` : ''}`] : []), 'Cờ'].map((h) => <th key={h} className="px-3 py-2.5 font-medium">{h}</th>)}
+                {canVote && !decided && <th className="px-3 py-2.5 font-medium">Phiếu của tôi</th>}
                 {superUser && <th className="px-3 py-2.5 font-medium">{decided ? 'Lý do' : 'Chọn'}</th>}
               </tr>
             </thead>
@@ -206,7 +208,7 @@ export default function Top30Selection({ id }: { id: string }) {
                     <td className="px-3 py-2.5"><TotalCell row={r} /></td>
                     {staff && <td className="px-3 py-2.5 tabular-nums">{count}{judges ? `/${judges}` : ''}</td>}
                     <td className="px-3 py-2.5"><FlagBadges row={r} /></td>
-                    {!decided && (
+                    {canVote && !decided && (
                       <td className="px-3 py-2.5">
                         <button
                           type="button"
@@ -246,7 +248,7 @@ export default function Top30Selection({ id }: { id: string }) {
         </div>
       )}
       <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[12px] text-[#56665D]">
-        <span>Hạng là hạng chung 3 khu vực, chỉ BGK và BTC thấy.</span>
+        <span>Hạng là hạng chung 3 khu vực, chỉ hội đồng tuyển trạch và BTC thấy.</span>
         <span>Chọn người ngoài Top 30 theo điểm, hoặc bỏ người trong Top 30 đã đủ điểm, phải ghi lý do khi chốt.</span>
         {!superUser && <span>Chỉ Super user chốt danh sách cuối.</span>}
       </div>

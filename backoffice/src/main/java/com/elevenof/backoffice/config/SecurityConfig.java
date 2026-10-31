@@ -69,7 +69,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/competitions/{id}/news/{newsId}").permitAll()
                 .requestMatchers("/api/competitions/{id}/sponsors").permitAll()
                 .requestMatchers("/api/competitions/{id}/stages").permitAll()
-                .requestMatchers("/api/admin/**").hasAnyRole("EDITOR", "BGK", "MEDICAL", "COORDINATOR", "ADMIN", "SUPER_USER") // per-endpoint rules via @PreAuthorize
+                .requestMatchers("/api/admin/**").hasAnyRole("EDITOR", "HLV", "TTV", "MEDICAL", "ADMIN") // per-endpoint rules via @PreAuthorize
                 .anyRequest().authenticated()
             )
             .logout(logout -> logout.disable())
@@ -89,8 +89,8 @@ public class SecurityConfig {
             .securityMatcher("/admin/**")
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/login", "/admin/css/**", "/admin/js/**", "/admin/img/**").permitAll()
-                .requestMatchers("/admin/users", "/admin/users/**").hasRole("SUPER_USER")
-                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_USER", "EDITOR")
+                .requestMatchers("/admin/users", "/admin/users/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "EDITOR")
             )
             .formLogin(form -> form
                 .loginPage("/admin/login")

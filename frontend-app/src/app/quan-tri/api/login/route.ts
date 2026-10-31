@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ADMIN_COOKIE, ADMIN_ROLES, ADMIN_SESSION_SECONDS, backendUrl } from '@/lib/admin/session';
+import { ADMIN_COOKIE, ADMIN_ROLES, ADMIN_SESSION_SECONDS, backendUrl, readToken } from '@/lib/admin/session';
 
 export async function POST(req: NextRequest) {
   const { phone, password } = await req.json().catch(() => ({}));
@@ -23,11 +23,13 @@ export async function POST(req: NextRequest) {
   if (!res.ok) {
     return NextResponse.json({ message: data.message || 'Tài khoản hoặc mật khẩu không đúng' }, { status: res.status });
   }
-  if (!ADMIN_ROLES.includes(data.user?.role)) {
+  // A coach or scout gets in only while on a competition's scouting panel (the token's `panel` claim).
+  const session = readToken(data.tokens?.accessToken);
+  if (!session || !ADMIN_ROLES.includes(session.role)) {
     return NextResponse.json({ message: 'Tài khoản này không có quyền vào trang quản trị' }, { status: 403 });
   }
 
-  const out = NextResponse.json({ role: data.user.role, fullName: data.user.fullName });
+  const out = NextResponse.json({ role: session.role, fullName: data.user.fullName });
   out.cookies.set(ADMIN_COOKIE, data.tokens.accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

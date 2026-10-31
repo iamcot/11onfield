@@ -77,13 +77,10 @@ export const ROLES: Record<string, string> = {
   COACH: 'Huấn luyện viên',
   SCOUTER: 'Tuyển trạch viên',
   EDITOR: 'Biên tập viên',
-  BGK: 'Ban giám khảo',
   MEDICAL: 'Y tế',
-  COORDINATOR: 'Điều phối',
   ADMIN: 'Admin',
-  SUPER_USER: 'Super user',
 };
-export const STAFF_ROLE_KEYS = ['EDITOR', 'BGK', 'MEDICAL', 'COORDINATOR', 'ADMIN', 'SUPER_USER'];
+export const STAFF_ROLE_KEYS = ['EDITOR', 'MEDICAL', 'ADMIN'];
 
 export const FLAG_KINDS: Record<string, { label: string; tone: 'red' | 'gold' | 'gray' | 'green' }> = {
   MEDICAL_OUT: { label: 'Y tế: không đủ điều kiện', tone: 'red' },

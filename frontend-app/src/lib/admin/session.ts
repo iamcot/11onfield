@@ -2,16 +2,19 @@
 export const ADMIN_COOKIE = 'of_admin';
 export const ADMIN_SESSION_SECONDS = 8 * 60 * 60;
 
-export type AdminRole = 'EDITOR' | 'BGK' | 'MEDICAL' | 'COORDINATOR' | 'ADMIN' | 'SUPER_USER';
-export const ADMIN_ROLES: AdminRole[] = ['EDITOR', 'BGK', 'MEDICAL', 'COORDINATOR', 'ADMIN', 'SUPER_USER'];
+/**
+ * Who someone is on the admin site. HLV and TTV are not website roles: they are coach and scout accounts the admin
+ * put on a competition's scouting panel (the token's `panel` claim).
+ */
+export type AdminRole = 'EDITOR' | 'HLV' | 'TTV' | 'MEDICAL' | 'ADMIN';
+export const ADMIN_ROLES: AdminRole[] = ['EDITOR', 'HLV', 'TTV', 'MEDICAL', 'ADMIN'];
 
 export const ROLE_LABEL: Record<AdminRole, string> = {
-  EDITOR: 'Biên tập',
-  BGK: 'Ban giám khảo',
+  EDITOR: 'Biên tập viên',
+  HLV: 'HLV · hội đồng tuyển trạch',
+  TTV: 'Tuyển trạch viên',
   MEDICAL: 'Y tế',
-  COORDINATOR: 'Điều phối',
-  ADMIN: 'Quản trị',
-  SUPER_USER: 'Quản trị cao cấp',
+  ADMIN: 'Admin',
 };
 
 /**
@@ -23,9 +26,10 @@ export function readToken(token: string | undefined): { role: AdminRole; exp: nu
   try {
     const part = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
     const payload = JSON.parse(atob(part.padEnd(Math.ceil(part.length / 4) * 4, '=')));
-    if (!ADMIN_ROLES.includes(payload.role) || typeof payload.exp !== 'number') return null;
+    const role = (payload.panel || payload.role) as AdminRole;
+    if (!ADMIN_ROLES.includes(role) || typeof payload.exp !== 'number') return null;
     if (payload.exp * 1000 <= Date.now()) return null;
-    return { role: payload.role, exp: payload.exp };
+    return { role, exp: payload.exp };
   } catch {
     return null;
   }

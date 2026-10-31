@@ -80,7 +80,7 @@ class VisibilityTest {
 
     @Test
     void guestSeesOnlyReleasedPublicBlocks() {
-        VisibilityService service = new VisibilityService(null, null, null, null);
+        VisibilityService service = new VisibilityService(null, null, null, null, null);
 
         CombineDTO beforeRelease = service.filterCombine(full(), access(Viewer.PUBLIC, false, Map.of()));
         assertNull(beforeRelease);
@@ -94,7 +94,7 @@ class VisibilityTest {
 
     @Test
     void ownerSeesPrivateBlocksLabelled() {
-        VisibilityService service = new VisibilityService(null, null, null, null);
+        VisibilityService service = new VisibilityService(null, null, null, null, null);
         CombineDTO owner = service.filterCombine(full(), access(Viewer.OWNER, true, Map.of()));
         assertNotNull(owner.getTests());
         assertEquals(List.of("TEST_RESULTS"), owner.getOwnerOnly());

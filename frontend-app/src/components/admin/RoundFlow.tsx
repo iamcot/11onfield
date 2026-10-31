@@ -23,6 +23,7 @@ export default function RoundFlow({ id, n }: { id: string; n: string }) {
       when: 'Trước ngày thi',
       items: [
         { href: round, label: 'Cấu hình bài thi và thang điểm' },
+        { href: `/quan-tri/giai-dau/${id}/hoi-dong`, label: 'Hội đồng tuyển trạch (HLV, TTV)' },
         { href: `/quan-tri/giai-dau/${id}/thi-sinh/phieu-sbd`, label: 'In phiếu SBD' },
         { href: `/quan-tri/giai-dau/${id}/vong`, label: 'Kích hoạt vòng', note: 'để tablet nhận vòng này' },
       ],
@@ -33,7 +34,7 @@ export default function RoundFlow({ id, n }: { id: string; n: string }) {
       items: [
         { href: '/quan-tri/check-in', label: 'Check-in thí sinh' },
         { href: '/quan-tri/cham-diem', label: 'Chấm điểm tại trạm' },
-        { href: '/quan-tri/ghi-nhan', label: 'Ghi nhận của BGK' },
+        { href: '/quan-tri/ghi-nhan', label: 'Ghi nhận thí sinh' },
         { href: `${round}/doi-soat`, label: 'Theo dõi số cần xem' },
       ],
     },

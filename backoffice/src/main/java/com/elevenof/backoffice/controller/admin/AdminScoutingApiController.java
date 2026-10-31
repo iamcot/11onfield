@@ -27,11 +27,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminScoutingApiController {
 
-    private static final String MANAGER = "hasAnyRole('ADMIN', 'SUPER_USER')";
-    private static final String JUDGE = "hasAnyRole('BGK', 'ADMIN', 'SUPER_USER')";
+    private static final String MANAGER = "hasRole('ADMIN')";
+    private static final String JUDGE = "hasAnyRole('HLV', 'TTV', 'ADMIN')";
     /** Everyone working a station may look a contestant up and see the flags. */
-    private static final String FIELD_STAFF = "hasAnyRole('BGK', 'MEDICAL', 'COORDINATOR', 'ADMIN', 'SUPER_USER')";
-    private static final String ANY_STAFF = "hasAnyRole('EDITOR', 'BGK', 'MEDICAL', 'COORDINATOR', 'ADMIN', 'SUPER_USER')";
+    private static final String FIELD_STAFF = "hasAnyRole('HLV', 'TTV', 'MEDICAL', 'ADMIN')";
+    private static final String ANY_STAFF = "hasAnyRole('EDITOR', 'HLV', 'TTV', 'MEDICAL', 'ADMIN')";
 
     /** Component of the round score that is typed in by hand, with its maximum points. */
     private static final Map<String, Object[]> COMPONENTS = new LinkedHashMap<>();
@@ -54,6 +54,7 @@ public class AdminScoutingApiController {
     private final GreenCardRepository greenCardRepository;
     private final ManualScoreRepository manualScoreRepository;
     private final ParticipantFlagService flagService;
+    private final com.elevenof.backoffice.service.PanelService panelService;
 
     // ==================== LOOKUP ====================
 
@@ -66,8 +67,11 @@ public class AdminScoutingApiController {
         Competition c = activeCompetition();
         if (c == null) return out;
         out.put("competition", Map.of("id", c.getId(), "title", c.getTitle()));
-        CompetitionStage live = stageRepository.findByCompetitionIdOrderByStageNumberAsc(c.getId()).stream()
-                .filter(s -> s.getStatus() == StageStatus.LIVE).findFirst().orElse(null);
+        List<CompetitionStage> all = stageRepository.findByCompetitionIdOrderByStageNumberAsc(c.getId());
+        // Every round, so the panel can still enter manual scores once a round is over.
+        out.put("stages", all.stream().map(s -> Map.of("id", s.getId(), "stageNumber", s.getStageNumber(), "title", s.getTitle(),
+                "status", s.getStatus() != null ? s.getStatus().name() : "UPCOMING")).toList());
+        CompetitionStage live = all.stream().filter(s -> s.getStatus() == StageStatus.LIVE).findFirst().orElse(null);
         if (live == null) return out;
         out.put("stage", Map.of("id", live.getId(), "stageNumber", live.getStageNumber(), "title", live.getTitle()));
         List<Map<String, Object>> days = new ArrayList<>();
@@ -131,11 +135,11 @@ public class AdminScoutingApiController {
         out.put("flags", flags.stream().map(f -> flagRow(f, users)).toList());
         out.put("disciplineCount", flagService.disciplineCount(p.getId()));
 
-        // BGK sees only their own notes; managers see every judge,.
+        // A scout (TTV) sees only their own notes; the head coach (HLV) and admins see everyone's.
         User me = currentUser(auth);
-        boolean seeAll = hasRole(auth, "ADMIN") || hasRole(auth, "SUPER_USER");
+        boolean seeAll = hasRole(auth, "ADMIN") || hasRole(auth, "HLV");
         List<Map<String, Object>> notes = new ArrayList<>();
-        if (seeAll || hasRole(auth, "BGK")) {
+        if (seeAll || hasRole(auth, "TTV")) {
             List<JudgeNote> list = judgeNoteRepository.findByParticipantIdOrderByUpdatedAtDesc(p.getId());
             Map<Long, User> judges = usersById(list.stream().map(JudgeNote::getJudgeUserId).toList());
             Map<Long, CompetitionAssessmentStep> steps = stepRepository.findAllById(list.stream().map(JudgeNote::getStepId).toList())
@@ -256,7 +260,7 @@ public class AdminScoutingApiController {
         if (f == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy cờ");
         if (f.getRevokedAt() != null) return error(HttpStatus.CONFLICT, "Cờ đã được gỡ");
         boolean allowed = f.getKind() == Kind.LOW_PERFORMANCE
-                ? hasRole(auth, "ADMIN") || hasRole(auth, "SUPER_USER")
+                ? hasRole(auth, "ADMIN") || hasRole(auth, "HLV")
                 : canRaise(auth, f.getKind());
         if (!allowed) return error(HttpStatus.FORBIDDEN, "Bạn không có quyền gỡ cờ này");
         String reason = str(body.get("reason"));
@@ -265,13 +269,12 @@ public class AdminScoutingApiController {
         return ResponseEntity.ok(Map.of("message", "Đã gỡ cờ"));
     }
 
-    /** Doctor: medical. Coordinator: discipline. Judges, coordinators and managers: did not start. Managers may do all. */
+    /** Doctor: medical. The scouting panel (HLV, TTV): discipline and did not start. Admins may do all. */
     private static boolean canRaise(Authentication auth, Kind kind) {
-        if (hasRole(auth, "ADMIN") || hasRole(auth, "SUPER_USER")) return true;
+        if (hasRole(auth, "ADMIN")) return true;
         return switch (kind) {
             case MEDICAL_OUT -> hasRole(auth, "MEDICAL");
-            case DISCIPLINE -> hasRole(auth, "COORDINATOR");
-            case DNS -> hasRole(auth, "BGK") || hasRole(auth, "COORDINATOR");
+            case DISCIPLINE, DNS -> hasRole(auth, "HLV") || hasRole(auth, "TTV");
             case LOW_PERFORMANCE -> false;
         };
     }
@@ -310,7 +313,7 @@ public class AdminScoutingApiController {
 
     /** body: { holders: [{ userId, title }] } up to 4. Cards already used cannot be removed. */
     @PutMapping("/competitions/{id}/green-cards")
-    @PreAuthorize("hasRole('SUPER_USER')")
+    @PreAuthorize(MANAGER)
     @Transactional
     public ResponseEntity<?> setGreenCardHolders(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         if (!competitionRepository.existsById(id)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy giải đấu");
@@ -323,9 +326,8 @@ public class AdminScoutingApiController {
             String title = str(h.get("title"));
             if (userId == null || title == null) return error(HttpStatus.BAD_REQUEST, "Mỗi người giữ thẻ cần có tài khoản và chức danh");
             if (wanted.put(userId, title) != null) return error(HttpStatus.BAD_REQUEST, "Một người chỉ giữ một Green Card");
-            User u = userRepository.findById(userId).orElse(null);
-            if (u == null || u.getRole() == User.Role.USER || u.getRole() == User.Role.PLAYER) {
-                return error(HttpStatus.BAD_REQUEST, "Người giữ thẻ phải là tài khoản quản trị / ban giám khảo");
+            if (panelService.roleIn(id, userId).orElse(null) != CompetitionPanelMember.PanelRole.HLV) {
+                return error(HttpStatus.BAD_REQUEST, "Người giữ thẻ phải là HLV trong hội đồng tuyển trạch của giải");
             }
         }
         List<GreenCard> existing = greenCardRepository.findByCompetitionIdOrderByIdAsc(id);
@@ -374,7 +376,7 @@ public class AdminScoutingApiController {
 
     /** Contestants of the stage's competition with the values in force and a summary of the judges' records. */
     @GetMapping("/stages/{stageId}/manual-scores")
-    @PreAuthorize(MANAGER)
+    @PreAuthorize(JUDGE)
     @Transactional(readOnly = true)
     public ResponseEntity<?> manualScores(@PathVariable Long stageId, @RequestParam(defaultValue = "") String q) {
         CompetitionStage stage = stageRepository.findById(stageId).orElse(null);
@@ -407,19 +409,23 @@ public class AdminScoutingApiController {
             rows.add(m);
         }
         List<Map<String, Object>> components = new ArrayList<>();
-        COMPONENTS.forEach((k, v) -> components.add(Map.of("key", k, "label", v[0], "max", v[1])));
+        COMPONENTS.forEach((k, v) -> components.add(Map.of("key", k, "label", v[0], "max", v[1], "owner", ManualScore.BHL.equals(k) ? "HLV" : "TTV")));
         return ResponseEntity.ok(Map.of("components", components, "participants", rows));
     }
 
     /** body: { participantId, componentKey, points, reason }. A change to an existing value needs a reason. */
     @PutMapping("/stages/{stageId}/manual-scores")
-    @PreAuthorize(MANAGER)
+    @PreAuthorize(JUDGE)
     @Transactional
     public ResponseEntity<?> saveManualScore(@PathVariable Long stageId, @RequestBody Map<String, Object> body, Authentication auth) {
         if (!stageRepository.existsById(stageId)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy vòng thi");
         Long participantId = longOf(body.get("participantId"));
         String key = str(body.get("componentKey"));
         if (participantId == null || key == null || !COMPONENTS.containsKey(key)) return error(HttpStatus.BAD_REQUEST, "Thiếu thí sinh hoặc hạng mục điểm");
+        // The coaching staff score is the head coach's; scouts enter the rest. Admins may correct any.
+        if (!hasRole(auth, "ADMIN") && !hasRole(auth, "HLV") && ManualScore.BHL.equals(key)) {
+            return error(HttpStatus.FORBIDDEN, "Điểm BHL do HLV nhập");
+        }
         if (!participantRepository.existsById(participantId)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy thí sinh");
         BigDecimal points;
         try {
@@ -446,7 +452,7 @@ public class AdminScoutingApiController {
 
     /** Every entry for one contestant, newest first, so the edit trail is visible. */
     @GetMapping("/stages/{stageId}/manual-scores/{participantId}/history")
-    @PreAuthorize(MANAGER)
+    @PreAuthorize(JUDGE)
     @Transactional(readOnly = true)
     public List<Map<String, Object>> manualScoreHistory(@PathVariable Long stageId, @PathVariable Long participantId) {
         List<ManualScore> rows = new ArrayList<>(manualScoreRepository.findByStageIdAndParticipantIdOrderByIdAsc(stageId, participantId));

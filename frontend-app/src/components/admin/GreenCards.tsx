@@ -15,7 +15,8 @@ export default function GreenCards({ id }: { id: string }) {
   const me = useMe();
   const { toast } = useUi();
   const list = useApi<{ cards: CardRow[]; limit: number }>(`competitions/${id}/green-cards`);
-  const staff = useApi<{ items: { id: number; fullName: string | null; phone: string; role: string }[] }>(me.role === 'SUPER_USER' ? 'users?size=100' : null);
+  // Only the panel's head coaches (HLV) can hold a card.
+  const panel = useApi<{ members: { userId: number; fullName: string | null; phone: string; panelRole: 'HLV' | 'TTV' }[] }>(me.role === 'ADMIN' ? `competitions/${id}/panel` : null);
   const [holders, setHolders] = useState<Holder[] | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -42,7 +43,7 @@ export default function GreenCards({ id }: { id: string }) {
   return (
     <Card title="Green Card">
       <p className="mb-3 max-w-2xl text-[13px] text-[#46564D]">
-        Bốn thẻ cho mỗi giải. Người giữ thẻ dùng một lần trên trang thí sinh, thí sinh vào thẳng Top 30 và không thu hồi được.
+        Bốn thẻ cho mỗi giải, giao cho HLV trong hội đồng tuyển trạch. Người giữ thẻ dùng một lần trên trang thí sinh, thí sinh vào thẳng Top 30 và không thu hồi được.
       </p>
       <Loading error={list.error} loading={list.loading && !list.data} />
       {list.data && !holders && (
@@ -59,7 +60,7 @@ export default function GreenCards({ id }: { id: string }) {
               </tr>
             ))}
           </Table>
-          {me.role === 'SUPER_USER' && <div className="mt-3"><Button onClick={edit}>Chỉ định người giữ thẻ</Button></div>}
+          {me.role === 'ADMIN' && <div className="mt-3"><Button onClick={edit}>Chỉ định người giữ thẻ</Button></div>}
         </>
       )}
       {holders && (
@@ -68,7 +69,7 @@ export default function GreenCards({ id }: { id: string }) {
             <div key={i} className="flex flex-wrap gap-2">
               <Select className="max-w-xs" disabled={usedIds.has(Number(h.userId))} value={h.userId} onChange={(e) => setHolders(holders.map((x, j) => (j === i ? { ...x, userId: Number(e.target.value) || '' } : x)))}>
                 <option value="">Chọn tài khoản…</option>
-                {staff.data?.items.filter((u) => !['USER', 'PLAYER', 'COACH', 'SCOUTER'].includes(u.role)).map((u) => <option key={u.id} value={u.id}>{u.fullName || u.phone}</option>)}
+                {panel.data?.members.filter((u) => u.panelRole === 'HLV').map((u) => <option key={u.userId} value={u.userId}>{u.fullName || u.phone}</option>)}
               </Select>
               <Input className="max-w-xs" placeholder="Chức danh (vd. Giám đốc kỹ thuật)" value={h.title} onChange={(e) => setHolders(holders.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} />
               {!usedIds.has(Number(h.userId)) && <Button small onClick={() => setHolders(holders.filter((_, j) => j !== i))}>Bỏ</Button>}

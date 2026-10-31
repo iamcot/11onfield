@@ -830,11 +830,11 @@ public class AdminController {
             // Show all users including USER role
             userPage = userRepository.findAll(pageable);
         } else {
-            // Show only EDITOR, ADMIN, SUPER_USER
+            // Show only EDITOR, MEDICAL, ADMIN
             List<User.Role> adminRoles = Arrays.asList(
                     User.Role.EDITOR,
-                    User.Role.ADMIN,
-                    User.Role.SUPER_USER
+                    User.Role.MEDICAL,
+                    User.Role.ADMIN
             );
             userPage = userRepository.findByRoleIn(adminRoles, pageable);
         }

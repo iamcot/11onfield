@@ -17,10 +17,9 @@ interface Detail extends Omit<Row, 'greenCard'> {
 
 /** Which flags this role may raise (the server checks again). */
 function raisable(role: string): string[] {
-  if (role === 'ADMIN' || role === 'SUPER_USER') return ['MEDICAL_OUT', 'DISCIPLINE', 'DNS'];
+  if (role === 'ADMIN') return ['MEDICAL_OUT', 'DISCIPLINE', 'DNS'];
   if (role === 'MEDICAL') return ['MEDICAL_OUT'];
-  if (role === 'COORDINATOR') return ['DISCIPLINE', 'DNS'];
-  if (role === 'BGK') return ['DNS'];
+  if (role === 'HLV' || role === 'TTV') return ['DISCIPLINE', 'DNS'];
   return [];
 }
 
@@ -165,8 +164,8 @@ function DetailPanel({ id, onChanged }: { id: number; onChanged: () => void }) {
         )}
       </Card>
 
-      {(me.role === 'BGK' || me.role === 'ADMIN' || me.role === 'SUPER_USER') && (
-        <Card title={me.role === 'BGK' ? 'Ghi nhận của bạn' : 'Ghi nhận của ban giám khảo'}>
+      {(me.role === 'HLV' || me.role === 'TTV' || me.role === 'ADMIN') && (
+        <Card title={me.role === 'TTV' ? 'Ghi nhận của bạn' : 'Ghi nhận của hội đồng tuyển trạch'}>
           {x.judgeNotes.length === 0 && <p className="text-[14px] text-[#66766D]">Chưa có ghi nhận.</p>}
           <ul className="divide-y divide-[#E6ECE8] text-[14px]">
             {x.judgeNotes.map((n, i) => (
@@ -175,7 +174,7 @@ function DetailPanel({ id, onChanged }: { id: number; onChanged: () => void }) {
                   <span className="font-medium">{n.step}</span>
                   <Badge tone={n.participation === 'FULL' ? 'green' : n.participation === 'PARTIAL' ? 'gold' : 'red'}>{PARTICIPATION[n.participation]}</Badge>
                   {n.ticked && <Badge tone="green">✓ tick</Badge>}
-                  {me.role !== 'BGK' && <span className="text-[12px] text-[#66766D]">{n.judge}</span>}
+                  {me.role !== 'TTV' && <span className="text-[12px] text-[#66766D]">{n.judge}</span>}
                 </div>
                 {n.note && <p className="mt-1 text-[#46564D]">{n.note}</p>}
               </li>
