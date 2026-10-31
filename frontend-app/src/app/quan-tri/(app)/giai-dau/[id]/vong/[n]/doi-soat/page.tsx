@@ -236,7 +236,7 @@ function Guide() {
       </ol>
 
       <p className={H}>Khoá sổ là gì</p>
-      <p>Khoá sổ là đóng một bài thi khi bài đó đã thi xong. Sau khi khoá, số của bài không đổi nữa, kể cả khi iPad gửi thêm số. Số tới sau sẽ vào hàng “Cần xem” với lý do “Số tới sau khi khoá sổ”, chứ không tự đổi điểm.</p>
+      <p>Khoá sổ là đóng một bài thi khi bài đó đã thi xong. Sau khi khoá, bài chỉ còn xem: màn Chấm điểm không cho nhập hay sửa bài đó nữa (iPad còn số chưa gửi cũng bị từ chối). Muốn sửa thì admin mở khoá, sửa xong khoá lại.</p>
       <ul className="ml-5 list-disc">
         <li><b>Điều kiện để khoá</b>: không còn lượt “Cần xem” nào của bài, và mọi thí sinh đã thi bài đều đủ lượt. Thiếu lượt thì ghi Không thi hoặc Lỗi ở màn Chấm điểm (chế độ Bảng nhập bù cho nhanh).</li>
         <li><b>Mở khoá</b>: chỉ admin, bắt buộc ghi lý do. Lần mở khoá được lưu lại.</li>

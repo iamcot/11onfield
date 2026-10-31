@@ -19,7 +19,7 @@ interface Ctx {
   stage?: { id: number; stageNumber: number; title: string };
   days?: { id: number; title: string }[];
   /** scoreSource HLV: the head coach's score; only the HLV (or admin) enters it. */
-  steps?: { id: number; title: string; scoreSource?: 'MEASURED' | 'HLV' }[];
+  steps?: { id: number; title: string; scoreSource?: 'MEASURED' | 'HLV'; locked?: boolean }[];
   assessments?: Assessment[];
   participant?: { id: number; sbd: number; fullName: string; phone: string | null };
   scores?: Record<string, number>;
@@ -354,6 +354,9 @@ export default function FieldScoring() {
 
   const allowDot = target !== 'sbd';
 
+  // A locked step is read-only: the server refuses saves until an admin unlocks it on the Đối soát page.
+  const stepLocked = !!c?.steps?.find((s) => s.id === stepId)?.locked;
+
   return (
     <div className={`min-h-screen touch-manipulation select-none bg-[#F4F7F5] ${INK}`}>
       {/* Top bar */}
@@ -424,7 +427,7 @@ export default function FieldScoring() {
               {dayId && (
                 <div className="flex items-start gap-3">
                   <span className="w-24 shrink-0 pt-3 text-[14px] font-bold uppercase tracking-wide">Bước thi</span>
-                  <div className="flex min-w-0 flex-1 flex-wrap gap-2">{c.steps?.filter((s) => s.scoreSource !== 'HLV' || me.role !== 'TTV').map((s) => <button key={s.id} type="button" className={seg(stepId === s.id)} onClick={() => pickStep(s.id)}>{s.title}{s.scoreSource === 'HLV' && <span className="ml-1.5 rounded bg-[#FDF1DE] px-1.5 text-[12px] font-semibold text-[#8A4F07]">Điểm HLV</span>}</button>)}
+                  <div className="flex min-w-0 flex-1 flex-wrap gap-2">{c.steps?.filter((s) => s.scoreSource !== 'HLV' || me.role !== 'TTV').map((s) => <button key={s.id} type="button" className={seg(stepId === s.id)} onClick={() => pickStep(s.id)}>{s.title}{s.scoreSource === 'HLV' && <span className="ml-1.5 rounded bg-[#FDF1DE] px-1.5 text-[12px] font-semibold text-[#8A4F07]">Điểm HLV</span>}{s.locked && <span className="ml-1.5" aria-label="đã khoá sổ">🔒</span>}</button>)}
                   {c.steps?.length === 0 && <span className="text-[17px]">Ngày này chưa có bước thi.</span>}</div>
                 </div>
               )}
@@ -432,7 +435,13 @@ export default function FieldScoring() {
 
             {!stepId && <p className="mt-8 text-center text-[20px] font-medium">Chọn ngày thi và bước thi để bắt đầu chấm.</p>}
 
-            {stepId && (
+            {stepId && stepLocked && (
+              <p role="status" className="mt-5 rounded-2xl border-2 border-[#0B2419]/15 bg-[#F1F5F2] p-4 text-[18px] font-semibold">
+                🔒 Bài thi này đã khoá sổ, không nhập hay sửa điểm được nữa. Cần sửa thì quản trị mở khoá ở trang Đối soát (phải ghi lý do), sửa xong khoá lại.
+              </p>
+            )}
+
+            {stepId && !stepLocked && (
               <div className="mt-3 flex items-start gap-3">
                 <span className="w-24 shrink-0 pt-3 text-[14px] font-bold uppercase tracking-wide">Cách nhập</span>
                 <div className="flex min-w-0 flex-1 flex-wrap gap-2">
@@ -442,15 +451,15 @@ export default function FieldScoring() {
               </div>
             )}
 
-            {stepId && dayId && mode === 'group' && c.assessments && (
+            {stepId && !stepLocked && dayId && mode === 'group' && c.assessments && (
               <GroupEntry dayId={dayId} stepId={stepId} assessments={c.assessments} competitionId={c.competition?.id} flash={flash} onQueueChange={refreshQueue} />
             )}
 
-            {stepId && mode === 'table' && c.assessments && (
+            {stepId && !stepLocked && mode === 'table' && c.assessments && (
               <TableEntry stepId={stepId} assessments={c.assessments} flash={flash} onQueueChange={refreshQueue} />
             )}
 
-            {stepId && mode === 'one' && (
+            {stepId && !stepLocked && mode === 'one' && (
               <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:grid-rows-[auto_1fr] lg:items-start">
                 {/* Left: contestant + attempts */}
                 <div className="space-y-5 lg:col-start-1 lg:row-start-1">

@@ -471,7 +471,8 @@ public class AdminCompetitionApiController {
 
         List<CompetitionAssessmentStep> steps = stepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(day.getId());
         List<Map<String, Object>> stepList = new ArrayList<>();
-        for (CompetitionAssessmentStep s : steps) stepList.add(Map.of("id", s.getId(), "title", label(s.getStepNumber(), s.getTitle()), "scoreSource", s.getScoreSource()));
+        for (CompetitionAssessmentStep s : steps) stepList.add(Map.of("id", s.getId(), "title", label(s.getStepNumber(), s.getTitle()), "scoreSource", s.getScoreSource(),
+                "locked", measurementService.isLocked(s.getId())));
         out.put("steps", stepList);
 
         CompetitionAssessmentStep step = steps.stream().filter(s -> s.getId().equals(stepId)).findFirst().orElse(null);
@@ -566,6 +567,7 @@ public class AdminCompetitionApiController {
         Map<?, ?> statuses = body.get("statuses") instanceof Map<?, ?> m ? m : Map.of();
         Map<?, ?> notes = body.get("notes") instanceof Map<?, ?> m ? m : Map.of();
         String clientUuid = str(body.get("clientUuid"));
+        if (measurementService.isLocked(stepId)) return error(HttpStatus.CONFLICT, "Bài thi đã khoá sổ, không sửa được nữa. Cần sửa thì quản trị mở khoá ở trang Đối soát trước");
         if (flagService.isBlocked(participantId)) return error(HttpStatus.CONFLICT, "Thí sinh đã bị bác sĩ loại khỏi vòng thi, không thể ghi điểm");
         // A coach's-score problem is entered by the head coach (or corrected by the admin), not by the scouts.
         CompetitionAssessmentStep scoredStep = stepRepository.findById(stepId).orElse(null);

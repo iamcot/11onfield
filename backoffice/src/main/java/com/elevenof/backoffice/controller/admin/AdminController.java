@@ -2639,6 +2639,7 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
 
         try {
+            if (measurementService.isLocked(stepId)) throw new IllegalArgumentException("Bài thi đã khoá sổ, cần mở khoá trước khi sửa");
             java.util.List<com.elevenof.backoffice.model.CompetitionAssessment> assessments =
                 assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId);
             String scorer = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
