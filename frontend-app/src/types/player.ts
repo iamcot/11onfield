@@ -42,6 +42,8 @@ export interface PlayersFilters {
   preferredFoot: string | null;
   sortBy: string | null;
   sortOrder: "asc" | "desc" | null;
+  /** only players registered in this competition */
+  competitionId?: number | null;
 }
 
 // Helper function to get display name for level

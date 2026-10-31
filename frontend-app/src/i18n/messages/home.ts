@@ -35,6 +35,7 @@ const home: Messages = {
   'Hồ sơ của tôi': ['My profile', 'Mi perfil', '내 프로필'],
   'Đăng ký': ['Sign up', 'Inscribirse', '지원하기'],
   'Đăng ký miễn phí': ['Sign up for free', 'Inscríbete gratis', '무료로 지원하기'],
+  'Xem chương trình đang diễn ra': ['See the competition now running', 'Ver la competición en curso', '진행 중인 대회 보기'],
   'Cầu thủ': ['Players', 'Jugadores', '선수'],
   'Chương trình': ['Programme', 'Programa', '프로그램'],
   'Đăng nhập': ['Log in', 'Iniciar sesión', '로그인'],

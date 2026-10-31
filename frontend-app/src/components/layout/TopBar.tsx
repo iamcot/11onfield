@@ -33,13 +33,8 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 h-20">
         <div className="of-appbar relative h-16">
           <div className="flex items-center justify-between h-full px-4">
-            {/* Left: language (also keeps the logo centred) */}
-            <div className="w-20">
-              <LanguageSwitcher className="w-fit" />
-            </div>
-
-            {/* Center Logo */}
-            <div className="flex-1 flex justify-center">
+            {/* Left: logo */}
+            <div className="flex-1 flex justify-start">
               <Link href="/">
                 <Image
                   src="/images/logo-white-full.png"
@@ -51,7 +46,8 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
               </Link>
             </div>
 
-            {/* Right Icons Container */}
+            {/* Right: language, then bell and avatar */}
+            <LanguageSwitcher round className="mr-2" />
             <div className="relative flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
               {/* Bell Icon */}
               <button

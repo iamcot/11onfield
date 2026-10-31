@@ -678,6 +678,7 @@ public class UserController {
      * @param preferredFoot Preferred foot to filter by
      * @param sortBy Field to sort by (e.g., "fullName", "height")
      * @param sortOrder Sort direction ("asc" or "desc")
+     * @param competitionId Only players registered in this competition
      * @return Paginated list of players
      */
     @GetMapping("/players")
@@ -690,7 +691,8 @@ public class UserController {
             @RequestParam(required = false) Player.PlayerLevel level,
             @RequestParam(required = false) String preferredFoot,
             @RequestParam(required = false) String sortBy,
-            @RequestParam(defaultValue = "asc") String sortOrder
+            @RequestParam(defaultValue = "asc") String sortOrder,
+            @RequestParam(required = false) Long competitionId
     ) {
         // Build sort - handle player properties with join path
         Sort sort = Sort.unsorted();
@@ -730,7 +732,7 @@ public class UserController {
 
         // Apply filters using Specification
         Specification<User> spec = PlayerSpecification.withFilters(
-            search, positions, provinceId, level, preferredFoot
+            search, positions, provinceId, level, preferredFoot, competitionId
         );
 
         Page<User> users = userRepository.findAll(spec, pageable);

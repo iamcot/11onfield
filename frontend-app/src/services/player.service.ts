@@ -31,6 +31,7 @@ export const playerService = {
     if (filters.provinceId) params.append("provinceId", filters.provinceId.toString());
     if (filters.level) params.append("level", filters.level);
     if (filters.preferredFoot) params.append("preferredFoot", filters.preferredFoot);
+    if (filters.competitionId) params.append("competitionId", filters.competitionId.toString());
     if (filters.sortBy) {
       params.append("sortBy", filters.sortBy);
       params.append("sortOrder", filters.sortOrder || "asc");
