@@ -81,7 +81,7 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | 2.3 | Lọc ở backend trong `GET /api/users/{userid}` | 2 | Chưa làm | |
 | 2.4 | Tính chỉ số player từ Combine (hexagon 0–99, nhóm điểm, số đo gốc), tự cập nhật | 2 | Chờ chốt | |
 | 2.5 | Thẻ Combine trên trang player + công tắc ẩn/hiện của chính chủ | 2 | Chưa làm | |
-| 2.6 | Tab Bảng xếp hạng ở trang giải: không hiện thứ hạng, chỉ danh sách được chọn sau phát hành | 2 | Chờ chốt | |
+| 2.6 | Tab Bảng xếp hạng ở trang giải: chỉ hiện Top 30 sau khi chốt chọn, không số hạng | 2 | Chưa làm | |
 | 2.7 | Ảnh chia sẻ / link preview chỉ dùng trường công khai | 2 | Chưa làm | |
 | 3.1 | Đăng ký thiết bị, token, phiếu hiệu chuẩn | 3 | Chưa làm | |
 | 3.2 | Nhập file từ thiết bị (CSV, FIT, Excel) theo mẫu ánh xạ | 3 | Chờ chốt | |

@@ -84,6 +84,6 @@ CREATE TABLE player_visibility (id, user_id, data_group, level VARCHAR(10), UNIQ
 
 ### 2.6–2.7
 
-- Tab "Bảng xếp hạng" ở trang giải không hiện thứ hạng theo điểm. Đề xuất: sau phát hành chỉ hiện danh sách được chọn vào
-  vòng trong (Top 30), xếp theo tên hoặc vị trí (`Chờ chốt`).
+- Tab "Bảng xếp hạng" ở trang giải chỉ hiện Top 30 sau khi Trưởng ban chốt danh sách chọn (`selection_decisions`), xếp theo
+  vị trí rồi tên, không có số hạng hay điểm. Trước đó tab ẩn.
 - Ảnh chia sẻ / OG chỉ đọc trường `PUBLIC`.
