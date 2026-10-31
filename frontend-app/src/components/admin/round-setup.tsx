@@ -364,7 +364,7 @@ export function TopicsEditor({ dayId, onSaved, readOnly }: { dayId: number; onSa
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-[14px]">
               <thead className="text-left text-[11px] uppercase tracking-wider text-[#56665D]">
-                <tr><th className="w-20 py-1 font-medium">Thứ tự</th><th className="px-2 font-medium">Tên nhóm</th><th className="w-28 px-2 font-medium">Điểm tối đa</th><th className="w-28 px-2 font-medium" title="Khi đồng điểm, nhóm có số này nhỏ hơn được xét trước">Ưu tiên đồng điểm</th><th className="w-8" /></tr>
+                <tr><th className="w-20 py-1 font-medium">Thứ tự</th><th className="px-2 font-medium">Tên nhóm</th><th className="w-28 px-2 font-medium">Điểm tối đa</th><th className="w-36 px-2 font-medium">Ưu tiên đồng điểm<span className="block text-[11px] font-normal normal-case tracking-normal text-[#66766D]">Nhập số, số nhỏ xét trước</span></th><th className="w-8" /></tr>
               </thead>
               <tbody className="divide-y divide-[#E6ECE8]">
                 {rows.map((t, i) => (
@@ -372,7 +372,7 @@ export function TopicsEditor({ dayId, onSaved, readOnly }: { dayId: number; onSa
                     <td className="py-1.5"><div className="flex items-center gap-1"><Button small disabled={readOnly || i === 0} aria-label="Lên" onClick={() => move(i, -1)}>↑</Button><Button small disabled={readOnly || i === rows.length - 1} aria-label="Xuống" onClick={() => move(i, 1)}>↓</Button></div></td>
                     <td className="px-2"><Input disabled={readOnly} aria-label="Tên nhóm" value={t.name} onChange={(e) => set(i, { name: e.target.value })} /></td>
                     <td className="px-2"><Input disabled={readOnly} inputMode="decimal" aria-label="Điểm tối đa" value={String(t.maxPoints)} onChange={(e) => set(i, { maxPoints: e.target.value })} /></td>
-                    <td className="px-2"><Input disabled={readOnly} inputMode="numeric" aria-label="Ưu tiên đồng điểm" placeholder="không xét" value={String(t.tieBreakOrder ?? '')} onChange={(e) => set(i, { tieBreakOrder: e.target.value })} /></td>
+                    <td className="px-2"><Input disabled={readOnly} inputMode="numeric" aria-label="Ưu tiên đồng điểm" type="number" min={1} placeholder="Trống = không xét" value={String(t.tieBreakOrder ?? '')} onChange={(e) => set(i, { tieBreakOrder: e.target.value })} /></td>
                     <td>{!readOnly && <button type="button" aria-label="Xoá nhóm" className="text-[20px] text-[#B42318]" onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))}>×</button>}</td>
                   </tr>
                 ))}
