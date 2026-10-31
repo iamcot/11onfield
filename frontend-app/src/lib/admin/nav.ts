@@ -20,7 +20,8 @@ export const NAV: NavItem[] = [
   { label: 'Check-in', href: '/quan-tri/check-in', roles: [...STAFF, ...PANEL] },
   { label: 'Chấm điểm tại trạm', href: '/quan-tri/cham-diem', roles: [...MANAGERS, ...PANEL] },
   { label: 'Ghi nhận thí sinh', href: '/quan-tri/ghi-nhan', roles: PANEL },
-  { label: 'Thí sinh', href: '/quan-tri/thi-sinh', roles: [...MANAGERS, ...PANEL, 'MEDICAL'] },
+  // Admins open contestants from the competition (Giải đấu > Thí sinh); this page is for the panel and the doctor.
+  { label: 'Thí sinh', href: '/quan-tri/thi-sinh', roles: [...PANEL, 'MEDICAL'] },
   { label: 'Chọn Top 30', href: '/quan-tri/chon-top-30', roles: PANEL },
   { label: 'Cầu thủ', href: '/quan-tri/cau-thu', roles: STAFF, badge: 'unverifiedPlayers' },
   { label: 'Chờ duyệt', href: '/quan-tri/duyet', roles: STAFF, badge: 'pendingApprovals' },
