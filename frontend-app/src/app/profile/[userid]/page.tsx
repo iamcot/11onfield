@@ -5,6 +5,7 @@ import { looksLikeHtml, sanitizeHtml } from "@/lib/sanitize-html";
 import MobileNav from "@/components/layout/MobileNav";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
+import ProfileShareSheet from "@/components/qr/ProfileShareSheet";
 import AchievementsBlock, { type TypedAchievement } from "@/components/player-profile/AchievementsBlock";
 import { PhotoGuide } from "@/components/player-profile/Guides";
 import HighlightsBlock from "@/components/player-profile/HighlightsBlock";
@@ -40,7 +41,7 @@ import type { EventListItem } from "@/types/event";
 import type { UserListItem } from "@/types/user";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 type EditKey = "avatar" | "id" | "bio" | "body" | "info" | null;
 
@@ -87,7 +88,7 @@ function Actions({ onCancel, onSave, saving }: { onCancel: () => void; onSave: (
 
 export default function UserProfilePage() {
   const { t, intlLocale } = useI18n();
-  const { user: currentUser, isAuthenticated, setProfileCompletionChecked, refreshUser } = useAuth();
+  const { user: currentUser, isAuthenticated, isLoading: authLoading, setProfileCompletionChecked, refreshUser } = useAuth();
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -113,6 +114,8 @@ export default function UserProfilePage() {
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [fullGuide, setFullGuide] = useState(false);
   const [fullBusy, setFullBusy] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const autoFollowed = useRef(false);
 
   const owner = !!currentUser && currentUser.userid === userid;
 
@@ -275,18 +278,29 @@ export default function UserProfilePage() {
     }
   };
 
-  const share = async () => {
-    const url = window.location.href.split("?")[0];
-    try {
-      if (navigator.share) await navigator.share({ title: profile?.fullName, url });
-      else {
-        await navigator.clipboard.writeText(url);
-        toast(t("Đã chép link hồ sơ"));
-      }
-    } catch {
-      // closed the share sheet
+  // ?follow=1 comes from scanning this profile's QR in the app: follow it once, then drop the flag
+  const autoFollow = searchParams.get("follow") === "1";
+  useEffect(() => {
+    if (!autoFollow || authLoading || !profile || autoFollowed.current) return;
+    const here = `/profile/${userid}`;
+    if (!isAuthenticated) {
+      router.replace(`/auth/login?redirect=${encodeURIComponent(`${here}?follow=1`)}`);
+      return;
     }
-  };
+    autoFollowed.current = true;
+    router.replace(here, { scroll: false });
+    if (owner) return;
+    followService
+      .isFollowing(userid)
+      .then(async (already) => {
+        if (!already) await followService.followUser(userid);
+        setFollowing(true);
+        toast(already ? t("Bạn đang theo dõi {name}", { name: profile.fullName }) : t("Đã theo dõi {name}", { name: profile.fullName }));
+        followService.getFollowers(userid).then(setFollowers).catch(() => undefined);
+        if (!already) load();
+      })
+      .catch(() => toast(t("Có lỗi xảy ra. Vui lòng thử lại.")));
+  }, [autoFollow, authLoading, isAuthenticated, owner, profile, userid, router, toast, t, load]);
 
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -500,7 +514,7 @@ export default function UserProfilePage() {
                 {following ? t("Đang theo dõi") : t("Theo dõi")}
               </button>
             )}
-            <button className="pp-btn pp-btn-ghost of-cut" onClick={share}>
+            <button className="pp-btn pp-btn-ghost of-cut" onClick={() => setSharing(true)}>
               <IconShare />
               {t("Chia sẻ hồ sơ")}
             </button>
@@ -828,6 +842,9 @@ export default function UserProfilePage() {
         )}
       </section>
 
+      {sharing && (
+        <ProfileShareSheet userid={userid} name={profile.fullName} onClose={() => setSharing(false)} onCopied={() => toast(t("Đã chép link hồ sơ"))} />
+      )}
       {toastText && (
         <div className="pp-toast" role="status">
           {toastText}
