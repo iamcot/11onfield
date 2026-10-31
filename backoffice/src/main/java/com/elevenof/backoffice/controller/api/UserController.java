@@ -2,6 +2,7 @@ package com.elevenof.backoffice.controller.api;
 
 import com.elevenof.backoffice.dto.request.UpdateProfileRequest;
 import com.elevenof.backoffice.dto.response.AddressResponse;
+import com.elevenof.backoffice.dto.response.CombineDTO;
 import com.elevenof.backoffice.dto.response.FeedItemDTO;
 import com.elevenof.backoffice.dto.response.PlayerAttributeDTO;
 import com.elevenof.backoffice.dto.response.PlayerListDTO;
@@ -12,7 +13,9 @@ import com.elevenof.backoffice.dto.response.UserProfileResponse;
 import com.elevenof.backoffice.dto.response.UserResponse;
 import com.elevenof.backoffice.exception.FileUploadException;
 import com.elevenof.backoffice.exception.ResourceNotFoundException;
+import com.elevenof.backoffice.model.DataGroup;
 import com.elevenof.backoffice.model.Player;
+import com.elevenof.backoffice.model.VisibilityLevel;
 import com.elevenof.backoffice.model.PlayerAchievement;
 import com.elevenof.backoffice.model.PlayerAttribute;
 import com.elevenof.backoffice.model.PlayerHighlight;
@@ -74,6 +77,8 @@ public class UserController {
     private final jakarta.persistence.EntityManager entityManager;
     private final com.elevenof.backoffice.repository.AddressRepository addressRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final com.elevenof.backoffice.service.VisibilityService visibilityService;
+    private final com.elevenof.backoffice.service.CombineService combineService;
 
     /**
      * Helper method to get User from userid (String) in JWT token
@@ -86,6 +91,46 @@ public class UserController {
         String userid = authentication.getName(); // This is userid (String), not id (Long)!
         return userRepository.findByUserid(userid)
             .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
+    }
+
+    /** The signed-in user, or null for a guest (anonymous or unknown token). */
+    private User optionalViewer(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) return null;
+        return userRepository.findByUserid(authentication.getName()).orElse(null);
+    }
+
+    /** What the player may still change about who sees which part of their data. */
+    @GetMapping("/me/visibility")
+    public ResponseEntity<List<VisibilitySettingDTO>> getMyVisibility(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        User user = getUserFromAuthentication(authentication);
+        return ResponseEntity.ok(visibilityService.resolve(user, user).settings().stream()
+            .map(VisibilitySettingDTO::of).toList());
+    }
+
+    @PutMapping("/me/visibility")
+    public ResponseEntity<?> setMyVisibility(@RequestBody VisibilityRequest request, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        User user = getUserFromAuthentication(authentication);
+        try {
+            visibilityService.setPlayerLevel(user, DataGroup.valueOf(request.dataGroup()), VisibilityLevel.valueOf(request.level()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    public record VisibilityRequest(String dataGroup, String level) {}
+
+    public record VisibilitySettingDTO(String dataGroup, String adminMax, boolean ownerCanHide, String mine, String level) {
+        static VisibilitySettingDTO of(com.elevenof.backoffice.service.VisibilityRules.Effective e) {
+            return new VisibilitySettingDTO(e.group().name(), e.adminMax().name(), e.ownerCanHide(),
+                e.mine() == null ? null : e.mine().name(), e.level().name());
+        }
     }
 
     @GetMapping("/me")
@@ -149,11 +194,9 @@ public class UserController {
         }
 
         // Determine if the current user is viewing their own profile
-        boolean isOwner = false;
-        if (authentication != null && authentication.isAuthenticated()) {
-            User currentUser = getUserFromAuthentication(authentication);
-            isOwner = currentUser.getId().equals(user.getId());
-        }
+        User viewer = optionalViewer(authentication);
+        boolean isOwner = viewer != null && viewer.getId().equals(user.getId());
+        com.elevenof.backoffice.service.VisibilityService.Access access = visibilityService.resolve(viewer, user);
 
         UserProfileResponse.UserProfileResponseBuilder responseBuilder = UserProfileResponse.builder()
             .id(user.getId())
@@ -190,8 +233,8 @@ public class UserController {
                     .positions(player.getPositions() != null ? Arrays.asList(player.getPositions().split(",")) : null)
                     .secondaryPosition(player.getSecondaryPosition())
                     .yearsOfExperience(player.getYearsOfExperience())
-                    .height(player.getHeight())
-                    .weight(player.getWeight())
+                    .height(access.canSee(DataGroup.BODY_BASIC) ? player.getHeight() : null)
+                    .weight(access.canSee(DataGroup.BODY_BASIC) ? player.getWeight() : null)
                     .preferredFoot(player.getPreferredFoot())
                     .level(player.getLevel() != null ? player.getLevel().name() : null)
                     .bio(player.getBio())
@@ -279,6 +322,13 @@ public class UserController {
                         .build())
                     .toList();
                 responseBuilder.socials(socials);
+
+                // Scouting Combine: only the blocks this viewer may see are serialized
+                CombineDTO combine = visibilityService.filterCombine(combineService.findFull(user.getId()), access);
+                responseBuilder.combine(combine);
+                if (finalIsOwner) {
+                    responseBuilder.visibility(access.settings().stream().map(VisibilitySettingDTO::of).toList());
+                }
             });
         }
 
@@ -692,8 +742,10 @@ public class UserController {
             @RequestParam(required = false) String preferredFoot,
             @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "asc") String sortOrder,
-            @RequestParam(required = false) Long competitionId
+            @RequestParam(required = false) Long competitionId,
+            Authentication authentication
     ) {
+        User viewer = optionalViewer(authentication);
         // Build sort - handle player properties with join path
         Sort sort = Sort.unsorted();
         if (sortBy != null && !sortBy.isEmpty()) {
@@ -763,14 +815,16 @@ public class UserController {
             // Load player attributes with left join (always 6 hexagon attributes)
             List<PlayerAttributeDTO> attributeDTOs = playerAttributeService.getHexagonAttributesWithValues(player.getId());
 
+            boolean bodyVisible = visibilityService.resolve(viewer, user).canSee(DataGroup.BODY_BASIC);
+
             return PlayerListDTO.builder()
                 .id(user.getId())
                 .userid(user.getUserid())
                 .fullName(user.getFullName())
                 .avatar(user.getAvatar())
                 .age(age)
-                .height(player.getHeight())
-                .weight(player.getWeight())
+                .height(bodyVisible ? player.getHeight() : null)
+                .weight(bodyVisible ? player.getWeight() : null)
                 .positions(positionList)
                 .preferredFoot(player.getPreferredFoot())
                 .level(player.getLevel())
