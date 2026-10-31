@@ -24,6 +24,7 @@ import java.util.List;
 public class CompetitionAssessmentStructureService {
 
     private final CompetitionStageRepository stageRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
     private final CompetitionAssessmentDayRepository assessmentDayRepository;
     private final CompetitionAssessmentStepRepository assessmentStepRepository;
     private final CompetitionAssessmentRepository assessmentRepository;
@@ -74,7 +75,24 @@ public class CompetitionAssessmentStructureService {
      */
     public void deleteAssessmentDay(Long dayId) {
         log.info("Deleting assessment day {}", dayId);
-        assessmentDayRepository.deleteById(dayId);
+        // Straight SQL: the foreign keys cascade to steps, contents, scales, conditions, groups and measurements. Going
+        // through Hibernate's cascade deleted the scale conditions twice (once by the database when the content went).
+        jdbc.update("UPDATE competition_score_topics SET source_day_id = NULL WHERE source_day_id = ?", dayId);
+        purgeMeasurements("SELECT a.id FROM competition_assessments a JOIN competition_assessment_steps st ON st.id = a.assessment_step_id WHERE st.assessment_day_id = ?", dayId);
+        jdbc.update("DELETE FROM competition_assessment_days WHERE id = ?", dayId);
+    }
+
+    /**
+     * Measurements of the given contents, removed before the contents themselves: a correction points at the record it
+     * replaces and the official value at its record, and neither link cascades.
+     */
+    private void purgeMeasurements(String assessmentIdsSql, Long id) {
+        List<Long> ids = jdbc.queryForList(assessmentIdsSql, Long.class, id);
+        for (Long a : ids) {
+            jdbc.update("DELETE FROM measurement_official WHERE assessment_id = ?", a);
+            jdbc.update("UPDATE measurement_raw SET supersedes_id = NULL WHERE assessment_id = ?", a);
+            jdbc.update("DELETE FROM measurement_raw WHERE assessment_id = ?", a);
+        }
     }
 
     // ============= Assessment Step Operations =============
@@ -118,7 +136,8 @@ public class CompetitionAssessmentStructureService {
      */
     public void deleteAssessmentStep(Long stepId) {
         log.info("Deleting assessment step {}", stepId);
-        assessmentStepRepository.deleteById(stepId);
+        purgeMeasurements("SELECT id FROM competition_assessments WHERE assessment_step_id = ?", stepId);
+        jdbc.update("DELETE FROM competition_assessment_steps WHERE id = ?", stepId);
     }
 
     // ============= Assessment Operations =============
@@ -165,7 +184,8 @@ public class CompetitionAssessmentStructureService {
      */
     public void deleteAssessment(Long assessmentId) {
         log.info("Deleting assessment {}", assessmentId);
-        assessmentRepository.deleteById(assessmentId);
+        purgeMeasurements("SELECT ?", assessmentId);
+        jdbc.update("DELETE FROM competition_assessments WHERE id = ?", assessmentId);
     }
 
     // ============= Edit Operations =============
