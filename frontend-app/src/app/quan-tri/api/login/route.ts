@@ -26,7 +26,11 @@ export async function POST(req: NextRequest) {
   // A coach or scout gets in only while on a competition's scouting panel (the token's `panel` claim).
   const session = readToken(data.tokens?.accessToken);
   if (!session || !ADMIN_ROLES.includes(session.role)) {
-    return NextResponse.json({ message: 'Tài khoản này không có quyền vào trang quản trị' }, { status: 403 });
+    const websiteRole = data.user?.role;
+    const message = websiteRole === 'COACH' || websiteRole === 'SCOUTER'
+      ? 'Tài khoản HLV / tuyển trạch viên này chưa ở hội đồng tuyển trạch của giải nào. Admin vào Giải đấu, tab Hội đồng để thêm, rồi đăng nhập lại.'
+      : 'Tài khoản này không có quyền vào trang quản trị';
+    return NextResponse.json({ message }, { status: 403 });
   }
 
   const out = NextResponse.json({ role: session.role, fullName: data.user.fullName });
