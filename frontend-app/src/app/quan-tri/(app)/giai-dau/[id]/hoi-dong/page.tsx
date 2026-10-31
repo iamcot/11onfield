@@ -10,10 +10,10 @@ import { useIsManager } from '@/components/admin/me';
 import { Badge, Button, Card, Input, Loading, Select, Table, Td, useUi } from '@/components/admin/ui';
 
 type PanelRole = 'HLV' | 'TTV';
-interface Member { userId: number; fullName: string | null; phone: string; websiteRole: string; panelRole: PanelRole }
+interface Member { userId: number; fullName: string | null; phone: string; websiteRole: string; panelRole: PanelRole; head?: boolean }
 
 const ROLE_INFO: Record<PanelRole, { label: string; does: string }> = {
-  HLV: { label: 'HLV', does: 'Người cao nhất của hội đồng: nhập điểm BHL, xem phiếu của cả hội đồng, chốt Top 30, dùng Green Card khi được giao thẻ.' },
+  HLV: { label: 'HLV', does: 'Nhập điểm BHL, xem phiếu của cả hội đồng, dùng Green Card khi được giao thẻ. Một HLV làm Trưởng hội đồng: chỉ người này được chốt danh sách Top 30.' },
   TTV: { label: 'Tuyển trạch viên', does: 'Check-in, chấm điểm tại trạm, ghi nhận thí sinh, ghi kỷ luật, nhập điểm 7v7, tư duy, GPS, bỏ phiếu Top 30.' },
 };
 
@@ -28,12 +28,15 @@ export default function PanelPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => { if (panel.data) setRows(panel.data.members); }, [panel.data]);
-  const dirty = JSON.stringify(rows.map((r) => [r.userId, r.panelRole])) !== JSON.stringify((panel.data?.members || []).map((r) => [r.userId, r.panelRole]));
+  const dirty = JSON.stringify(rows.map((r) => [r.userId, r.panelRole, !!r.head])) !== JSON.stringify((panel.data?.members || []).map((r) => [r.userId, r.panelRole, !!r.head]));
+  // Exactly one head among the HLVs; when the marked one stops being HLV (or leaves), the first HLV takes over.
+  const hlvs = rows.filter((r) => r.panelRole === 'HLV');
+  const headId = (hlvs.find((r) => r.head) || hlvs[0])?.userId;
 
   async function save() {
     setBusy(true);
     try {
-      const r = await api<{ message: string }>(`competitions/${id}/panel`, { method: 'PUT', body: { members: rows.map((m) => ({ userId: m.userId, panelRole: m.panelRole })) } });
+      const r = await api<{ message: string }>(`competitions/${id}/panel`, { method: 'PUT', body: { members: rows.map((m) => ({ userId: m.userId, panelRole: m.panelRole, head: m.userId === headId })) } });
       toast(r.message);
       panel.reload();
       setQ('');
@@ -62,7 +65,7 @@ export default function PanelPage() {
         </p>
         <Loading error={panel.error} loading={panel.loading && !panel.data} />
         {panel.data && (
-          <Table head={['Họ tên', 'Điện thoại', 'Tài khoản web', 'Vai trò trong hội đồng', '']} empty="Chưa có ai trong hội đồng.">
+          <Table head={['Họ tên', 'Điện thoại', 'Tài khoản web', 'Vai trò trong hội đồng', 'Trưởng hội đồng', '']} empty="Chưa có ai trong hội đồng.">
             {rows.map((m) => (
               <tr key={m.userId}>
                 <Td className="font-medium">{m.fullName || '—'}</Td>
@@ -73,6 +76,15 @@ export default function PanelPage() {
                     <option value="HLV">HLV</option>
                     <option value="TTV">Tuyển trạch viên</option>
                   </Select>
+                </Td>
+                <Td>
+                  {m.panelRole === 'HLV' ? (
+                    <label className="flex items-center gap-2 text-[14px]">
+                      <input type="radio" name="head" className="h-4 w-4" disabled={!manager} checked={m.userId === headId}
+                        onChange={() => setRows(rows.map((x) => ({ ...x, head: x.userId === m.userId })))} />
+                      {m.userId === headId ? 'Chốt danh sách' : ''}
+                    </label>
+                  ) : <span className="text-[#66766D]">—</span>}
                 </Td>
                 <Td className="text-right">{manager && <Button small variant="danger" onClick={() => setRows(rows.filter((x) => x.userId !== m.userId))}>Bỏ</Button>}</Td>
               </tr>

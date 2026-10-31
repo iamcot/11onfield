@@ -11,7 +11,7 @@ import { FlagBadges, RankCell, RankFilters, TotalCell, inGroup, positionLabel, u
 const LIMIT = 30;
 const ROUND = 'TOP30';
 
-interface Votes { mine: number[]; limit: number; counts?: Record<string, number>; judges?: number; voted?: number }
+interface Votes { mine: number[]; limit: number; counts?: Record<string, number>; judges?: number; voted?: number; isHead?: boolean }
 interface Decision { id?: number; participantIds?: number[]; notes?: Record<string, string>; decidedAt?: string }
 
 const sameSet = (a: Set<number>, b: Set<number>) => a.size === b.size && Array.from(a).every((x) => b.has(x));
@@ -58,6 +58,7 @@ function FinalizeModal({
     <Modal title="Chốt Top 30" onClose={onClose} wide>
       <p className="text-[14px] text-[#46564D]">
         Sau khi chốt, danh sách không đổi được và thí sinh được báo kết quả. Bước này không hoàn tác.
+        {picked.size < 30 && <> Danh sách đang có <b>{picked.size}</b> người, ít hơn 30.</>}
       </p>
       {needed.length > 0 ? (
         <div className="mt-4 space-y-3">
@@ -96,8 +97,7 @@ function FinalizeModal({
 export default function Top30Selection({ id }: { id: string }) {
   const { toast } = useUi();
   const me = useMe();
-  // HLV decides and sees everyone's votes; TTV votes; admins watch.
-  const superUser = me.role === 'HLV';
+  // The head of the panel (one HLV) decides; HLVs see everyone's votes; HLV and TTV vote; admins watch.
   const staff = me.role === 'HLV' || me.role === 'ADMIN';
   const canVote = me.role === 'HLV' || me.role === 'TTV';
   const [group, setGroup] = useState<Group>('ALL');
@@ -105,6 +105,7 @@ export default function Top30Selection({ id }: { id: string }) {
   const ranking = useRanking(id, '');
   const votes = useApi<Votes>(`competitions/${id}/selection/${ROUND}/votes`);
   const decision = useApi<Decision>(`competitions/${id}/selection/${ROUND}/decision`);
+  const superUser = me.role === 'HLV' && !!votes.data?.isHead;
 
   const [mine, setMine] = useState<Set<number>>(new Set());
   const [final, setFinal] = useState<Set<number>>(new Set());
@@ -174,7 +175,7 @@ export default function Top30Selection({ id }: { id: string }) {
         <p className="max-w-3xl text-[13px] text-[#46564D]">
           {decided
             ? 'Top 30 đã chốt. Danh sách dưới đây là kết quả chính thức, kèm lý do khi chọn khác thứ tự điểm.'
-            : 'Mỗi thành viên hội đồng tuyển trạch chọn tối đa 30 người làm phiếu của mình. HLV xem số phiếu và thứ hạng, rồi chọn tay 30 người cuối cùng. Hệ thống không tự cắt theo điểm.'}
+            : 'Mỗi thành viên hội đồng tuyển trạch chọn tối đa 30 người làm phiếu của mình. Trưởng hội đồng xem số phiếu và thứ hạng, rồi chọn tay tối đa 30 người cuối cùng. Hệ thống không tự cắt theo điểm.'}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           {canVote && !decided && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Phiếu của bạn {mine.size}/{LIMIT}</span>}
@@ -182,7 +183,7 @@ export default function Top30Selection({ id }: { id: string }) {
           {staff && !decided && judges != null && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Đã bỏ phiếu {votes.data?.voted ?? 0}/{judges} người</span>}
           {superUser && !decided && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Đã chọn {final.size}/{LIMIT}</span>}
           {superUser && !decided && (
-            <Button variant="primary" disabled={final.size !== LIMIT || missingGreen.length > 0} onClick={() => setFinalizing(true)}>Chốt danh sách</Button>
+            <Button variant="primary" disabled={final.size === 0 || final.size > LIMIT || missingGreen.length > 0} onClick={() => setFinalizing(true)}>Chốt danh sách</Button>
           )}
         </div>
       </div>
@@ -264,7 +265,7 @@ export default function Top30Selection({ id }: { id: string }) {
       <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[12px] text-[#56665D]">
         <span>Hạng là hạng chung 3 khu vực, chỉ hội đồng tuyển trạch và BTC thấy.</span>
         <span>Chọn người ngoài Top 30 theo điểm, hoặc bỏ người trong Top 30 đã đủ điểm, phải ghi lý do khi chốt.</span>
-        {!superUser && <span>Chỉ Super user chốt danh sách cuối.</span>}
+        {!superUser && <span>Chỉ trưởng hội đồng chốt danh sách cuối.</span>}
       </div>
 
       {finalizing && (

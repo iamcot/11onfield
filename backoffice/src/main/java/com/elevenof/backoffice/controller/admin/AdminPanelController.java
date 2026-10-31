@@ -41,10 +41,18 @@ public class AdminPanelController {
         List<CompetitionPanelMember> members = memberRepository.findByCompetitionIdOrderByPanelRoleAscIdAsc(id);
         Map<Long, User> users = userRepository.findAllById(members.stream().map(CompetitionPanelMember::getUserId).toList())
                 .stream().collect(Collectors.toMap(User::getId, u -> u));
+        // The head as the rest of the system sees it: the HLV marked head, else the HLV added first.
+        Long headId = members.stream().filter(m -> m.getPanelRole() == PanelRole.HLV && m.isHead()).findFirst()
+                .or(() -> members.stream().filter(m -> m.getPanelRole() == PanelRole.HLV).min(Comparator.comparing(CompetitionPanelMember::getId)))
+                .map(CompetitionPanelMember::getUserId).orElse(null);
         List<Map<String, Object>> rows = new ArrayList<>();
         for (CompetitionPanelMember m : members) {
             User u = users.get(m.getUserId());
-            if (u != null) rows.add(row(u, m.getPanelRole()));
+            if (u != null) {
+                Map<String, Object> r = row(u, m.getPanelRole());
+                r.put("head", m.getUserId().equals(headId));
+                rows.add(r);
+            }
         }
         return ResponseEntity.ok(Map.of("members", rows));
     }
@@ -71,6 +79,7 @@ public class AdminPanelController {
     public ResponseEntity<?> save(@PathVariable Long id, @RequestBody Map<String, Object> body, Authentication auth) {
         if (!competitionRepository.existsById(id)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy giải đấu");
         Map<Long, PanelRole> wanted = new LinkedHashMap<>();
+        Long head = null;
         if (body.get("members") instanceof List<?> list) {
             for (Object o : list) {
                 if (!(o instanceof Map<?, ?> m)) continue;
@@ -89,6 +98,10 @@ public class AdminPanelController {
                             + " không phải tài khoản HLV hoặc tuyển trạch viên");
                 }
                 wanted.put(userId, role);
+                if (Boolean.TRUE.equals(m.get("head"))) {
+                    if (role != PanelRole.HLV) return error(HttpStatus.BAD_REQUEST, "Trưởng hội đồng phải là HLV");
+                    head = userId;
+                }
             }
         }
         Long me = userRepository.findByUserid(auth.getName()).map(User::getId).orElse(null);
@@ -96,14 +109,19 @@ public class AdminPanelController {
         for (CompetitionPanelMember m : current) {
             PanelRole r = wanted.remove(m.getUserId());
             if (r == null) memberRepository.delete(m);
-            else if (r != m.getPanelRole()) {
-                m.setPanelRole(r);
-                memberRepository.save(m);
+            else {
+                boolean isHead = m.getUserId().equals(head);
+                if (r != m.getPanelRole() || isHead != m.isHead()) {
+                    m.setPanelRole(r);
+                    m.setHead(isHead);
+                    memberRepository.save(m);
+                }
             }
         }
         LocalDateTime now = LocalDateTime.now();
+        final Long headId = head;
         wanted.forEach((userId, role) -> memberRepository.save(CompetitionPanelMember.builder()
-                .competitionId(id).userId(userId).panelRole(role).addedBy(me).addedAt(now).build()));
+                .competitionId(id).userId(userId).panelRole(role).head(userId.equals(headId)).addedBy(me).addedAt(now).build()));
         return ResponseEntity.ok(Map.of("message", "Đã lưu hội đồng tuyển trạch. Thành viên đăng nhập lại để nhận quyền mới."));
     }
 

@@ -94,6 +94,8 @@ public class AdminRoundController {
         out.put("mine", voteRepository.findByCompetitionIdAndRoundKeyAndJudgeUserId(id, roundKey, me.getId()).stream()
                 .map(SelectionVote::getParticipantId).toList());
         out.put("limit", TOP30);
+        out.put("isHead", panelService.headUserId(id).map(h -> h.equals(me.getId())).orElse(false));
+        out.put("headUserId", panelService.headUserId(id).orElse(null));
         boolean seesCounts = me.getRole() == User.Role.ADMIN
                 || panelService.roleIn(id, me.getId()).orElse(null) == CompetitionPanelMember.PanelRole.HLV;
         if (seesCounts) {
@@ -139,9 +141,9 @@ public class AdminRoundController {
     }
 
     /**
-     * The head coach (HLV) of the competition's panel picks. body: { participantIds: [...], notes: { "<participantId>": "why" } }.
+     * The head of the competition's panel (trưởng hội đồng, one HLV) picks. body: { participantIds: [...], notes: { "<participantId>": "why" } }.
      * Picking someone ranked below 30, or leaving out someone ranked in the top 30 with a complete score, needs a note;
-     * a participant a Green Card was used on must be in the list. For TOP30 the list must hold exactly 30 and the
+     * a participant a Green Card was used on must be in the list. For TOP30 the list holds 1 to 30 and the
      * participants' statuses are updated (with notifications) as before.
      */
     @PostMapping("/competitions/{id}/selection/{roundKey}/decision")
@@ -149,8 +151,8 @@ public class AdminRoundController {
     @Transactional
     public ResponseEntity<?> decide(@PathVariable Long id, @PathVariable String roundKey, @RequestBody Map<String, Object> body,
                                     @RequestParam(required = false) List<Long> stageIds) {
-        if (panelService.roleIn(id, currentUserId()).orElse(null) != CompetitionPanelMember.PanelRole.HLV) {
-            return error(HttpStatus.FORBIDDEN, "Chỉ HLV của hội đồng tuyển trạch giải này được chốt danh sách");
+        if (!panelService.headUserId(id).map(h -> h.equals(currentUserId())).orElse(false)) {
+            return error(HttpStatus.FORBIDDEN, "Chỉ trưởng hội đồng tuyển trạch của giải này được chốt danh sách");
         }
         List<Long> picked = new ArrayList<>(new LinkedHashSet<>(ids(body.get("participantIds"))));
         Map<String, String> notes = new HashMap<>();
@@ -163,9 +165,8 @@ public class AdminRoundController {
                 && decisionRepository.findFirstByCompetitionIdAndRoundKeyOrderByIdDesc(id, roundKey).isPresent()) {
             return error(HttpStatus.CONFLICT, "Top 30 đã chốt và đã báo cho thí sinh, không chốt lại được");
         }
-        if ("TOP30".equals(roundKey) && picked.size() != TOP30) {
-            return error(HttpStatus.BAD_REQUEST, "Phải chọn đúng " + TOP30 + " người, đang có " + picked.size());
-        }
+        if (picked.isEmpty()) return error(HttpStatus.BAD_REQUEST, "Chưa chọn ai");
+        if (picked.size() > TOP30) return error(HttpStatus.BAD_REQUEST, "Chỉ chọn tối đa " + TOP30 + " người, đang có " + picked.size());
         Set<Long> greenCards = greenCardRepository.findByCompetitionIdOrderByIdAsc(id).stream()
                 .map(GreenCard::getParticipantId).filter(Objects::nonNull).collect(Collectors.toSet());
         List<Long> missingGreen = greenCards.stream().filter(g -> !picked.contains(g)).toList();

@@ -33,8 +33,8 @@ public class CompetitionSelectionService {
         log.info("Selecting TOP 30 for competition {}: {} participants", competitionId, participantIds.size());
 
         // Validate exactly 30 participants
-        if (participantIds.size() != 30) {
-            throw new IllegalArgumentException("Must select exactly 30 participants, got: " + participantIds.size());
+        if (participantIds.isEmpty() || participantIds.size() > 30) {
+            throw new IllegalArgumentException("Select between 1 and 30 participants, got: " + participantIds.size());
         }
 
         Competition competition = competitionRepository.findById(competitionId)

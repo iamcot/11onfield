@@ -36,6 +36,11 @@ public class CompetitionPanelMember {
     @Column(name = "panel_role", nullable = false)
     private PanelRole panelRole;
 
+    /** Trưởng hội đồng: the one HLV who finalises the selection lists. */
+    @Column(name = "is_head", nullable = false)
+    @Builder.Default
+    private boolean head = false;
+
     @Column(name = "added_by")
     private Long addedBy;
 

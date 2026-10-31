@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,6 +31,15 @@ public class PanelService {
     @Transactional(readOnly = true)
     public Optional<PanelRole> roleIn(Long competitionId, Long userId) {
         return repository.findByCompetitionIdAndUserId(competitionId, userId).map(CompetitionPanelMember::getPanelRole);
+    }
+
+    /** The head of the panel: the HLV marked head, else the HLV added first. */
+    @Transactional(readOnly = true)
+    public Optional<Long> headUserId(Long competitionId) {
+        List<CompetitionPanelMember> hlv = repository.findByCompetitionIdOrderByPanelRoleAscIdAsc(competitionId).stream()
+                .filter(m -> m.getPanelRole() == PanelRole.HLV).toList();
+        return hlv.stream().filter(CompetitionPanelMember::isHead).findFirst().or(() -> hlv.stream().findFirst())
+                .map(CompetitionPanelMember::getUserId);
     }
 
     /** How many people sit on the competition's panel (everyone on it may vote). */
