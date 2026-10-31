@@ -9,6 +9,7 @@ import SbdScanner from '@/components/admin/SbdScanner';
 import { Keypad, Spinner } from './keypad';
 import GroupEntry from './GroupEntry';
 import TableEntry from './TableEntry';
+import { NAV } from '@/lib/admin/nav';
 import {
   flushQueue, isNetworkError, newClientUuid, queueAll, queuePut, queueRemove, sendSave, type QueuedSave,
 } from '@/lib/admin/offline-queue';
@@ -391,11 +392,18 @@ export default function FieldScoring() {
           Tải lại
         </button>
         <button type="button" onClick={goFullscreen} className="min-h-[48px] rounded-lg border-2 border-white/30 px-3 text-[15px] font-semibold active:bg-white/10">Toàn màn hình</button>
-        {manager ? (
-          <button type="button" onClick={() => router.push('/quan-tri')} className="min-h-[48px] rounded-lg border-2 border-white/30 px-3 text-[15px] font-semibold active:bg-white/10">Về quản trị</button>
-        ) : (
-          <button type="button" onClick={logout} className="min-h-[48px] rounded-lg border-2 border-white/30 px-3 text-[15px] font-semibold active:bg-white/10">Đăng xuất</button>
-        )}
+        {/* This screen has no sidebar: the other pages this role may open (check-in, ghi nhận, thí sinh…) are in this menu. */}
+        <details className="relative">
+          <summary className="flex min-h-[48px] cursor-pointer list-none items-center gap-1.5 rounded-lg border-2 border-white/30 px-3 text-[15px] font-semibold active:bg-white/10 [&::-webkit-details-marker]:hidden">
+            Trang khác <span aria-hidden="true">▾</span>
+          </summary>
+          <nav aria-label="Trang khác" className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border-2 border-[#0B2419]/15 bg-white py-1 text-[#0B2419] shadow-xl">
+            {NAV.filter((i) => i.href && i.href !== '/quan-tri/cham-diem' && i.roles.includes(me.role)).map((i) => (
+              <button key={i.href} type="button" onClick={() => router.push(i.href!)} className="block min-h-[48px] w-full px-4 text-left text-[16px] font-semibold active:bg-[#F1F5F2]">{i.label}</button>
+            ))}
+            <button type="button" onClick={logout} className="block min-h-[48px] w-full border-t border-[#0B2419]/10 px-4 text-left text-[16px] font-semibold text-[#B42318] active:bg-[#FDE4E1]">Đăng xuất</button>
+          </nav>
+        </details>
         {loading && <span className="absolute inset-x-0 bottom-0 h-1 overflow-hidden bg-white/10" aria-hidden="true"><span className="block h-full w-1/3 animate-[ofbar_1s_ease-in-out_infinite] bg-[#A6E35A]" /></span>}
       </header>
       <style>{`@keyframes ofbar{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}@keyframes ofpop{0%{box-shadow:0 0 0 0 rgba(166,227,90,0.9)}100%{box-shadow:0 0 0 14px rgba(166,227,90,0)}}`}</style>
