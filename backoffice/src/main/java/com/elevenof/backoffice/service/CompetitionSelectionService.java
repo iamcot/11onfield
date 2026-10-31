@@ -85,9 +85,9 @@ public class CompetitionSelectionService {
     public void selectTop11(Long competitionId, List<Long> participantIds) {
         log.info("Selecting TOP 11 for competition {}: {} participants", competitionId, participantIds.size());
 
-        // Validate exactly 11 participants
-        if (participantIds.size() != 11) {
-            throw new IllegalArgumentException("Must select exactly 11 participants, got: " + participantIds.size());
+        // 1 to 11: the final squad may hold fewer than 11.
+        if (participantIds.isEmpty() || participantIds.size() > 11) {
+            throw new IllegalArgumentException("Chọn từ 1 đến 11 người, đang có " + participantIds.size());
         }
 
         Competition competition = competitionRepository.findById(competitionId)
@@ -97,8 +97,8 @@ public class CompetitionSelectionService {
         List<CompetitionParticipant> top30Participants = participantRepository
             .findByCompetitionIdAndStatus(competitionId, ParticipantStatus.SELECTED_TOP30);
 
-        if (top30Participants.size() < 11) {
-            throw new IllegalStateException("Not enough TOP 30 participants to select TOP 11");
+        if (top30Participants.isEmpty()) {
+            throw new IllegalStateException("Chưa có Top 30 để chọn Top 11");
         }
 
         Set<Long> selectedIds = Set.copyOf(participantIds);

@@ -26,7 +26,9 @@ function Picker({ id, kind, limit, manager }: { id: string; kind: 'top30' | 'top
   const toggle = (cid: number) => setPicked((s) => { const n = new Set(s); n.has(cid) ? n.delete(cid) : n.add(cid); return n; });
 
   async function save() {
-    if (picked.size !== limit && !(await confirm(`Đã chọn ${picked.size}/${limit} thí sinh. Vẫn lưu?`))) return;
+    if (picked.size === 0) { toast('Chưa chọn ai', 'error'); return; }
+    if (picked.size > limit) { toast(`Chỉ chọn tối đa ${limit} người`, 'error'); return; }
+    if (picked.size < limit && !(await confirm(`Đã chọn ${picked.size}/${limit} thí sinh, ít hơn ${limit}. Vẫn lưu?`))) return;
     setBusy(true);
     try {
       const r = await api<{ message: string }>(`competitions/${id}/select-${kind}`, { body: { participantIds: Array.from(picked) } });
