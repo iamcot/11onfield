@@ -1,6 +1,7 @@
 # 06 · Nhập điểm đơn giản hoá
 
-> Trạng thái: **chưa làm**, đã chốt hướng với chủ dự án ngày 31/10/2026. Nhánh: `claude/project-thread-nlr5ou` (PR #15).
+> Trạng thái: đã làm phần 1, 2b, 3, 4 (31/10/2026). **Còn phần 2** (bảng nhập bù cuối giờ). Hướng đã chốt với chủ dự án ngày 31/10/2026.
+> Seed bài thi ngày 1 và ngày 2 theo slide: `backoffice/scripts/seed-vong1-theo-slide.sql`. Nhánh: `claude/project-thread-nlr5ou` (PR #15).
 
 ## Mô hình điểm (đã chốt)
 
@@ -56,7 +57,10 @@ Trong màn Chấm điểm thêm chế độ **Bảng**:
 - Gõ liền một mạch, Tab/Enter sang ô kế, lưu theo hàng. Dùng lại `field-scoring/save` với `clientUuid` mỗi hàng.
 - Sau này OCR đổ số vào đúng bảng này để người kiểm rồi lưu.
 
-### 2b. Chế độ nhập theo nhóm thi (iPad của TTV tại bàn thi)
+### 2b. Chế độ nhập theo nhóm thi (iPad của TTV tại bàn thi) · đã làm
+
+> Đã làm: `components/admin/day/GroupEntry.tsx`, `GET /api/admin/field-scoring/mine?stepId=`. Khác plan: sửa số trong drawer chưa bắt
+> nhập lý do, hệ thống tự ghi "Sửa trên tablet chấm điểm".
 
 Thực tế ở sân (theo slide thiết kế), mỗi lần thi là một nhóm 6–8 thí sinh. Cả nhóm quét QR báo danh ở bàn thi rồi thi
 cùng lúc, thường hết lượt 1 của cả nhóm rồi mới tới lượt 2. Màn nhập liệu phải theo đúng nhịp đó.
@@ -91,7 +95,11 @@ cùng lúc, thường hết lượt 1 của cả nhóm rồi mới tới lượt
 - Component mới, ví dụ `components/admin/day/GroupEntry.tsx`, là một chế độ trong màn Chấm điểm tại trạm, cạnh chế độ một thí sinh hiện có và chế độ Bảng (mục 2).
 - Bài "Điểm HLV" (mục 1) dùng cùng chế độ này khi HLV nhập tại sân.
 
-### 3. Số người đi tiếp sang ngày sau
+### 3. Số người đi tiếp sang ngày sau · đã làm
+
+> Đã làm: migration V37, `AdminDayAdvanceController` (`/api/admin/assessment-days/{dayId}/advance`), khung "Đi tiếp" trên
+> màn Kết quả vòng (`components/admin/DayAdvance.tsx`). Ngày có danh sách: tra SBD ở Chấm điểm và xếp hạng ngày chỉ nhận người
+> trong danh sách. Chưa lọc ở Check-in (check-in theo vòng, không theo ngày) và chưa có dấu ✓ trên thanh điều hướng.
 
 - Mỗi ngày thi có cấu hình **"Số người đi tiếp"** `{x}` (ví dụ 110 sau ngày 1).
   - Cột mới `competition_assessment_days.advance_count INT NULL`.

@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class ScoringService {
 
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
     private final CompetitionAssessmentDayRepository dayRepository;
     private final CompetitionAssessmentStepRepository stepRepository;
     private final CompetitionAssessmentRepository assessmentRepository;
@@ -101,6 +102,11 @@ public class ScoringService {
 
         Set<Long> participants = new TreeSet<>(onlyParticipants != null ? onlyParticipants
                 : officials.stream().map(MeasurementOfficial::getParticipantId).toList());
+        // A day with a list (plan 06 part 3: top x of the day before plus exceptions) only ranks the people on it.
+        if (onlyParticipants == null) {
+            List<Long> listed = jdbc.queryForList("SELECT participant_id FROM day_participants WHERE day_id = ?", Long.class, dayId);
+            if (!listed.isEmpty()) participants.retainAll(listed);
+        }
         Set<Long> goalkeepers = goalkeepers(participants);
         List<CompetitionScoreTopic> topics = topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(dayId);
         // Groups that take an earlier day's total (day 2: "Điểm từ ngày trước"): that day's totals, per contestant.

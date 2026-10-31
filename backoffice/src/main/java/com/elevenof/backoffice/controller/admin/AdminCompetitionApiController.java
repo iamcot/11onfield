@@ -503,6 +503,14 @@ public class AdminCompetitionApiController {
                 out.put("sbdError", "SBD không hợp lệ");
             }
         }
+        // A day with a list (top x of the day before plus exceptions) only takes the people on it.
+        if (picked != null) {
+            List<Long> listed = jdbc.queryForList("SELECT participant_id FROM day_participants WHERE day_id = ?", Long.class, day.getId());
+            if (!listed.isEmpty() && !listed.contains(picked.getId())) {
+                out.put("sbdError", "SBD " + pickedSbd + " không có trong danh sách thi ngày " + day.getDayNumber());
+                picked = null;
+            }
+        }
         if (picked != null) {
             out.put("participant", contestant(picked, pickedSbd));
             out.put("blocked", flagService.isBlocked(picked.getId()));
