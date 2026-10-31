@@ -108,6 +108,8 @@ public class User {
         SCOUTER,      // Scouter with scouter profile
         EDITOR,       // Content editor
         BGK,          // Judge (Ban giam khao), scoring only
+        MEDICAL,      // Doctor at the scouting round: may pull a contestant out for health reasons
+        COORDINATOR,  // Field coordinator: records discipline violations
         ADMIN,        // Administrator
         SUPER_USER    // Super administrator
     }

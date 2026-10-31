@@ -69,7 +69,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/competitions/{id}/news/{newsId}").permitAll()
                 .requestMatchers("/api/competitions/{id}/sponsors").permitAll()
                 .requestMatchers("/api/competitions/{id}/stages").permitAll()
-                .requestMatchers("/api/admin/**").hasAnyRole("EDITOR", "BGK", "ADMIN", "SUPER_USER") // per-endpoint rules via @PreAuthorize
+                .requestMatchers("/api/admin/**").hasAnyRole("EDITOR", "BGK", "MEDICAL", "COORDINATOR", "ADMIN", "SUPER_USER") // per-endpoint rules via @PreAuthorize
                 .anyRequest().authenticated()
             )
             .logout(logout -> logout.disable())
