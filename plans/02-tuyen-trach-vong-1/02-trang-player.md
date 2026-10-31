@@ -19,11 +19,15 @@ hạ xuống, không nâng lên. Nhóm chưa tới ngày phát hành của vòng
 | `MEDICAL` | HIDDEN, khoá | — |
 | `TEST_RESULTS` số đo gốc + màu từng bài | PRIVATE | Có |
 | `COMBINE_HEX` hexagon 6 trục | PUBLIC sau phát hành | Không |
-| `SCORE_RANK` điểm tổng, xếp loại, hạng | PUBLIC sau phát hành | Không |
+| `SCORE_TOTAL` điểm tổng, xếp loại | PUBLIC sau phát hành | Không |
+| `RANK` thứ hạng theo điểm | HIDDEN, khoá (chỉ BTC/BGK) | — |
 | `JUDGE_NOTES` ghi nhận BGK | HIDDEN | — |
 | `MATCH_STATS` thống kê trận, heatmap | PRIVATE | Có |
 | `GREEN_CARD` | PUBLIC | Không |
 | `DISCIPLINE` | HIDDEN | — |
+
+Thứ hạng theo điểm không bao giờ hiện ra ngoài admin (trang player, trang giải, ảnh chia sẻ), vì danh sách chọn tay sẽ khác
+thứ tự điểm và gây hiểu nhầm. Ra ngoài chỉ có điểm, xếp loại và kết quả chọn (được chọn / không).
 
 ## Việc chi tiết
 
@@ -80,5 +84,6 @@ CREATE TABLE player_visibility (id, user_id, data_group, level VARCHAR(10), UNIQ
 
 ### 2.6–2.7
 
-- Bật tab "Bảng xếp hạng" ở trang giải, chỉ vòng đã phát hành, theo luật `SCORE_RANK`.
+- Tab "Bảng xếp hạng" ở trang giải không hiện thứ hạng theo điểm. Đề xuất: sau phát hành chỉ hiện danh sách được chọn vào
+  vòng trong (Top 30), xếp theo tên hoặc vị trí (`Chờ chốt`).
 - Ảnh chia sẻ / OG chỉ đọc trường `PUBLIC`.

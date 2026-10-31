@@ -28,6 +28,7 @@ trọng số nhóm, xếp hạng chung 3 vùng, rồi để BGK chọn tay Top 3
 - Điểm vòng tuyển trạch = 0,3 × Ngày 1 + GPS & AI (20) + BHL (40) + Tư duy & truyền thông (10). Công thức 60/20/10/5/5 dành cho các vòng trong (30 người), bàn sau.
 - BGK không chấm số: chỉ tick, ghi mức tham gia (đủ / một phần / không) và ghi chú tay. Phần BHL 40 và 7v7 do vòng đánh giá tay cuối cùng nhập, có lưu vết; trước đó bảng xếp hạng ghi "chưa đủ".
 - SBD tạo sẵn khi đăng ký, hiện trên app sau check-in, có trang in tại quầy; FS-ID trong ảnh = SBD.
+- Trang player và mọi trang ngoài admin không hiện thứ hạng theo điểm (kết quả chọn tay sẽ khác thứ tự điểm). Chỉ hiện điểm, xếp loại, được chọn hay không.
 - Ngày vòng: có ngày thì đếm ngược, chưa có thì "đang cập nhật" (đã có trong code).
 - Đo đạc theo thứ tự: thiết bị câu lạc bộ hỗ trợ → thiết bị tự phát triển → nhập tay là dự phòng cuối. Cả ba đổ vào cùng một cổng nhận dữ liệu.
 - Mọi con số là bản ghi thô chỉ thêm (có nguồn, người ghi, giờ đo); sửa = thêm bản ghi mới thay thế, có lý do.
@@ -80,7 +81,7 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | 2.3 | Lọc ở backend trong `GET /api/users/{userid}` | 2 | Chưa làm | |
 | 2.4 | Tính chỉ số player từ Combine (hexagon 0–99, nhóm điểm, số đo gốc), tự cập nhật | 2 | Chờ chốt | |
 | 2.5 | Thẻ Combine trên trang player + công tắc ẩn/hiện của chính chủ | 2 | Chưa làm | |
-| 2.6 | Mở lại tab Bảng xếp hạng (chỉ vòng đã phát hành) | 2 | Chưa làm | |
+| 2.6 | Tab Bảng xếp hạng ở trang giải: không hiện thứ hạng, chỉ danh sách được chọn sau phát hành | 2 | Chờ chốt | |
 | 2.7 | Ảnh chia sẻ / link preview chỉ dùng trường công khai | 2 | Chưa làm | |
 | 3.1 | Đăng ký thiết bị, token, phiếu hiệu chuẩn | 3 | Chưa làm | |
 | 3.2 | Nhập file từ thiết bị (CSV, FIT, Excel) theo mẫu ánh xạ | 3 | Chờ chốt | |
