@@ -10,6 +10,7 @@ const TABS = [
   { slug: '', label: 'Thông tin' },
   { slug: '/vong', label: 'Vòng thi' },
   { slug: '/thi-sinh', label: 'Thí sinh' },
+  { slug: '/xep-hang', label: 'Xếp hạng' },
   { slug: '/tuyen-chon', label: 'Top 30 / Top 11' },
   { slug: '/hien-thi', label: 'Hiển thị' },
   { slug: '/danh-gia-cuoi', label: 'Đánh giá cuối', manager: true },
