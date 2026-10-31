@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApi } from '@/lib/admin/client';
+import { useIsManager } from './me';
 import { PageTitle } from './ui';
 
 const TABS = [
@@ -11,6 +12,7 @@ const TABS = [
   { slug: '/thi-sinh', label: 'Thí sinh' },
   { slug: '/tuyen-chon', label: 'Top 30 / Top 11' },
   { slug: '/hien-thi', label: 'Hiển thị' },
+  { slug: '/danh-gia-cuoi', label: 'Đánh giá cuối', manager: true },
   { slug: '/tin-tuc', label: 'Tin tức' },
   { slug: '/nha-tai-tro', label: 'Nhà tài trợ' },
 ];
@@ -18,6 +20,7 @@ const TABS = [
 /** Page title + tab bar shared by every screen of one competition. */
 export default function CompetitionTabs({ id, title, children }: { id: string; title?: string; children?: React.ReactNode }) {
   const pathname = usePathname();
+  const manager = useIsManager();
   const base = `/quan-tri/giai-dau/${id}`;
   const list = useApi<{ id: number; title: string; season: number }[]>('competitions');
   const comp = list.data?.find((c) => String(c.id) === id);
@@ -28,7 +31,7 @@ export default function CompetitionTabs({ id, title, children }: { id: string; t
         {children}
       </PageTitle>
       <nav className="-mt-2 mb-5 flex gap-1 overflow-x-auto border-b border-[#DCE5DF]" aria-label="Mục của giải đấu">
-        {TABS.map((t) => {
+        {TABS.filter((t) => manager || !t.manager).map((t) => {
           const href = base + t.slug;
           const active = t.slug ? pathname.startsWith(href) : pathname === base;
           return (

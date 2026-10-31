@@ -17,6 +17,8 @@ public interface CompetitionAssessmentResultRepository extends JpaRepository<Com
 
     Optional<CompetitionAssessmentResult> findByAssessmentIdAndParticipantIdAndAttemptNumber(Long assessmentId, Long participantId, Integer attemptNumber);
 
+    List<CompetitionAssessmentResult> findByAssessmentAssessmentStepId(Long stepId);
+
     List<CompetitionAssessmentResult> findByParticipantId(Long participantId);
 
     void deleteByAssessmentIdAndParticipantId(Long assessmentId, Long participantId);
