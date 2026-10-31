@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import { useMe, useIsManager } from '@/components/admin/me';
 import FlagBanner from '@/components/admin/FlagBanner';
+import SbdScanner from '@/components/admin/SbdScanner';
+import {
+  flushQueue, isNetworkError, newClientUuid, queueAll, queuePut, queueRemove, sendSave, type QueuedSave,
+} from '@/lib/admin/offline-queue';
 
 interface Assessment { id: number; title: string; unit: string | null; attemptsCount: number; scoringMethod: string }
 interface Ctx {
@@ -20,6 +24,24 @@ interface Ctx {
   historyPage?: number;
   historyTotalPages?: number;
 }
+
+type CellStatus = 'FAULT' | 'DNS';
+interface Preview {
+  level: number | null;
+  color: string | null;
+  perAssessment: Record<string, number>;
+  warnings: { key: string; message: string }[];
+}
+
+// 5-level colors of the rating scale (level 1 grey .. level 5 green).
+const COLORS: Record<string, { label: string; bg: string; fg: string }> = {
+  GREY: { label: 'Xám', bg: '#9AA5A0', fg: '#06140D' },
+  RED: { label: 'Đỏ', bg: '#D92D20', fg: '#FFFFFF' },
+  ORANGE: { label: 'Cam', bg: '#F79009', fg: '#06140D' },
+  YELLOW: { label: 'Vàng', bg: '#F5C451', fg: '#06140D' },
+  GREEN: { label: 'Xanh', bg: '#1F7A3A', fg: '#FFFFFF' },
+};
+const FAULTS = ['Va cọc', 'Trượt chân', 'Lỗi khác'];
 
 const METHOD: Record<string, string> = { BEST_OF: 'lấy lượt tốt nhất', SUM: 'cộng các lượt', AVERAGE: 'trung bình các lượt' };
 
@@ -106,6 +128,17 @@ export default function FieldScoringPage() {
   const [pending, setPending] = useState<'find' | 'reload' | number | null>(null);
   const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout>>();
+  const [statuses, setStatuses] = useState<Record<string, CellStatus>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const [previewError, setPreviewError] = useState(false);
+  const [confirmWarnings, setConfirmWarnings] = useState<{ key: string; message: string }[] | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [online, setOnline] = useState(true);
+  const [queue, setQueue] = useState<QueuedSave[]>([]);
+  const [syncing, setSyncing] = useState(false);
+  const previewSeq = useRef(0);
+  const syncingRef = useRef(false);
 
   const params = new URLSearchParams();
   if (dayId) params.set('dayId', String(dayId));
@@ -123,11 +156,14 @@ export default function FieldScoringPage() {
     Object.entries(c?.scores || {}).forEach(([k, v]) => (next[k] = String(v)));
     setValues(next);
     setLoaded(next);
+    setStatuses({});
+    setNotes({});
+    setPreview(null);
     const first = c?.assessments?.[0];
     setTarget(c?.participant && first ? `${first.id}_1` : 'sbd');
   }, [c?.participant?.id, c?.scores, c?.assessments]);
 
-  const dirty = JSON.stringify(values) !== JSON.stringify(loaded);
+  const dirty = JSON.stringify(values) !== JSON.stringify(loaded) || Object.keys(statuses).length > 0;
   const flash = (tone: 'ok' | 'error', text: string) => {
     setNotice({ tone, text });
     clearTimeout(noticeTimer.current);
@@ -140,6 +176,67 @@ export default function FieldScoringPage() {
     setPending(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
+
+  const refreshQueue = async () => { try { setQueue(await queueAll()); } catch { /* IndexedDB blocked: the queue stays empty */ } };
+
+  const sync = async () => {
+    if (syncingRef.current) return;
+    syncingRef.current = true;
+    setSyncing(true);
+    try {
+      const r = await flushQueue();
+      setOnline(!r.offline);
+      if (r.sent > 0) flash('ok', `Đã gửi ${r.sent} bản ghi chờ${r.reviews ? `, ${r.reviews} lượt cần BTC xem lại` : ''}`);
+      if (r.sent > 0) ctx.reload();
+    } catch { /* queue unreadable */ } finally {
+      syncingRef.current = false;
+      setSyncing(false);
+      refreshQueue();
+    }
+  };
+
+  // Watch the connection and send the waiting saves whenever it comes back (and once on open).
+  useEffect(() => {
+    setOnline(navigator.onLine);
+    refreshQueue();
+    sync();
+    const up = () => { setOnline(true); sync(); };
+    const down = () => setOnline(false);
+    window.addEventListener('online', up);
+    window.addEventListener('offline', down);
+    const timer = setInterval(() => { queueAll().then((q) => { setQueue(q); if (q.some((i) => !i.error)) sync(); }).catch(() => {}); }, 20000);
+    return () => { window.removeEventListener('online', up); window.removeEventListener('offline', down); clearInterval(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Live color: ask the server what level these numbers get (no saving), shortly after typing stops.
+  const scoresForPreview = () => {
+    const out: Record<string, string> = {};
+    Object.entries(values).forEach(([k, v]) => { if (v && !statuses[k]) out[k] = v; });
+    return out;
+  };
+  const fetchPreview = async (): Promise<Preview | null> => {
+    if (!stepId) return null;
+    const scores = scoresForPreview();
+    if (Object.keys(scores).length === 0) return null;
+    return api<Preview>('field-scoring/preview', { body: { stepId, scores } });
+  };
+  useEffect(() => {
+    if (!c?.participant || !stepId) { setPreview(null); return; }
+    const seq = ++previewSeq.current;
+    const t = setTimeout(async () => {
+      try {
+        const p = await fetchPreview();
+        if (seq !== previewSeq.current) return;
+        setPreview(p);
+        setPreviewError(false);
+      } catch {
+        if (seq === previewSeq.current) setPreviewError(true);
+      }
+    }, 350);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values, statuses, stepId, c?.participant?.id]);
 
   const pickDay = (id: number) => { setDayId(id); setStepId(null); setLookup({}); setSbdInput(''); setHistoryPage(0); setTarget('sbd'); };
   const pickStep = (id: number) => { setStepId(id); setLookup({}); setSbdInput(''); setHistoryPage(0); setTarget('sbd'); };
@@ -163,6 +260,18 @@ export default function FieldScoringPage() {
   // Order of the attempt cells, so the keypad can move on to the next one.
   const cells = (c?.assessments || []).flatMap((a) => Array.from({ length: a.attemptsCount }, (_, i) => `${a.id}_${i + 1}`));
 
+  function clearStatus(key: string) {
+    setStatuses((s) => { const n = { ...s }; delete n[key]; return n; });
+    setNotes((s) => { const n = { ...s }; delete n[key]; return n; });
+  }
+  function markCell(key: string, status: CellStatus, note?: string) {
+    setStatuses((s) => ({ ...s, [key]: status }));
+    setNotes((s) => { const n = { ...s }; if (note) n[key] = note; else delete n[key]; return n; });
+    setValues((v) => ({ ...v, [key]: '' }));
+    const i = cells.indexOf(key);
+    if (i >= 0 && i < cells.length - 1) setTarget(cells[i + 1]);
+  }
+
   function onKey(k: string) {
     if (target === 'sbd') {
       const base = fresh ? '' : sbdInput;
@@ -174,6 +283,7 @@ export default function FieldScoringPage() {
     }
     const replace = fresh && k !== '⌫';
     setFresh(false);
+    if (statuses[target]) clearStatus(target);
     setValues((all) => {
       const cur = replace ? '' : all[target] ?? '';
       let next = cur;
@@ -185,21 +295,72 @@ export default function FieldScoringPage() {
     });
   }
 
-  async function save() {
+  /** Clears the form after a save (sent or queued) so the next contestant can be entered. */
+  function resetForm() {
+    setLookup({});
+    setSbdInput('');
+    setTarget('sbd');
+  }
+
+  async function save(confirmed = false) {
     if (!c?.participant || !stepId) return;
     setSaving(true);
     try {
-      await api('field-scoring/save', { body: { stepId, participantId: c.participant.id, scores: values } });
-      flash('ok', `Đã lưu điểm SBD ${c.participant.sbd} · ${c.participant.fullName}`);
-      setLookup({});
-      setSbdInput('');
-      setTarget('sbd');
-      ctx.reload();
-    } catch (e) {
-      flash('error', (e as Error).message);
+      // Numbers outside the plausible range need a second look before they are saved (they still can be saved).
+      if (!confirmed && navigator.onLine) {
+        try {
+          const p = await fetchPreview();
+          if (p?.warnings.length) { setConfirmWarnings(p.warnings); return; }
+        } catch { /* preview unavailable: save anyway, the server flags it for review */ }
+      }
+      setConfirmWarnings(null);
+      const item: QueuedSave = {
+        id: newClientUuid(),
+        stepId,
+        participantId: c.participant.id,
+        label: `SBD ${c.participant.sbd} · ${c.participant.fullName}`,
+        scores: values,
+        statuses,
+        notes,
+        createdAt: Date.now(),
+      };
+      // Always write to the device first: a refresh or a dropped connection cannot lose the entry.
+      let stored = true;
+      try { await queuePut(item); } catch { stored = false; }
+      try {
+        const r = await sendSave(item);
+        if (stored) await queueRemove(item.id).catch(() => {});
+        flash('ok', r.review?.length ? `${r.message} · SBD ${c.participant.sbd}` : `Đã lưu điểm SBD ${c.participant.sbd} · ${c.participant.fullName}`);
+        resetForm();
+        ctx.reload();
+      } catch (e) {
+        if (isNetworkError(e) && stored) {
+          setOnline(false);
+          flash('ok', `Chưa có mạng: đã giữ bản ghi SBD ${c.participant.sbd} trên máy, sẽ tự gửi khi có mạng`);
+          resetForm();
+          // No network to reload from: clear the contestant here so the next one can be entered.
+          ctx.setData((d) => (d ? { ...d, participant: undefined, scores: undefined } : d));
+        } else {
+          if (stored) await queueRemove(item.id).catch(() => {});
+          flash('error', (e as Error).message);
+        }
+      }
     } finally {
       setSaving(false);
+      refreshQueue();
     }
+  }
+
+  function onScanned(v: { competitionId: string; sbd: string }) {
+    setScanning(false);
+    if (c?.competition && String(c.competition.id) !== v.competitionId) {
+      flash('error', 'Phiếu SBD này thuộc giải đấu khác');
+      return;
+    }
+    setSbdInput(v.sbd);
+    setPending('find');
+    if (lookup.sbd === v.sbd && !lookup.participantId) ctx.reload();
+    else setLookup({ sbd: v.sbd });
   }
 
   async function goFullscreen() {
@@ -234,6 +395,16 @@ export default function FieldScoringPage() {
           {me.fullName || 'Giám khảo'}
           <span className="block text-[12px] text-[#A9B8AF]">{manager ? 'Quản trị' : 'Ban giám khảo'}</span>
         </span>
+        <button
+          type="button"
+          onClick={sync}
+          aria-label="Trạng thái kết nối và hàng chờ gửi"
+          className={`flex min-h-[48px] items-center gap-2 rounded-lg border-2 px-3 text-[15px] font-semibold ${online ? 'border-white/30' : 'border-[#F5C451] bg-[#F5C451]/15 text-[#F5C451]'}`}
+        >
+          <span aria-hidden="true" className={`h-3 w-3 rounded-full ${online ? 'bg-[#A6E35A]' : 'bg-[#F5C451]'}`} />
+          {syncing ? 'Đang gửi…' : online ? 'Có mạng' : 'Mất mạng'}
+          {queue.length > 0 && <span className="rounded-md bg-[#F5C451] px-2 py-0.5 text-[14px] font-bold tabular-nums text-[#06140D]">{queue.length} chờ gửi</span>}
+        </button>
         <button
           type="button"
           onClick={reload}
@@ -303,6 +474,7 @@ export default function FieldScoringPage() {
                         <span className="mr-3 text-[15px] font-bold uppercase">SBD</span>
                         <span className="font-[family-name:var(--font-hud)] text-[36px] font-bold tabular-nums">{sbdInput || <span className="text-[#0B2419]/30">—</span>}</span>
                       </button>
+                      <button type="button" onClick={() => setScanning(true)} className="min-h-[72px] rounded-xl border-[3px] border-[#0B2419] px-6 text-[19px] font-bold active:bg-[#E4F3D6]">Quét QR</button>
                       <button type="button" onClick={find} disabled={loading} className="flex min-h-[72px] min-w-[120px] items-center justify-center gap-2 rounded-xl bg-[#0B2419] px-8 text-[20px] font-bold text-[#D6FA9E] active:bg-[#18522F] disabled:opacity-80">
                         {pending === 'find' ? <><Spinner /> Đang tìm</> : 'Tìm'}
                       </button>
@@ -337,9 +509,18 @@ export default function FieldScoringPage() {
                                 className={`flex min-h-[84px] flex-col justify-center rounded-xl border-[3px] px-4 text-left ${active ? 'border-[#1F7A3A] bg-[#F3FBEC] shadow-[0_0_0_3px_rgba(31,122,58,0.18)]' : 'border-[#0B2419]/25 bg-white'}`}
                               >
                                 <span className="text-[14px] font-bold uppercase">Lượt {n}</span>
-                                <span className="font-[family-name:var(--font-hud)] text-[34px] font-bold leading-tight tabular-nums">
-                                  {values[key] || <span className="text-[#0B2419]/25">—</span>}
-                                </span>
+                                {statuses[key] ? (
+                                  <span className={`mt-1 inline-flex w-fit rounded-md px-2 py-1 text-[18px] font-bold ${statuses[key] === 'DNS' ? 'bg-[#0B2419] text-white' : 'bg-[#B42318] text-white'}`}>
+                                    {statuses[key] === 'DNS' ? 'Không thi' : `Lỗi${notes[key] ? ` · ${notes[key]}` : ''}`}
+                                  </span>
+                                ) : (
+                                  <span className="font-[family-name:var(--font-hud)] text-[34px] font-bold leading-tight tabular-nums">
+                                    {values[key] || <span className="text-[#0B2419]/25">—</span>}
+                                  </span>
+                                )}
+                                {preview?.warnings.some((w) => w.key === key) && !statuses[key] && (
+                                  <span className="text-[13px] font-bold text-[#B42318]">Ngoài ngưỡng hợp lý</span>
+                                )}
                               </button>
                             );
                           })}
@@ -347,6 +528,46 @@ export default function FieldScoringPage() {
                       </section>
                     ))}
 
+                  {c.participant && (
+                    <section aria-live="polite" className="rounded-2xl border-2 border-[#0B2419]/15 bg-white p-4 lg:p-5">
+                      <h2 className="text-[16px] font-bold uppercase tracking-wide">Mức hiện tại</h2>
+                      {preview?.level != null && preview.color && COLORS[preview.color] ? (
+                        <div className="mt-2 flex flex-wrap items-center gap-3">
+                          <div className="flex min-h-[84px] min-w-[220px] items-center gap-4 rounded-2xl px-6" style={{ background: COLORS[preview.color].bg, color: COLORS[preview.color].fg }}>
+                            <span className="font-[family-name:var(--font-display)] text-[56px] font-bold leading-none">{preview.level}</span>
+                            <span className="text-[26px] font-bold">{COLORS[preview.color].label}</span>
+                          </div>
+                          <ul className="flex flex-wrap gap-2">
+                            {c.assessments?.map((a) => preview.perAssessment[String(a.id)] != null && (
+                              <li key={a.id} className="rounded-lg bg-[#E9EFEB] px-3 py-2 text-[16px] font-semibold">{a.title}: mức {preview.perAssessment[String(a.id)]}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-[17px] text-[#0B2419]/70">
+                          {previewError ? 'Chưa tính được màu (mất mạng). Vẫn nhập và lưu được, bản ghi sẽ gửi khi có mạng.' : 'Nhập số đo để xem màu.'}
+                        </p>
+                      )}
+                      {preview?.warnings.map((w) => <p key={w.key} role="alert" className="mt-2 rounded-lg bg-[#FDE4E1] px-3 py-2 text-[17px] font-semibold text-[#B42318]">⚠ {w.message}</p>)}
+                    </section>
+                  )}
+
+                  {queue.length > 0 && (
+                    <section className="rounded-2xl border-2 border-[#F5C451] bg-white p-4 lg:p-5">
+                      <h2 className="text-[16px] font-bold uppercase tracking-wide">Chờ gửi ({queue.length})</h2>
+                      <ul className="mt-2 space-y-2">
+                        {queue.map((q) => (
+                          <li key={q.id} className="flex items-center gap-3 rounded-xl bg-[#FFF8E1] px-3 py-2 text-[17px]">
+                            <span className="min-w-0 flex-1 truncate font-semibold">{q.label}</span>
+                            {q.error ? <span className="text-[15px] font-semibold text-[#B42318]">{q.error}</span> : <span className="text-[15px]">đang chờ mạng</span>}
+                            {q.error && (
+                              <button type="button" onClick={async () => { await queueRemove(q.id); refreshQueue(); }} className="min-h-[44px] rounded-lg border-2 border-[#B42318] px-3 text-[15px] font-bold text-[#B42318]">Bỏ</button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  )}
                 </div>
 
                 {/* Right: keypad + save, stays in view on a landscape tablet */}
@@ -356,6 +577,20 @@ export default function FieldScoringPage() {
                       Đang nhập: {target === 'sbd' ? 'Số báo danh' : (() => { const [aid, n] = target.split('_'); const a = c.assessments?.find((x) => String(x.id) === aid); return `${a?.title || ''} · lượt ${n}`; })()}
                     </p>
                     <Keypad allowDot={allowDot} onKey={onKey} />
+                    {target !== 'sbd' && (
+                      <div className="mt-3 space-y-2">
+                        <p className="px-1 text-[14px] font-bold uppercase tracking-wide">Lượt này</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {FAULTS.map((f) => (
+                            <button key={f} type="button" onClick={() => markCell(target, 'FAULT', f === 'Lỗi khác' ? undefined : f)} className="min-h-[56px] rounded-xl border-2 border-[#B42318] bg-white px-1 text-[16px] font-bold leading-tight text-[#B42318] active:bg-[#FDE4E1]">{f}</button>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button type="button" onClick={() => markCell(target, 'DNS')} className="min-h-[56px] rounded-xl bg-[#0B2419] text-[17px] font-bold text-white active:bg-[#18522F]">Không thi</button>
+                          <button type="button" disabled={!statuses[target]} onClick={() => clearStatus(target)} className="min-h-[56px] rounded-xl border-2 border-[#0B2419]/30 bg-white text-[17px] font-semibold disabled:opacity-40">Bỏ đánh dấu</button>
+                        </div>
+                      </div>
+                    )}
                     {target === 'sbd' ? (
                       <button type="button" onClick={find} disabled={loading} className="mt-3 flex h-[64px] w-full items-center justify-center gap-2 rounded-xl bg-[#0B2419] text-[20px] font-bold text-[#D6FA9E] active:bg-[#18522F] disabled:opacity-80">
                         {pending === 'find' ? <><Spinner /> Đang tìm…</> : 'Tìm thí sinh'}
@@ -374,7 +609,7 @@ export default function FieldScoringPage() {
                     <button
                       type="button"
                       disabled={saving || loading}
-                      onClick={save}
+                      onClick={() => save()}
                       className="fixed flex items-center justify-center gap-3 inset-x-4 bottom-4 z-20 h-[72px] rounded-2xl bg-[#1F7A3A] text-[22px] font-bold text-white shadow-[0_6px_20px_rgba(6,20,13,0.35)] active:bg-[#18602E] disabled:opacity-60 lg:static lg:mt-4 lg:w-full"
                     >
                       {saving ? <><Spinner className="h-7 w-7" /> Đang lưu…</> : `Lưu điểm SBD ${c.participant.sbd}`}
@@ -416,6 +651,24 @@ export default function FieldScoringPage() {
           </>
         )}
       </main>
+
+      {scanning && <SbdScanner onScan={onScanned} onClose={() => setScanning(false)} />}
+
+      {confirmWarnings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="alertdialog" aria-label="Số đo ngoài ngưỡng hợp lý">
+          <div className="w-full max-w-[560px] rounded-2xl border-4 border-[#B42318] bg-white p-6">
+            <h2 className="text-[26px] font-bold text-[#B42318]">Số đo bất thường</h2>
+            <ul className="mt-3 space-y-2">
+              {confirmWarnings.map((w) => <li key={w.key} className="rounded-lg bg-[#FDE4E1] px-3 py-2 text-[19px] font-semibold text-[#B42318]">{w.message}</li>)}
+            </ul>
+            <p className="mt-3 text-[18px]">Kiểm tra lại số vừa nhập. Nếu đúng, vẫn lưu được; lượt này sẽ vào hàng “cần xem” để BTC đối soát.</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button type="button" onClick={() => setConfirmWarnings(null)} className="min-h-[68px] rounded-xl border-2 border-[#0B2419]/30 text-[20px] font-bold">Sửa lại</button>
+              <button type="button" onClick={() => save(true)} className="min-h-[68px] rounded-xl bg-[#B42318] text-[20px] font-bold text-white">Đúng, vẫn lưu</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
