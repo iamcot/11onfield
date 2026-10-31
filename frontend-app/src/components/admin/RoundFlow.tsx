@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApi } from '@/lib/admin/client';
+import { withFrom } from './BackToRound';
 
 interface StageRow { stageNumber: number; title: string; status: string | null }
 
@@ -68,7 +69,7 @@ export default function RoundFlow({ id, n }: { id: string; n: string }) {
               const here = pathname === it.href;
               return (
                 <li key={it.label}>
-                  <Link href={it.href} aria-current={here ? 'page' : undefined} className={`block rounded px-2 py-1 ${here ? 'bg-[#E4F1E8] font-semibold text-[#14482E]' : 'text-[#1F4D33] hover:bg-[#F1F5F2]'}`}>
+                  <Link href={withFrom(it.href, round)} aria-current={here ? 'page' : undefined} className={`block rounded px-2 py-1 ${here ? 'bg-[#E4F1E8] font-semibold text-[#14482E]' : 'text-[#1F4D33] hover:bg-[#F1F5F2]'}`}>
                     {it.label}
                     {it.note && <span className="font-normal text-[#66766D]"> · {it.note}</span>}
                   </Link>
