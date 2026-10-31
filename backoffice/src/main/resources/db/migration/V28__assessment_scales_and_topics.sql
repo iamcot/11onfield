@@ -34,7 +34,30 @@ ALTER TABLE competition_assessment_steps
 ALTER TABLE competition_assessment_step_ratings
     ADD COLUMN color VARCHAR(10) NULL COMMENT 'GREY, RED, ORANGE, YELLOW, GREEN',
     ADD COLUMN action VARCHAR(12) NOT NULL DEFAULT 'NONE' COMMENT 'NONE, FLAG (Low Performance) or ELIMINATE',
-    MODIFY COLUMN threshold_type VARCHAR(20) NULL COMMENT 'NULL when the level is set by conditions';
+    MODIFY COLUMN threshold_type ENUM('EXACT','RANGE') NULL COMMENT 'NULL when the level is set by conditions';
+
+-- V17's check needs a threshold on every level. Its generated name differs between MySQL and MariaDB, so look it up.
+SET @chk = (SELECT tc.CONSTRAINT_NAME
+            FROM information_schema.TABLE_CONSTRAINTS tc
+            JOIN information_schema.CHECK_CONSTRAINTS cc
+              ON cc.CONSTRAINT_SCHEMA = tc.CONSTRAINT_SCHEMA AND cc.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+            WHERE tc.CONSTRAINT_SCHEMA = DATABASE()
+              AND tc.TABLE_NAME = 'competition_assessment_step_ratings'
+              AND tc.CONSTRAINT_TYPE = 'CHECK'
+              AND cc.CHECK_CLAUSE LIKE '%range_min%'
+            LIMIT 1);
+SET @sql = IF(@chk IS NULL, 'SELECT 1',
+              CONCAT('ALTER TABLE competition_assessment_step_ratings DROP CONSTRAINT `', @chk, '`'));
+PREPARE drop_chk FROM @sql;
+EXECUTE drop_chk;
+DEALLOCATE PREPARE drop_chk;
+
+ALTER TABLE competition_assessment_step_ratings
+    ADD CONSTRAINT chk_rating_threshold CHECK (
+        threshold_type IS NULL
+        OR (threshold_type = 'EXACT' AND threshold_value IS NOT NULL)
+        OR (threshold_type = 'RANGE' AND range_min IS NOT NULL AND range_max IS NOT NULL AND range_min <= range_max)
+    );
 
 
 CREATE TABLE competition_rating_conditions (

@@ -51,6 +51,7 @@ public class AdminCompetitionApiController {
     private final UserRepository userRepository;
     private final com.elevenof.backoffice.service.StageCheckinService checkinService;
     private final com.elevenof.backoffice.service.MeasurementService measurementService;
+    private final com.elevenof.backoffice.service.ParticipantFlagService flagService;
     private final com.elevenof.backoffice.service.ScoringService scoringService;
     private final CompetitionAssessmentStepRatingRepository ratingRepository;
 
@@ -485,7 +486,6 @@ public class AdminCompetitionApiController {
      */
     @PostMapping("/field-scoring/save")
     @PreAuthorize(SCORER)
-    @Transactional
     public ResponseEntity<?> fieldScoringSave(@RequestBody Map<String, Object> body) {
         Long stepId = longOf(body.get("stepId"));
         Long participantId = longOf(body.get("participantId"));
@@ -494,6 +494,7 @@ public class AdminCompetitionApiController {
         Map<?, ?> statuses = body.get("statuses") instanceof Map<?, ?> m ? m : Map.of();
         Map<?, ?> notes = body.get("notes") instanceof Map<?, ?> m ? m : Map.of();
         String clientUuid = str(body.get("clientUuid"));
+        if (flagService.isBlocked(participantId)) return error(HttpStatus.CONFLICT, "Thí sinh đã bị bác sĩ loại khỏi vòng thi, không thể ghi điểm");
         Long userId = currentUserId();
         List<Map<String, Object>> review = new ArrayList<>();
         try {
@@ -528,6 +529,7 @@ public class AdminCompetitionApiController {
             }
             // Old-style steps keep their stored step score; combine steps are scored by ScoringService on read.
             try { assessmentResultService.calculateStepScore(stepId, participantId); } catch (Exception ignored) { }
+            measurementService.applyLevelAction(stepId, participantId);
         } catch (IllegalArgumentException e) {
             return error(HttpStatus.BAD_REQUEST, e.getMessage());
         }

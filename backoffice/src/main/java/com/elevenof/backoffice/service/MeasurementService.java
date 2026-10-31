@@ -34,6 +34,7 @@ public class MeasurementService {
     private final CompetitionParticipantRepository participantRepository;
     private final CompetitionAssessmentResultRepository legacyResultRepository;
     private final ScoringService scoringService;
+    private final ParticipantFlagService flagService;
 
     public record RecordCommand(String clientUuid, Long assessmentId, Long participantId, Integer attemptNumber,
                                 BigDecimal value, MeasurementStatus status, String faultNote, MeasurementSource source,
@@ -189,6 +190,24 @@ public class MeasurementService {
         legacyResultRepository.save(r);
     }
 
+    /**
+     * Runs the action of the level a participant now has on a combine step: FLAG marks Low Performance (once per step).
+     * Call after a save or a resolve.
+     */
+    public void applyLevelAction(Long stepId, Long participantId) {
+        CompetitionAssessmentStep step = stepRepository.findById(stepId).orElse(null);
+        if (step == null || scoringService.scaleOf(step) == null) return;
+        CompetitionAssessmentDay day = step.getAssessmentDay();
+        for (ScoringService.ParticipantDay d : scoringService.scoreDay(day.getId(), List.of(participantId))) {
+            for (ScoringService.StepResult s : d.steps()) {
+                if (s.stepId().equals(stepId) && RatingAction.FLAG.name().equals(s.action())) {
+                    flagService.flagLowPerformance(participantId, day.getStage().getId(), stepId,
+                            "Mức " + s.level() + " ở bài " + step.getTitle());
+                }
+            }
+        }
+    }
+
     // ============= Review =============
 
     /**
@@ -225,6 +244,7 @@ public class MeasurementService {
         o.setNote(note);
         o = officialRepository.save(o);
         mirror(a, o.getParticipantId(), o.getAttemptNumber(), o);
+        applyLevelAction(a.getAssessmentStep().getId(), o.getParticipantId());
         return o;
     }
 

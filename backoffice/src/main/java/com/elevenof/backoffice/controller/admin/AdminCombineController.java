@@ -292,7 +292,6 @@ public class AdminCombineController {
 
     /** body: { rawId } to pick a record, or { value, status? } to type the right one in; note is required. */
     @PostMapping("/measurements/official/{officialId}/resolve")
-    @Transactional
     public ResponseEntity<?> resolve(@PathVariable Long officialId, @RequestBody Map<String, Object> body) {
         MeasurementStatus status = null;
         if (body.get("status") != null) {
@@ -311,7 +310,6 @@ public class AdminCombineController {
     }
 
     @PostMapping("/assessment-steps/{stepId}/lock")
-    @Transactional
     public ResponseEntity<?> lock(@PathVariable Long stepId) {
         try {
             measurementService.lockStep(stepId, currentUserId());
@@ -324,7 +322,6 @@ public class AdminCombineController {
     /** body: { reason }. Only SUPER_USER reopens a locked step. */
     @PostMapping("/assessment-steps/{stepId}/unlock")
     @PreAuthorize("hasRole('SUPER_USER')")
-    @Transactional
     public ResponseEntity<?> unlock(@PathVariable Long stepId, @RequestBody Map<String, Object> body) {
         try {
             measurementService.unlockStep(stepId, currentUserId(), str(body.get("reason")));
