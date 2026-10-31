@@ -1,6 +1,6 @@
 # 06 · Nhập điểm đơn giản hoá
 
-> Trạng thái: đã làm phần 1, 2b, 3, 4 (31/10/2026). **Còn phần 2** (bảng nhập bù cuối giờ). Hướng đã chốt với chủ dự án ngày 31/10/2026.
+> Trạng thái: **đã làm xong** phần 1, 2, 2b, 3, 4 (31/10/2026). Hướng đã chốt với chủ dự án ngày 31/10/2026.
 > Seed bài thi ngày 1 và ngày 2 theo slide: `backoffice/scripts/seed-vong1-theo-slide.sql`. Nhánh: `claude/project-thread-nlr5ou` (PR #15).
 
 ## Mô hình điểm (đã chốt)
@@ -50,7 +50,10 @@ Frontend:
   - `components/admin/ManualScores.tsx`.
 - Màn Chấm điểm (`components/admin/day/FieldScoring.tsx`): bài `HLV` có nhãn "Điểm HLV". TTV không thấy, hoặc thấy nhưng không sửa được.
 
-### 2. Chế độ bảng để nhập bù cuối giờ
+### 2. Chế độ bảng để nhập bù cuối giờ · đã làm
+
+> Đã làm: `components/admin/day/TableEntry.tsx` (chế độ "Bảng nhập bù"), `GET /api/admin/field-scoring/table?stepId=`.
+> Lưu theo từng ô khi rời ô (không theo hàng). Gõ L = Lỗi, K = Không thi.
 
 Trong màn Chấm điểm thêm chế độ **Bảng**:
 - Chọn một bài: mỗi hàng là một thí sinh (SBD, tên), mỗi cột là một lượt của một nội dung.

@@ -8,6 +8,7 @@ import FlagBanner from '@/components/admin/FlagBanner';
 import SbdScanner from '@/components/admin/SbdScanner';
 import { Keypad, Spinner } from './keypad';
 import GroupEntry from './GroupEntry';
+import TableEntry from './TableEntry';
 import {
   flushQueue, isNetworkError, newClientUuid, queueAll, queuePut, queueRemove, sendSave, type QueuedSave,
 } from '@/lib/admin/offline-queue';
@@ -106,9 +107,9 @@ export default function FieldScoring() {
   const [queue, setQueue] = useState<QueuedSave[]>([]);
   const [syncing, setSyncing] = useState(false);
   // One contestant at a time, or a whole group at the table (GroupEntry). Remembered on this device.
-  const [mode, setModeRaw] = useState<'one' | 'group'>('one');
-  useEffect(() => { try { if (localStorage.getItem('of:scoring-mode') === 'group') setModeRaw('group'); } catch { /* storage blocked */ } }, []);
-  const setMode = (m: 'one' | 'group') => { setModeRaw(m); try { localStorage.setItem('of:scoring-mode', m); } catch { /* storage blocked */ } };
+  const [mode, setModeRaw] = useState<'one' | 'group' | 'table'>('one');
+  useEffect(() => { try { const m = localStorage.getItem('of:scoring-mode'); if (m === 'group' || m === 'table') setModeRaw(m); } catch { /* storage blocked */ } }, []);
+  const setMode = (m: 'one' | 'group' | 'table') => { setModeRaw(m); try { localStorage.setItem('of:scoring-mode', m); } catch { /* storage blocked */ } };
   const previewSeq = useRef(0);
   const syncingRef = useRef(false);
 
@@ -436,11 +437,16 @@ export default function FieldScoring() {
                 <span className="w-24 shrink-0 text-[15px] font-bold uppercase tracking-wide">Cách nhập</span>
                 <button type="button" className={seg(mode === 'one')} onClick={() => setMode('one')}>Từng thí sinh</button>
                 <button type="button" className={seg(mode === 'group')} onClick={() => setMode('group')}>Theo nhóm thi</button>
+                <button type="button" className={seg(mode === 'table')} onClick={() => setMode('table')}>Bảng nhập bù</button>
               </div>
             )}
 
             {stepId && dayId && mode === 'group' && c.assessments && (
               <GroupEntry dayId={dayId} stepId={stepId} assessments={c.assessments} competitionId={c.competition?.id} flash={flash} onQueueChange={refreshQueue} />
+            )}
+
+            {stepId && mode === 'table' && c.assessments && (
+              <TableEntry stepId={stepId} assessments={c.assessments} flash={flash} onQueueChange={refreshQueue} />
             )}
 
             {stepId && mode === 'one' && (

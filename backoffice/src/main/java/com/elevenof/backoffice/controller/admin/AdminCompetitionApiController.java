@@ -615,6 +615,57 @@ public class AdminCompetitionApiController {
     }
 
     /**
+     * Every contestant of the day with the current value of each attempt of a step, for the table mode (catch-up at the
+     * end of the day from the paper sheet). A day with a list only has the people on it; contestants a doctor took out
+     * are marked blocked.
+     */
+    @GetMapping("/field-scoring/table")
+    @PreAuthorize(SCORER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> fieldScoringTable(@RequestParam Long stepId) {
+        CompetitionAssessmentStep step = stepRepository.findById(stepId).orElse(null);
+        if (step == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy bài thi");
+        Long dayId = step.getAssessmentDay().getId();
+        Long competitionId = step.getAssessmentDay().getStage().getCompetition().getId();
+        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competitionId);
+        Set<Long> listed = new HashSet<>(jdbc.queryForList("SELECT participant_id FROM day_participants WHERE day_id = ?", Long.class, dayId));
+        Map<Long, Map<String, Object>> values = new HashMap<>();
+        for (Map<String, Object> r : jdbc.queryForList("""
+                SELECT o.participant_id, o.assessment_id, o.attempt_number, r.value, r.status, o.state
+                FROM measurement_official o JOIN competition_assessments a ON a.id = o.assessment_id
+                LEFT JOIN measurement_raw r ON r.id = o.raw_id
+                WHERE a.assessment_step_id = ?""", stepId)) {
+            Long pid = ((Number) r.get("participant_id")).longValue();
+            String key = r.get("assessment_id") + "_" + r.get("attempt_number");
+            Map<String, Object> v = values.computeIfAbsent(pid, k -> new LinkedHashMap<>(Map.of(
+                    "scores", new LinkedHashMap<String, Object>(), "statuses", new LinkedHashMap<String, Object>(), "review", new ArrayList<String>())));
+            @SuppressWarnings("unchecked") Map<String, Object> scores = (Map<String, Object>) v.get("scores");
+            @SuppressWarnings("unchecked") Map<String, Object> statuses = (Map<String, Object>) v.get("statuses");
+            @SuppressWarnings("unchecked") List<String> review = (List<String>) v.get("review");
+            String status = r.get("status") == null ? "OK" : String.valueOf(r.get("status"));
+            if ("OK".equals(status)) { if (r.get("value") != null) scores.put(key, r.get("value")); }
+            else statuses.put(key, status);
+            if ("REVIEW".equals(String.valueOf(r.get("state")))) review.add(key);
+        }
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (int i = 0; i < all.size(); i++) {
+            CompetitionParticipant cp = all.get(i);
+            if (!listed.isEmpty() && !listed.contains(cp.getId())) continue;
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("participantId", cp.getId());
+            m.put("sbd", i + 1);
+            m.put("fullName", cp.getUser().getFullName());
+            m.put("blocked", flagService.isBlocked(cp.getId()));
+            Map<String, Object> v = values.get(cp.getId());
+            m.put("scores", v != null ? v.get("scores") : Map.of());
+            m.put("statuses", v != null ? v.get("statuses") : Map.of());
+            m.put("review", v != null ? v.get("review") : List.of());
+            rows.add(m);
+        }
+        return ResponseEntity.ok(Map.of("rows", rows, "listed", !listed.isEmpty()));
+    }
+
+    /**
      * What the caller entered on this step, for the "Danh sách đã thi" drawer of the group entry screen: per contestant,
      * the caller's latest manual record of each attempt (value or FAULT / DNS), most recent contestant first.
      */
