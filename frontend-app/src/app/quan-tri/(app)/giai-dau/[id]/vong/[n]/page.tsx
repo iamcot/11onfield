@@ -38,6 +38,7 @@ function problemsOf(day: Day, topics: Topic[] | undefined): string[] {
     if (topics.length === 0) out.push(`Ngày ${day.dayNumber}: chưa có nhóm điểm`);
     else if (total !== 100) out.push(`Ngày ${day.dayNumber}: các nhóm cộng lại ${total} điểm, chưa bằng 100`);
     for (const t of topics) {
+      if (t.source === 'PREV_DAY') { if (!t.sourceDayId) out.push(`Nhóm ${t.name}: chưa chọn ngày lấy điểm`); continue; }
       if (t.id && !day.assessmentSteps.some((s) => s.topicId === t.id && scored(s))) out.push(`Nhóm ${t.name}: chưa có bài thi nào`);
     }
   }
@@ -61,8 +62,8 @@ function StepDot({ step }: { step: Step }) {
   );
 }
 
-function DayTree({ day, topics, selection, onSelect, onAddStep, manager }: {
-  day: Day; topics: Topic[] | undefined; selection: Selection; onSelect: (s: Selection) => void; onAddStep: () => void; manager: boolean;
+function DayTree({ day, days, topics, selection, onSelect, onAddStep, manager }: {
+  day: Day; days: Day[]; topics: Topic[] | undefined; selection: Selection; onSelect: (s: Selection) => void; onAddStep: () => void; manager: boolean;
 }) {
   const total = (topics || []).reduce((sum, t) => sum + (Number(t.maxPoints) || 0), 0);
   const daySelected = selection?.kind === 'day' && selection.id === day.id;
@@ -102,7 +103,9 @@ function DayTree({ day, topics, selection, onSelect, onAddStep, manager }: {
           <div key={topic.id}>
             <div className="flex justify-between px-2 pt-1 text-[14px] font-medium"><span>{topic.name}</span><span className="text-[#66766D]">{topic.maxPoints}</span></div>
             <ul className="pl-2">{steps.map(stepButton)}</ul>
-            {steps.length === 0 && <p className="px-4 text-[12px] text-[#8A5A00]">Chưa có bài thi</p>}
+            {topic.source === 'PREV_DAY'
+              ? <p className="px-4 text-[12px] text-[#46564D]">Lấy tổng kết Ngày {days.find((d) => d.id === Number(topic.sourceDayId))?.dayNumber ?? '?'}, không cần nhập</p>
+              : steps.length === 0 && <p className="px-4 text-[12px] text-[#8A5A00]">Chưa có bài thi</p>}
           </div>
         ))}
         {loose.length > 0 && (
@@ -266,7 +269,7 @@ export default function RoundSetupPage() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
           <nav aria-label="Cấu trúc vòng" className="flex w-full shrink-0 flex-col gap-3 lg:w-72">
             {days.data.map((d) => (
-              <DayTree key={d.id} day={d} topics={topicsByDay[d.id]} selection={selection} onSelect={select} manager={manager}
+              <DayTree key={d.id} day={d} days={days.data || []} topics={topicsByDay[d.id]} selection={selection} onSelect={select} manager={manager}
                 onAddStep={() => setDialog({ kind: 'step', dayId: d.id, form: { title: '', description: '' } })} />
             ))}
             {manager && <Button onClick={() => setDialog({ kind: 'day', form: { title: '', description: '', assessmentDate: '' } })}>+ Thêm ngày thi</Button>}
