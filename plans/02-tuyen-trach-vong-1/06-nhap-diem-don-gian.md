@@ -66,7 +66,7 @@ Trong màn Chấm điểm thêm chế độ **Bảng**:
 - Ngày có danh sách thì check-in, chấm điểm, ghi nhận và kết quả của ngày đó chỉ hiện những người trong danh sách. Ngày 1 (không có danh sách) hiện mọi người như hiện tại.
 - Thanh điều hướng: ✓ ở "Kết quả vòng" khi đã chuyển. Có thể thêm meta "110 đi tiếp".
 
-### 4. Nhóm điểm loại "Điểm từ ngày trước"
+### 4. Nhóm điểm loại "Điểm từ ngày trước" (kèm đổi điểm vòng = ngày cuối, xem Ghi chú)
 
 - Nhóm điểm có thêm loại **"Điểm từ ngày trước"**: `source = 'PREV_DAY'`, `source_day_id` là ngày được chọn, thường là ngày 1.
 - Nhóm này **không có bài thi và không cần nhập**. Điểm nhóm = tổng kết (0–100) của ngày được chọn × tỉ trọng nhóm / 100. Ví dụ tỉ trọng 30 thì ngày 1 được 80 điểm cho ra 24.
@@ -76,7 +76,9 @@ Trong màn Chấm điểm thêm chế độ **Bảng**:
 
 ## Ghi chú
 
-- Công thức vòng mặc định đã đổi hôm nay (`RoundFormula.daysAverage`): điểm vòng là trung bình các ngày. Nếu ngày 2 đã kéo 30% từ ngày 1 thì nên xem lại có cần tính vòng = ngày cuối hay không. **Cần hỏi lại chủ dự án.**
+- **Điểm vòng = tổng kết của ngày cuối cùng** (đã chốt 31/10/2026). Ngày cuối đã có nhóm "Điểm từ ngày trước", nên ví dụ
+  vòng 1 = ngày 1 × 30% + các nhóm của ngày 2 (70%). Việc cần làm: đổi `RoundFormula.daysAverage` (mặc định hôm nay là
+  trung bình các ngày) thành chỉ một thành phần `DAY` của ngày có số lớn nhất, hệ số 1. Công thức admin đã lưu thì giữ nguyên.
 - Đã có sẵn và không đổi:
   - thanh điều hướng 3 bước (`05-dieu-huong-giai.md`);
   - mã nhóm tự sinh;
