@@ -1,5 +1,6 @@
 import type { PlayerListItem } from '@/types/player';
-import { overall, posGroup, proStats, profileStats, type PosGroup, type StatAttribute, type StatSet } from './stats';
+import type { UserProfile } from '@/services/user.service';
+import { ageFrom, overall, posGroup, proStats, profileStats, type PosGroup, type StatAttribute, type StatSet } from './stats';
 
 /** What every view of a player (row, card, pitch token, drawer, profile) needs. */
 export interface PlayerView {
@@ -44,6 +45,32 @@ export function toPlayerView(p: PlayerListItem & { club?: string | null }): Play
     profile,
     ovr: overall(pro ?? profile),
   };
+}
+
+/** Same view from a full profile (the profile page, its share card and link preview). */
+export function profileToView(p: UserProfile): PlayerView {
+  return toPlayerView({
+    id: p.id,
+    userid: p.userid,
+    fullName: p.fullName,
+    avatar: p.avatar ?? null,
+    age: ageFrom(p.dob),
+    height: p.height ?? null,
+    weight: p.weight ?? null,
+    positions: p.positions ?? [],
+    secondaryPosition: p.secondaryPosition ?? null,
+    yearsOfExperience: p.yearsOfExperience ?? null,
+    preferredFoot: p.preferredFoot ?? null,
+    level: null,
+    provinceName: p.address?.province?.name ?? null,
+    academyId: null,
+    followerCount: p.followersCount ?? 0,
+    verified: !!p.verified,
+    attributes: p.attributes as PlayerListItem['attributes'],
+    profileStats: p.profileStats as PlayerListItem['profileStats'],
+    fullBodyPhoto: p.fullBodyPhoto ?? null,
+    club: p.club ?? null,
+  });
 }
 
 const SLOTS: [PosGroup, number, number][] = [

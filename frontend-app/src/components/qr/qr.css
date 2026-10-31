@@ -17,6 +17,8 @@
 .qr-opt span { display: block; font-size: 13px; color: #b9c8bf; }
 .qr-code { display: grid; justify-items: center; gap: 12px; text-align: center; }
 .qr-code img { width: min(72vw, 280px); aspect-ratio: 1; border-radius: 12px; background: #fff; padding: 10px; }
+.qr-card img { width: min(78vw, 320px); aspect-ratio: 4 / 5; padding: 0; background: #07130c; border-radius: 12px; }
+.qr-card img[hidden] { display: none; }
 .qr-code p { font-size: 13px; color: #b9c8bf; }
 .qr-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 10px; font-weight: 700; font-size: 14px; background: #a6e35a; color: #0b2412; }
 .qr-btn--ghost { background: rgba(255, 255, 255, 0.08); color: #fff; }

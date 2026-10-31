@@ -13,6 +13,8 @@ import PageViewTracker from '@/components/analytics/PageViewTracker';
 import { I18nProvider } from '@/i18n/I18nProvider';
 import { getT } from '@/i18n/server';
 import { getDictionary } from '@/i18n/translate';
+import { DEFAULT_SHARE_IMAGE, OG_LOCALE, SITE_INTRO } from '@/lib/og/meta';
+import { siteOrigin } from '@/lib/og/server';
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['latin', 'vietnamese'],
@@ -22,27 +24,26 @@ const beVietnamPro = Be_Vietnam_Pro({
 
 export function generateMetadata(): Metadata {
   const { locale, t } = getT();
-  const tagline = t('11 người ra sân - Từ đường phố đến sân cỏ');
-  const description = t('Nền tảng kết nối cầu thủ bóng đá từ đường phố đến sân cỏ');
+  const brand = t('11 người ra sân');
   return {
+    metadataBase: new URL(siteOrigin()),
+    // "{page name} - 11 người ra sân"; link previews take the same title and the page's description
     title: {
-      template: `%s - ${tagline}`,
-      default: tagline,
+      template: `%s - ${brand}`,
+      default: t('11 người ra sân - Từ đường phố đến sân cỏ'),
     },
-    description: t('Nền tảng kết nối cầu thủ bóng đá từ đường phố đến sân cỏ. Tìm kiếm cầu thủ, tham gia sự kiện, xây dựng đội hình mơ ước.'),
+    description: t(SITE_INTRO),
     keywords: ['bóng đá', 'cầu thủ', 'sân bóng', 'tuyển thủ', 'sự kiện bóng đá', 'đội bóng', 'football', 'soccer', '11 người ra sân'],
-    authors: [{ name: t('11 người ra sân') }],
+    authors: [{ name: brand }],
+    // pages without their own preview share the logo; title and description are filled in per page by Next.js
     openGraph: {
       type: 'website',
-      locale: { vi: 'vi_VN', en: 'en_GB', es: 'es_ES', ko: 'ko_KR' }[locale],
-      siteName: t('11 người ra sân'),
-      title: tagline,
-      description,
+      locale: OG_LOCALE[locale],
+      siteName: brand,
+      images: [DEFAULT_SHARE_IMAGE],
     },
     twitter: {
       card: 'summary_large_image',
-      title: tagline,
-      description,
     },
     icons: {
       icon: '/favicon/favicon.ico',
