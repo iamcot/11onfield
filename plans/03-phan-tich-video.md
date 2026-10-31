@@ -193,7 +193,7 @@ Bộ gắn tay chuẩn (3 trận) là việc phải làm sớm: vừa để đo,
 ## 9. Kiến trúc kỹ thuật
 
 - **Repo/thư mục**: `tools/match-analyzer/` trong repo này **(giả định)** hoặc repo riêng nếu muốn phát hành độc lập.
-- **Python 3.11**: OpenCV, PyTorch, `supervision` (vẽ, tiện ích track), ByteTrack/BoT-SORT, pandas/Polars + Parquet.
+- **Python 3.11**: OpenCV, PyTorch, ONNX Runtime, `supervision` (vẽ, tiện ích track), ByteTrack/BoT-SORT, pandas/Polars + Parquet.
 - **Giao diện**: web chạy localhost (FastAPI + trang React/Vite tĩnh): thiết lập sân, roster, dòng thời gian track, duyệt sự
   kiện, xem báo cáo. Một lệnh CLI cho chạy theo lô: `analyzer run project/`.
 - **Thư mục dự án mỗi trận**: `match.json`, `calibration.json`, `roster.json`, `detections/`, `tracking.parquet`,
