@@ -33,7 +33,7 @@ export default function Top30Tab({ top30 }: { top30: Top30 }) {
               <li key={p.userid} style={{ ['--i' as string]: i }}>
                 {/* Card: the photo is twice the height of the name bar and stands up out of it (head and shoulders above). */}
                 <Link href={`/profile/${encodeURIComponent(p.userid)}?from=competition`} className={`pp-t30c ${g === 'GK' ? 'gk' : ''}`}>
-                  <span className="ph" aria-hidden="true">
+                  <span className={`ph ${p.avatar ? '' : 'none'}`} aria-hidden="true">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {p.avatar ? <img src={p.avatar} alt="" loading="lazy" /> : <span className="in">{initials(p.fullName)}</span>}
                   </span>
