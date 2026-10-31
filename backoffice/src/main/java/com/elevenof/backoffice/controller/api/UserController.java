@@ -198,12 +198,16 @@ public class UserController {
         boolean isOwner = viewer != null && viewer.getId().equals(user.getId());
         com.elevenof.backoffice.service.VisibilityService.Access access = visibilityService.resolve(viewer, user);
 
+        // Contact details and national ID are private: only the owner and admins get them
+        final boolean canSeePrivate = isOwner
+            || (viewer != null && (viewer.getRole() == User.Role.ADMIN || viewer.getRole() == User.Role.SUPER_USER));
+
         UserProfileResponse.UserProfileResponseBuilder responseBuilder = UserProfileResponse.builder()
             .id(user.getId())
-            .phone(user.getPhone())
+            .phone(canSeePrivate ? user.getPhone() : null)
             .userid(user.getUserid())
             .fullName(user.getFullName())
-            .email(user.getEmail())
+            .email(canSeePrivate ? user.getEmail() : null)
             .role(user.getRole().name())
             .avatar(user.getAvatar())
             .dob(user.getDob())
@@ -238,7 +242,7 @@ public class UserController {
                     .preferredFoot(player.getPreferredFoot())
                     .level(player.getLevel() != null ? player.getLevel().name() : null)
                     .bio(player.getBio())
-                    .personalId(player.getPersonalId())
+                    .personalId(canSeePrivate ? player.getPersonalId() : null)
                     .residentialAddress(user.getAddress() != null ? user.getAddress().getAddress() : null)
                     .school(player.getSchool())
                     .academy(player.getAcademy())
