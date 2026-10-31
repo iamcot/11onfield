@@ -25,7 +25,7 @@ public class PlayerSpecification {
      * @param provinceId Province ID to filter by
      * @param level Player level enum to filter by
      * @param preferredFoot Preferred foot to filter by
-     * @param competitionId Only players registered in this competition (and not withdrawn); verification is not required then
+     * @param competitionId Only players registered in this competition (and not withdrawn)
      * @return Specification for filtering User entities with PLAYER role
      */
     public static Specification<User> withFilters(
@@ -56,11 +56,11 @@ public class PlayerSpecification {
             // Join to Player entity - INNER JOIN to ensure player profile exists
             Join<User, Player> playerJoin = root.join("player", JoinType.INNER);
 
+            // Only show verified players
+            predicates.add(cb.equal(playerJoin.get("verified"), true));
+
             if (competitionId != null) {
                 predicates.add(registeredIn(competitionId, root, query, cb));
-            } else {
-                // Only show verified players
-                predicates.add(cb.equal(playerJoin.get("verified"), true));
             }
 
             // Filter by positions (contains any)
