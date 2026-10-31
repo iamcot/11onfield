@@ -34,17 +34,6 @@ export default function StagesPage() {
   const [editing, setEditing] = useState<{ n: number | null; form: typeof EMPTY } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function act(n: number, action: 'activate' | 'deactivate', text: string) {
-    if (!(await confirm(text))) return;
-    try {
-      const r = await api<{ message: string }>(`competitions/${id}/stages/${n}/${action}`, { method: 'POST' });
-      toast(r?.message || 'Đã cập nhật');
-      data.reload();
-    } catch (e) {
-      toast((e as Error).message, 'error');
-    }
-  }
-
   async function save() {
     if (!editing) return;
     const { n, form } = editing;
@@ -62,8 +51,6 @@ export default function StagesPage() {
     }
   }
 
-  const live = data.data?.liveStageNumber ?? null;
-  const next = data.data?.nextUpcomingStageNumber ?? null;
   const set = (k: keyof typeof EMPTY) => (v: string | boolean) => setEditing((e) => (e ? { ...e, form: { ...e.form, [k]: v } } : e));
 
   return (
@@ -76,7 +63,6 @@ export default function StagesPage() {
       <div className="space-y-3">
         {data.data?.stages.map((s) => {
           const st = STAGE_STATUS[s.status];
-          const canRollback = s.status === 'COMPLETED' && live !== null && s.stageNumber === live - 1;
           return (
             <section key={s.id} className="rounded-lg border border-[#DCE5DF] bg-white p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -96,14 +82,10 @@ export default function StagesPage() {
                   <p className="mt-1 text-[12px] text-[#66766D]">Cấu hình: {s.daysCount} ngày · {s.stepsCount} bài thi · {s.assessmentsCount} nội dung</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <LinkButton small href={`/quan-tri/giai-dau/${id}/vong/${s.stageNumber}`}>Chuẩn bị và chấm điểm</LinkButton>
-                  <LinkButton small href={`/quan-tri/giai-dau/${id}/vong/${s.stageNumber}/ket-qua`}>Kết quả</LinkButton>
+                  <LinkButton small href={`/quan-tri/giai-dau/${id}/vong/${s.stageNumber}`}>Cấu hình bài thi</LinkButton>
                   {manager && (
                     <>
                       <Button small onClick={() => setEditing({ n: s.stageNumber, form: { ...EMPTY, title: s.title, description: s.description || '', stageDate: s.stageDate || '', stageTime: s.stageTime || '', stageType: s.stageType, region: s.region || '', isPublicScoring: s.isPublicScoring } })}>Sửa</Button>
-                      {s.status === 'LIVE' && <Button small variant="danger" onClick={() => act(s.stageNumber, 'deactivate', `Đặt vòng ${s.stageNumber} về “Sắp diễn ra”?`)}>Dừng</Button>}
-                      {s.status === 'UPCOMING' && s.stageNumber === next && <Button small variant="primary" onClick={() => act(s.stageNumber, 'activate', `Kích hoạt vòng ${s.stageNumber}? Vòng đang diễn ra (nếu có) sẽ chuyển thành “Đã xong”.`)}>Kích hoạt</Button>}
-                      {canRollback && <Button small onClick={() => act(s.stageNumber, 'activate', `Mở lại vòng ${s.stageNumber}? Vòng ${live} sẽ trở về “Sắp diễn ra”.`)}>Mở lại</Button>}
                     </>
                   )}
                 </div>

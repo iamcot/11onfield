@@ -1,5 +1,7 @@
 # 05 · Điều hướng giải đấu theo 3 bước
 
+> Trạng thái: đã làm xong bước 1–4 (commit 766b860, ac5c760 và commit sau đó trên nhánh claude/project-thread-nlr5ou).
+
 Mockup đã chốt: [mockup/dieu-huong-giai.html](mockup/dieu-huong-giai.html) (mở bằng trình duyệt, bấm thử được).
 Bản online: https://claude.ai/artifact/RESwBj1AWihxjJweMTpwHA
 
