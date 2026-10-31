@@ -44,6 +44,7 @@ public class RoundScoringService {
     private final ScoringService scoringService;
     private final com.elevenof.backoffice.repository.StageResultRepository stageResultRepository;
     private final ObjectMapper objectMapper;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     // ============= Formula =============
 
@@ -245,6 +246,24 @@ public class RoundScoringService {
     // ============= Ranking =============
 
     /**
+     * stageId -> the people on the list of that stage's last day that has one (day 2: top x of day 1 plus exceptions).
+     * Stages without any day list are absent: everyone stays in.
+     */
+    private Map<Long, Set<Long>> lastDayLists(List<Long> stageIds) {
+        Map<Long, Set<Long>> out = new HashMap<>();
+        if (stageIds.isEmpty()) return out;
+        String in = String.join(",", Collections.nCopies(stageIds.size(), "?"));
+        jdbc.query("SELECT d.stage_id, dp.participant_id FROM day_participants dp"
+                + " JOIN competition_assessment_days d ON d.id = dp.day_id"
+                + " WHERE d.stage_id IN (" + in + ")"
+                + " AND d.day_number = (SELECT MAX(d2.day_number) FROM competition_assessment_days d2"
+                + " JOIN day_participants dp2 ON dp2.day_id = d2.id WHERE d2.stage_id = d.stage_id)",
+            (org.springframework.jdbc.core.RowCallbackHandler) rs -> out.computeIfAbsent(rs.getLong(1), k -> new HashSet<>()).add(rs.getLong(2)),
+            stageIds.toArray());
+        return out;
+    }
+
+    /**
      * Snapshots of the given stages (all stages of the competition when none given), ranked by the formula of the
      * first stage. Goalkeepers and outfield players are ranked apart; pass goalkeeper to get one list.
      */
@@ -279,11 +298,16 @@ public class RoundScoringService {
         Map<Long, Long> votes = roundKey == null ? Map.of() : voteRepository.findByCompetitionIdAndRoundKey(competitionId, roundKey).stream()
                 .collect(Collectors.groupingBy(SelectionVote::getParticipantId, Collectors.counting()));
 
+        Map<Long, Set<Long>> cut = lastDayLists(stages);
+
         List<RoundFormula.Entry> entries = new ArrayList<>();
         Map<Long, Map<String, Object>> rows = new HashMap<>();
         for (ScoreSnapshot s : latest.values()) {
             CompetitionParticipant p = byId.get(s.getParticipantId());
             if (p == null) continue;
+            // Out at a day cut (not on the list of the stage's last listed day): no longer a candidate.
+            Set<Long> onList = cut.get(s.getStageId());
+            if (onList != null && !onList.contains(p.getId())) continue;
             String pos = positions.get(p.getId());
             boolean gk = pos != null && "goalkeeper".equalsIgnoreCase(pos.split(",")[0].trim());
             if (goalkeeper != null && gk != goalkeeper) continue;
