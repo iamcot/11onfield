@@ -1,6 +1,8 @@
 package com.elevenof.backoffice.specification;
 
 import com.elevenof.backoffice.model.Address;
+import com.elevenof.backoffice.model.CompetitionParticipant;
+import com.elevenof.backoffice.model.ParticipantStatus;
 import com.elevenof.backoffice.model.Player;
 import com.elevenof.backoffice.model.User;
 import jakarta.persistence.criteria.*;
@@ -23,6 +25,7 @@ public class PlayerSpecification {
      * @param provinceId Province ID to filter by
      * @param level Player level enum to filter by
      * @param preferredFoot Preferred foot to filter by
+     * @param competitionId Only players registered in this competition (and not withdrawn); verification is not required then
      * @return Specification for filtering User entities with PLAYER role
      */
     public static Specification<User> withFilters(
@@ -30,7 +33,8 @@ public class PlayerSpecification {
             List<String> positions,
             Long provinceId,
             Player.PlayerLevel level,
-            String preferredFoot
+            String preferredFoot,
+            Long competitionId
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -52,8 +56,12 @@ public class PlayerSpecification {
             // Join to Player entity - INNER JOIN to ensure player profile exists
             Join<User, Player> playerJoin = root.join("player", JoinType.INNER);
 
-            // Only show verified players
-            predicates.add(cb.equal(playerJoin.get("verified"), true));
+            if (competitionId != null) {
+                predicates.add(registeredIn(competitionId, root, query, cb));
+            } else {
+                // Only show verified players
+                predicates.add(cb.equal(playerJoin.get("verified"), true));
+            }
 
             // Filter by positions (contains any)
             if (positions != null && !positions.isEmpty()) {
@@ -85,5 +93,21 @@ public class PlayerSpecification {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /** Players registered in the competition: the same rule for its participant count and its player list. */
+    public static Specification<User> registeredIn(Long competitionId) {
+        return withFilters(null, null, null, null, null, competitionId);
+    }
+
+    private static Predicate registeredIn(Long competitionId, Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        Subquery<Long> sub = query.subquery(Long.class);
+        Root<CompetitionParticipant> p = sub.from(CompetitionParticipant.class);
+        sub.select(p.get("id")).where(
+            cb.equal(p.get("competition").get("id"), competitionId),
+            cb.equal(p.get("user"), root),
+            cb.notEqual(p.get("status"), ParticipantStatus.WITHDRAWN)
+        );
+        return cb.exists(sub);
     }
 }

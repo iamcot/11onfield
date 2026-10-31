@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { competitionService } from '@/services/competition.service';
 import { useT } from '@/i18n/I18nProvider';
-import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 
 const SOCIALS = [
   {
@@ -94,9 +93,8 @@ export default function HomeFooter() {
         </div>
       </div>
       <div className="of-rule mx-auto mt-10 max-w-[1240px]" />
-      <div className="mx-auto mt-5 flex max-w-[1240px] items-center justify-between gap-4">
+      <div className="mx-auto mt-5 max-w-[1240px]">
         <div className="of-num text-[12px] text-[#8FA197]">© {new Date().getFullYear()} 11 ON FIELD</div>
-        <LanguageSwitcher />
       </div>
     </footer>
   );

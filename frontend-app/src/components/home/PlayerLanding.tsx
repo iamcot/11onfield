@@ -37,13 +37,16 @@ export default function PlayerLanding() {
   const regStart = competition?.registrationStartDate ? new Date(competition.registrationStartDate) : null;
   const regEnd = competition?.registrationEndDate ? new Date(competition.registrationEndDate) : null;
   const registrationOpen = !competition || ((!regStart || regStart.getTime() <= now) && (!regEnd || regEnd.getTime() > now));
+  // the competition page is linked under the sign-up buttons while players can still join it
+  const competitionHref =
+    competition && ['REGISTRATION_OPEN', 'REGIONAL_AUDITION'].includes(competition.status) ? `/competitions/${competition.id}` : null;
 
   return (
     <div ref={rootRef} className={`of-root ${barlowCondensed.variable} ${chakraPetch.variable}`}>
       <StadiumBackdrop />
       <HomeHeader />
       <main className="relative z-[1]">
-        <Hero registrationOpen={registrationOpen} registrationEnd={regEnd} season={competition?.season ?? null} ctaHref={ctaHref} />
+        <Hero registrationOpen={registrationOpen} registrationEnd={regEnd} season={competition?.season ?? null} ctaHref={ctaHref} competitionHref={competitionHref} />
         <Eligibility />
         <Ticker />
         <Benefits />
@@ -51,7 +54,7 @@ export default function PlayerLanding() {
         <Regions stages={competition?.stages ?? []} ctaHref={ctaHref} />
         <Training />
         <Faq />
-        <FinalCta ctaHref={ctaHref} />
+        <FinalCta ctaHref={ctaHref} competitionHref={competitionHref} />
       </main>
       <HomeFooter />
     </div>

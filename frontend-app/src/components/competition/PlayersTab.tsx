@@ -35,7 +35,7 @@ function PosTag({ p }: { p: PlayerView }) {
   return <span className={`pp-pos ${p.group === 'GK' ? 'gk' : ''}`}>{t(POS_INFO[p.group].code)}</span>;
 }
 
-export default function PlayersTab({ finalOpen, total }: { finalOpen: boolean; total?: number }) {
+export default function PlayersTab({ competitionId, finalOpen, total }: { competitionId: number; finalOpen: boolean; total?: number }) {
   const t = useT();
   const [view, setView] = useState<View>(finalOpen ? 'pitch' : 'list');
   const [filter, setFilter] = useState('all');
@@ -61,7 +61,7 @@ export default function PlayersTab({ finalOpen, total }: { finalOpen: boolean; t
     setLoading(true);
     const positions = FILTERS.find((f) => f.id === filter)?.positions ?? [];
     playerService
-      .getPlayers(0, view === 'pitch' ? 100 : PAGE, { search: query || undefined, positions })
+      .getPlayers(0, view === 'pitch' ? 100 : PAGE, { search: query || undefined, positions, competitionId })
       .then((r) => {
         if (!live) return;
         setPlayers(r.data.map(toPlayerView));
@@ -74,13 +74,13 @@ export default function PlayersTab({ finalOpen, total }: { finalOpen: boolean; t
     return () => {
       live = false;
     };
-  }, [filter, query, view === 'pitch']); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [competitionId, filter, query, view === 'pitch']); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadMore = () => {
     const positions = FILTERS.find((f) => f.id === filter)?.positions ?? [];
     setLoading(true);
     playerService
-      .getPlayers(page + 1, PAGE, { search: query || undefined, positions })
+      .getPlayers(page + 1, PAGE, { search: query || undefined, positions, competitionId })
       .then((r) => {
         setPlayers((old) => [...old, ...r.data.map(toPlayerView)]);
         setPage(page + 1);

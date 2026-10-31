@@ -281,7 +281,9 @@
 .pp-bar.auto .t i { background: linear-gradient(90deg, #3a7bb0, #9ed7ff); }
 .pp-bar b { font: 700 16px/1 var(--f-hud); text-align: right; font-variant-numeric: tabular-nums; }
 .pp-ctas { display: flex; flex-wrap: wrap; gap: 10px; }
-.pp-ctas .pp-btn { flex: 1 1 180px; }
+.pp-ctas .pp-btn { flex: 1 1 180px; white-space: nowrap; }
+/* two buttons side by side on a phone: tighter type so labels stay on one line */
+@media (max-width: 480px) { .pp-ctas .pp-btn { flex-basis: 140px; padding-inline: 12px; gap: 6px; letter-spacing: 0.04em; font-size: 12px; } }
 
 /* ---------- profile ---------- */
 .pp-phero { display: grid; gap: 4px; padding-block: 18px 0; }

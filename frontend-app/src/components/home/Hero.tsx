@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, cssVars } from './ui';
+import CompetitionLink from './CompetitionLink';
 import { useT } from '@/i18n/I18nProvider';
 import { rich } from '@/i18n/rich';
 
@@ -39,11 +40,13 @@ export default function Hero({
   registrationEnd,
   season,
   ctaHref,
+  competitionHref,
 }: {
   registrationOpen: boolean;
   registrationEnd: Date | null;
   season: number | null;
   ctaHref: string;
+  competitionHref: string | null;
 }) {
   const t = useT();
   const cd = useCountdown(registrationEnd);
@@ -119,6 +122,7 @@ export default function Hero({
               {t('Đăng ký miễn phí')} <ArrowRight />
             </Link>
           </div>
+          <CompetitionLink href={competitionHref} className="of-in mt-4" />
 
           {cd && (
             <div className="of-in mt-7 flex flex-wrap items-center gap-3" style={cssVars({ '--i': 3 })}>
