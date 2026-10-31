@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
+import RoundFlow from '@/components/admin/RoundFlow';
 import { useIsManager } from '@/components/admin/me';
 import { Button, Field, Input, LinkButton, Loading, Modal, Table, Td, Textarea, useUi } from '@/components/admin/ui';
 
@@ -78,6 +79,7 @@ export default function StageResultsPage() {
           {manager && <Button onClick={recalc}>Tính lại điểm</Button>}
         </div>
       </CompetitionTabs>
+      <RoundFlow id={id} n={n} />
       <div className="mb-3 max-w-xs"><Input placeholder="Tìm theo SBD hoặc tên" value={q} onChange={(e) => setQ(e.target.value)} /></div>
       <Loading error={results.error || contestants.error} loading={(results.loading || contestants.loading) && !results.data} />
       {results.data && contestants.data && (

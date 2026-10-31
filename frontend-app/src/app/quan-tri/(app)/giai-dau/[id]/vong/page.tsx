@@ -93,10 +93,10 @@ export default function StagesPage() {
                     {s.stageDate ? fmtDate(s.stageDate) : <span className="text-[#8A5A00]">Đang cập nhật</span>}
                     {s.stageTime ? ` · ${s.stageTime}` : ''}
                   </p>
-                  <p className="mt-1 text-[12px] text-[#66766D]">Cấu trúc chấm: {s.daysCount} ngày · {s.stepsCount} bước · {s.assessmentsCount} bài</p>
+                  <p className="mt-1 text-[12px] text-[#66766D]">Cấu hình: {s.daysCount} ngày · {s.stepsCount} bài thi · {s.assessmentsCount} nội dung</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <LinkButton small href={`/quan-tri/giai-dau/${id}/vong/${s.stageNumber}`}>Cấu trúc chấm</LinkButton>
+                  <LinkButton small href={`/quan-tri/giai-dau/${id}/vong/${s.stageNumber}`}>Chuẩn bị và chấm điểm</LinkButton>
                   <LinkButton small href={`/quan-tri/giai-dau/${id}/vong/${s.stageNumber}/ket-qua`}>Kết quả</LinkButton>
                   {manager && (
                     <>
