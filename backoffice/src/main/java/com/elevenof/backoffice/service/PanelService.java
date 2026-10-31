@@ -32,6 +32,12 @@ public class PanelService {
         return repository.findByCompetitionIdAndUserId(competitionId, userId).map(CompetitionPanelMember::getPanelRole);
     }
 
+    /** How many people sit on the competition's panel (everyone on it may vote). */
+    @Transactional(readOnly = true)
+    public int size(Long competitionId) {
+        return repository.findByCompetitionIdOrderByPanelRoleAscIdAsc(competitionId).size();
+    }
+
     /** Only coach and scout accounts can sit on a panel; the website role says what they are, the panel what they do. */
     public static boolean canJoin(User user) {
         return user.getRole() == User.Role.COACH || user.getRole() == User.Role.SCOUTER;

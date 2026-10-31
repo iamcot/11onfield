@@ -99,7 +99,9 @@ public class AdminRoundController {
         if (seesCounts) {
             List<SelectionVote> all = voteRepository.findByCompetitionIdAndRoundKey(id, roundKey);
             out.put("counts", all.stream().collect(Collectors.groupingBy(SelectionVote::getParticipantId, Collectors.counting())));
-            out.put("judges", all.stream().map(SelectionVote::getJudgeUserId).distinct().count());
+            // "/N" on the page: everyone on the panel, so adding a member shows at once; voted = who has saved picks.
+            out.put("judges", panelService.size(id));
+            out.put("voted", all.stream().map(SelectionVote::getJudgeUserId).distinct().count());
         }
         return out;
     }

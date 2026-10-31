@@ -11,7 +11,7 @@ import { FlagBadges, RankCell, RankFilters, TotalCell, inGroup, positionLabel, u
 const LIMIT = 30;
 const ROUND = 'TOP30';
 
-interface Votes { mine: number[]; limit: number; counts?: Record<string, number>; judges?: number }
+interface Votes { mine: number[]; limit: number; counts?: Record<string, number>; judges?: number; voted?: number }
 interface Decision { id?: number; participantIds?: number[]; notes?: Record<string, string>; decidedAt?: string }
 
 const sameSet = (a: Set<number>, b: Set<number>) => a.size === b.size && Array.from(a).every((x) => b.has(x));
@@ -166,6 +166,7 @@ export default function Top30Selection({ id }: { id: string }) {
         <div className="flex flex-wrap items-center gap-2">
           {canVote && !decided && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Phiếu của bạn {mine.size}/{LIMIT}</span>}
           {canVote && !decided && <Button disabled={!dirty || savingVote} onClick={saveVotes}>{savingVote ? 'Đang lưu…' : 'Lưu phiếu'}</Button>}
+          {staff && !decided && judges != null && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Đã bỏ phiếu {votes.data?.voted ?? 0}/{judges} người</span>}
           {superUser && !decided && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Đã chọn {final.size}/{LIMIT}</span>}
           {superUser && !decided && (
             <Button variant="primary" disabled={final.size !== LIMIT || missingGreen.length > 0} onClick={() => setFinalizing(true)}>Chốt danh sách</Button>
