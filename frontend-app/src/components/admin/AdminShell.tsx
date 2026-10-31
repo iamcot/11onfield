@@ -1,13 +1,12 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { NAV } from '@/lib/admin/nav';
 import { ROLE_LABEL, type AdminRole } from '@/lib/admin/session';
 import { MeContext } from './me';
-import BackToRound from './BackToRound';
 import { api } from '@/lib/admin/client';
 import { barlowCondensed, chakraPetch } from '@/components/home/fonts';
 
@@ -179,7 +178,7 @@ export default function AdminShell({
       {open && <button type="button" aria-label="Đóng menu" className="print:hidden fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />}
 
       <MeContext.Provider value={me}>
-        <main className="px-4 pb-10 pt-20 lg:ml-60 lg:px-8 print:m-0 print:p-0"><Suspense fallback={null}><BackToRound /></Suspense>{children}</main>
+        <main className="px-4 pb-10 pt-20 lg:ml-60 lg:px-8 print:m-0 print:p-0">{children}</main>
       </MeContext.Provider>
     </div>
   );

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
-import RoundFlow from '@/components/admin/RoundFlow';
 import { useIsManager, useMe } from '@/components/admin/me';
 import { Badge, Button, Card, Field, Input, Loading, Modal, Select, Textarea, useUi } from '@/components/admin/ui';
 import { fmtDateTime } from '@/lib/admin/labels';
@@ -225,8 +224,7 @@ export default function ReconcilePage() {
 
   return (
     <>
-      <CompetitionTabs id={id} title={`Đối soát — vòng ${n}`} />
-      <RoundFlow id={id} n={n} />
+      <CompetitionTabs />
       <Loading error={days.error} loading={days.loading && !days.data} />
       {days.data && days.data.length === 0 && <p className="text-[#66766D]">Vòng này chưa có cấu trúc chấm.</p>}
       {days.data && days.data.length > 0 && (

@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation';
 import { useApi } from '@/lib/admin/client';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
 import ManualScores from '@/components/admin/ManualScores';
-import RoundFlow from '@/components/admin/RoundFlow';
 import { Loading } from '@/components/admin/ui';
 
 export default function ManualScoresPage() {
@@ -13,8 +12,7 @@ export default function ManualScoresPage() {
   const stage = stages.data?.stages.find((s) => String(s.stageNumber) === n);
   return (
     <>
-      <CompetitionTabs id={id} title={`Vòng ${n} · Sau khi thi: điểm chấm tay`} />
-      <RoundFlow id={id} n={n} />
+      <CompetitionTabs />
       <Loading error={stages.error} loading={stages.loading && !stages.data} />
       {stages.data && !stage && <p className="text-[#66766D]">Không tìm thấy vòng {n}.</p>}
       {stage && <ManualScores stageId={stage.id} />}

@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
-import RoundFlow from '@/components/admin/RoundFlow';
 import { useIsManager } from '@/components/admin/me';
 import { Button, Card, Field, Input, Loading, Modal, Select, Textarea, useUi } from '@/components/admin/ui';
 import { AUDIENCES, COLORS, type Color, METHODS, type SetupAssessment, StepEditor, type Topic, TopicsEditor } from '@/components/admin/round-setup';
@@ -243,8 +242,7 @@ export default function RoundSetupPage() {
 
   return (
     <>
-      <CompetitionTabs id={id} title={`Vòng ${n} · Chuẩn bị: cấu hình bài thi và thang điểm`} />
-      <RoundFlow id={id} n={n} />
+      <CompetitionTabs />
       <Loading error={days.error} loading={days.loading && !days.data} />
 
       {days.data && days.data.length === 0 && (
