@@ -173,6 +173,8 @@ public class AdminCombineController {
         Map<Long, CompetitionScoreTopic> existing = topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(dayId).stream()
                 .collect(Collectors.toMap(CompetitionScoreTopic::getId, t -> t));
         Set<String> keys = new HashSet<>();
+        Set<String> given = new HashSet<>(); // codes the request already uses, so a generated one never takes them
+        for (Object o : list) if (o instanceof Map<?, ?> m && str(m.get("topicKey")) != null) given.add(str(m.get("topicKey")));
         List<CompetitionScoreTopic> keep = new ArrayList<>();
         int order = 0;
         for (Object o : list) {
@@ -180,10 +182,15 @@ public class AdminCombineController {
             String key = str(m.get("topicKey"));
             String name = str(m.get("name"));
             BigDecimal max = decimal(m.get("maxPoints"));
-            if (key == null || name == null || max == null || max.signum() <= 0) {
-                return error(HttpStatus.BAD_REQUEST, "Mỗi nhóm cần mã, tên và điểm tối đa lớn hơn 0");
+            if (name == null || max == null || max.signum() <= 0) {
+                return error(HttpStatus.BAD_REQUEST, "Mỗi nhóm cần tên và điểm tối đa lớn hơn 0");
             }
-            if (!keys.add(key)) return error(HttpStatus.BAD_REQUEST, "Mã nhóm bị lặp: " + key);
+            // The code is internal (formula, exports): a new group gets one from its name; an existing group keeps its own.
+            if (key == null) {
+                key = topicKeyOf(name, given);
+                given.add(key);
+            }
+            if (!keys.add(key)) return error(HttpStatus.BAD_REQUEST, "Hai nhóm trùng mã " + key + ", hãy đổi tên một nhóm");
             Long id = longOf(m.get("id"));
             CompetitionScoreTopic t = id != null ? existing.remove(id) : null;
             if (id != null && t == null) return error(HttpStatus.BAD_REQUEST, "Nhóm " + id + " không thuộc ngày này");
@@ -400,5 +407,16 @@ public class AdminCombineController {
 
     private static ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("message", message));
+    }
+
+    /** THE_LUC from "Thể lực"; THE_LUC_2 when taken. */
+    private static String topicKeyOf(String name, Set<String> taken) {
+        String base = java.text.Normalizer.normalize(name.replace('đ', 'd').replace('Đ', 'D'), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toUpperCase().replaceAll("[^A-Z0-9]+", "_").replaceAll("^_+|_+$", "");
+        if (base.isEmpty()) base = "NHOM";
+        if (base.length() > 40) base = base.substring(0, 40);
+        String key = base;
+        for (int n = 2; taken.contains(key); n++) key = base + "_" + n;
+        return key;
     }
 }
