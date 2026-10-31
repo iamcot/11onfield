@@ -64,7 +64,7 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | 1.4 | Mẫu "Scouting Combine vòng 1" (15 bước, ngưỡng theo ảnh) + chép sang 3 khu vực | 1 | Chờ chốt | |
 | 1.5 | Bản ghi thô `measurement_raw` + chuyển dữ liệu cũ, lịch sử sửa | 1 | Review | #15 |
 | 1.6 | Cổng nhận dữ liệu chung `POST /api/ingest/measurements` (token thiết bị, chống trùng) | 1 | Chưa làm | |
-| 1.7 | Tablet chấm điểm: hiện màu khi nhập, cảnh báo vô lý, ghi lỗi kỹ thuật, hàng đợi offline | 1 | Review | |
+| 1.7 | Tablet chấm điểm: hiện màu khi nhập, cảnh báo vô lý, ghi lỗi kỹ thuật, hàng đợi offline | 1 | Review | #20 |
 | 1.8 | Đối soát: kết quả chính thức, hàng "cần xem", sát ngưỡng, thiếu lượt, khoá/mở khoá sổ | 1 | Đang làm | #15 |
 | 1.9 | Tính điểm mới (lượt → mức → nhóm → ngày → vòng) + test với bộ số mẫu | 1 | Đang làm | #15 |
 | 1.10 | Ghi nhận BGK: tick, mức tham gia, ghi chú | 1 | Xong | #17 |
