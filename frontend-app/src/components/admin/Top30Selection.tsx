@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, useApi } from '@/lib/admin/client';
 import { useMe } from '@/components/admin/me';
 import { Badge, Button, Loading, Modal, Textarea, useUi } from '@/components/admin/ui';
@@ -131,17 +131,30 @@ export default function Top30Selection({ id }: { id: string }) {
     setter(n);
   };
 
-  async function saveVotes() {
+  // Each "Chọn" in Phiếu của tôi saves at once. Saves run one after another and always send the latest picks, so
+  // quick taps never arrive out of order; the counts are reloaded once the last one is in.
+  const latestMine = useRef(mine);
+  const saveChain = useRef<Promise<void>>(Promise.resolve());
+  function toggleVote(pid: number) {
+    const n = new Set(mine);
+    if (n.has(pid)) n.delete(pid);
+    else if (n.size >= LIMIT) { toast(`Chỉ chọn tối đa ${LIMIT} người`, 'error'); return; }
+    else n.add(pid);
+    setMine(n);
+    latestMine.current = n;
     setSavingVote(true);
-    try {
-      await api(`competitions/${id}/selection/${ROUND}/votes`, { method: 'PUT', body: { participantIds: Array.from(mine) } });
-      toast('Đã lưu phiếu của bạn');
-      votes.reload();
-    } catch (e) {
-      toast((e as Error).message, 'error');
-    } finally {
-      setSavingVote(false);
-    }
+    saveChain.current = saveChain.current.then(async () => {
+      const sent = latestMine.current;
+      try {
+        await api(`competitions/${id}/selection/${ROUND}/votes`, { method: 'PUT', body: { participantIds: Array.from(sent) } });
+        if (sent === latestMine.current) { setSavingVote(false); votes.reload(); }
+      } catch (e) {
+        toast(`Chưa lưu được phiếu: ${(e as Error).message}`, 'error');
+        latestMine.current = savedMine;
+        setSavingVote(false);
+        votes.reload();
+      }
+    });
   }
 
   // Who needs a written reason: picked below rank 30 (Green Card exempt), or a complete top-30 player left out.
@@ -165,7 +178,7 @@ export default function Top30Selection({ id }: { id: string }) {
         </p>
         <div className="flex flex-wrap items-center gap-2">
           {canVote && !decided && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Phiếu của bạn {mine.size}/{LIMIT}</span>}
-          {canVote && !decided && <Button disabled={!dirty || savingVote} onClick={saveVotes}>{savingVote ? 'Đang lưu…' : 'Lưu phiếu'}</Button>}
+          {canVote && !decided && <span className="text-[13px] text-[#46564D]">{savingVote || dirty ? 'Đang lưu phiếu…' : 'Phiếu tự lưu khi bấm Chọn'}</span>}
           {staff && !decided && judges != null && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Đã bỏ phiếu {votes.data?.voted ?? 0}/{judges} người</span>}
           {superUser && !decided && <span className="rounded-lg border border-[#DCE5DF] bg-white px-3 py-2 text-[14px] font-semibold">Đã chọn {final.size}/{LIMIT}</span>}
           {superUser && !decided && (
@@ -215,7 +228,7 @@ export default function Top30Selection({ id }: { id: string }) {
                           type="button"
                           aria-pressed={voted}
                           aria-label={`Phiếu của tôi cho ${r.fullName}`}
-                          onClick={() => toggle(mine, setMine, r.participantId, LIMIT)}
+                          onClick={() => toggleVote(r.participantId)}
                           className={`min-w-[84px] rounded-md border px-3 py-1.5 text-[13px] font-medium ${voted ? 'border-[#1F7A3A] bg-[#1F7A3A] text-white' : 'border-[#C9D5CD] bg-white text-[#10231A] hover:border-[#1F7A3A]'}`}
                         >
                           {voted ? 'Đã chọn' : 'Chọn'}
