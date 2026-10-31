@@ -14,7 +14,7 @@ chung 3 vùng và chọn tay Top 30. Gồm luôn cổng nhận dữ liệu chung
 - Tablet chấm điểm `/quan-tri/cham-diem` (SBD, bàn phím số, wake lock), check-in QR (V26), chọn Top 30/11 tay
   (`/quan-tri/giai-dau/[id]/tuyen-chon`), vai trò `BGK` (V24).
 
-## Mô hình dữ liệu (migration V28–V31)
+## Mô hình dữ liệu (migration V28–V30, V33)
 
 Đặt tên theo bảng có sẵn. Bước = bài thi, assessment = nội dung thi.
 
@@ -94,7 +94,9 @@ CREATE TABLE manual_scores (id, stage_id, participant_id, component_key VARCHAR(
 ALTER TABLE users MODIFY COLUMN role ENUM('USER','PLAYER','COACH','SCOUTER','EDITOR','BGK','MEDICAL','COORDINATOR','ADMIN','SUPER_USER') NOT NULL;
 ```
 
-### V31 · Công thức, xếp hạng, chọn người
+### V33 · Công thức, xếp hạng, chọn người
+
+Không dùng V31: V32 (GĐ2) đã chạy trước, Flyway tắt out-of-order nên một bản số nhỏ hơn thêm sau sẽ bị từ chối khi khởi động.
 
 ```sql
 CREATE TABLE score_formulas (id, stage_id, version INT, definition JSON, created_by, created_at, locked_at NULL);

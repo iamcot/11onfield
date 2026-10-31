@@ -41,4 +41,4 @@ hở, chồng, ngược chiều (ví dụ "Tốc độ sút: 98–100 chưa thu�
 
 `GET /api/admin/assessment-days/{dayId}/scores?participantId=` → mỗi thí sinh: `total`, `complete`, `topics:[{key, name, maxPoints, points}]`,
 `steps:[{stepId, status: SCORED|PENDING|DNS|NOT_APPLICABLE, level, color, action, assessments:[{value, level, attempts}]}]`.
-Xếp đủ trước, rồi điểm cao trước. Chưa có điểm vòng 30/20/40/10 và snapshot (V31).
+Xếp đủ trước, rồi điểm cao trước. Chưa có điểm vòng 30/20/40/10 và snapshot (sẽ ở V33; không dùng V31).

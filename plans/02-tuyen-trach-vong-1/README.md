@@ -101,7 +101,7 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 
 Ghi chú tiến độ lõi (#15):
 - 1.8: xong backend (luật đối soát, hàng cần xem, chốt có lý do, khoá/mở khoá); còn màn `doi-soat`.
-- 1.9: xong lượt → mức → nhóm → ngày (`ScoringService`, có test); còn điểm vòng 30/20/40/10 và `score_snapshots` (V31).
+- 1.9: xong lượt → mức → nhóm → ngày (`ScoringService`, có test); còn điểm vòng 30/20/40/10 và `score_snapshots` (V33, bỏ qua V31).
 - API cho các màn giao diện: [api-loi.md](api-loi.md).
 
 ## Mockup
