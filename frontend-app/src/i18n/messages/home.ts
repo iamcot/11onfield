@@ -5,20 +5,20 @@ const home: Messages = {
   // metadata
   '11 người ra sân': ['11 On Field', '11 On Field', '11 On Field'],
   '11 người ra sân - Từ đường phố đến sân cỏ': ['11 On Field - From the street to the pitch', '11 On Field - De la calle al campo', '11 On Field - 거리에서 그라운드로'],
-  'Nền tảng kết nối cầu thủ bóng đá từ đường phố đến sân cỏ': [
-    'The platform that takes footballers from the street to the pitch',
-    'La plataforma que lleva a los futbolistas de la calle al campo',
-    '거리의 축구 선수를 그라운드로 연결하는 플랫폼',
-  ],
-  'Nền tảng kết nối cầu thủ bóng đá từ đường phố đến sân cỏ. Tìm kiếm cầu thủ, tham gia sự kiện, xây dựng đội hình mơ ước.': [
-    'The platform that takes footballers from the street to the pitch. Find players, join events, build your dream team.',
-    'La plataforma que lleva a los futbolistas de la calle al campo. Encuentra jugadores, participa en eventos y arma el equipo de tus sueños.',
-    '거리의 축구 선수를 그라운드로 연결하는 플랫폼. 선수를 찾고, 이벤트에 참여하고, 꿈의 팀을 만드세요.',
-  ],
   'Nền tảng kết nối cầu thủ bóng đá từ đường phố đến sân cỏ. Khám phá tài năng, tham gia tuyển chọn, xây dựng sự nghiệp bóng đá chuyên nghiệp.': [
     'The platform that takes footballers from the street to the pitch. Discover talent, enter the selection and build a professional football career.',
     'La plataforma que lleva a los futbolistas de la calle al campo. Descubre talento, participa en la selección y construye una carrera profesional.',
     '거리의 축구 선수를 그라운드로 연결하는 플랫폼. 재능을 발견하고, 선발에 참여하고, 프로 축구 커리어를 쌓으세요.',
+  ],
+  '11 người ra sân là chương trình tuyển trạch cầu thủ trẻ toàn quốc, đưa tài năng từ đường phố đến sân cỏ. Tạo hồ sơ cầu thủ miễn phí và ghi dấu ấn qua từng vòng tuyển chọn.': [
+    '11 On Field is a nationwide trial programme for young footballers, taking talent from the street to the pitch. Create a free player profile and make your mark round after round.',
+    '11 On Field es un programa nacional de pruebas para jóvenes futbolistas que lleva el talento de la calle al campo. Crea tu perfil de jugador gratis y deja huella en cada fase.',
+    '11 On Field는 거리의 재능을 그라운드로 이끄는 전국 유소년 축구 선수 선발 프로그램입니다. 무료로 선수 프로필을 만들고 라운드마다 실력을 보여주세요.',
+  ],
+  'Cùng tham gia 11 người ra sân và tiếp sức {name} chinh phục ước mơ sân cỏ!': [
+    'Join 11 On Field and help {name} chase the dream of the pitch!',
+    '¡Únete a 11 On Field y apoya a {name} en su sueño de llegar al campo!',
+    '11 On Field에 함께하고 {name} 선수의 그라운드 꿈을 응원해 주세요!',
   ],
   'Trang chủ': ['Home', 'Inicio', '홈'],
   'Đối tác & nhà tài trợ': ['Partners & sponsors', 'Socios y patrocinadores', '파트너 & 스폰서'],

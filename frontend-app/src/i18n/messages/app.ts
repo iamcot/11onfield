@@ -10,21 +10,11 @@ const app: Messages = {
     'Pruebas, torneos y actividades de fútbol. Apúntate para mostrar tu talento y conectar con equipos profesionales.',
     '선발전, 대회, 축구 활동 목록. 지금 참여해 재능을 보여주고 프로 팀과 연결되세요.',
   ],
-  'Danh sách các sự kiện tuyển chọn, giải đấu và hoạt động bóng đá. Tham gia ngay để thể hiện tài năng.': [
-    'Trials, tournaments and football activities. Join now to show your talent.',
-    'Pruebas, torneos y actividades de fútbol. Apúntate y muestra tu talento.',
-    '선발전, 대회, 축구 활동 목록. 지금 참여해 재능을 보여주세요.',
-  ],
   'Danh sách cầu thủ': ['Players', 'Jugadores', '선수 목록'],
   'Tìm kiếm và khám phá cầu thủ bóng đá trên hệ thống. Xem thông tin chi tiết, chỉ số kỹ năng, vị trí thi đấu và lịch sử thi đấu của các cầu thủ.': [
     "Search and discover footballers. See each player's details, skill ratings, positions and match history.",
     'Busca y descubre futbolistas. Consulta los datos, las valoraciones, las posiciones y el historial de cada jugador.',
     '축구 선수를 검색하고 발견하세요. 선수별 정보, 능력치, 포지션, 경기 기록을 확인할 수 있습니다.',
-  ],
-  'Tìm kiếm và khám phá cầu thủ bóng đá trên hệ thống. Xem thông tin chi tiết, chỉ số kỹ năng và vị trí thi đấu.': [
-    'Search and discover footballers. See their details, skill ratings and positions.',
-    'Busca y descubre futbolistas. Consulta sus datos, valoraciones y posiciones.',
-    '축구 선수를 검색하고 발견하세요. 정보, 능력치, 포지션을 확인할 수 있습니다.',
   ],
   'Xem và quản lý hồ sơ cầu thủ bóng đá. Cập nhật thông tin cá nhân, chỉ số kỹ năng, video highlights và lịch sử thi đấu.': [
     'View and manage football player profiles. Update personal details, skill ratings, highlight videos and match history.',
@@ -267,7 +257,6 @@ const app: Messages = {
   'Chờ duyệt': ['Pending review', 'Pendiente de revisión', '검토 대기'],
   'Đã duyệt': ['Approved', 'Aprobado', '승인됨'],
   'Đã từ chối': ['Rejected', 'Rechazado', '거절됨'],
-  'Sửa thông tin': ['Edit profile', 'Editar perfil', '정보 수정'],
 
   // notifications
   'Thông báo': ['Notifications', 'Notificaciones', '알림'],
