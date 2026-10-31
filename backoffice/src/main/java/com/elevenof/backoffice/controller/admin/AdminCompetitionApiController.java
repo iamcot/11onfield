@@ -542,7 +542,7 @@ public class AdminCompetitionApiController {
      * body: { stepId, participantId, scores: { "<assessmentId>_<attempt>": value },
      *         statuses?: { "<assessmentId>_<attempt>": "FAULT" | "DNS" }, notes?: { key: text }, clientUuid? }.
      * Every number goes through MeasurementService as a raw record; unchanged attempts are skipped.
-     * With clientUuid (one per save, from the offline queue) each attempt gets "<clientUuid>:<key>" so a resend is ignored.
+     * With clientUuid (one per save, from the offline queue) each attempt gets a UUID derived from "<clientUuid>:<key>" (same input, same UUID) so a resend is ignored.
      */
     @PostMapping("/field-scoring/save")
     @PreAuthorize(SCORER)
@@ -581,7 +581,7 @@ public class AdminCompetitionApiController {
                         }
                     }
                     MeasurementService.RecordResult r = measurementService.recordFromTablet(a.getId(), participantId, attempt,
-                            value, status, str(notes.get(key)), userId, clientUuid != null ? clientUuid + ":" + key : null);
+                            value, status, str(notes.get(key)), userId, clientUuid != null ? attemptUuid(clientUuid, key) : null);
                     if (r != null && r.official() != null && r.official().getState() == OfficialState.REVIEW) {
                         review.add(Map.of("key", key, "reason", String.valueOf(r.official().getReviewReason())));
                     }
@@ -876,5 +876,10 @@ public class AdminCompetitionApiController {
     private static ResponseEntity<?> wrap(ResponseEntity<String> r) {
         String text = r.getBody() != null ? r.getBody() : "";
         return ResponseEntity.status(r.getStatusCode()).body(Map.of("message", text));
+    }
+
+    /** A 36-character id per attempt of one save, the same on every resend (the column holds one UUID). */
+    private static String attemptUuid(String clientUuid, String key) {
+        return java.util.UUID.nameUUIDFromBytes((clientUuid + ":" + key).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
     }
 }
