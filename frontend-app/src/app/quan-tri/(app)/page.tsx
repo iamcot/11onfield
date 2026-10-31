@@ -1,4 +1,5 @@
 import { adminGet, getMe } from '@/lib/admin/server';
+import { ROLE_LABEL } from '@/lib/admin/session';
 
 interface Dashboard {
   totalPlayers: number;
@@ -60,6 +61,18 @@ export default async function AdminDashboardPage() {
         <h1 className="text-2xl font-semibold">Xin chào, {me.fullName || 'Ban giám khảo'}</h1>
         <p className="mt-2 max-w-xl text-[#46564D]">Bạn có quyền nhập điểm thi tại sân.</p>
         <a href="/quan-tri/cham-diem" className="mt-4 inline-block bg-[#0F3324] px-5 py-3 font-medium text-[#D6FA9E]">Mở màn hình chấm điểm</a>
+      </>
+    );
+  }
+
+  if (me.role === 'MEDICAL' || me.role === 'COORDINATOR') {
+    return (
+      <>
+        <h1 className="text-2xl font-semibold">Xin chào, {me.fullName || ROLE_LABEL[me.role]}</h1>
+        <p className="mt-2 max-w-xl text-[#46564D]">
+          {me.role === 'MEDICAL' ? 'Bạn có quyền đặt cờ "không đủ điều kiện" cho thí sinh.' : 'Bạn có quyền ghi nhận vi phạm kỷ luật của thí sinh.'}
+        </p>
+        <a href="/quan-tri/thi-sinh" className="mt-4 inline-block bg-[#0F3324] px-5 py-3 font-medium text-[#D6FA9E]">Tìm thí sinh</a>
       </>
     );
   }

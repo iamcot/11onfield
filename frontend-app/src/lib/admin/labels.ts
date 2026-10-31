@@ -78,8 +78,18 @@ export const ROLES: Record<string, string> = {
   SCOUTER: 'Tuyển trạch viên',
   EDITOR: 'Biên tập viên',
   BGK: 'Ban giám khảo',
+  MEDICAL: 'Y tế',
+  COORDINATOR: 'Điều phối',
   ADMIN: 'Admin',
   SUPER_USER: 'Super user',
 };
-export const STAFF_ROLE_KEYS = ['EDITOR', 'BGK', 'ADMIN', 'SUPER_USER'];
+export const STAFF_ROLE_KEYS = ['EDITOR', 'BGK', 'MEDICAL', 'COORDINATOR', 'ADMIN', 'SUPER_USER'];
+
+export const FLAG_KINDS: Record<string, { label: string; tone: 'red' | 'gold' | 'gray' | 'green' }> = {
+  MEDICAL_OUT: { label: 'Y tế: không đủ điều kiện', tone: 'red' },
+  DISCIPLINE: { label: 'Vi phạm kỷ luật', tone: 'gold' },
+  LOW_PERFORMANCE: { label: 'Low Performance', tone: 'gold' },
+  DNS: { label: 'Không thi', tone: 'gray' },
+};
+export const PARTICIPATION: Record<string, string> = { FULL: 'Đủ', PARTIAL: 'Một phần', NONE: 'Không' };
 export const CHANNELS: Record<string, string> = { EMAIL: 'Email', IN_APP: 'Trong ứng dụng', INAPP: 'Trong ứng dụng', ZNS: 'Zalo ZNS' };

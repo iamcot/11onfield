@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import { useMe, useIsManager } from '@/components/admin/me';
+import FlagBanner from '@/components/admin/FlagBanner';
 
 interface Assessment { id: number; title: string; unit: string | null; attemptsCount: number; scoringMethod: string }
 interface Ctx {
@@ -314,6 +315,7 @@ export default function FieldScoringPage() {
                         {dirty && <span className="ml-auto rounded-md bg-[#F5C451] px-2 py-1 text-[14px] font-bold text-[#06140D]">Chưa lưu</span>}
                       </div>
                     )}
+                    {c.participant && <FlagBanner participantId={c.participant.id} />}
                   </section>
 
                   {c.participant &&
