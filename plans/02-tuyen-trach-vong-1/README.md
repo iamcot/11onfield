@@ -67,10 +67,10 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | 1.7 | Tablet chấm điểm: hiện màu khi nhập, cảnh báo vô lý, ghi lỗi kỹ thuật, hàng đợi offline | 1 | Chưa làm | |
 | 1.8 | Đối soát: kết quả chính thức, hàng "cần xem", sát ngưỡng, thiếu lượt, khoá/mở khoá sổ | 1 | Chưa làm | |
 | 1.9 | Tính điểm mới (lượt → mức → nhóm → ngày → vòng) + test với bộ số mẫu | 1 | Chưa làm | |
-| 1.10 | Ghi nhận BGK: tick, mức tham gia, ghi chú | 1 | Review | PR sắp mở |
-| 1.11 | Cờ thí sinh: y tế, kỷ luật, Low Performance, không thi; vai trò Y tế, Điều phối | 1 | Review | PR sắp mở |
-| 1.12 | Green Card: 4 thẻ, mỗi thẻ 1 lần/mùa | 1 | Review | PR sắp mở |
-| 1.13 | Nhập điểm đánh giá tay (BHL 40, 7v7) có lý do | 1 | Review | PR sắp mở |
+| 1.10 | Ghi nhận BGK: tick, mức tham gia, ghi chú | 1 | Review | #17 |
+| 1.11 | Cờ thí sinh: y tế, kỷ luật, Low Performance, không thi; vai trò Y tế, Điều phối | 1 | Review | #17 |
+| 1.12 | Green Card: 4 thẻ, mỗi thẻ 1 lần/mùa | 1 | Review | #17 |
+| 1.13 | Nhập điểm đánh giá tay (BHL 40, 7v7) có lý do | 1 | Review | #17 |
 | 1.14 | Bảng xếp hạng chung 3 vùng, thủ môn riêng, đồng điểm, "chưa đủ" | 1 | Chưa làm | |
 | 1.15 | Chọn Top 30: phiếu BGK + quyết định chọn có lưu vết (nâng cấp trang `tuyen-chon`) | 1 | Chưa làm | |
 | 1.16 | QR trên phiếu SBD in tại quầy | 1 | Chưa làm | |
