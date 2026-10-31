@@ -211,8 +211,8 @@ export default function CompetitionDetailPage() {
             {news.length > 0 && <sup>{news.length}</sup>}
           </button>
         </div>
-        {tab === "players" && <PlayersTab competitionId={competition.id} finalOpen={finalOpen} total={competition.participantCount} />}
-        {tab === "top30" && top30 && <Top30Tab top30={top30} />}
+        {tab === "players" && <PlayersTab competitionId={competition.id} finalOpen={finalOpen} total={competition.participantCount} top30={top30 ? new Set(top30.players.map((p) => p.userid)) : undefined} />}
+        {tab === "top30" && top30 && <Top30Tab top30={top30} competitionId={competition.id} />}
         {tab === "news" && <NewsTab competitionId={competitionId} news={news} />}
       </section>
 

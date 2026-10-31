@@ -496,7 +496,8 @@
 .pp-t30 ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px 16px; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
 .pp-t30 li { animation: t30in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
 /* Card: 112px photo over a 56px name bar, so the top half of the photo stands above the bar. */
-.pp-t30c { position: relative; display: block; padding-top: 56px; color: #fff; text-decoration: none; }
+.pp-t30c { position: relative; display: block; width: 100%; padding: 56px 0 0; border: 0; background: none; text-align: left; color: #fff; cursor: pointer; font: inherit; }
+.pp-t30c:disabled { cursor: progress; }
 .pp-t30c .bar {
   --c: 14px; --ring: rgba(166, 227, 90, 0.45);
   display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 14px 0 118px; overflow: hidden;
@@ -527,9 +528,29 @@
 /* No photo: initials in a disc, sitting on the bar. */
 .pp-t30c .ph.none { width: 84px; height: 84px; left: 18px; bottom: 10px; border-radius: 50%; align-items: center; background: radial-gradient(circle at 50% 35%, rgba(166, 227, 90, 0.35), rgba(20, 60, 36, 0.95) 70%); box-shadow: 0 0 0 2px rgba(184, 242, 106, 0.6), 0 8px 20px rgba(0, 0, 0, 0.45); }
 .pp-t30c .ph .in { font: 800 28px var(--f-display); color: var(--lime-3); text-shadow: 0 0 18px rgba(166, 227, 90, 0.6); }
-.pp-t30c:hover .ph, .pp-t30c:focus-visible .ph { transform: translateY(-6px); }
-.pp-t30c:hover .ph img { transform: scale(1.05); transform-origin: 50% 100%; filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(166, 227, 90, 0.55)); }
+/* Hover grows the person up and to the right; the bottom edge and left side stay put. */
+.pp-t30c .ph { transform-origin: 0 100%; }
+.pp-t30c:hover .ph, .pp-t30c:focus-visible .ph { transform: scale(1.1); }
+.pp-t30c:hover .ph img { filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(166, 227, 90, 0.55)); }
 .pp-t30c.gk:hover .ph img { filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(243, 223, 175, 0.55)); }
 .pp-t30c:hover .bar { background: linear-gradient(100deg, rgba(56, 112, 64, 0.98), rgba(14, 40, 26, 0.95) 55%, rgba(28, 70, 44, 0.98)); }
 @keyframes t30in { from { opacity: 0; transform: translateY(18px) scale(0.97); } to { opacity: 1; transform: none; } }
 @keyframes t30shine { 0% { left: -45%; } 35%, 100% { left: 130%; } }
+
+/* TOP 30 badge next to a name in the player list: gold, with a light running through the letters and a soft pulse. */
+.pp-t30b {
+  display: inline-flex; align-items: center; margin-left: 8px; padding: 2px 8px 1px; vertical-align: middle;
+  border-radius: 4px; border: 1px solid rgba(243, 223, 175, 0.7);
+  background: linear-gradient(135deg, rgba(90, 64, 16, 0.85), rgba(40, 28, 6, 0.9));
+  box-shadow: 0 0 10px rgba(227, 194, 126, 0.35);
+  animation: t30bpop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both, t30bglow 2.4s ease-in-out 0.5s infinite;
+}
+.pp-t30b span {
+  font: 800 11px/1.2 var(--f-display); letter-spacing: 0.12em; white-space: nowrap;
+  background: linear-gradient(100deg, #e3c27e 0%, #e3c27e 40%, #fff8e1 50%, #e3c27e 60%, #e3c27e 100%);
+  background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: t30bshine 3s linear infinite;
+}
+@keyframes t30bpop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes t30bglow { 0%, 100% { box-shadow: 0 0 8px rgba(227, 194, 126, 0.3); } 50% { box-shadow: 0 0 16px rgba(243, 223, 175, 0.65); } }
+@keyframes t30bshine { from { background-position: 100% 0; } to { background-position: -150% 0; } }

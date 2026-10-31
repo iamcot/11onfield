@@ -35,7 +35,12 @@ function PosTag({ p }: { p: PlayerView }) {
   return <span className={`pp-pos ${p.group === 'GK' ? 'gk' : ''}`}>{t(POS_INFO[p.group].code)}</span>;
 }
 
-export default function PlayersTab({ competitionId, finalOpen, total }: { competitionId: number; finalOpen: boolean; total?: number }) {
+/** Shown next to the name of someone the jury put in the published Top 30. */
+export function Top30Badge() {
+  return <span className="pp-t30b" aria-label="Top 30"><span>TOP 30</span></span>;
+}
+
+export default function PlayersTab({ competitionId, finalOpen, total, top30 }: { competitionId: number; finalOpen: boolean; total?: number; top30?: Set<string> }) {
   const t = useT();
   const [view, setView] = useState<View>(finalOpen ? 'pitch' : 'list');
   const [filter, setFilter] = useState('all');
@@ -171,6 +176,7 @@ export default function PlayersTab({ competitionId, finalOpen, total }: { compet
                   <b>
                     {given}
                     {family && <small className="pp-mute" style={{ fontSize: '.7em', marginLeft: 6 }}>{family}</small>}
+                    {top30?.has(p.userid) && <Top30Badge />}
                   </b>
                   <span className="pp-pmeta">
                     <PosTag p={p} />
@@ -223,7 +229,7 @@ export default function PlayersTab({ competitionId, finalOpen, total }: { compet
                   </span>
                 )}
                 <span className="ft">
-                  <span className="nm">{p.name}</span>
+                  <span className="nm">{p.name}{top30?.has(p.userid) && <Top30Badge />}</span>
                   <span className="pp-rule" />
                   <span className="f4">
                     <span><b>{p.age ?? '--'}</b><small>{t('Tuổi')}</small></span>
