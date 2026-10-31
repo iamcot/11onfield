@@ -41,4 +41,34 @@ hở, chồng, ngược chiều (ví dụ "Tốc độ sút: 98–100 chưa thu�
 
 `GET /api/admin/assessment-days/{dayId}/scores?participantId=` → mỗi thí sinh: `total`, `complete`, `topics:[{key, name, maxPoints, points}]`,
 `steps:[{stepId, status: SCORED|PENDING|DNS|NOT_APPLICABLE, level, color, action, assessments:[{value, level, attempts}]}]`.
-Xếp đủ trước, rồi điểm cao trước. Chưa có điểm vòng 30/20/40/10 và snapshot (sẽ ở V33; không dùng V31).
+Xếp đủ trước, rồi điểm cao trước.
+
+## Điểm vòng và xếp hạng (1.9, 1.14)
+
+| Việc | Gọi |
+| --- | --- |
+| Công thức vòng (chưa lưu thì trả mặc định 0.3 × Ngày 1 + GPS & AI 20 + BHL 40 + Tư duy 10, `version: 0`) | `GET /api/admin/stages/{stageId}/formula` → `{version, locked, stored, definition, maxTotal}` |
+| Lưu công thức (thành phiên bản mới; đã khoá thì 400) | `PUT /api/admin/stages/{stageId}/formula` `{components:[{key, label, type: DAY\|MANUAL, dayNumber?, weight?, max?}], topicManual:{DUEL: "TACTICAL_7V7"}, classes:[{min, label}], tieBreak:["MIND","DISCIPLINE","FITNESS"]}` |
+| Khoá công thức | `POST /api/admin/stages/{stageId}/formula/lock` |
+| Tính lại điểm vòng (ghi `score_snapshots`) | `POST /api/admin/stages/{stageId}/round-scores/recompute` → `{count, message}` |
+| Bảng xếp hạng (BGK xem được) | `GET /api/admin/competitions/{id}/ranking?stageIds=&goalkeeper=true\|false&region=&roundKey=TOP30` |
+
+Mỗi dòng xếp hạng: `rank`, `tied`, `participantId`, `sbd`, `fullName`, `region`, `positions`, `goalkeeper`, `total`, `complete`,
+`classification` (chỉ khi đủ điểm), `topics:{key: points}`, `components:[{key, label, type, raw, points, present}]`, `medicalOut`,
+`lowPerformance`, `disciplineCount`, `greenCard`, `votes`, `computedAt`. Thứ tự: đủ điểm trước, điểm cao trước, rồi theo `tieBreak`
+(DISCIPLINE = ít vi phạm hơn đứng trước). `tied` là đồng hạng thật sau mọi tiêu chí, giao diện tô để BGK quyết.
+Điểm thủ công vượt `max` bị cắt ở `max`. Trang thí sinh không gọi API này (không hiện thứ hạng).
+
+## Chọn Top 30 (1.15)
+
+| Việc | Gọi |
+| --- | --- |
+| Phiếu của tôi; admin thấy thêm số phiếu từng người | `GET /api/admin/competitions/{id}/selection/{roundKey}/votes` → `{mine:[..], limit:30, counts?:{pid: n}, judges?}` |
+| Bỏ phiếu (thay cả danh sách, tối đa 30; đã chốt thì 409) | `PUT .../selection/{roundKey}/votes` `{participantIds:[..]}` |
+| Đọc quyết định mới nhất (`{}` khi chưa có) | `GET .../selection/{roundKey}/decision` |
+| Chốt (SUPER_USER) | `POST .../selection/{roundKey}/decision?stageIds=` `{participantIds:[..], notes:{"<pid>": "lý do"}}` |
+
+Khi chốt: chọn người hạng > 30 (trừ người có Green Card) hoặc bỏ người trong top 30 đã đủ điểm thì phải có `notes` cho người đó,
+thiếu thì 400 `{message, needNote:[pid]}`. Người có Green Card bắt buộc nằm trong danh sách. `roundKey = TOP30` phải đúng 30 người,
+chỉ chốt một lần (lần hai 409), và chuyển trạng thái thí sinh sang `SELECTED_TOP30` kèm thông báo như trang `tuyen-chon` cũ.
+Vòng khác (ví dụ danh sách ngắn) chốt lại được, lấy quyết định mới nhất.
