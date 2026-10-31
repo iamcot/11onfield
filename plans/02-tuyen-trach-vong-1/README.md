@@ -71,8 +71,8 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | 1.11 | Cờ thí sinh: y tế, kỷ luật, Low Performance, không thi; vai trò Y tế, Điều phối | 1 | Xong | #17 |
 | 1.12 | Green Card: 4 thẻ, mỗi thẻ 1 lần/mùa | 1 | Xong | #17 |
 | 1.13 | Nhập điểm đánh giá tay (BHL 40, 7v7) có lý do | 1 | Xong | #17 |
-| 1.14 | Bảng xếp hạng chung 3 vùng, thủ môn riêng, đồng điểm, "chưa đủ" | 1 | API xong, chờ giao diện | #15 |
-| 1.15 | Chọn Top 30: phiếu BGK + quyết định chọn có lưu vết (nâng cấp trang `tuyen-chon`) | 1 | API xong, chờ giao diện | #15 |
+| 1.14 | Bảng xếp hạng chung 3 vùng, thủ môn riêng, đồng điểm, "chưa đủ" | 1 | Review | #15, giao diện ở PR riêng |
+| 1.15 | Chọn Top 30: phiếu BGK + quyết định chọn có lưu vết (nâng cấp trang `tuyen-chon`) | 1 | Review | #15, giao diện ở PR riêng |
 | 1.16 | QR trên phiếu SBD in tại quầy | 1 | Xong | #16 |
 | 1.17 | Xuất biên bản (Excel/PDF) theo ngày | 1 | Xong | #16 |
 | 1.18 | Chạy thử 1.000 thí sinh giả (script seed + kịch bản) | 1 | Chưa làm | |

@@ -7,6 +7,7 @@ import CompetitionTabs from '@/components/admin/CompetitionTabs';
 import { useIsManager } from '@/components/admin/me';
 import { Badge, Button, Card, Loading, useUi } from '@/components/admin/ui';
 import { PARTICIPANT_STATUS, REGIONS } from '@/lib/admin/labels';
+import Top30Selection from '@/components/admin/Top30Selection';
 
 interface Candidate { id: number; fullName: string; status: string; selectedRegion: string | null; totalScore: number | null }
 
@@ -69,9 +70,11 @@ export default function SelectionPage() {
   return (
     <>
       <CompetitionTabs id={id} />
-      <p className="mb-4 text-[13px] text-[#46564D]">Danh sách xếp theo tổng điểm. Chọn Top 30 sau vòng tuyển trạch, sau đó chọn Top 11 từ Top 30. {manager ? '' : 'Bạn chỉ có quyền xem.'}</p>
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Picker id={id} kind="top30" limit={30} manager={manager} />
+      <h2 className="mb-2 text-[16px] font-semibold">Top 30</h2>
+      <Top30Selection id={id} />
+      <h2 className="mb-2 mt-8 text-[16px] font-semibold">Top 11</h2>
+      <p className="mb-3 text-[13px] text-[#46564D]">Chọn Top 11 từ Top 30 sau khi Top 30 đã chốt. {manager ? '' : 'Bạn chỉ có quyền xem.'}</p>
+      <div className="max-w-3xl">
         <Picker id={id} kind="top11" limit={11} manager={manager} />
       </div>
     </>
