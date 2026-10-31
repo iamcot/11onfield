@@ -547,6 +547,7 @@
 }
 .pp-t30b span {
   font: 800 11px/1.2 var(--f-display); letter-spacing: 0.12em; white-space: nowrap;
+  -webkit-text-stroke: 0; text-shadow: none; text-transform: none;
   background: linear-gradient(100deg, #e3c27e 0%, #e3c27e 40%, #fff8e1 50%, #e3c27e 60%, #e3c27e 100%);
   background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: t30bshine 3s linear infinite;
@@ -554,3 +555,7 @@
 @keyframes t30bpop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
 @keyframes t30bglow { 0%, 100% { box-shadow: 0 0 8px rgba(227, 194, 126, 0.3); } 50% { box-shadow: 0 0 16px rgba(243, 223, 175, 0.65); } }
 @keyframes t30bshine { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+/* Card view: the badge sits centred just above the name, a little bigger, so the name keeps its full width. */
+.pp-cc .t30 { display: flex; justify-content: center; margin-bottom: 4px; }
+.pp-cc .t30 .pp-t30b { margin-left: 0; padding: 3px 10px 2px; }
+.pp-cc .t30 .pp-t30b span { font-size: 12px; }

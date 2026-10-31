@@ -229,7 +229,8 @@ export default function PlayersTab({ competitionId, finalOpen, total, top30 }: {
                   </span>
                 )}
                 <span className="ft">
-                  <span className="nm">{p.name}{top30?.has(p.userid) && <Top30Badge />}</span>
+                  {top30?.has(p.userid) && <span className="t30"><Top30Badge /></span>}
+                  <span className="nm">{p.name}</span>
                   <span className="pp-rule" />
                   <span className="f4">
                     <span><b>{p.age ?? '--'}</b><small>{t('Tuổi')}</small></span>
