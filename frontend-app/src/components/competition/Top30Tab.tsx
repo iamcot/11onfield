@@ -29,15 +29,18 @@ export default function Top30Tab({ top30 }: { top30: Top30 }) {
             {t(POS_INFO[g].label)} <sup>{players.length}</sup>
           </h3>
           <ul>
-            {players.map((p) => (
-              <li key={p.userid}>
-                <Link href={`/profile/${encodeURIComponent(p.userid)}?from=competition`} className="pp-panel of-cut">
-                  <span className="clip">
+            {players.map((p, i) => (
+              <li key={p.userid} style={{ ['--i' as string]: i }}>
+                {/* Card: the photo is twice the height of the name bar and stands up out of it (head and shoulders above). */}
+                <Link href={`/profile/${encodeURIComponent(p.userid)}?from=competition`} className={`pp-t30c ${g === 'GK' ? 'gk' : ''}`}>
+                  <span className="ph" aria-hidden="true">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {p.avatar ? <img src={p.avatar} alt="" loading="lazy" /> : <span className="in">{initials(p.fullName)}</span>}
                   </span>
-                  <b>{p.fullName}</b>
-                  <span className={`pp-pos ${g === 'GK' ? 'gk' : ''}`}>{t(POS_INFO[g].code)}</span>
+                  <span className="bar of-cut">
+                    <b>{p.fullName}</b>
+                    <span className={`pp-pos ${g === 'GK' ? 'gk' : ''}`}>{t(POS_INFO[g].code)}</span>
+                  </span>
                 </Link>
               </li>
             ))}
