@@ -76,13 +76,13 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | 1.16 | QR trên phiếu SBD in tại quầy | 1 | Chưa làm | |
 | 1.17 | Xuất biên bản (Excel/PDF) theo ngày | 1 | Chưa làm | |
 | 1.18 | Chạy thử 1.000 thí sinh giả (script seed + kịch bản) | 1 | Chưa làm | |
-| 2.1 | Chính sách hiển thị theo nhóm dữ liệu + ngày phát hành theo vòng | 2 | Review | (PR đang mở) |
-| 2.2 | Cầu thủ thu hẹp quyền xem (`player_visibility`) | 2 | Review | (PR đang mở) |
-| 2.3 | Lọc ở backend trong `GET /api/users/{userid}` | 2 | Review | (PR đang mở) |
+| 2.1 | Chính sách hiển thị theo nhóm dữ liệu + ngày phát hành theo vòng | 2 | Review | #18 |
+| 2.2 | Cầu thủ thu hẹp quyền xem (`player_visibility`) | 2 | Review | #18 |
+| 2.3 | Lọc ở backend trong `GET /api/users/{userid}` | 2 | Review | #18 |
 | 2.4 | Tính chỉ số player từ Combine (hexagon 0–99, nhóm điểm, số đo gốc), tự cập nhật | 2 | Chờ chốt | |
-| 2.5 | Thẻ Combine trên trang player + công tắc ẩn/hiện của chính chủ | 2 | Review | (PR đang mở) |
-| 2.6 | Tab Bảng xếp hạng ở trang giải: chỉ hiện Top 30 sau khi chốt chọn, không số hạng | 2 | Review | (PR đang mở) |
-| 2.7 | Ảnh chia sẻ / link preview chỉ dùng trường công khai | 2 | Review | (PR đang mở) |
+| 2.5 | Thẻ Combine trên trang player + công tắc ẩn/hiện của chính chủ | 2 | Review | #18 |
+| 2.6 | Tab Bảng xếp hạng ở trang giải: chỉ hiện Top 30 sau khi chốt chọn, không số hạng | 2 | Review | #18 |
+| 2.7 | Ảnh chia sẻ / link preview chỉ dùng trường công khai | 2 | Review | #18 |
 | 3.1 | Đăng ký thiết bị, token, phiếu hiệu chuẩn | 3 | Chưa làm | |
 | 3.2 | Nhập file từ thiết bị (CSV, FIT, Excel) theo mẫu ánh xạ | 3 | Chờ chốt | |
 | 3.3 | Thu nhịp tim Garmin / ANT+ cho nhóm 15 người | 3 | Chưa làm | |
