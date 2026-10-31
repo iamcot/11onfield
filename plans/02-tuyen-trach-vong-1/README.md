@@ -50,6 +50,7 @@ trọng số nhóm, xếp hạng chung 3 vùng, rồi để BGK chọn tay Top 3
 | [03-thiet-bi-do.md](03-thiet-bi-do.md) | GĐ3 · Thiết bị đo | GĐ1 (cổng nhận dữ liệu) |
 | [04-phan-tich-video.md](04-phan-tich-video.md) | GĐ4 · Phân tích video | GĐ1 (cổng nhận dữ liệu) |
 | [05-dieu-huong-giai.md](05-dieu-huong-giai.md) | Điều hướng giải đấu theo 3 bước ([mockup](mockup/dieu-huong-giai.html)) | Không |
+| [06-nhap-diem-don-gian.md](06-nhap-diem-don-gian.md) | Nhập điểm đơn giản hoá: nguồn điểm ở bài thi, nhập bù, người đi tiếp, điểm từ ngày trước | Không |
 
 GĐ2, GĐ3, GĐ4 làm song song sau GĐ1. Mỗi việc dưới đây là một PR nhỏ hoặc gộp vài việc cùng vùng code.
 
