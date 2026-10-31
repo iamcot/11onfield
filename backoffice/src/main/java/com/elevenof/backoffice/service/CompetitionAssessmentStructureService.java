@@ -290,7 +290,9 @@ public class CompetitionAssessmentStructureService {
      * Get rating scale for a step
      */
     public List<CompetitionAssessmentStepRating> getRatingScale(Long assessmentStepId) {
-        return ratingRepository.findByAssessmentStepIdOrderByLevelDesc(assessmentStepId);
+        List<CompetitionAssessmentStepRating> levels = ratingRepository.findByAssessmentStepIdOrderByLevelDesc(assessmentStepId);
+        levels.forEach(r -> r.getConditions().size()); // serialized after the session closes
+        return levels;
     }
 
     // ============= Full Structure Operations =============
@@ -309,7 +311,7 @@ public class CompetitionAssessmentStructureService {
             day.getAssessmentSteps().size();
             for (CompetitionAssessmentStep step : day.getAssessmentSteps()) {
                 step.getAssessments().size();
-                step.getRatingScales().size();
+                step.getRatingScales().forEach(r -> r.getConditions().size());
             }
         }
 

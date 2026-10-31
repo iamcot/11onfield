@@ -95,7 +95,8 @@ function ScoreModal({ stageId, row, comps, onClose, onSaved }: { stageId: number
 }
 
 function ManualScores({ id }: { id: string }) {
-  const stages = useApi<Stage[]>(`competitions/${id}/stages`);
+  const stageList = useApi<{ stages: Stage[] }>(`competitions/${id}/stages`);
+  const stages = { ...stageList, data: stageList.data?.stages };
   const [stageId, setStageId] = useState<number | null>(null);
   const [q, setQ] = useState('');
   const [open, setOpen] = useState<Row | null>(null);
