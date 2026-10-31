@@ -42,9 +42,10 @@ export default function RoundFlow({ id, n }: { id: string; n: string }) {
       when: 'Chốt điểm và chọn người',
       items: [
         { href: `${round}/doi-soat`, label: 'Đối soát và khoá sổ' },
-        { href: `/quan-tri/giai-dau/${id}/danh-gia-cuoi`, label: 'Nhập điểm BHL, 7v7, tư duy' },
+        { href: `${round}/diem-cham-tay`, label: 'Điểm chấm tay: BHL, 7v7, tư duy, GPS' },
         { href: `${round}/ket-qua`, label: 'Kết quả vòng' },
-        { href: `/quan-tri/giai-dau/${id}/xep-hang`, label: 'Xếp hạng và chọn Top 30' },
+        { href: `/quan-tri/giai-dau/${id}/xep-hang`, label: 'Xếp hạng chung 3 khu vực' },
+        { href: `/quan-tri/giai-dau/${id}/tuyen-chon`, label: 'Chọn Top 30, Green Card' },
         { href: `/quan-tri/giai-dau/${id}/hien-thi`, label: 'Phát hành kết quả' },
       ],
     },

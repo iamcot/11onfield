@@ -6,14 +6,13 @@ import { useApi } from '@/lib/admin/client';
 import { useIsManager } from './me';
 import { PageTitle } from './ui';
 
-const TABS = [
+const TABS: { slug: string; label: string; manager?: boolean }[] = [
   { slug: '', label: 'Thông tin' },
   { slug: '/vong', label: 'Vòng thi' },
   { slug: '/thi-sinh', label: 'Thí sinh' },
   { slug: '/xep-hang', label: 'Xếp hạng' },
   { slug: '/tuyen-chon', label: 'Top 30 / Top 11' },
   { slug: '/hien-thi', label: 'Hiển thị' },
-  { slug: '/danh-gia-cuoi', label: 'Đánh giá cuối', manager: true },
   { slug: '/tin-tuc', label: 'Tin tức' },
   { slug: '/nha-tai-tro', label: 'Nhà tài trợ' },
 ];

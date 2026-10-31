@@ -8,6 +8,7 @@ import { useIsManager } from '@/components/admin/me';
 import { Badge, Button, Card, Loading, useUi } from '@/components/admin/ui';
 import { PARTICIPANT_STATUS, REGIONS } from '@/lib/admin/labels';
 import Top30Selection from '@/components/admin/Top30Selection';
+import GreenCards from '@/components/admin/GreenCards';
 
 interface Candidate { id: number; fullName: string; status: string; selectedRegion: string | null; totalScore: number | null }
 
@@ -72,6 +73,7 @@ export default function SelectionPage() {
       <CompetitionTabs id={id} />
       <h2 className="mb-2 text-[16px] font-semibold">Top 30</h2>
       <Top30Selection id={id} />
+      {manager && <div className="mt-4"><GreenCards id={id} /></div>}
       <h2 className="mb-2 mt-8 text-[16px] font-semibold">Top 11</h2>
       <p className="mb-3 text-[13px] text-[#46564D]">Chọn Top 11 từ Top 30 sau khi Top 30 đã chốt. {manager ? '' : 'Bạn chỉ có quyền xem.'}</p>
       <div className="max-w-3xl">
