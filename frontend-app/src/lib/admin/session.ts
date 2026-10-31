@@ -2,12 +2,14 @@
 export const ADMIN_COOKIE = 'of_admin';
 export const ADMIN_SESSION_SECONDS = 8 * 60 * 60;
 
-export type AdminRole = 'EDITOR' | 'BGK' | 'ADMIN' | 'SUPER_USER';
-export const ADMIN_ROLES: AdminRole[] = ['EDITOR', 'BGK', 'ADMIN', 'SUPER_USER'];
+export type AdminRole = 'EDITOR' | 'BGK' | 'MEDICAL' | 'COORDINATOR' | 'ADMIN' | 'SUPER_USER';
+export const ADMIN_ROLES: AdminRole[] = ['EDITOR', 'BGK', 'MEDICAL', 'COORDINATOR', 'ADMIN', 'SUPER_USER'];
 
 export const ROLE_LABEL: Record<AdminRole, string> = {
   EDITOR: 'Biên tập',
   BGK: 'Ban giám khảo',
+  MEDICAL: 'Y tế',
+  COORDINATOR: 'Điều phối',
   ADMIN: 'Quản trị',
   SUPER_USER: 'Quản trị cao cấp',
 };
