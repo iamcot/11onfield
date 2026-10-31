@@ -55,6 +55,7 @@ public class AdminCompetitionApiController {
     private final com.elevenof.backoffice.service.ScoringService scoringService;
     private final CompetitionAssessmentStepRatingRepository ratingRepository;
     private final com.elevenof.backoffice.service.VisibilityService visibilityService;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     // ==================== COMPETITIONS ====================
 
@@ -504,6 +505,7 @@ public class AdminCompetitionApiController {
         }
         if (picked != null) {
             out.put("participant", contestant(picked, pickedSbd));
+            out.put("blocked", flagService.isBlocked(picked.getId()));
             Map<String, BigDecimal> scores = new LinkedHashMap<>();
             for (CompetitionAssessment a : assessments) {
                 for (CompetitionAssessmentResult r : resultRepository.findByAssessmentIdAndParticipantIdOrderByAttemptNumberAsc(a.getId(), picked.getId())) {
@@ -602,6 +604,57 @@ public class AdminCompetitionApiController {
         out.put("message", review.isEmpty() ? "Đã lưu kết quả" : "Đã lưu, có " + review.size() + " lượt cần BTC xem lại");
         out.put("review", review);
         return ResponseEntity.ok(out);
+    }
+
+    /**
+     * What the caller entered on this step, for the "Danh sách đã thi" drawer of the group entry screen: per contestant,
+     * the caller's latest manual record of each attempt (value or FAULT / DNS), most recent contestant first.
+     */
+    @GetMapping("/field-scoring/mine")
+    @PreAuthorize(SCORER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> fieldScoringMine(@RequestParam Long stepId) {
+        CompetitionAssessmentStep step = stepRepository.findById(stepId).orElse(null);
+        if (step == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy bài thi");
+        Long userId = currentUserId();
+        if (userId == null) return error(HttpStatus.UNAUTHORIZED, "Chưa đăng nhập");
+        Long competitionId = step.getAssessmentDay().getStage().getCompetition().getId();
+        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competitionId);
+        Map<Long, Integer> sbdOf = new HashMap<>();
+        Map<Long, CompetitionParticipant> byId = new HashMap<>();
+        for (int i = 0; i < all.size(); i++) { sbdOf.put(all.get(i).getId(), i + 1); byId.put(all.get(i).getId(), all.get(i)); }
+
+        // Oldest first, so a later record of the same attempt (a correction) overwrites the earlier one.
+        List<Map<String, Object>> raws = jdbc.queryForList("""
+                SELECT r.participant_id, r.assessment_id, r.attempt_number, r.value, r.status, r.id
+                FROM measurement_raw r JOIN competition_assessments a ON a.id = r.assessment_id
+                WHERE a.assessment_step_id = ? AND r.recorded_by = ? AND r.source = 'MANUAL'
+                ORDER BY r.id""", stepId, userId);
+        Map<Long, Map<String, Object>> rows = new LinkedHashMap<>();
+        Map<Long, Long> lastId = new HashMap<>();
+        for (Map<String, Object> r : raws) {
+            Long pid = ((Number) r.get("participant_id")).longValue();
+            String key = r.get("assessment_id") + "_" + r.get("attempt_number");
+            Map<String, Object> row = rows.computeIfAbsent(pid, k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("participantId", k);
+                m.put("sbd", sbdOf.get(k));
+                CompetitionParticipant cp = byId.get(k);
+                m.put("fullName", cp != null ? cp.getUser().getFullName() : null);
+                m.put("scores", new LinkedHashMap<String, Object>());
+                m.put("statuses", new LinkedHashMap<String, Object>());
+                return m;
+            });
+            @SuppressWarnings("unchecked") Map<String, Object> scores = (Map<String, Object>) row.get("scores");
+            @SuppressWarnings("unchecked") Map<String, Object> statuses = (Map<String, Object>) row.get("statuses");
+            String status = String.valueOf(r.get("status"));
+            if ("OK".equals(status)) { scores.put(key, r.get("value")); statuses.remove(key); }
+            else { statuses.put(key, status); scores.remove(key); }
+            lastId.put(pid, ((Number) r.get("id")).longValue());
+        }
+        List<Map<String, Object>> out = new ArrayList<>(rows.values());
+        out.sort((a, b) -> Long.compare(lastId.get((Long) b.get("participantId")), lastId.get((Long) a.get("participantId"))));
+        return ResponseEntity.ok(Map.of("rows", out));
     }
 
     /** Level the entered values would get, without saving. body: { stepId, scores: { "<assessmentId>_<attempt>": value } } */

@@ -6,6 +6,8 @@ import { api, useApi } from '@/lib/admin/client';
 import { useMe, useIsManager } from '@/components/admin/me';
 import FlagBanner from '@/components/admin/FlagBanner';
 import SbdScanner from '@/components/admin/SbdScanner';
+import { Keypad, Spinner } from './keypad';
+import GroupEntry from './GroupEntry';
 import {
   flushQueue, isNetworkError, newClientUuid, queueAll, queuePut, queueRemove, sendSave, type QueuedSave,
 } from '@/lib/admin/offline-queue';
@@ -74,41 +76,6 @@ function useWakeLock() {
   }, []);
 }
 
-function Spinner({ className = 'h-6 w-6' }: { className?: string }) {
-  return (
-    <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" />
-      <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function Keypad({ onKey, allowDot }: { onKey: (k: string) => void; allowDot: boolean }) {
-  const keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', allowDot ? '.' : '', '0', '⌫'];
-  return (
-    <div className="grid grid-cols-3 gap-2">
-      {keys.map((k, i) =>
-        k ? (
-          <button
-            key={i}
-            type="button"
-            onClick={() => onKey(k)}
-            className={`h-[68px] rounded-xl border-2 border-[#0B2419]/20 bg-white font-[family-name:var(--font-hud)] text-[30px] font-bold ${INK} shadow-[0_2px_0_rgba(11,36,25,0.18)] active:translate-y-[1px] active:bg-[#E4F3D6] active:shadow-none`}
-            aria-label={k === '⌫' ? 'Xoá một ký tự' : k}
-          >
-            {k}
-          </button>
-        ) : (
-          <span key={i} />
-        ),
-      )}
-      <button type="button" onClick={() => onKey('C')} className={`col-span-3 h-[52px] rounded-xl border-2 border-[#0B2419]/20 bg-white text-[17px] font-semibold ${INK} active:bg-[#FDE4E1]`}>
-        Xoá ô đang chọn
-      </button>
-    </div>
-  );
-}
-
 export default function FieldScoring() {
   useWakeLock();
   const me = useMe();
@@ -138,6 +105,10 @@ export default function FieldScoring() {
   const [online, setOnline] = useState(true);
   const [queue, setQueue] = useState<QueuedSave[]>([]);
   const [syncing, setSyncing] = useState(false);
+  // One contestant at a time, or a whole group at the table (GroupEntry). Remembered on this device.
+  const [mode, setModeRaw] = useState<'one' | 'group'>('one');
+  useEffect(() => { try { if (localStorage.getItem('of:scoring-mode') === 'group') setModeRaw('group'); } catch { /* storage blocked */ } }, []);
+  const setMode = (m: 'one' | 'group') => { setModeRaw(m); try { localStorage.setItem('of:scoring-mode', m); } catch { /* storage blocked */ } };
   const previewSeq = useRef(0);
   const syncingRef = useRef(false);
 
@@ -461,6 +432,18 @@ export default function FieldScoring() {
             {!stepId && <p className="mt-8 text-center text-[20px] font-medium">Chọn ngày thi và bước thi để bắt đầu chấm.</p>}
 
             {stepId && (
+              <div className="mt-4 flex items-center gap-3">
+                <span className="w-24 shrink-0 text-[15px] font-bold uppercase tracking-wide">Cách nhập</span>
+                <button type="button" className={seg(mode === 'one')} onClick={() => setMode('one')}>Từng thí sinh</button>
+                <button type="button" className={seg(mode === 'group')} onClick={() => setMode('group')}>Theo nhóm thi</button>
+              </div>
+            )}
+
+            {stepId && dayId && mode === 'group' && c.assessments && (
+              <GroupEntry dayId={dayId} stepId={stepId} assessments={c.assessments} competitionId={c.competition?.id} flash={flash} onQueueChange={refreshQueue} />
+            )}
+
+            {stepId && mode === 'one' && (
               <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:grid-rows-[auto_1fr] lg:items-start">
                 {/* Left: contestant + attempts */}
                 <div className="space-y-5 lg:col-start-1 lg:row-start-1">
@@ -648,7 +631,7 @@ export default function FieldScoring() {
               </div>
             )}
             {/* Room for the floating save button on narrow screens */}
-            {c.participant && <div className="h-24 lg:hidden" />}
+            {c.participant && mode === 'one' && <div className="h-24 lg:hidden" />}
           </>
         )}
       </main>
