@@ -73,8 +73,8 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | 1.13 | Nhập điểm đánh giá tay (BHL 40, 7v7) có lý do | 1 | Chưa làm | |
 | 1.14 | Bảng xếp hạng chung 3 vùng, thủ môn riêng, đồng điểm, "chưa đủ" | 1 | Chưa làm | |
 | 1.15 | Chọn Top 30: phiếu BGK + quyết định chọn có lưu vết (nâng cấp trang `tuyen-chon`) | 1 | Chưa làm | |
-| 1.16 | QR trên phiếu SBD in tại quầy | 1 | Chưa làm | |
-| 1.17 | Xuất biên bản (Excel/PDF) theo ngày | 1 | Chưa làm | |
+| 1.16 | QR trên phiếu SBD in tại quầy | 1 | Review | PR |
+| 1.17 | Xuất biên bản (Excel/PDF) theo ngày | 1 | Review | PR |
 | 1.18 | Chạy thử 1.000 thí sinh giả (script seed + kịch bản) | 1 | Chưa làm | |
 | 2.1 | Chính sách hiển thị theo nhóm dữ liệu + ngày phát hành theo vòng | 2 | Chưa làm | |
 | 2.2 | Cầu thủ thu hẹp quyền xem (`player_visibility`) | 2 | Chưa làm | |
