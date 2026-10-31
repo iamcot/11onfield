@@ -100,4 +100,16 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 
 ## Mockup
 
-Mockup các màn chính: (link sẽ thêm sau khi dựng).
+Mockup các màn chính (canvas thiết kế): https://claude.ai/artifact/5bx2pLpZeUDWpBP8hRuguy
+
+| Màn | Việc liên quan |
+| --- | --- |
+| Admin: cấu hình thang bài thi (nhiều nội dung, cảnh báo hở/chồng, thử nhanh) | 1.1, 1.2, 1.3 |
+| Tablet chấm điểm: hiện màu khi nhập, cảnh báo vô lý, lỗi kỹ thuật, hàng chờ offline | 1.7 |
+| Tablet BGK: tick, mức tham gia, ghi chú | 1.10 |
+| Admin: đối soát, chọn bản ghi gốc có lý do, khoá sổ trạm | 1.8 |
+| Admin: xếp hạng chung 3 vùng, phiếu BGK, chọn Top 30 | 1.14, 1.15 |
+| Admin: quyền hiển thị theo nhóm dữ liệu, phát hành theo vùng | 2.1 |
+| Trang player: thẻ Combine, hexagon, công tắc "Chỉ bạn thấy" | 2.4, 2.5 |
+
+Số liệu và ngưỡng trên mockup là minh hoạ.
