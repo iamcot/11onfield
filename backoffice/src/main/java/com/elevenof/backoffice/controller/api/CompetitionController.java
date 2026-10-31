@@ -197,7 +197,6 @@ public class CompetitionController {
                         .fullName(user.getFullName())
                         .avatar(user.getAvatar())
                         .score(result.getScore())
-                        .rankPosition(result.getRankPosition())
                         .performanceNotes(result.getPerformanceNotes())
                         .videoUrl(result.getVideoUrl())
                         .isPublic(result.getIsPublic())

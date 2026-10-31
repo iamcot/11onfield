@@ -7,6 +7,7 @@ import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
 import ProfileShareSheet from "@/components/qr/ProfileShareSheet";
 import AchievementsBlock, { type TypedAchievement } from "@/components/player-profile/AchievementsBlock";
+import CombineCard from "@/components/player-profile/CombineCard";
 import { PhotoGuide } from "@/components/player-profile/Guides";
 import HighlightsBlock from "@/components/player-profile/HighlightsBlock";
 import { IconCamera, IconCheck, IconHex, IconPen, IconPrev, IconShare, IconUpload } from "@/components/pp/icons";
@@ -15,6 +16,7 @@ import Radar from "@/components/pp/Radar";
 import "@/components/pp/pp.css";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n/I18nProvider";
+import { COMBINE_PLACEHOLDER_ON, combinePlaceholder } from "@/lib/combine/placeholder";
 import { activeRoundIndex, finalRoundIndex, sortRounds } from "@/lib/players/rounds";
 import {
   ageFrom,
@@ -36,7 +38,7 @@ import { followService } from "@/services/follow.service";
 import { mediaService, type MediaConfig } from "@/services/media.service";
 import { playerService } from "@/services/player.service";
 import { provinceService } from "@/services/province.service";
-import { userService, type UserProfile } from "@/services/user.service";
+import { userService, type UserProfile, type VisibilityLevel } from "@/services/user.service";
 import type { EventListItem } from "@/types/event";
 import type { UserListItem } from "@/types/user";
 import Link from "next/link";
@@ -116,6 +118,7 @@ export default function UserProfilePage() {
   const [fullBusy, setFullBusy] = useState(false);
   const [sharing, setSharing] = useState(false);
   const autoFollowed = useRef(false);
+  const [visBusy, setVisBusy] = useState(false);
 
   const owner = !!currentUser && currentUser.userid === userid;
 
@@ -265,6 +268,20 @@ export default function UserProfilePage() {
     }
   };
 
+  // the owner shows or hides a group of data; the server refuses anything above what the organizers allow
+  const setVisibility = async (dataGroup: string, level: VisibilityLevel) => {
+    setVisBusy(true);
+    try {
+      await userService.setVisibility(dataGroup, level);
+      await load();
+      toast(level === "PUBLIC" ? t("Đã công khai") : t("Đã chuyển sang chỉ mình bạn"));
+    } catch (e) {
+      toast((e as { message?: string })?.message || t("Có lỗi xảy ra. Vui lòng thử lại."));
+    } finally {
+      setVisBusy(false);
+    }
+  };
+
   const toggleFollow = async () => {
     if (!isAuthenticated) return router.push("/auth/login");
     try {
@@ -333,12 +350,15 @@ export default function UserProfilePage() {
   const set = usePro ? pro! : prof;
   const ovr = overall(pro ?? prof);
   const highlights = profile.highlights ?? [];
+  // placeholder only while the scoring backend is not live and the flag is on (never in production)
+  const combine = profile.combine ?? (COMBINE_PLACEHOLDER_ON && process.env.NODE_ENV !== "production" ? combinePlaceholder(owner) : null);
   const achievements: TypedAchievement[] = [
     ...(profile.individualAchievements ?? []).map((a) => ({ ...a, type: "INDIVIDUAL" as const })),
     ...(profile.teamAchievements ?? []).map((a) => ({ ...a, type: "TEAM" as const })),
     ...(profile.participantAchievements ?? []).map((a) => ({ ...a, type: "PARTICIPANT" as const })),
   ];
   const province = profile.address?.province?.name;
+  const body = profile.visibility?.find((v) => v.dataGroup === "BODY_BASIC" && v.ownerCanHide);
 
   // owner missions: what is still missing on the profile
   const tasks: [string, boolean, string, () => void][] = [
@@ -669,6 +689,10 @@ export default function UserProfilePage() {
           </div>
         )}
 
+        {isPlayer && combine && (
+          <CombineCard data={combine} owner={owner} settings={profile.visibility} busy={visBusy} onVisibility={setVisibility} />
+        )}
+
         {owner && isPlayer && (
           <div className="pp-panel of-cut pp-box pp-b-mission">
             <h3>
@@ -731,6 +755,20 @@ export default function UserProfilePage() {
               </div>
             ) : (
               <div className="pp-kv">
+                {owner && body && (
+                  <div>
+                    <span className="pp-mute">{t("Hiển thị chiều cao, cân nặng")}</span>
+                    {body.adminMax === "PUBLIC" ? (
+                      <label className="pp-sw">
+                        <span>{(body.mine ?? body.adminMax) === "PUBLIC" ? t("Công khai") : t("Chỉ mình tôi")}</span>
+                        <input type="checkbox" role="switch" checked={(body.mine ?? body.adminMax) === "PUBLIC"} disabled={visBusy} onChange={() => setVisibility("BODY_BASIC", (body.mine ?? body.adminMax) === "PUBLIC" ? "PRIVATE" : "PUBLIC")} />
+                        <i aria-hidden="true" />
+                      </label>
+                    ) : (
+                      <b>{t("Chỉ bạn thấy")}</b>
+                    )}
+                  </div>
+                )}
                 <div><span className="pp-mute">{t("Chiều cao")}</span><b>{profile.height ? `${profile.height} cm` : "—"}</b></div>
                 <div><span className="pp-mute">{t("Cân nặng")}</span><b>{profile.weight ? `${profile.weight} kg` : "—"}</b></div>
                 <div><span className="pp-mute">{t("Chân thuận")}</span><b>{profile.preferredFoot ? t(FOOT_LABEL[profile.preferredFoot] ?? profile.preferredFoot) : "—"}</b></div>

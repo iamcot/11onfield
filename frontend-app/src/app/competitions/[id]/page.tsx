@@ -8,6 +8,7 @@ import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
 import NewsTab from "@/components/competition/NewsTab";
 import PlayersTab from "@/components/competition/PlayersTab";
+import Top30Tab from "@/components/competition/Top30Tab";
 import RoundRail from "@/components/competition/RoundRail";
 import "@/components/pp/pp.css";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -18,6 +19,7 @@ import {
   competitionService,
   CompetitionSponsor,
   type ParticipantStatus,
+  type Top30,
 } from "@/services/competition.service";
 import { storage } from "@/lib/storage";
 import Link from "next/link";
@@ -34,7 +36,7 @@ const STATUS_LABELS: Record<string, string> = {
   COMPLETED: "Đã hoàn thành",
 };
 
-type Tab = "players" | "news";
+type Tab = "players" | "top30" | "news";
 
 export default function CompetitionDetailPage() {
   const { t } = useI18n();
@@ -42,11 +44,12 @@ export default function CompetitionDetailPage() {
   const router = useRouter();
   const search = useSearchParams();
   const competitionId = parseInt(params.id as string);
-  const tab: Tab = search.get("tab") === "news" ? "news" : "players";
+  const wanted = search.get("tab");
 
   const [competition, setCompetition] = useState<CompetitionDetail | null>(null);
   const [news, setNews] = useState<CompetitionNews[]>([]);
   const [sponsors, setSponsors] = useState<CompetitionSponsor[]>([]);
+  const [top30, setTop30] = useState<Top30 | null>(null);
   const [loading, setLoading] = useState(true);
   const [reg, setReg] = useState<ParticipantStatus | null>(null);
   const [joining, setJoining] = useState(false);
@@ -57,11 +60,13 @@ export default function CompetitionDetailPage() {
       competitionService.getCompetitionById(competitionId),
       competitionService.getNews(competitionId).catch(() => []),
       competitionService.getSponsors(competitionId).catch(() => []),
+      competitionService.getTop30(competitionId).catch(() => null),
     ])
-      .then(([c, n, s]) => {
+      .then(([c, n, s, top]) => {
         setCompetition(c);
         setNews(n);
         setSponsors(s);
+        setTop30(top?.published ? top : null);
       })
       .catch(() => setCompetition(null))
       .finally(() => setLoading(false));
@@ -86,6 +91,9 @@ export default function CompetitionDetailPage() {
   const rounds = useMemo(() => sortRounds(competition?.stages ?? []), [competition]);
   const active = useMemo(() => activeRoundIndex(rounds), [rounds]);
   const finalOpen = useMemo(() => finalIsOpen(rounds, competition?.status), [rounds, competition]);
+
+  // the ranking tab exists only once the jury has finalized the Top 30
+  const tab: Tab = wanted === "news" ? "news" : wanted === "top30" && top30 ? "top30" : "players";
 
   const setTab = (next: Tab) => {
     const q = new URLSearchParams(search.toString());
@@ -192,12 +200,20 @@ export default function CompetitionDetailPage() {
             {t("Cầu thủ")}
             {competition.participantCount > 0 && <sup>{competition.participantCount.toLocaleString()}</sup>}
           </button>
+          {top30 && (
+            <button className="of-cut" role="tab" aria-selected={tab === "top30"} onClick={() => setTab("top30")}>
+              {t("Bảng xếp hạng")}
+              <sup>{top30.players.length}</sup>
+            </button>
+          )}
           <button className="of-cut" role="tab" aria-selected={tab === "news"} onClick={() => setTab("news")}>
             {t("Tin tức")}
             {news.length > 0 && <sup>{news.length}</sup>}
           </button>
         </div>
-        {tab === "players" ? <PlayersTab competitionId={competition.id} finalOpen={finalOpen} total={competition.participantCount} /> : <NewsTab competitionId={competitionId} news={news} />}
+        {tab === "players" && <PlayersTab competitionId={competition.id} finalOpen={finalOpen} total={competition.participantCount} />}
+        {tab === "top30" && top30 && <Top30Tab top30={top30} />}
+        {tab === "news" && <NewsTab competitionId={competitionId} news={news} />}
       </section>
 
       <HomeFooter />

@@ -53,6 +53,30 @@ export interface Social {
   platform?: string;
 }
 
+export type VisibilityLevel = 'HIDDEN' | 'PRIVATE' | 'PUBLIC';
+
+/** One block of the Scouting Combine card; a block the viewer may not see is not in the JSON. */
+export interface CombineData {
+  stageTitle?: string;
+  source?: string;
+  hex?: { key: string; value: number }[];
+  total?: number;
+  totalMax?: number;
+  grade?: string;
+  groups?: { key: string; label: string; score: number; max: number }[];
+  tests?: { key: string; name: string; value: string; level: number; vsAverage?: number }[];
+  /** data groups the viewer sees only because it is their own profile */
+  ownerOnly?: string[];
+}
+
+export interface VisibilitySetting {
+  dataGroup: string;
+  adminMax: VisibilityLevel;
+  ownerCanHide: boolean;
+  mine: VisibilityLevel | null;
+  level: VisibilityLevel;
+}
+
 export interface UserProfile {
   id: number;
   phone: string;
@@ -90,6 +114,9 @@ export interface UserProfile {
   followersCount?: number;
   followingCount?: number;
   verified?: boolean;
+  combine?: CombineData;
+  /** only sent to the owner */
+  visibility?: VisibilitySetting[];
 
   // New extended player fields
   personalId?: string;
@@ -119,6 +146,12 @@ export const userService = {
         Authorization: `Bearer ${token}`,
       },
     });
+  },
+
+  async setVisibility(dataGroup: string, level: VisibilityLevel): Promise<void> {
+    const token = storage.getToken();
+    if (!token) throw new Error('No access token available');
+    await apiClient.put('/users/me/visibility', { dataGroup, level }, { headers: { Authorization: `Bearer ${token}` } });
   },
 
   async getUserByUserid(userid: string): Promise<UserProfile> {

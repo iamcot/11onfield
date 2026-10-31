@@ -31,14 +31,10 @@ export interface Stage {
   isPublicScoring: boolean;
 }
 
-export interface LeaderboardEntry {
-  rank: number;
-  userId: number;
-  userProfileId: string;
-  fullName: string;
-  avatar: string;
-  totalScore: number;
-  selectedRegion: string;
+/** Selected Top 30: sorted by position then name, no rank and no score on purpose. */
+export interface Top30 {
+  published: boolean;
+  players: { userid: string; fullName: string; avatar: string | null; position: string | null }[];
 }
 
 export interface StageResult {
@@ -50,7 +46,6 @@ export interface StageResult {
   fullName: string;
   avatar: string;
   score: number;
-  rankPosition: number;
   performanceNotes: string;
   videoUrl: string;
   isPublic: boolean;
@@ -151,17 +146,8 @@ export const competitionService = {
     });
   },
 
-  async getLeaderboard(
-    id: number,
-    region?: string
-  ): Promise<LeaderboardEntry[]> {
-    const params = new URLSearchParams();
-    if (region) params.append("region", region);
-
-    const response = await apiClient.get<LeaderboardEntry[]>(
-      `/competitions/${id}/leaderboard?${params.toString()}`
-    );
-    return response;
+  async getTop30(id: number): Promise<Top30> {
+    return apiClient.get<Top30>(`/competitions/${id}/top30`);
   },
 
   async getMyResults(id: number): Promise<StageResult[]> {
