@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RequestMapping({"/admin/api/competitions", "/api/admin/competitions"})
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminCompetitionController {
 
     private final CompetitionService competitionService;
@@ -37,7 +37,7 @@ public class AdminCompetitionController {
     /**
      * Get all participants for a competition
      */
-    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @GetMapping("/{id}/participants")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<AdminParticipantDTO>> getAllParticipants(@PathVariable Long id) {
@@ -63,7 +63,7 @@ public class AdminCompetitionController {
     /**
      * Get results for a specific stage (admin view)
      */
-    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @GetMapping("/{id}/stages/{stageNumber}/results")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<StageResultDTO>> getStageResults(
@@ -135,7 +135,7 @@ public class AdminCompetitionController {
     /**
      * Get eligible participants for TOP 30 selection
      */
-    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @GetMapping("/{id}/select-top30/eligible")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<AdminParticipantDTO>> getEligibleForTop30(@PathVariable Long id) {
@@ -187,7 +187,7 @@ public class AdminCompetitionController {
     /**
      * Get eligible participants for TOP 11 selection
      */
-    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @GetMapping("/{id}/select-top11/eligible")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<AdminParticipantDTO>> getEligibleForTop11(@PathVariable Long id) {

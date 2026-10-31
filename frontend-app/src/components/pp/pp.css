@@ -351,6 +351,7 @@
 .pp-bento > * { min-width: 0; scroll-margin-top: 130px; }
 @media (min-width: 900px) {
   .pp-bento { grid-template-columns: repeat(12, 1fr); }
+  .pp-b-combine { grid-column: span 12; }
   .pp-b-radar { grid-column: span 5; grid-row: span 2; }
   .pp-b-mission { grid-column: span 7; }
   .pp-b-bio { grid-column: span 7; }
@@ -453,3 +454,108 @@
 .pp-hv-nav .pp-icb svg { transform: rotate(90deg); }
 .pp-hv-nav .pp-icb:disabled { opacity: 0.3; }
 @media (hover: none) { .pp-hv-nav { display: none; } }
+
+/* Scouting Combine card */
+.pp-grade { font: 800 22px/1 var(--f-display); color: #2a1e05; background: var(--gold); padding: 4px 9px; border-radius: 4px; }
+.pp-csrc { margin: -6px 0 10px; font-size: 12.5px; }
+.pp-cgrid { display: grid; gap: 16px; align-items: center; }
+@media (min-width: 720px) { .pp-cgrid { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); } }
+.pp-chex .pp-radar { width: 100%; max-width: 300px; margin-inline: auto; display: block; }
+.pp-ctotal { display: flex; align-items: baseline; gap: 6px; margin-bottom: 10px; }
+.pp-ctotal b { font: 800 44px/0.9 var(--f-display); color: var(--lime-2); font-variant-numeric: tabular-nums; }
+.pp-ctotal span { color: var(--pp-mute); font: 600 14px var(--f-hud); }
+.pp-cbar { display: grid; grid-template-columns: 82px minmax(0, 1fr) 48px; align-items: center; gap: 10px; font-size: 13px; }
+.pp-cbar .pp-pbar { margin: 0; height: 8px; }
+.pp-cbar em { font-style: normal; text-align: right; color: var(--pp-mute); font-variant-numeric: tabular-nums; }
+.pp-cbar + .pp-cbar { margin-top: 8px; }
+.pp-ctests { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.pp-ctests-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.pp-ctests-r { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pp-ctests ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.pp-ctests li { display: grid; grid-template-columns: minmax(0, 1fr) auto 56px 56px; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px dashed rgba(255, 255, 255, 0.08); font-size: 13.5px; }
+.pp-ctests li b { font-variant-numeric: tabular-nums; }
+.pp-lv { border: 1px solid; border-radius: 999px; padding: 2px 0; text-align: center; font: 700 11px/1.4 var(--f-hud); letter-spacing: 0.06em; text-transform: uppercase; }
+.pp-vs { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.pp-vs.up { color: var(--lime-2); }
+.pp-vs.down { color: var(--pp-red); }
+.pp-ownertag { background: rgba(227, 194, 126, 0.16); color: var(--pp-gold); }
+.pp-sw { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; cursor: pointer; position: relative; min-height: 32px; }
+.pp-sw input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.pp-sw i { width: 36px; height: 20px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); position: relative; transition: background 0.2s; flex: none; }
+.pp-sw i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+.pp-sw input:checked ~ i { background: var(--lime); }
+.pp-sw input:checked ~ i::after { transform: translateX(16px); }
+.pp-sw input:focus-visible ~ i { outline: 2px solid var(--lime-2); outline-offset: 2px; }
+.pp-sw input:disabled ~ i { opacity: 0.5; }
+.pp-sw-note { font-size: 12px; }
+
+/* Top 30 tab */
+.pp-t30 { margin-bottom: 22px; }
+.pp-t30 h3 { margin: 0 0 10px; color: var(--lime-2); }
+.pp-t30 h3 sup { color: var(--pp-mute); }
+.pp-t30 ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px 16px; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+.pp-t30 li { animation: t30in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+/* Card: 112px photo over a 56px name bar, so the top half of the photo stands above the bar. */
+.pp-t30c { position: relative; display: block; width: 100%; padding: 56px 0 0; border: 0; background: none; text-align: left; color: #fff; cursor: pointer; font: inherit; }
+.pp-t30c:disabled { cursor: progress; }
+.pp-t30c .bar {
+  --c: 14px; --ring: rgba(166, 227, 90, 0.45);
+  display: flex; align-items: center; gap: 10px; height: 60px; padding: 0 14px 0 118px; overflow: hidden;
+  background: linear-gradient(100deg, rgba(36, 84, 52, 0.95), rgba(9, 30, 20, 0.92) 55%, rgba(18, 52, 35, 0.95));
+  box-shadow: inset 0 1px 0 rgba(214, 250, 158, 0.18);
+  transition: background 0.3s;
+}
+/* Light sweep across the bar, one card after another. */
+.pp-t30c .bar::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -45%; width: 35%; z-index: 2; pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(214, 250, 158, 0.38), transparent);
+  transform: skewX(-20deg);
+  animation: t30shine 5s ease-in-out infinite; animation-delay: calc(1s + var(--i, 0) * 0.35s);
+}
+.pp-t30c .bar b { position: relative; z-index: 1; flex: 1; min-width: 0; font: 700 17px/1.15 var(--f-display); letter-spacing: 0.01em; text-transform: uppercase; overflow-wrap: anywhere; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
+.pp-t30c .bar .pp-pos { position: relative; z-index: 1; }
+.pp-t30c .ph {
+  position: absolute; left: 10px; bottom: 0; z-index: 4; width: 100px; height: 116px;
+  display: flex; align-items: flex-end; justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Avatars are already cut out (background removed): no frame, just the person standing on the bar with a soft glow. */
+.pp-t30c .ph img {
+  width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 10px rgba(166, 227, 90, 0.25));
+  transition: filter 0.35s, transform 0.5s;
+}
+/* No photo: initials in a disc, sitting on the bar. */
+.pp-t30c .ph.none { width: 84px; height: 84px; left: 18px; bottom: 10px; border-radius: 50%; align-items: center; background: radial-gradient(circle at 50% 35%, rgba(166, 227, 90, 0.35), rgba(20, 60, 36, 0.95) 70%); box-shadow: 0 0 0 2px rgba(184, 242, 106, 0.6), 0 8px 20px rgba(0, 0, 0, 0.45); }
+.pp-t30c .ph .in { font: 800 28px var(--f-display); color: var(--lime-3); text-shadow: 0 0 18px rgba(166, 227, 90, 0.6); }
+/* Hover grows the person up and to the right; the bottom edge and left side stay put. */
+.pp-t30c .ph { transform-origin: 0 100%; }
+.pp-t30c:hover .ph, .pp-t30c:focus-visible .ph { transform: scale(1.1); }
+.pp-t30c:hover .ph img { filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(166, 227, 90, 0.55)); }
+.pp-t30c.gk:hover .ph img { filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 16px rgba(243, 223, 175, 0.55)); }
+.pp-t30c:hover .bar { background: linear-gradient(100deg, rgba(56, 112, 64, 0.98), rgba(14, 40, 26, 0.95) 55%, rgba(28, 70, 44, 0.98)); }
+@keyframes t30in { from { opacity: 0; transform: translateY(18px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes t30shine { 0% { left: -45%; } 35%, 100% { left: 130%; } }
+
+/* TOP 30 badge next to a name in the player list: gold, with a light running through the letters and a soft pulse. */
+.pp-t30b {
+  display: inline-flex; align-items: center; margin-left: 8px; padding: 2px 8px 1px; vertical-align: middle;
+  border-radius: 4px; border: 1px solid rgba(243, 223, 175, 0.7);
+  background: linear-gradient(135deg, rgba(90, 64, 16, 0.85), rgba(40, 28, 6, 0.9));
+  box-shadow: 0 0 10px rgba(227, 194, 126, 0.35);
+  animation: t30bpop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both, t30bglow 2.4s ease-in-out 0.5s infinite;
+}
+.pp-t30b span {
+  font: 800 11px/1.2 var(--f-display); letter-spacing: 0.12em; white-space: nowrap;
+  -webkit-text-stroke: 0; text-shadow: none; text-transform: none;
+  background: linear-gradient(100deg, #e3c27e 0%, #e3c27e 40%, #fff8e1 50%, #e3c27e 60%, #e3c27e 100%);
+  background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: t30bshine 3s linear infinite;
+}
+@keyframes t30bpop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes t30bglow { 0%, 100% { box-shadow: 0 0 8px rgba(227, 194, 126, 0.3); } 50% { box-shadow: 0 0 16px rgba(243, 223, 175, 0.65); } }
+@keyframes t30bshine { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+/* Card view: the badge sits centred just above the name, a little bigger, so the name keeps its full width. */
+.pp-cc .t30 { display: flex; justify-content: center; margin-bottom: 4px; }
+.pp-cc .t30 .pp-t30b { margin-left: 0; padding: 3px 10px 2px; }
+.pp-cc .t30 .pp-t30b span { font-size: 12px; }

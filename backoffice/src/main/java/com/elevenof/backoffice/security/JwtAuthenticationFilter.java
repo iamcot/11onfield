@@ -25,6 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final com.elevenof.backoffice.service.PanelService panelService;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
@@ -55,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                             userid, // Store userid (String) in principal
                             null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                            authorities(user)
                         );
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -89,5 +90,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         return null;
+    }
+
+    /** The website role, plus HLV or TTV for a member of a competition's scouting panel. */
+    private List<SimpleGrantedAuthority> authorities(User user) {
+        List<SimpleGrantedAuthority> out = new java.util.ArrayList<>();
+        out.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        panelService.highestRole(user.getId()).ifPresent(r -> out.add(new SimpleGrantedAuthority("ROLE_" + r.name())));
+        return out;
     }
 }

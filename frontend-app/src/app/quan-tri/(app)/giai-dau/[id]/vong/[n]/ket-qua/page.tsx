@@ -4,8 +4,9 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
+import DayAdvance from '@/components/admin/DayAdvance';
 import { useIsManager } from '@/components/admin/me';
-import { Button, Field, Input, Loading, Modal, Table, Td, Textarea, useUi } from '@/components/admin/ui';
+import { Button, Field, Input, LinkButton, Loading, Modal, Table, Td, Textarea, useUi } from '@/components/admin/ui';
 
 interface Contestant { id: number; sbd: number; userId: number; fullName: string; phone: string | null }
 interface Result { id: number; userId: number; fullName: string; score: number | null; rankPosition: number | null; performanceNotes: string | null; videoUrl: string | null }
@@ -16,6 +17,8 @@ export default function StageResultsPage() {
   const { toast, confirm } = useUi();
   const results = useApi<Result[]>(`competitions/${id}/stages/${n}/results`);
   const contestants = useApi<Contestant[]>(`competitions/${id}/contestants`);
+  const days = useApi<{ id: number; dayNumber: number; title: string }[]>(`competitions/${id}/stages/${n}/assessment-structure`);
+  const [minutesDay, setMinutesDay] = useState('');
   const [edit, setEdit] = useState<{ c: Contestant; score: string; rank: string; notes: string; video: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState('');
@@ -60,12 +63,23 @@ export default function StageResultsPage() {
 
   return (
     <>
-      <CompetitionTabs id={id} title={`Kết quả — vòng ${n}`}>
-        <div className="flex gap-2">
+      <CompetitionTabs>
+        <div className="flex flex-wrap items-center gap-2">
+          {manager && (
+            <>
+              <select aria-label="Ngày thi của biên bản" className="border border-[#C9D5CD] bg-white px-2 py-2 text-[14px]" value={minutesDay} onChange={(e) => setMinutesDay(e.target.value)}>
+                <option value="">Mọi ngày</option>
+                {(days.data || []).map((d) => <option key={d.id} value={d.id}>Ngày {d.dayNumber}{d.title ? ` — ${d.title}` : ''}</option>)}
+              </select>
+              <a className="inline-block border border-[#C9D5CD] px-4 py-2 text-[14px] font-medium hover:border-[#1F7A3A]" href={`/quan-tri/api/proxy/competitions/${id}/stages/${n}/export/minutes${minutesDay ? `?dayId=${minutesDay}` : ''}`}>Biên bản Excel</a>
+            </>
+          )}
+          <LinkButton href={`/quan-tri/giai-dau/${id}/vong/${n}/bien-ban`}>Biên bản PDF</LinkButton>
           <a className="inline-block border border-[#C9D5CD] px-4 py-2 text-[14px] font-medium hover:border-[#1F7A3A]" href={`/quan-tri/api/proxy/competitions/${id}/export/results`}>Xuất Excel</a>
           {manager && <Button onClick={recalc}>Tính lại điểm</Button>}
         </div>
       </CompetitionTabs>
+      {days.data && <DayAdvance days={days.data} />}
       <div className="mb-3 max-w-xs"><Input placeholder="Tìm theo SBD hoặc tên" value={q} onChange={(e) => setQ(e.target.value)} /></div>
       <Loading error={results.error || contestants.error} loading={(results.loading || contestants.loading) && !results.data} />
       {results.data && contestants.data && (

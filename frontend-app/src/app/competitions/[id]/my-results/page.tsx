@@ -122,7 +122,7 @@ export default function MyResultsPage({
               {t("Tin tức")}
             </Link>
             <Link
-              href={`/competitions/${competitionId}/leaderboard`}
+              href={`/competitions/${competitionId}?tab=top30`}
               className="py-4 px-2 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap"
             >
               {t("Bảng xếp hạng")}
@@ -178,18 +178,12 @@ export default function MyResultsPage({
                 </div>
 
                 <div className="p-6">
-                  {/* Score and Rank */}
-                  <div className="grid grid-cols-2 gap-6 mb-6">
+                  {/* Score only: a rank by score is shown to admins, never here */}
+                  <div className="grid grid-cols-1 gap-6 mb-6">
                     <div className="bg-gray-50 rounded-lg p-4">
                       <p className="text-gray-600 text-sm mb-1">{t("Điểm số")}</p>
                       <p className="text-3xl font-bold text-green-700">
                         {result.score ? result.score.toFixed(2) : "N/A"}
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-600 text-sm mb-1">{t("Xếp hạng")}</p>
-                      <p className="text-3xl font-bold text-green-700">
-                        {result.rankPosition ? `#${result.rankPosition}` : "N/A"}
                       </p>
                     </div>
                   </div>

@@ -37,7 +37,7 @@
             <i class="fas fa-exclamation-triangle"></i>
             Chưa có vòng thi nào đang diễn ra (LIVE). Vui lòng kích hoạt một vòng thi trước.
           </div>
-          <a sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_SUPER_USER')"
+          <a sec:authorize="hasRole('ROLE_ADMIN')"
              th:href="@{/admin/competitions/{id}/stages(id=${competition.id})}" class="btn btn-primary">
             <i class="fas fa-tasks"></i> Quản lý vòng thi
           </a>

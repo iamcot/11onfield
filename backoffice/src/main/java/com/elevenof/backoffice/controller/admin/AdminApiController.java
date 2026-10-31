@@ -43,12 +43,16 @@ public class AdminApiController {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("userid", user.getUserid());
         body.put("fullName", user.getFullName());
-        body.put("role", user.getRole().name());
+        // On the admin site a coach or scout on a scouting panel acts as HLV or TTV.
+        String panel = authentication.getAuthorities().stream().map(a -> a.getAuthority())
+                .filter(a -> a.equals("ROLE_HLV") || a.equals("ROLE_TTV")).map(a -> a.substring(5)).findFirst().orElse(null);
+        body.put("role", panel != null ? panel : user.getRole().name());
+        body.put("websiteRole", user.getRole().name());
         return ResponseEntity.ok(body);
     }
 
     @GetMapping("/dashboard")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     public ResponseEntity<Map<String, Object>> dashboard() {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("totalPlayers", playerRepository.count());

@@ -47,7 +47,7 @@ export default function CompetitionInfoPage() {
   const c = comp.data;
   return (
     <>
-      <CompetitionTabs id={id} title={c?.title} />
+      <CompetitionTabs />
       <Loading error={comp.error} loading={comp.loading && !c} />
       {c && form.title !== undefined && (
         <div className="grid max-w-4xl gap-4 lg:grid-cols-[2fr_1fr]">

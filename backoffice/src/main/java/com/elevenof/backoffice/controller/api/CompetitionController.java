@@ -30,6 +30,7 @@ public class CompetitionController {
     private final CompetitionSponsorRepository sponsorRepository;
     private final com.elevenof.backoffice.service.StageCheckinService checkinService;
     private final com.elevenof.backoffice.repository.UserRepository userRepository;
+    private final com.elevenof.backoffice.service.Top30Service top30Service;
 
     /** JwtAuthenticationFilter stores the userid (String) as the principal, not the User entity. */
     private User currentUser(Authentication authentication) {
@@ -164,39 +165,12 @@ public class CompetitionController {
     }
 
     /**
-     * Get leaderboard with optional region filter
+     * The selected Top 30, once the list is finalized. Sorted by position then name; a rank or a score never goes
+     * out here, because the hand-picked list differs from the score order.
      */
-    @GetMapping("/{id}/leaderboard")
-    public ResponseEntity<List<LeaderboardEntryDTO>> getLeaderboard(
-            @PathVariable Long id,
-            @RequestParam(required = false) String region) {
-
-        Region regionFilter = null;
-        if (region != null && !region.isEmpty()) {
-            try {
-                regionFilter = Region.valueOf(region);
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().build();
-            }
-        }
-
-        List<StageResultService.LeaderboardEntry> leaderboard =
-            stageResultService.getLeaderboard(id, regionFilter);
-
-        List<LeaderboardEntryDTO> dtos = leaderboard.stream()
-            .map(entry -> LeaderboardEntryDTO.builder()
-                .rank(entry.getRank())
-                .userId(entry.getUserId())
-                .userProfileId(entry.getUserProfileId())
-                .fullName(entry.getFullName())
-                .avatar(entry.getAvatar())
-                .totalScore(entry.getTotalScore())
-                .selectedRegion(entry.getSelectedRegion() != null ?
-                    entry.getSelectedRegion().name() : null)
-                .build())
-            .collect(Collectors.toList());
-
-        return ResponseEntity.ok(dtos);
+    @GetMapping("/{id}/top30")
+    public ResponseEntity<Top30DTO> getTop30(@PathVariable Long id) {
+        return ResponseEntity.ok(top30Service.get(id));
     }
 
     /**
@@ -223,7 +197,6 @@ public class CompetitionController {
                         .fullName(user.getFullName())
                         .avatar(user.getAvatar())
                         .score(result.getScore())
-                        .rankPosition(result.getRankPosition())
                         .performanceNotes(result.getPerformanceNotes())
                         .videoUrl(result.getVideoUrl())
                         .isPublic(result.getIsPublic())

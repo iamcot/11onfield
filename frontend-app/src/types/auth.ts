@@ -6,7 +6,7 @@ export interface User {
   fullName?: string;
   email?: string;
   avatar?: string;
-  role: 'USER' | 'PLAYER' | 'COACH' | 'SCOUTER' | 'EDITOR' | 'ADMIN' | 'SUPER_USER';
+  role: 'USER' | 'PLAYER' | 'COACH' | 'SCOUTER' | 'EDITOR' | 'MEDICAL' | 'ADMIN';
   createdAt: string;
   updatedAt: string;
 }

@@ -4,9 +4,10 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api, useApi } from '@/lib/admin/client';
 import AddContestantModal from '@/components/admin/AddContestantModal';
+import ContestantDetail from '@/components/admin/ContestantDetail';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
 import { useIsManager } from '@/components/admin/me';
-import { Badge, Button, ChevronCell, ClickRow, Input, Loading, Select, Table, Td, useUi } from '@/components/admin/ui';
+import { Badge, Button, ChevronCell, Drawer, Input, LinkButton, Loading, Select, Table, Td, useUi } from '@/components/admin/ui';
 import { fmtDateTime, PARTICIPANT_STATUS, REGIONS } from '@/lib/admin/labels';
 
 interface Contestant {
@@ -22,6 +23,7 @@ export default function ContestantsPage() {
   const [status, setStatus] = useState('');
   const [region, setRegion] = useState('');
   const [adding, setAdding] = useState(false);
+  const [open, setOpen] = useState<Contestant | null>(null);
   const { toast, confirm } = useUi();
 
   const setOut = async (c: Contestant, out: boolean) => {
@@ -58,11 +60,12 @@ export default function ContestantsPage() {
     <>
       <CompetitionTabs id={id}>
         {manager && <Button variant="primary" onClick={() => setAdding(true)}>+ Thêm cầu thủ</Button>}
+        <LinkButton href={`/quan-tri/giai-dau/${id}/thi-sinh/phieu-sbd`}>In phiếu SBD</LinkButton>
         {manager && <a className="inline-block border border-[#C9D5CD] px-4 py-2 text-[14px] font-medium hover:border-[#1F7A3A]" href={`/quan-tri/api/proxy/competitions/${id}/export/participants`}>Xuất Excel</a>}
       </CompetitionTabs>
       {adding && <AddContestantModal competitionId={id} onClose={() => setAdding(false)} onAdded={list.reload} />}
       <p className="mb-3 text-[13px] text-[#46564D]">
-        Tổng {list.data?.length ?? 0} thí sinh{Object.entries(REGIONS).map(([k, v]) => ` · ${v}: ${counts[k] || 0}`).join('')}. SBD tính theo thứ tự đăng ký.
+        Tổng {list.data?.length ?? 0} thí sinh{Object.entries(REGIONS).map(([k, v]) => ` · ${v}: ${counts[k] || 0}`).join('')}. SBD cấp cố định khi hồ sơ được duyệt.
       </p>
       <div className="mb-3 grid gap-2 sm:grid-cols-3">
         <Input placeholder="Tìm theo SBD, tên, số điện thoại" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -81,7 +84,7 @@ export default function ContestantsPage() {
           {rows.map((c) => {
             const st = PARTICIPANT_STATUS[c.status];
             return (
-              <ClickRow key={c.id} className={c.status === 'WITHDRAWN' ? 'opacity-60' : ''} href={c.playerId ? `/quan-tri/cau-thu/${c.playerId}?back=${encodeURIComponent(`/quan-tri/giai-dau/${id}/thi-sinh`)}&backLabel=${encodeURIComponent('Danh sách thí sinh')}` : null}>
+              <tr key={c.id} className={`cursor-pointer hover:bg-[#F6F9F7] ${c.status === 'WITHDRAWN' ? 'opacity-60' : ''}`} onClick={() => setOpen(c)}>
                 <Td className="tabular-nums">{c.sbd}</Td>
                 <Td className="font-medium">{c.fullName}</Td>
                 <Td className="tabular-nums">{c.phone}</Td>
@@ -93,16 +96,29 @@ export default function ContestantsPage() {
                 <Td className="text-[13px] text-[#46564D]">{fmtDateTime(c.registrationDate)}</Td>
                 {manager && (
                   <Td className="whitespace-nowrap">
-                    {c.status === 'WITHDRAWN'
-                      ? <Button small onClick={() => setOut(c, false)}>Đưa lại vào giải</Button>
-                      : <Button small onClick={() => setOut(c, true)}>Cho ra khỏi giải</Button>}
+                    <span onClick={(e) => e.stopPropagation()}>
+                      {c.status === 'WITHDRAWN'
+                        ? <Button small onClick={() => setOut(c, false)}>Đưa lại vào giải</Button>
+                        : <Button small onClick={() => setOut(c, true)}>Cho ra khỏi giải</Button>}
+                    </span>
                   </Td>
                 )}
-                <ChevronCell show={!!c.playerId} />
-              </ClickRow>
+                <ChevronCell />
+              </tr>
             );
           })}
         </Table>
+      )}
+      {open && (
+        <Drawer title="Thí sinh" onClose={() => setOpen(null)}>
+          {open.playerId && (
+            <div className="mb-3 flex justify-end">
+              <a href={`/quan-tri/cau-thu/${open.playerId}`} target="_blank" rel="noopener noreferrer"
+                className="inline-block border border-[#C9D5CD] px-3 py-1.5 text-[13px] font-medium hover:border-[#1F7A3A]">Xem hồ sơ ↗</a>
+            </div>
+          )}
+          <ContestantDetail id={open.id} onChanged={list.reload} />
+        </Drawer>
       )}
     </>
   );

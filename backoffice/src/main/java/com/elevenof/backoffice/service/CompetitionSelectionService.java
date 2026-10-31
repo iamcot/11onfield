@@ -24,6 +24,27 @@ public class CompetitionSelectionService {
     private final CompetitionRepository competitionRepository;
     private final CompetitionParticipantRepository participantRepository;
     private final NotificationService notificationService;
+    private final com.elevenof.backoffice.repository.SelectionDecisionRepository decisionRepository;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
+    /**
+     * The Top 30 the Top 11 is picked from: the people of the finalised TOP30 decision, whatever their status now
+     * (after a first Top 11 pick they are SELECTED_TOP11 or ELIMINATED, and the pick can be redone). Competitions
+     * decided before the decision table use the statuses.
+     */
+    private List<CompetitionParticipant> top30Pool(Long competitionId) {
+        return decisionRepository.findFirstByCompetitionIdAndRoundKeyOrderByIdDesc(competitionId, "TOP30")
+            .map(d -> {
+                try {
+                    return participantRepository.findAllById(List.of(objectMapper.readValue(d.getParticipantIds(), Long[].class)));
+                } catch (Exception e) {
+                    return List.<CompetitionParticipant>of();
+                }
+            })
+            .orElseGet(() -> participantRepository.findByCompetitionIdAndStatusIn(competitionId,
+                List.of(ParticipantStatus.SELECTED_TOP30, ParticipantStatus.SELECTED_TOP11)))
+            .stream().filter(p -> p.getStatus() != ParticipantStatus.WITHDRAWN).toList();
+    }
 
     /**
      * Select TOP 30 participants from regional auditions
@@ -33,8 +54,8 @@ public class CompetitionSelectionService {
         log.info("Selecting TOP 30 for competition {}: {} participants", competitionId, participantIds.size());
 
         // Validate exactly 30 participants
-        if (participantIds.size() != 30) {
-            throw new IllegalArgumentException("Must select exactly 30 participants, got: " + participantIds.size());
+        if (participantIds.isEmpty() || participantIds.size() > 30) {
+            throw new IllegalArgumentException("Select between 1 and 30 participants, got: " + participantIds.size());
         }
 
         Competition competition = competitionRepository.findById(competitionId)
@@ -85,29 +106,31 @@ public class CompetitionSelectionService {
     public void selectTop11(Long competitionId, List<Long> participantIds) {
         log.info("Selecting TOP 11 for competition {}: {} participants", competitionId, participantIds.size());
 
-        // Validate exactly 11 participants
-        if (participantIds.size() != 11) {
-            throw new IllegalArgumentException("Must select exactly 11 participants, got: " + participantIds.size());
+        // 1 to 11: the final squad may hold fewer than 11.
+        if (participantIds.isEmpty() || participantIds.size() > 11) {
+            throw new IllegalArgumentException("Chọn từ 1 đến 11 người, đang có " + participantIds.size());
         }
 
         Competition competition = competitionRepository.findById(competitionId)
             .orElseThrow(() -> new IllegalArgumentException("Competition not found: " + competitionId));
 
-        // Get all SELECTED_TOP30 participants
-        List<CompetitionParticipant> top30Participants = participantRepository
-            .findByCompetitionIdAndStatus(competitionId, ParticipantStatus.SELECTED_TOP30);
+        List<CompetitionParticipant> top30Participants = top30Pool(competitionId);
 
-        if (top30Participants.size() < 11) {
-            throw new IllegalStateException("Not enough TOP 30 participants to select TOP 11");
+        if (top30Participants.isEmpty()) {
+            throw new IllegalStateException("Chưa có Top 30 để chọn Top 11");
         }
 
         Set<Long> selectedIds = Set.copyOf(participantIds);
+        Set<Long> pool = top30Participants.stream().map(CompetitionParticipant::getId).collect(Collectors.toSet());
+        if (!pool.containsAll(selectedIds)) throw new IllegalArgumentException("Chỉ chọn Top 11 trong số Top 30 đã chốt");
 
         // Update statuses
         for (CompetitionParticipant participant : top30Participants) {
             if (selectedIds.contains(participant.getId())) {
-                // Selected for TOP 11
+                // Selected for TOP 11; told once, not again when the pick is saved a second time
+                boolean already = participant.getStatus() == ParticipantStatus.SELECTED_TOP11;
                 participant.setStatus(ParticipantStatus.SELECTED_TOP11);
+                if (already) continue;
 
                 // Send notification
                 notificationService.sendNotification(
@@ -148,6 +171,6 @@ public class CompetitionSelectionService {
      * Returns all SELECTED_TOP30 participants
      */
     public List<CompetitionParticipant> getEligibleForTop11(Long competitionId) {
-        return participantRepository.findByCompetitionIdAndStatus(competitionId, ParticipantStatus.SELECTED_TOP30);
+        return top30Pool(competitionId);
     }
 }

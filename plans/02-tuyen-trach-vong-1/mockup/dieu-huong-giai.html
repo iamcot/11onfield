@@ -1,0 +1,227 @@
+<title>Điều hướng giải đấu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: admin shell (dark sidebar) + a sticky 3-phase step bar on the competition page; the chosen step's screen loads right under it. */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --ink:#16241C; --muted:#5E6E65; --line:#DCE5DF;
+  --brand:#1F7A3A; --brand-soft:#E4F1E8; --brand-ink:#14482E; --side:#0F2318; --side-ink:#C4D0C8;
+  --ok:#1F7A3A; --warn:#B4690E; --warn-soft:#FDF1DE; --idle:#9AA8A0; --note:#FFF8D6; --note-line:#E6D47A;
+  --f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-label:"Barlow Condensed","Arial Narrow",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1712; --surface:#15221A; --ink:#E4ECE6; --muted:#9AAAA0; --line:#294033;
+  --brand:#5BC27A; --brand-soft:#1C3826; --brand-ink:#BFE8CB; --side:#0A120D; --side-ink:#A9B8AE;
+  --ok:#5BC27A; --warn:#F0A847; --warn-soft:#3A2A12; --idle:#6B7B72; --note:#2E2A14; --note-line:#6B5F22; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1712; --surface:#15221A; --ink:#E4ECE6; --muted:#9AAAA0; --line:#294033;
+  --brand:#5BC27A; --brand-soft:#1C3826; --brand-ink:#BFE8CB; --side:#0A120D; --side-ink:#A9B8AE;
+  --ok:#5BC27A; --warn:#F0A847; --warn-soft:#3A2A12; --idle:#6B7B72; --note:#2E2A14; --note-line:#6B5F22; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5}
+.shell{display:grid;grid-template-columns:200px 1fr;min-height:100vh}
+.side{background:var(--side);color:var(--side-ink);padding:18px 0;font-family:var(--f-label);letter-spacing:.06em;font-size:14px}
+.side b{display:block;color:#fff;font-size:20px;padding:0 18px 16px}
+.side a{display:block;padding:9px 18px;color:inherit;text-decoration:none;text-transform:uppercase}
+.side a.on{color:#B5E06E;border-left:3px solid #B5E06E;background:rgba(255,255,255,.04)}
+main{min-width:0;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.crumb{color:var(--muted);font-size:13px}
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin:4px 0 14px}
+h1{font-size:24px;margin:0;text-wrap:balance}
+.rounds{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.rounds span{color:var(--muted);font-size:12px;margin-right:2px}
+.rounds button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.rounds button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+/* sticky step bar */
+.flow{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:8px 0 10px;border-bottom:1px solid var(--line)}
+.phases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,.55fr);gap:10px}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 8px 6px}
+.phase.now{border-color:var(--brand)}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:6px;padding:0 6px 4px;font-family:var(--f-label);text-transform:uppercase;letter-spacing:.06em;font-size:14px}
+.ph small{font-family:var(--f-body);text-transform:none;letter-spacing:0;font-size:12px;color:var(--muted)}
+.steps{list-style:none;margin:0;padding:0}
+.step{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;font-size:13px;color:var(--ink);background:none;border:0;border-radius:6px;padding:5px 6px;cursor:pointer}
+.step:hover{background:var(--bg)}
+.step:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.step[aria-current="page"]{background:var(--brand-soft);color:var(--brand-ink);font-weight:600}
+.step .lbl{flex:1;min-width:0}
+.step .meta{font-size:11.5px;color:var(--muted);white-space:nowrap;font-weight:400}
+.step.warn .meta{color:var(--warn)}
+.ic{flex:none;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;line-height:1}
+.ic.done{background:var(--ok);color:#fff}
+.ic.warn{background:var(--warn);color:#fff}
+.ic.todo{border:1.5px solid var(--idle)}
+.ic.na{border:1.5px dashed var(--idle)}
+.vtag{font-size:10px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+/* content */
+.pane{margin-top:16px}
+.ptitle{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.ptitle h2{font-size:20px;margin:0}
+.ptitle .sub{color:var(--muted);font-size:13px}
+.status{display:flex;gap:10px;align-items:flex-start;margin:12px 0;padding:10px 12px;border-radius:8px;background:var(--brand-soft);color:var(--brand-ink);font-size:13px}
+.status.warn{background:var(--warn-soft);color:var(--warn)}
+.status.todo{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.grid2{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px}
+.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.ghost{height:10px;border-radius:4px;background:var(--line);margin:8px 0}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-family:var(--f-label);text-transform:uppercase;letter-spacing:.06em;font-size:12px;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+.pill{display:inline-block;font-size:11.5px;border-radius:999px;padding:1px 8px;background:var(--bg);color:var(--muted)}
+.pill.w{background:var(--warn-soft);color:var(--warn)}
+.pill.g{background:var(--brand-soft);color:var(--brand-ink)}
+.notes{margin-top:22px;background:var(--note);border:1px solid var(--note-line);border-radius:10px;padding:12px 16px;font-size:13px;max-width:900px}
+.notes h3{margin:0 0 6px;font-size:14px}
+.notes ul{margin:0;padding-left:18px}
+.notes li{margin:3px 0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+@media (max-width:1100px){.phases{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.shell{grid-template-columns:1fr}.side{display:none}.phases{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.flow{position:static}}
+@media (prefers-reduced-motion:no-preference){.pane{animation:in .18s ease-out}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+
+<div class="shell">
+  <nav class="side" aria-label="Menu quản trị">
+    <b>11 ON FIELD</b>
+    <a href="#">Tổng quan</a><a href="#" class="on">Giải đấu</a><a href="#">Cầu thủ</a><a href="#">Chờ duyệt</a><a href="#">Sự kiện</a><a href="#">Thông báo</a><a href="#">Tài khoản</a>
+  </nav>
+
+  <main>
+    <div class="crumb">← Danh sách giải đấu</div>
+    <div class="head">
+      <h1>Tuyển trạch 11 On Field 2026 · Khu vực phía Nam</h1>
+      <div class="rounds" role="group" aria-label="Chọn vòng">
+        <span>Đang xem</span>
+        <button type="button" id="r1" aria-pressed="true">Vòng 1 · đang chuẩn bị</button>
+        <button type="button" id="r2" aria-pressed="false">Vòng 2 · chưa mở</button>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="phases" id="phases"></div>
+      <div class="legend">
+        <span><i class="ic done">✓</i> Đã xong</span>
+        <span><i class="ic warn">!</i> Cần chú ý</span>
+        <span><i class="ic todo"></i> Chưa làm</span>
+        <span><span class="vtag">V1</span> Theo vòng đang chọn</span>
+      </div>
+    </div>
+
+    <section class="pane" id="pane" aria-live="polite"></section>
+
+    <aside class="notes">
+      <h3>Ghi chú mockup</h3>
+      <ul>
+        <li>Thanh 3 bước thay cho hàng tab cũ, luôn nằm trên cùng của mọi trang trong giải. Bấm mục nào thì mục đó sáng lên và màn hình của nó hiện ngay bên dưới. Địa chỉ trang đổi theo, nên nút Back của trình duyệt vẫn dùng được.</li>
+        <li>Mỗi màn hình chỉ có một chỗ trong thanh này, không lặp link. "Theo dõi số cần xem" gộp vào "Đối soát và khoá sổ"; "Hiển thị" chính là "Phát hành kết quả"; "In phiếu SBD" nằm trong "Thí sinh và SBD".</li>
+        <li>"Danh sách vòng" là nơi tạo và sửa các vòng của giải (tên, ngày, số ngày thi). Các vòng ở đây chính là các lựa chọn của nút chọn vòng.</li>
+        <li>Mục có nhãn V1 là việc của từng vòng, đi theo nút chọn vòng ở góc phải. Mục không có nhãn là việc của cả giải.</li>
+        <li>Dấu tick và dấu chấm than lấy từ dữ liệu thật, ví dụ: chưa có HLV trong hội đồng, bài thi chưa có thang, còn lượt đo cần xem, Top 30 chưa chốt.</li>
+        <li>Tin tức và Nhà tài trợ không thuộc quy trình tuyển chọn nên để riêng ở cột "Nội dung giải".</li>
+        <li>Check-in, chấm điểm tại trạm và ghi nhận vẫn có trang riêng cho HLV và TTV dùng trên tablet. Admin xem các màn hình đó ngay tại đây.</li>
+      </ul>
+    </aside>
+  </main>
+</div>
+
+<script>
+const PHASES=[
+ {key:'prep',title:'1 · Chuẩn bị',when:'trước ngày thi',steps:[
+  {id:'thong-tin',label:'Thông tin giải',st:'done',meta:'đã đủ'},
+  {id:'thi-sinh',label:'Thí sinh và SBD',st:'done',meta:'120 người'},
+  {id:'danh-sach-vong',label:'Danh sách vòng',st:'done',meta:'2 vòng'},
+  {id:'hoi-dong',label:'Hội đồng tuyển trạch',st:'warn',meta:'chưa có HLV'},
+  {id:'bai-thi',label:'Bài thi và thang điểm',st:'warn',meta:'2 bài chưa có thang',round:true},
+  {id:'kich-hoat',label:'Kích hoạt vòng',st:'todo',meta:'',round:true}]},
+ {key:'day',title:'2 · Ngày thi',when:'trên tablet tại sân',steps:[
+  {id:'check-in',label:'Check-in',st:'todo',meta:'0/120',round:true},
+  {id:'cham-diem',label:'Chấm điểm tại trạm',st:'todo',meta:'',round:true},
+  {id:'ghi-nhan',label:'Ghi nhận thí sinh',st:'todo',meta:'',round:true}]},
+ {key:'after',title:'3 · Sau khi thi',when:'chốt điểm, chọn người',steps:[
+  {id:'doi-soat',label:'Đối soát và khoá sổ',st:'todo',meta:'',round:true},
+  {id:'diem-cham-tay',label:'Điểm chấm tay',st:'todo',meta:'BHL, 7v7, tư duy, GPS',round:true},
+  {id:'ket-qua',label:'Kết quả vòng',st:'todo',meta:'',round:true},
+  {id:'xep-hang',label:'Xếp hạng 3 khu vực',st:'todo',meta:''},
+  {id:'top-30',label:'Top 30 và Green Card',st:'todo',meta:''},
+  {id:'phat-hanh',label:'Phát hành kết quả',st:'todo',meta:''}]},
+ {key:'content',title:'Nội dung giải',when:'',steps:[
+  {id:'tin-tuc',label:'Tin tức',st:'na',meta:'3 bài'},
+  {id:'nha-tai-tro',label:'Nhà tài trợ',st:'na',meta:'2'}]}
+];
+const ALL=PHASES.flatMap(p=>p.steps.map(s=>({...s,phase:p})));
+let round=1;
+
+const ghost=(n)=>Array.from({length:n},(_,i)=>`<div class="ghost" style="width:${90-i*13}%"></div>`).join('');
+const SCREENS={
+ 'thong-tin':()=>`<div class="card">Tên giải, thời gian, địa điểm, 3 khu vực, ảnh bìa. (Giữ nguyên form hiện tại.)${ghost(4)}</div>`,
+ 'thi-sinh':()=>`<div class="row" style="margin-bottom:10px"><button class="btn pri">+ Thêm thí sinh</button><button class="btn">Nhập Excel</button><button class="btn">In phiếu SBD</button></div>
+   <div class="card scroll"><table class="tbl"><thead><tr><th>SBD</th><th>Thí sinh</th><th>Khu vực</th><th>Trạng thái</th></tr></thead><tbody>
+   <tr><td>001</td><td>Viet Anh</td><td>TP.HCM</td><td><span class="pill g">Đã duyệt</span></td></tr>
+   <tr><td>002</td><td>Phùng Tuệ Nguyên</td><td>Cần Thơ</td><td><span class="pill g">Đã duyệt</span></td></tr>
+   <tr><td>003</td><td>Lê Minh Vũ</td><td>Đồng Nai</td><td><span class="pill g">Đã duyệt</span></td></tr></tbody></table></div>`,
+ 'danh-sach-vong':()=>`<div class="row" style="margin-bottom:10px"><button class="btn pri">+ Thêm vòng</button></div>
+   <div class="card scroll"><table class="tbl"><thead><tr><th>Vòng</th><th>Tên</th><th>Thời gian</th><th>Số ngày thi</th><th>Trạng thái</th><th></th></tr></thead><tbody>
+   <tr><td>1</td><td>Vòng tuyển trạch khu vực</td><td>15–16/11/2026</td><td>2</td><td><span class="pill">Đang chuẩn bị</span></td><td><button class="btn">Sửa</button></td></tr>
+   <tr><td>2</td><td>Vòng chung kết Top 30</td><td>06/12/2026</td><td>1</td><td><span class="pill">Chưa mở</span></td><td><button class="btn">Sửa</button></td></tr></tbody></table></div>
+   <p style="color:var(--muted);font-size:13px">Thêm, đổi tên, đổi ngày, xoá vòng ở đây. Vòng tạo xong sẽ hiện trong nút chọn vòng ở góc phải.</p>`,
+ 'hoi-dong':()=>`<div class="card"><div class="row" style="justify-content:space-between"><b>Thành viên</b><button class="btn pri">+ Thêm HLV / TTV</button></div>
+   <table class="tbl" style="margin-top:8px"><thead><tr><th>Người</th><th>Vai trò trong giải</th></tr></thead><tbody>
+   <tr><td>Trần Quốc Bảo</td><td><span class="pill">TTV</span></td></tr><tr><td>Ngô Thanh Hải</td><td><span class="pill">TTV</span></td></tr></tbody></table></div>`,
+ 'bai-thi':()=>`<div class="grid2"><div class="card"><b>Ngày 1</b><div style="margin:6px 0 4px;color:var(--muted);font-size:12px">BÀI THI</div>
+   <div class="step" aria-current="page"><span class="lbl">Test thể lực</span></div><div class="step warn"><span class="lbl">Test kiến thức</span><span class="meta">chưa có thang</span></div>
+   <b style="display:block;margin-top:12px">Ngày 2</b><div class="step warn"><span class="lbl">Đấu 4vs4</span><span class="meta">chưa có thang</span></div>
+   <button class="btn" style="margin-top:10px;width:100%">+ Thêm ngày thi</button></div>
+   <div class="card"><b>Bài thi: Test thể lực</b><p style="color:var(--muted);margin:4px 0 0">Cài đặt tính điểm, nội dung thi, thang 5 mức. (Giữ bố cục cây ngày + bài như hiện tại, chỉ bỏ khung 3 bước cũ.)</p>${ghost(5)}</div></div>`,
+ 'kich-hoat':()=>`<div class="card"><p style="margin:0 0 10px">Khi kích hoạt, tablet của hội đồng nhận Vòng ${round} và bắt đầu check-in được.</p><button class="btn pri" disabled title="Xong các bước chuẩn bị trước">Kích hoạt Vòng ${round}</button></div>`,
+ 'check-in':()=>`<div class="card"><div class="row" style="justify-content:space-between"><b>0 / 120 đã check-in</b><input class="btn" id="q-ci" placeholder="Tìm SBD hoặc tên" aria-label="Tìm thí sinh"></div>${ghost(4)}</div>`,
+ 'cham-diem':()=>`<div class="card">Tiến độ từng trạm: số lượt đã đo trên tổng thí sinh đã check-in.${ghost(4)}</div>`,
+ 'ghi-nhan':()=>`<div class="card">Danh sách ghi nhận của hội đồng (kỷ luật, y tế, bỏ thi).${ghost(3)}</div>`,
+ 'doi-soat':()=>`<div class="card">Lượt đo ngoài ngưỡng hợp lý và lệch giữa hai nguồn đo. Xử lý hết thì nút <b>Khoá sổ Vòng ${round}</b> mới bấm được.${ghost(4)}</div>`,
+ 'diem-cham-tay':()=>`<div class="card scroll"><table class="tbl"><thead><tr><th>Mục</th><th>Người nhập</th><th>Đã có</th></tr></thead><tbody>
+   <tr><td>BHL</td><td>HLV</td><td>0/120</td></tr><tr><td>7v7</td><td>TTV</td><td>0/120</td></tr><tr><td>Tư duy, truyền thông</td><td>TTV</td><td>0/120</td></tr><tr><td>GPS / AI</td><td>TTV</td><td>0/120</td></tr></tbody></table></div>`,
+ 'ket-qua':()=>`<div class="card">Bảng điểm Vòng ${round}, xuất biên bản Excel / PDF.${ghost(5)}</div>`,
+ 'xep-hang':()=>`<div class="card">Xếp hạng chung ba khu vực theo công thức điểm đã khoá.${ghost(5)}</div>`,
+ 'top-30':()=>`<div class="card">Phiếu bầu của hội đồng, HLV chốt Top 30. Bên dưới: người giữ Green Card và các thẻ đã dùng.${ghost(5)}</div>`,
+ 'phat-hanh':()=>`<div class="card">Chọn công bố gì lên website: điểm từng vòng, xếp hạng, danh sách Top 30.${ghost(3)}</div>`,
+ 'tin-tuc':()=>`<div class="card">Bài viết của giải.${ghost(3)}</div>`,
+ 'nha-tai-tro':()=>`<div class="card">Logo và hạng tài trợ.${ghost(3)}</div>`,
+};
+const WHY={
+ done:['','Bước này đã xong.'],
+ warn:['warn',''],
+ todo:['todo','Chưa làm.'],
+ na:['todo','Không thuộc quy trình tuyển chọn, làm lúc nào cũng được.']
+};
+const WARN_TEXT={'hoi-dong':'Chưa có HLV trong hội đồng. Cần ít nhất một HLV để chốt Top 30 và giữ Green Card.','bai-thi':'2 bài thi chưa có thang điểm: Test kiến thức (Ngày 1), Đấu 4vs4 (Ngày 2).'};
+const ICON={done:'✓',warn:'!',todo:'',na:''};
+
+function current(){const h=location.hash.slice(1);return ALL.find(s=>s.id===h)||ALL.find(s=>s.id==='bai-thi');}
+function renderBar(){
+  const cur=current();
+  document.getElementById('phases').innerHTML=PHASES.map(p=>`
+   <div class="phase ${p.steps.some(s=>s.id===cur.id)?'now':''}">
+     <div class="ph"><span>${p.title}</span><small>${p.when?(p.steps.filter(s=>s.st==='done').length+'/'+p.steps.length+' xong'):''}</small></div>
+     <ul class="steps">${p.steps.map(s=>`<li><button type="button" class="step ${s.st==='warn'?'warn':''}" data-id="${s.id}" ${s.id===cur.id?'aria-current="page"':''}>
+       <i class="ic ${s.st}" aria-label="${s.st==='done'?'Đã xong':s.st==='warn'?'Cần chú ý':'Chưa làm'}">${ICON[s.st]}</i>
+       <span class="lbl">${s.label}</span>${s.round?`<span class="vtag">V${round}</span>`:''}${s.meta?`<span class="meta">${s.meta}</span>`:''}</button></li>`).join('')}</ul>
+   </div>`).join('');
+}
+function renderPane(){
+  const s=current(); const [cls,txt]=WHY[s.st];
+  document.getElementById('pane').innerHTML=`
+   <div class="ptitle"><div><div class="sub">${s.phase.title.replace(/^\d · /,'')}${s.round?` · Vòng ${round}`:''}</div><h2>${s.label}</h2></div></div>
+   <div class="status ${cls}">${s.st==='done'?'✓ ':s.st==='warn'?'! ':''}${s.st==='warn'?WARN_TEXT[s.id]:txt}</div>
+   ${SCREENS[s.id]()}`;
+}
+function render(){renderBar();renderPane();}
+document.getElementById('phases').addEventListener('click',e=>{const b=e.target.closest('.step');if(!b)return;location.hash=b.dataset.id;});
+for(const n of [1,2]) document.getElementById('r'+n).addEventListener('click',()=>{round=n;document.getElementById('r1').setAttribute('aria-pressed',n===1);document.getElementById('r2').setAttribute('aria-pressed',n===2);render();});
+addEventListener('hashchange',render);
+render();
+</script>

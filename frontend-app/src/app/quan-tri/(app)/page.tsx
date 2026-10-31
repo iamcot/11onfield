@@ -1,4 +1,5 @@
 import { adminGet, getMe } from '@/lib/admin/server';
+import { ROLE_LABEL } from '@/lib/admin/session';
 
 interface Dashboard {
   totalPlayers: number;
@@ -54,12 +55,30 @@ function Breakdown({ title, rows }: { title: string; rows: [string, number][] })
 
 export default async function AdminDashboardPage() {
   const me = await getMe();
-  if (me.role === 'BGK') {
+  if (me.role === 'HLV' || me.role === 'TTV') {
+    const head = me.role === 'HLV';
     return (
       <>
-        <h1 className="text-2xl font-semibold">Xin chào, {me.fullName || 'Ban giám khảo'}</h1>
-        <p className="mt-2 max-w-xl text-[#46564D]">Bạn có quyền nhập điểm thi tại sân.</p>
+        <h1 className="text-2xl font-semibold">Xin chào, {me.fullName || ROLE_LABEL[me.role]}</h1>
+        <p className="mt-2 max-w-xl text-[#46564D]">
+          Bạn là {head ? 'HLV, người cao nhất trong hội đồng tuyển trạch' : 'tuyển trạch viên trong hội đồng tuyển trạch'}.
+        </p>
+        <ul className="mt-3 max-w-xl list-disc space-y-1 pl-5 text-[14px] text-[#46564D]">
+          <li>Ngày thi: check-in, chấm điểm tại trạm, ghi nhận từng thí sinh, ghi vi phạm kỷ luật.</li>
+          <li>Sau khi thi: {head ? 'nhập điểm BHL (và các điểm chấm tay khác nếu cần)' : 'nhập điểm 7v7, tư duy và truyền thông, GPS và AI'}.</li>
+          <li>Chọn Top 30: bỏ phiếu tối đa 30 người{head ? ', xem phiếu của cả hội đồng và chốt danh sách. Dùng Green Card nếu được admin giao thẻ.' : '.'}</li>
+        </ul>
         <a href="/quan-tri/cham-diem" className="mt-4 inline-block bg-[#0F3324] px-5 py-3 font-medium text-[#D6FA9E]">Mở màn hình chấm điểm</a>
+      </>
+    );
+  }
+
+  if (me.role === 'MEDICAL') {
+    return (
+      <>
+        <h1 className="text-2xl font-semibold">Xin chào, {me.fullName || ROLE_LABEL[me.role]}</h1>
+        <p className="mt-2 max-w-xl text-[#46564D]">Bạn có quyền đặt cờ "không đủ điều kiện" cho thí sinh.</p>
+        <a href="/quan-tri/thi-sinh" className="mt-4 inline-block bg-[#0F3324] px-5 py-3 font-medium text-[#D6FA9E]">Tìm thí sinh</a>
       </>
     );
   }

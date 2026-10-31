@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "competition_assessment_step_ratings")
@@ -30,8 +32,9 @@ public class CompetitionAssessmentStepRating {
     @Column(nullable = false)
     private Integer level;
 
+    /** Legacy single threshold; null on a level set by {@link #conditions}. */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private ThresholdType thresholdType;
 
     @Column(precision = 10, scale = 2)
@@ -45,6 +48,20 @@ public class CompetitionAssessmentStepRating {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    /** GREY, RED, ORANGE, YELLOW or GREEN. */
+    @Column(length = 10)
+    private String color;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 12)
+    @Builder.Default
+    private RatingAction action = RatingAction.NONE;
+
+    /** One bound per assessment of the step; empty on a legacy level. */
+    @OneToMany(mappedBy = "rating", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<CompetitionRatingCondition> conditions = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

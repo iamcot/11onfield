@@ -62,7 +62,7 @@ export default function AccountsPage() {
       <form className="mb-3 flex flex-wrap items-center gap-3" onSubmit={(e) => { e.preventDefault(); setPage(0); setTerm(q.trim()); }}>
         <div className="w-full max-w-xs"><Input placeholder="Tìm theo số điện thoại hoặc tên" value={q} onChange={(e) => setQ(e.target.value)} /></div>
         <Button type="submit">Tìm</Button>
-        <Check label="Hiện cả người dùng thường" checked={all} onChange={(v) => { setAll(v); setPage(0); }} />
+        <Check label="Hiện cả người dùng thường (không gồm cầu thủ)" checked={all} onChange={(v) => { setAll(v); setPage(0); }} />
       </form>
       <Loading error={list.error} loading={list.loading && !list.data} />
       {list.data && (
@@ -97,9 +97,9 @@ export default function AccountsPage() {
             <Field label="Số điện thoại *"><Input disabled={form.id !== null} value={form.phone} onChange={(e) => set('phone')(e.target.value)} /></Field>
             <Field label="Họ tên"><Input value={form.fullName} onChange={(e) => set('fullName')(e.target.value)} /></Field>
             <Field label="Email"><Input type="email" value={form.email} onChange={(e) => set('email')(e.target.value)} /></Field>
-            <Field label="Vai trò" hint="BGK chỉ được vào màn hình chấm điểm và check-in. Biên tập viên viết bài và duyệt nội dung cầu thủ.">
+            <Field label="Vai trò" hint="Admin quản trị web và cấu hình giải. Biên tập viên viết bài và duyệt nội dung cầu thủ. Y tế đặt cờ không đủ điều kiện cho thí sinh. HLV và tuyển trạch viên chỉ vào được trang quản trị khi admin thêm họ vào hội đồng tuyển trạch của giải (tab Hội đồng của giải đấu).">
               <Select value={form.role} onChange={(e) => set('role')(e.target.value)}>
-                {Object.entries(ROLES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                {Object.entries(ROLES).filter(([k]) => k !== 'PLAYER').map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </Select>
             </Field>
             {form.id === null ? (

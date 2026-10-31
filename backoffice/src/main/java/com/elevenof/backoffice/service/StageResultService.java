@@ -48,6 +48,10 @@ public class StageResultService {
                 .participant(participant)
                 .build());
 
+        // A score or rank typed here wins over the computed one: recomputing the round no longer overwrites this row.
+        boolean changed = (score == null ? result.getScore() != null : result.getScore() == null || score.compareTo(result.getScore()) != 0)
+                || !java.util.Objects.equals(rankPosition, result.getRankPosition());
+        if (changed) result.setIsCalculated(false);
         result.setScore(score);
         result.setRankPosition(rankPosition);
         result.setPerformanceNotes(performanceNotes);

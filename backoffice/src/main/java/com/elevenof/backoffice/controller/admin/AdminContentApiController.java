@@ -41,7 +41,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+@PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
 public class AdminContentApiController {
 
     private final EventRepository eventRepository;

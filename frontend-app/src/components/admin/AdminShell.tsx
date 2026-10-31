@@ -25,7 +25,7 @@ export default function AdminShell({
   const [badges, setBadges] = useState<{ pendingApprovals: number; unverifiedPlayers: number; pendingAchievements: number; pendingHighlights: number } | null>(null);
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
-  const canSeeBadges = me.role !== 'BGK';
+  const canSeeBadges = ['EDITOR', 'ADMIN'].includes(me.role);
 
   const loadBadges = useCallback(() => {
     if (!canSeeBadges) return;
@@ -90,8 +90,8 @@ export default function AdminShell({
   );
 
   return (
-    <div className={`${barlowCondensed.variable} ${chakraPetch.variable} min-h-screen bg-[#F2F6F3] text-[#10231A]`}>
-      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-[#A6E35A]/25 bg-[#0B2419] px-4 text-[#E8F0EA] shadow-[0_2px_12px_rgba(6,20,13,0.25)] lg:left-60">
+    <div className={`${barlowCondensed.variable} ${chakraPetch.variable} min-h-screen bg-[#F2F6F3] text-[#10231A] print:bg-white`}>
+      <header className="print:hidden fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-3 border-b border-[#A6E35A]/25 bg-[#0B2419] px-4 text-[#E8F0EA] shadow-[0_2px_12px_rgba(6,20,13,0.25)] lg:left-60">
         <button
           type="button"
           className="-ml-1 p-2 text-[#D6FA9E] lg:hidden"
@@ -165,7 +165,7 @@ export default function AdminShell({
       </header>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-60 overflow-y-auto border-r border-[#A6E35A]/15 bg-gradient-to-b from-[#0F3324] via-[#0C2A1D] to-[#081C13] text-[#E8F0EA] transition-transform lg:translate-x-0 ${
+        className={`print:hidden fixed inset-y-0 left-0 z-40 w-60 overflow-y-auto border-r border-[#A6E35A]/15 bg-gradient-to-b from-[#0F3324] via-[#0C2A1D] to-[#081C13] text-[#E8F0EA] transition-transform lg:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -175,10 +175,10 @@ export default function AdminShell({
         </div>
         {menu}
       </aside>
-      {open && <button type="button" aria-label="Đóng menu" className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />}
+      {open && <button type="button" aria-label="Đóng menu" className="print:hidden fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />}
 
       <MeContext.Provider value={me}>
-        <main className="px-4 pb-10 pt-20 lg:ml-60 lg:px-8">{children}</main>
+        <main className="px-4 pb-10 pt-20 lg:ml-60 lg:px-8 print:m-0 print:p-0">{children}</main>
       </MeContext.Provider>
     </div>
   );

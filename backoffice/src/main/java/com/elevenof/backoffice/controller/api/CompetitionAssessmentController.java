@@ -18,13 +18,14 @@ import java.util.List;
  */
 @RestController
 @RequestMapping({"/admin/api/competitions/{competitionId}/stages/{stageNumber}", "/api/admin/competitions/{competitionId}/stages/{stageNumber}"})
-@org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+@org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @Slf4j
 public class CompetitionAssessmentController {
 
     private final CompetitionAssessmentStructureService structureService;
     private final CompetitionAssessmentResultService resultService;
+    private final com.elevenof.backoffice.service.RoundScoringService roundScoringService;
     private final com.elevenof.backoffice.repository.CompetitionStageRepository stageRepository;
     private final com.elevenof.backoffice.repository.CompetitionParticipantRepository participantRepository;
 
@@ -33,7 +34,7 @@ public class CompetitionAssessmentController {
     /**
      * Get full assessment structure for a stage
      */
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @GetMapping("/assessment-structure")
     public ResponseEntity<List<CompetitionAssessmentDay>> getAssessmentStructure(
             @PathVariable Long competitionId,
@@ -117,7 +118,7 @@ public class CompetitionAssessmentController {
     /**
      * Get rating scale for a step
      */
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @GetMapping("/assessment-steps/{stepId}/rating-scale")
     public ResponseEntity<List<CompetitionAssessmentStepRating>> getRatingScale(
             @PathVariable Long competitionId,
@@ -149,6 +150,9 @@ public class CompetitionAssessmentController {
                     .rangeMin(level.getRangeMin())
                     .rangeMax(level.getRangeMax())
                     .description(level.getDescription())
+                    .color(level.getColor())
+                    .action(level.getAction())
+                    .conditions(level.getConditions())
                     .build())
                 .toList();
 
@@ -305,7 +309,9 @@ public class CompetitionAssessmentController {
             @PathVariable Integer stageNumber) {
 
         CompetitionStage stage = getStage(competitionId, stageNumber);
-        resultService.recalculateAllScores(stage.getId());
+        // Combine stages (days with score groups) are scored from the day totals; the old per-step sum is only for the rest.
+        if (roundScoringService.isCombine(stage.getId())) roundScoringService.recompute(stage.getId());
+        else resultService.recalculateAllScores(stage.getId());
 
         return ResponseEntity.ok().build();
     }
@@ -313,7 +319,7 @@ public class CompetitionAssessmentController {
     /**
      * Get all participants for a competition stage
      */
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @GetMapping("/participants")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<ParticipantDTO>> getParticipants(
@@ -348,7 +354,7 @@ public class CompetitionAssessmentController {
     /**
      * Get participant results breakdown
      */
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @GetMapping("/participants/{participantId}/results")
     public ResponseEntity<CompetitionAssessmentResultService.ParticipantAssessmentBreakdown> getParticipantResults(
             @PathVariable Long competitionId,
@@ -367,7 +373,7 @@ public class CompetitionAssessmentController {
     /**
      * Get list of stages with assessment structures (for copy source selection)
      */
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     @GetMapping("/available-source-stages")
     public ResponseEntity<List<StageInfoDTO>> getAvailableSourceStages(
             @PathVariable Long competitionId,
@@ -461,6 +467,9 @@ public class CompetitionAssessmentController {
         private BigDecimal rangeMin;
         private BigDecimal rangeMax;
         private String description;
+        private String color;
+        private RatingAction action;
+        private List<CompetitionAssessmentStructureService.ConditionDefinition> conditions;
     }
 
     @Data

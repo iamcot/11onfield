@@ -2,7 +2,9 @@ package com.elevenof.backoffice.controller.admin;
 
 import com.elevenof.backoffice.model.*;
 import com.elevenof.backoffice.repository.*;
+import com.elevenof.backoffice.scoring.ScoringEngine;
 import com.elevenof.backoffice.service.CompetitionAssessmentResultService;
+import com.elevenof.backoffice.service.MeasurementService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -26,15 +28,16 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+@PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
 public class AdminCompetitionApiController {
 
-    private static final String MANAGER = "hasAnyRole('ADMIN', 'SUPER_USER')";
-    private static final String SCORER = "hasAnyRole('BGK', 'ADMIN', 'SUPER_USER')";
+    private static final String MANAGER = "hasRole('ADMIN')";
+    private static final String SCORER = "hasAnyRole('HLV', 'TTV', 'ADMIN')";
 
     private final CompetitionRepository competitionRepository;
     private final CompetitionStageRepository stageRepository;
     private final CompetitionParticipantRepository participantRepository;
+    private final com.elevenof.backoffice.service.SbdService sbdService;
     private final CompetitionNewsRepository newsRepository;
     private final CompetitionSponsorRepository sponsorRepository;
     private final CompetitionAssessmentDayRepository dayRepository;
@@ -43,15 +46,22 @@ public class AdminCompetitionApiController {
     private final CompetitionAssessmentResultRepository resultRepository;
     private final CompetitionAssessmentResultService assessmentResultService;
     private final StageResultRepository stageResultRepository;
+    private final CompetitionAssessmentStepScoreRepository stepScoreRepository;
     private final AdminController legacyAdminController;
     private final PlayerRepository playerRepository;
     private final UserRepository userRepository;
     private final com.elevenof.backoffice.service.StageCheckinService checkinService;
+    private final com.elevenof.backoffice.service.MeasurementService measurementService;
+    private final com.elevenof.backoffice.service.ParticipantFlagService flagService;
+    private final com.elevenof.backoffice.service.ScoringService scoringService;
+    private final CompetitionAssessmentStepRatingRepository ratingRepository;
+    private final com.elevenof.backoffice.service.VisibilityService visibilityService;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     // ==================== COMPETITIONS ====================
 
     @GetMapping("/competitions")
-    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     public List<Map<String, Object>> competitions() {
         List<Map<String, Object>> out = new ArrayList<>();
         for (Competition c : competitionRepository.findAll()) {
@@ -225,19 +235,78 @@ public class AdminCompetitionApiController {
         return wrap(legacyAdminController.deactivateStage(id, n));
     }
 
+    // ==================== VISIBILITY ====================
+
+    /** Visibility grid of a competition (stageId empty) or of one round; groups without a saved row show the default. */
+    @GetMapping("/competitions/{id}/visibility")
+    @PreAuthorize(MANAGER)
+    public Map<String, Object> visibility(@PathVariable Long id, @RequestParam(required = false) Long stageId) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (VisibilityPolicy p : visibilityService.policies(id, stageId)) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("dataGroup", p.getDataGroup().name());
+            m.put("maxLevel", p.getMaxLevel().name());
+            m.put("ownerCanHide", p.getOwnerCanHide());
+            m.put("locked", p.getDataGroup().locked);
+            m.put("canOwnerHide", p.getDataGroup().ownerCanHide);
+            m.put("gated", p.getDataGroup().gated);
+            m.put("defaultLevel", p.getDataGroup().defaultLevel.name());
+            rows.add(m);
+        }
+        List<Map<String, Object>> stages = new ArrayList<>();
+        for (CompetitionStage s : stageRepository.findByCompetitionIdOrderByStageNumberAsc(id)) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", s.getId());
+            m.put("stageNumber", s.getStageNumber());
+            m.put("title", s.getTitle());
+            m.put("resultsReleaseAt", s.getResultsReleaseAt());
+            stages.add(m);
+        }
+        return Map.of("policies", rows, "stages", stages);
+    }
+
+    @PutMapping("/competitions/{id}/visibility")
+    @PreAuthorize(MANAGER)
+    public ResponseEntity<?> saveVisibility(@PathVariable Long id, @RequestParam(required = false) Long stageId, @RequestBody Map<String, Object> body) {
+        try {
+            visibilityService.savePolicy(id, stageId, DataGroup.valueOf(str(body.get("dataGroup"))),
+                VisibilityLevel.valueOf(str(body.get("maxLevel"))), !Boolean.FALSE.equals(body.get("ownerCanHide")));
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return error(HttpStatus.BAD_REQUEST, e.getMessage() != null ? e.getMessage() : "Dữ liệu không hợp lệ");
+        }
+        return ResponseEntity.ok(Map.of("message", "Đã lưu"));
+    }
+
+    /** Releases the round's results now, or at {@code releaseAt} (ISO local date-time); {@code release=false} takes them back. */
+    @PostMapping("/competitions/{id}/stages/{n}/release")
+    @PreAuthorize(MANAGER)
+    public ResponseEntity<?> releaseResults(@PathVariable Long id, @PathVariable Integer n, @RequestBody(required = false) Map<String, Object> body) {
+        try {
+            java.time.LocalDateTime at = body != null && Boolean.FALSE.equals(body.get("release")) ? null
+                : body != null && str(body.get("releaseAt")) != null ? java.time.LocalDateTime.parse(str(body.get("releaseAt")))
+                : java.time.LocalDateTime.now();
+            visibilityService.release(id, n, at);
+            return ResponseEntity.ok(Map.of("message", at == null ? "Đã thu hồi kết quả" : "Đã phát hành kết quả", "resultsReleaseAt", at == null ? "" : at.toString()));
+        } catch (java.time.format.DateTimeParseException e) {
+            return error(HttpStatus.BAD_REQUEST, "Giờ phát hành không hợp lệ");
+        } catch (IllegalArgumentException e) {
+            return error(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
     // ==================== CONTESTANTS ====================
 
     @GetMapping("/competitions/{id}/contestants")
     @Transactional(readOnly = true)
     public List<Map<String, Object>> contestants(@PathVariable Long id) {
         List<Map<String, Object>> out = new ArrayList<>();
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+        List<CompetitionParticipant> all = sbdService.contestants(id);
         Map<Long, Long> playerIds = new HashMap<>();
         playerRepository.findByUserIdIn(all.stream().map(p -> p.getUser().getId()).toList())
                 .forEach(pl -> playerIds.put(pl.getUser().getId(), pl.getId()));
         Map<Long, Map<String, Object>> checkins = checkinService.latestByParticipant(id);
         for (int i = 0; i < all.size(); i++) {
-            Map<String, Object> m = contestant(all.get(i), i + 1);
+            Map<String, Object> m = contestant(all.get(i), all.get(i).getSbd());
             m.put("playerId", playerIds.get(all.get(i).getUser().getId()));
             m.put("lastCheckin", checkins.get(all.get(i).getId()));
             out.add(m);
@@ -329,7 +398,7 @@ public class AdminCompetitionApiController {
 
     // ==================== CHECK-IN (QR) ====================
 
-    private static final String ANY_STAFF = "hasAnyRole('EDITOR', 'BGK', 'ADMIN', 'SUPER_USER')";
+    private static final String ANY_STAFF = "hasAnyRole('EDITOR', 'HLV', 'TTV', 'ADMIN')";
 
     @GetMapping("/checkin/stages")
     @PreAuthorize(ANY_STAFF)
@@ -402,7 +471,8 @@ public class AdminCompetitionApiController {
 
         List<CompetitionAssessmentStep> steps = stepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(day.getId());
         List<Map<String, Object>> stepList = new ArrayList<>();
-        for (CompetitionAssessmentStep s : steps) stepList.add(Map.of("id", s.getId(), "title", label(s.getStepNumber(), s.getTitle())));
+        for (CompetitionAssessmentStep s : steps) stepList.add(Map.of("id", s.getId(), "title", label(s.getStepNumber(), s.getTitle()), "scoreSource", s.getScoreSource(),
+                "locked", measurementService.isLocked(s.getId())));
         out.put("steps", stepList);
 
         CompetitionAssessmentStep step = steps.stream().filter(s -> s.getId().equals(stepId)).findFirst().orElse(null);
@@ -416,27 +486,38 @@ public class AdminCompetitionApiController {
             m.put("title", a.getTitle());
             m.put("unit", a.getUnit());
             m.put("attemptsCount", a.getAttemptsCount());
+            m.put("faultReasons", AdminCombineController.faultList(a.getFaultReasons()));
             m.put("scoringMethod", a.getScoringMethod() != null ? a.getScoringMethod().name() : null);
             assessmentList.add(m);
         }
         out.put("assessments", assessmentList);
 
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(c.getId());
+        List<CompetitionParticipant> all = sbdService.contestants(c.getId());
         CompetitionParticipant picked = null;
         int pickedSbd = 0;
         if (participantId != null) {
-            for (int i = 0; i < all.size(); i++) if (all.get(i).getId().equals(participantId)) { picked = all.get(i); pickedSbd = i + 1; }
+            for (int i = 0; i < all.size(); i++) if (all.get(i).getId().equals(participantId)) { picked = all.get(i); pickedSbd = all.get(i).getSbd(); }
         } else if (sbd != null && !sbd.isBlank()) {
             try {
                 int n = Integer.parseInt(sbd.trim());
-                if (n >= 1 && n <= all.size()) { picked = all.get(n - 1); pickedSbd = n; }
+                picked = sbdService.find(all, n);
+                if (picked != null) pickedSbd = n;
                 else out.put("sbdError", "Không tìm thấy thí sinh với SBD: " + sbd.trim());
             } catch (NumberFormatException e) {
                 out.put("sbdError", "SBD không hợp lệ");
             }
         }
+        // A day with a list (top x of the day before plus exceptions) only takes the people on it.
+        if (picked != null) {
+            List<Long> listed = jdbc.queryForList("SELECT participant_id FROM day_participants WHERE day_id = ?", Long.class, day.getId());
+            if (!listed.isEmpty() && !listed.contains(picked.getId())) {
+                out.put("sbdError", "SBD " + pickedSbd + " không có trong danh sách thi ngày " + day.getDayNumber());
+                picked = null;
+            }
+        }
         if (picked != null) {
             out.put("participant", contestant(picked, pickedSbd));
+            out.put("blocked", flagService.isBlocked(picked.getId()));
             Map<String, BigDecimal> scores = new LinkedHashMap<>();
             for (CompetitionAssessment a : assessments) {
                 for (CompetitionAssessmentResult r : resultRepository.findByAssessmentIdAndParticipantIdOrderByAttemptNumberAsc(a.getId(), picked.getId())) {
@@ -455,7 +536,7 @@ public class AdminCompetitionApiController {
             for (int i = 0; i < all.size(); i++) {
                 if (all.get(i).getId().equals(pid)) {
                     Map<String, Object> m = new LinkedHashMap<>();
-                    m.put("sbd", i + 1);
+                    m.put("sbd", all.get(i).getSbd());
                     m.put("participantId", pid);
                     m.put("fullName", all.get(i).getUser().getFullName());
                     m.put("filled", resultRepository.countFilledAssessmentsByStepAndParticipant(step.getId(), pid));
@@ -471,7 +552,12 @@ public class AdminCompetitionApiController {
         return out;
     }
 
-    /** body: { stepId, participantId, scores: { "<assessmentId>_<attempt>": value } } */
+    /**
+     * body: { stepId, participantId, scores: { "<assessmentId>_<attempt>": value },
+     *         statuses?: { "<assessmentId>_<attempt>": "FAULT" | "DNS" }, notes?: { key: text }, clientUuid? }.
+     * Every number goes through MeasurementService as a raw record; unchanged attempts are skipped.
+     * With clientUuid (one per save, from the offline queue) each attempt gets a UUID derived from "<clientUuid>:<key>" (same input, same UUID) so a resend is ignored.
+     */
     @PostMapping("/field-scoring/save")
     @PreAuthorize(SCORER)
     public ResponseEntity<?> fieldScoringSave(@RequestBody Map<String, Object> body) {
@@ -479,25 +565,214 @@ public class AdminCompetitionApiController {
         Long participantId = longOf(body.get("participantId"));
         if (stepId == null || participantId == null) return error(HttpStatus.BAD_REQUEST, "Thiếu thông tin thí sinh hoặc bài thi");
         Map<?, ?> scores = body.get("scores") instanceof Map<?, ?> m ? m : Map.of();
+        Map<?, ?> statuses = body.get("statuses") instanceof Map<?, ?> m ? m : Map.of();
+        Map<?, ?> notes = body.get("notes") instanceof Map<?, ?> m ? m : Map.of();
+        String clientUuid = str(body.get("clientUuid"));
+        if (measurementService.isLocked(stepId)) return error(HttpStatus.CONFLICT, "Bài thi đã khoá sổ, không sửa được nữa. Cần sửa thì quản trị mở khoá ở trang Đối soát trước");
+        if (flagService.isBlocked(participantId)) return error(HttpStatus.CONFLICT, "Thí sinh đã bị bác sĩ loại khỏi vòng thi, không thể ghi điểm");
+        // A coach's-score problem is entered by the head coach (or corrected by the admin), not by the scouts.
+        CompetitionAssessmentStep scoredStep = stepRepository.findById(stepId).orElse(null);
+        if (scoredStep != null && "HLV".equals(scoredStep.getScoreSource()) && !hasAuthority("ROLE_HLV") && !hasAuthority("ROLE_ADMIN")) {
+            return error(HttpStatus.FORBIDDEN, "Bài này là Điểm HLV, chỉ HLV nhập");
+        }
+        Long userId = currentUserId();
+        List<Map<String, Object>> review = new ArrayList<>();
         try {
             for (CompetitionAssessment a : assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId)) {
                 for (int attempt = 1; attempt <= a.getAttemptsCount(); attempt++) {
-                    Object v = scores.get(a.getId() + "_" + attempt);
-                    String text = v == null ? "" : v.toString().trim();
-                    if (!text.isEmpty()) {
+                    String key = a.getId() + "_" + attempt;
+                    MeasurementStatus status = MeasurementStatus.OK;
+                    String statusText = str(statuses.get(key));
+                    if (statusText != null) {
                         try {
-                            assessmentResultService.recordAttemptResult(a.getId(), participantId, attempt, new BigDecimal(text), null);
-                        } catch (NumberFormatException ignored) {
+                            status = MeasurementStatus.valueOf(statusText);
+                        } catch (IllegalArgumentException e) {
+                            return error(HttpStatus.BAD_REQUEST, "Trạng thái lượt không hợp lệ: " + statusText);
+                        }
+                        if (status == MeasurementStatus.FAULT && AdminCombineController.faultList(a.getFaultReasons()).isEmpty()) {
+                            return error(HttpStatus.BAD_REQUEST, a.getTitle() + " không có lỗi nào được khai báo, hãy ghi Không thi");
                         }
                     }
+                    BigDecimal value = null;
+                    if (status == MeasurementStatus.OK) {
+                        String text = str(scores.get(key));
+                        if (text == null) continue;
+                        try {
+                            value = new BigDecimal(text.replace(',', '.'));
+                        } catch (NumberFormatException e) {
+                            return error(HttpStatus.BAD_REQUEST, a.getTitle() + " lượt " + attempt + ": số không hợp lệ");
+                        }
+                    }
+                    MeasurementService.RecordResult r = measurementService.recordFromTablet(a.getId(), participantId, attempt,
+                            value, status, str(notes.get(key)), userId, clientUuid != null ? attemptUuid(clientUuid, key) : null);
+                    if (r != null && r.official() != null && r.official().getState() == OfficialState.REVIEW) {
+                        review.add(Map.of("key", key, "reason", String.valueOf(r.official().getReviewReason())));
+                    }
                 }
-                try { assessmentResultService.calculateAssessmentFinalScore(a.getId(), participantId); } catch (Exception ignored) { }
             }
+            // Old-style steps keep their stored step score; combine steps are scored by ScoringService on read.
             try { assessmentResultService.calculateStepScore(stepId, participantId); } catch (Exception ignored) { }
-        } catch (Exception e) {
-            return error(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi lưu: " + e.getMessage());
+            measurementService.applyLevelAction(stepId, participantId);
+        } catch (IllegalArgumentException e) {
+            return error(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-        return ResponseEntity.ok(Map.of("message", "Đã lưu kết quả"));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("message", review.isEmpty() ? "Đã lưu kết quả" : "Đã lưu, có " + review.size() + " lượt cần BTC xem lại");
+        out.put("review", review);
+        return ResponseEntity.ok(out);
+    }
+
+    /**
+     * Every contestant of the day with the current value of each attempt of a step, for the table mode (catch-up at the
+     * end of the day from the paper sheet). A day with a list only has the people on it; contestants a doctor took out
+     * are marked blocked.
+     */
+    @GetMapping("/field-scoring/table")
+    @PreAuthorize(SCORER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> fieldScoringTable(@RequestParam Long stepId) {
+        CompetitionAssessmentStep step = stepRepository.findById(stepId).orElse(null);
+        if (step == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy bài thi");
+        Long dayId = step.getAssessmentDay().getId();
+        Long competitionId = step.getAssessmentDay().getStage().getCompetition().getId();
+        List<CompetitionParticipant> all = sbdService.contestants(competitionId);
+        Set<Long> listed = new HashSet<>(jdbc.queryForList("SELECT participant_id FROM day_participants WHERE day_id = ?", Long.class, dayId));
+        Map<Long, Map<String, Object>> values = new HashMap<>();
+        for (Map<String, Object> r : jdbc.queryForList("""
+                SELECT o.participant_id, o.assessment_id, o.attempt_number, r.value, r.status, o.state
+                FROM measurement_official o JOIN competition_assessments a ON a.id = o.assessment_id
+                LEFT JOIN measurement_raw r ON r.id = o.raw_id
+                WHERE a.assessment_step_id = ?""", stepId)) {
+            Long pid = ((Number) r.get("participant_id")).longValue();
+            String key = r.get("assessment_id") + "_" + r.get("attempt_number");
+            Map<String, Object> v = values.computeIfAbsent(pid, k -> new LinkedHashMap<>(Map.of(
+                    "scores", new LinkedHashMap<String, Object>(), "statuses", new LinkedHashMap<String, Object>(), "review", new ArrayList<String>())));
+            @SuppressWarnings("unchecked") Map<String, Object> scores = (Map<String, Object>) v.get("scores");
+            @SuppressWarnings("unchecked") Map<String, Object> statuses = (Map<String, Object>) v.get("statuses");
+            @SuppressWarnings("unchecked") List<String> review = (List<String>) v.get("review");
+            String status = r.get("status") == null ? "OK" : String.valueOf(r.get("status"));
+            if ("OK".equals(status)) { if (r.get("value") != null) scores.put(key, r.get("value")); }
+            else statuses.put(key, status);
+            if ("REVIEW".equals(String.valueOf(r.get("state")))) review.add(key);
+        }
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (int i = 0; i < all.size(); i++) {
+            CompetitionParticipant cp = all.get(i);
+            if (!listed.isEmpty() && !listed.contains(cp.getId())) continue;
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("participantId", cp.getId());
+            m.put("sbd", cp.getSbd());
+            m.put("fullName", cp.getUser().getFullName());
+            m.put("blocked", flagService.isBlocked(cp.getId()));
+            Map<String, Object> v = values.get(cp.getId());
+            m.put("scores", v != null ? v.get("scores") : Map.of());
+            m.put("statuses", v != null ? v.get("statuses") : Map.of());
+            m.put("review", v != null ? v.get("review") : List.of());
+            rows.add(m);
+        }
+        return ResponseEntity.ok(Map.of("rows", rows, "listed", !listed.isEmpty()));
+    }
+
+    /**
+     * What the caller entered on this step, for the "Danh sách đã thi" drawer of the group entry screen: per contestant,
+     * the caller's latest manual record of each attempt (value or FAULT / DNS), most recent contestant first.
+     */
+    @GetMapping("/field-scoring/mine")
+    @PreAuthorize(SCORER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> fieldScoringMine(@RequestParam Long stepId) {
+        CompetitionAssessmentStep step = stepRepository.findById(stepId).orElse(null);
+        if (step == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy bài thi");
+        Long userId = currentUserId();
+        if (userId == null) return error(HttpStatus.UNAUTHORIZED, "Chưa đăng nhập");
+        Long competitionId = step.getAssessmentDay().getStage().getCompetition().getId();
+        List<CompetitionParticipant> all = sbdService.contestants(competitionId);
+        Map<Long, Integer> sbdOf = new HashMap<>();
+        Map<Long, CompetitionParticipant> byId = new HashMap<>();
+        for (int i = 0; i < all.size(); i++) { sbdOf.put(all.get(i).getId(), all.get(i).getSbd()); byId.put(all.get(i).getId(), all.get(i)); }
+
+        // Oldest first, so a later record of the same attempt (a correction) overwrites the earlier one.
+        List<Map<String, Object>> raws = jdbc.queryForList("""
+                SELECT r.participant_id, r.assessment_id, r.attempt_number, r.value, r.status, r.id
+                FROM measurement_raw r JOIN competition_assessments a ON a.id = r.assessment_id
+                WHERE a.assessment_step_id = ? AND r.recorded_by = ? AND r.source = 'MANUAL'
+                ORDER BY r.id""", stepId, userId);
+        Map<Long, Map<String, Object>> rows = new LinkedHashMap<>();
+        Map<Long, Long> lastId = new HashMap<>();
+        for (Map<String, Object> r : raws) {
+            Long pid = ((Number) r.get("participant_id")).longValue();
+            String key = r.get("assessment_id") + "_" + r.get("attempt_number");
+            Map<String, Object> row = rows.computeIfAbsent(pid, k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("participantId", k);
+                m.put("sbd", sbdOf.get(k));
+                CompetitionParticipant cp = byId.get(k);
+                m.put("fullName", cp != null ? cp.getUser().getFullName() : null);
+                m.put("scores", new LinkedHashMap<String, Object>());
+                m.put("statuses", new LinkedHashMap<String, Object>());
+                return m;
+            });
+            @SuppressWarnings("unchecked") Map<String, Object> scores = (Map<String, Object>) row.get("scores");
+            @SuppressWarnings("unchecked") Map<String, Object> statuses = (Map<String, Object>) row.get("statuses");
+            String status = String.valueOf(r.get("status"));
+            if ("OK".equals(status)) { scores.put(key, r.get("value")); statuses.remove(key); }
+            else { statuses.put(key, status); scores.remove(key); }
+            lastId.put(pid, ((Number) r.get("id")).longValue());
+        }
+        List<Map<String, Object>> out = new ArrayList<>(rows.values());
+        out.sort((a, b) -> Long.compare(lastId.get((Long) b.get("participantId")), lastId.get((Long) a.get("participantId"))));
+        return ResponseEntity.ok(Map.of("rows", out));
+    }
+
+    /** Level the entered values would get, without saving. body: { stepId, scores: { "<assessmentId>_<attempt>": value } } */
+    @PostMapping("/field-scoring/preview")
+    @PreAuthorize(SCORER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> fieldScoringPreview(@RequestBody Map<String, Object> body) {
+        Long stepId = longOf(body.get("stepId"));
+        if (stepId == null) return error(HttpStatus.BAD_REQUEST, "Thiếu bài thi");
+        Map<?, ?> scores = body.get("scores") instanceof Map<?, ?> m ? m : Map.of();
+        Map<Long, List<BigDecimal>> values = new HashMap<>();
+        List<Map<String, Object>> warnings = new ArrayList<>();
+        for (CompetitionAssessment a : assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId)) {
+            List<BigDecimal> attempts = new ArrayList<>();
+            for (int attempt = 1; attempt <= a.getAttemptsCount(); attempt++) {
+                String text = str(scores.get(a.getId() + "_" + attempt));
+                if (text == null) continue;
+                try {
+                    BigDecimal v = new BigDecimal(text.replace(',', '.'));
+                    attempts.add(v);
+                    if ((a.getPlausibleMin() != null && v.compareTo(a.getPlausibleMin()) < 0)
+                            || (a.getPlausibleMax() != null && v.compareTo(a.getPlausibleMax()) > 0)) {
+                        warnings.add(Map.of("key", a.getId() + "_" + attempt, "message", a.getTitle() + ": ngoài ngưỡng hợp lý "
+                                + a.getPlausibleMin() + "–" + a.getPlausibleMax()));
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            values.put(a.getId(), attempts);
+        }
+        ScoringEngine.Rating rating = scoringService.preview(stepId, values);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("level", rating != null ? rating.level() : null);
+        out.put("perAssessment", rating != null ? rating.perAssessment() : Map.of());
+        out.put("color", rating != null ? ratingRepository.findByAssessmentStepIdAndLevel(stepId, rating.level())
+                .map(CompetitionAssessmentStepRating::getColor).orElse(null) : null);
+        out.put("warnings", warnings);
+        return ResponseEntity.ok(out);
+    }
+
+    private static boolean hasAuthority(String authority) {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(authority));
+    }
+
+    private Long currentUserId() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return null;
+        // JWT puts the userid in the principal, the old form login the phone.
+        return userRepository.findByUserid(auth.getName()).or(() -> userRepository.findByPhone(auth.getName()))
+                .map(User::getId).orElse(null);
     }
 
     // ==================== EXCEL EXPORT ====================
@@ -509,10 +784,10 @@ public class AdminCompetitionApiController {
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             Sheet sheet = wb.createSheet("Thí sinh");
             header(wb, sheet, "SBD", "Họ tên", "Số điện thoại", "Email", "Khu vực", "Trạng thái", "Ngày đăng ký");
-            List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+            List<CompetitionParticipant> all = sbdService.contestants(id);
             for (int i = 0; i < all.size(); i++) {
                 CompetitionParticipant p = all.get(i);
-                row(sheet, i + 1, i + 1, p.getUser().getFullName(), p.getUser().getPhone(), p.getUser().getEmail(),
+                row(sheet, i + 1, p.getSbd(), p.getUser().getFullName(), p.getUser().getPhone(), p.getUser().getEmail(),
                         p.getSelectedRegion() != null ? p.getSelectedRegion().name() : "",
                         p.getStatus() != null ? p.getStatus().name() : "",
                         p.getRegistrationDate() != null ? p.getRegistrationDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "");
@@ -526,9 +801,9 @@ public class AdminCompetitionApiController {
     @PreAuthorize(MANAGER)
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> exportResults(@PathVariable Long id) throws Exception {
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+        List<CompetitionParticipant> all = sbdService.contestants(id);
         Map<Long, Integer> sbd = new HashMap<>();
-        for (int i = 0; i < all.size(); i++) sbd.put(all.get(i).getId(), i + 1);
+        for (CompetitionParticipant x : all) sbd.put(x.getId(), x.getSbd());
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             List<CompetitionStage> stages = stageRepository.findByCompetitionIdOrderByStageNumberAsc(id);
             if (stages.isEmpty()) wb.createSheet("Chưa có vòng thi");
@@ -546,6 +821,99 @@ public class AdminCompetitionApiController {
             }
             return xlsx(wb, "ket-qua-" + id + ".xlsx");
         }
+    }
+
+    /**
+     * Minutes (biên bản) of one stage as Excel: one sheet per step (bài thi) with every attempt as recorded, the step score and
+     * level. dayId narrows it to one day. The "who entered it" column is not exported: results do not store the recorder yet.
+     */
+    @GetMapping("/competitions/{id}/stages/{n}/export/minutes")
+    @PreAuthorize(MANAGER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> exportMinutes(@PathVariable Long id, @PathVariable Integer n, @RequestParam(required = false) Long dayId) throws Exception {
+        CompetitionStage stage = stageRepository.findByCompetitionIdAndStageNumber(id, n).orElse(null);
+        if (stage == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy vòng thi");
+        List<CompetitionParticipant> all = sbdService.contestants(id);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        Set<String> usedNames = new HashSet<>();
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            CellStyle bold = wb.createCellStyle();
+            Font font = wb.createFont();
+            font.setBold(true);
+            bold.setFont(font);
+            for (CompetitionAssessmentDay day : dayRepository.findByStageIdOrderByDisplayOrderAsc(stage.getId())) {
+                if (dayId != null && !dayId.equals(day.getId())) continue;
+                for (CompetitionAssessmentStep step : stepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(day.getId())) {
+                    List<CompetitionAssessment> assessments = assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(step.getId());
+                    Map<String, CompetitionAssessmentResult> raw = new HashMap<>();
+                    for (CompetitionAssessmentResult r : resultRepository.findByAssessmentAssessmentStepId(step.getId())) {
+                        raw.put(r.getAssessment().getId() + "_" + r.getParticipant().getId() + "_" + r.getAttemptNumber(), r);
+                    }
+                    Map<Long, CompetitionAssessmentStepScore> scores = new HashMap<>();
+                    for (CompetitionAssessmentStepScore sc : stepScoreRepository.findByAssessmentStepId(step.getId())) scores.put(sc.getParticipant().getId(), sc);
+
+                    Sheet sheet = wb.createSheet(sheetName(usedNames, "N" + day.getDayNumber() + " " + step.getTitle()));
+                    Row title = sheet.createRow(0);
+                    Cell tc = title.createCell(0);
+                    tc.setCellValue("Biên bản vòng " + stage.getStageNumber() + " — " + label(day.getDayNumber(), day.getTitle()) + " — " + step.getTitle());
+                    tc.setCellStyle(bold);
+                    sheet.createRow(1).createCell(0).setCellValue("Ngày thi: " + (day.getAssessmentDate() != null ? day.getAssessmentDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "—"));
+
+                    List<String> heads = new ArrayList<>(List.of("SBD", "Họ tên", "Số điện thoại"));
+                    for (CompetitionAssessment a : assessments) {
+                        for (int k = 1; k <= Math.max(a.getAttemptsCount() == null ? 1 : a.getAttemptsCount(), 1); k++) {
+                            heads.add(a.getTitle() + (a.getUnit() != null && !a.getUnit().isBlank() ? " (" + a.getUnit() + ")" : "") + " — lần " + k);
+                        }
+                    }
+                    heads.addAll(List.of("Điểm bài", "Mức", "Ghi chú", "Giờ ghi gần nhất"));
+                    Row head = sheet.createRow(3);
+                    for (int i = 0; i < heads.size(); i++) {
+                        Cell c = head.createCell(i);
+                        c.setCellValue(heads.get(i));
+                        c.setCellStyle(bold);
+                    }
+                    int r = 4;
+                    for (int i = 0; i < all.size(); i++) {
+                        CompetitionParticipant p = all.get(i);
+                        List<Object> vals = new ArrayList<>(List.of(p.getSbd(), p.getUser().getFullName(), p.getUser().getPhone() == null ? "" : p.getUser().getPhone()));
+                        boolean any = false;
+                        StringBuilder notes = new StringBuilder();
+                        java.time.LocalDateTime last = null;
+                        for (CompetitionAssessment a : assessments) {
+                            for (int k = 1; k <= Math.max(a.getAttemptsCount() == null ? 1 : a.getAttemptsCount(), 1); k++) {
+                                CompetitionAssessmentResult res = raw.get(a.getId() + "_" + p.getId() + "_" + k);
+                                if (res == null || res.getResultValue() == null) { vals.add(""); continue; }
+                                any = true;
+                                vals.add(res.getResultValue().doubleValue());
+                                if (res.getNotes() != null && !res.getNotes().isBlank()) notes.append(a.getTitle()).append(" lần ").append(k).append(": ").append(res.getNotes()).append("; ");
+                                java.time.LocalDateTime at = res.getRecordedAt() != null ? res.getRecordedAt() : res.getUpdatedAt();
+                                if (at != null && (last == null || at.isAfter(last))) last = at;
+                            }
+                        }
+                        CompetitionAssessmentStepScore sc = scores.get(p.getId());
+                        if (!any && sc == null) continue;
+                        vals.add(sc != null && sc.getTotalScore() != null ? sc.getTotalScore().doubleValue() : "");
+                        vals.add(sc != null && sc.getRatingLevel() != null ? sc.getRatingLevel() : "");
+                        if (sc != null && sc.getNotes() != null && !sc.getNotes().isBlank()) notes.append(sc.getNotes());
+                        vals.add(notes.toString().trim());
+                        vals.add(last != null ? last.format(fmt) : "");
+                        row(sheet, r++, vals.toArray());
+                    }
+                    for (int i = 0; i < heads.size(); i++) sheet.setColumnWidth(i, i == 1 ? 9000 : i >= heads.size() - 2 ? 9000 : 4800);
+                }
+            }
+            if (wb.getNumberOfSheets() == 0) wb.createSheet("Chưa có bài thi");
+            return xlsx(wb, "bien-ban-" + id + "-vong-" + n + (dayId != null ? "-ngay-" + dayId : "") + ".xlsx");
+        }
+    }
+
+    /** Excel sheet names: at most 31 characters, none of []:*?/\, unique within the workbook. */
+    private static String sheetName(Set<String> used, String raw) {
+        String base = raw.replaceAll("[\\[\\]:*?/\\\\]", " ").trim();
+        if (base.length() > 28) base = base.substring(0, 28);
+        String name = base;
+        for (int i = 2; !used.add(name.toLowerCase()); i++) name = base + " " + i;
+        return name;
     }
 
     private static void header(Workbook wb, Sheet sheet, String... names) {
@@ -638,5 +1006,10 @@ public class AdminCompetitionApiController {
     private static ResponseEntity<?> wrap(ResponseEntity<String> r) {
         String text = r.getBody() != null ? r.getBody() : "";
         return ResponseEntity.status(r.getStatusCode()).body(Map.of("message", text));
+    }
+
+    /** A 36-character id per attempt of one save, the same on every resend (the column holds one UUID). */
+    private static String attemptUuid(String clientUuid, String key) {
+        return java.util.UUID.nameUUIDFromBytes((clientUuid + ":" + key).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
     }
 }

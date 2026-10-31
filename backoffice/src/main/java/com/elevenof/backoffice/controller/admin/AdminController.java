@@ -65,12 +65,14 @@ public class AdminController {
     private final com.elevenof.backoffice.service.AuthenticationService authenticationService;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final com.elevenof.backoffice.service.CompetitionAssessmentResultService assessmentResultService;
+    private final com.elevenof.backoffice.service.MeasurementService measurementService;
     private final com.elevenof.backoffice.repository.CompetitionAssessmentResultRepository assessmentResultRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final com.elevenof.backoffice.repository.NotificationScenarioRepository notificationScenarioRepository;
     private final com.elevenof.backoffice.service.NotificationTemplateService notificationTemplateService;
     private final com.elevenof.backoffice.repository.CompetitionRepository competitionRepository;
     private final com.elevenof.backoffice.repository.CompetitionParticipantRepository competitionParticipantRepository;
+    private final com.elevenof.backoffice.service.SbdService sbdService;
     private final com.elevenof.backoffice.repository.CompetitionNewsRepository competitionNewsRepository;
     private final com.elevenof.backoffice.repository.CompetitionSponsorRepository competitionSponsorRepository;
     private final com.elevenof.backoffice.repository.CompetitionStageRepository competitionStageRepository;
@@ -829,11 +831,11 @@ public class AdminController {
             // Show all users including USER role
             userPage = userRepository.findAll(pageable);
         } else {
-            // Show only EDITOR, ADMIN, SUPER_USER
+            // Show only EDITOR, MEDICAL, ADMIN
             List<User.Role> adminRoles = Arrays.asList(
                     User.Role.EDITOR,
-                    User.Role.ADMIN,
-                    User.Role.SUPER_USER
+                    User.Role.MEDICAL,
+                    User.Role.ADMIN
             );
             userPage = userRepository.findByRoleIn(adminRoles, pageable);
         }
@@ -2553,22 +2555,21 @@ public class AdminController {
         com.elevenof.backoffice.model.CompetitionParticipant selectedParticipant = null;
         String resolvedSbd = sbd;
         java.util.List<com.elevenof.backoffice.model.CompetitionParticipant> allParticipants =
-            competitionParticipantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competition.getId());
+            sbdService.contestants(competition.getId());
 
         if (participantId != null) {
             for (int i = 0; i < allParticipants.size(); i++) {
                 if (allParticipants.get(i).getId().equals(participantId)) {
                     selectedParticipant = allParticipants.get(i);
-                    resolvedSbd = String.valueOf(i + 1);
+                    resolvedSbd = String.valueOf(allParticipants.get(i).getSbd());
                     break;
                 }
             }
         } else if (sbd != null && !sbd.isBlank()) {
             try {
                 int sbdNum = Integer.parseInt(sbd.trim());
-                if (sbdNum >= 1 && sbdNum <= allParticipants.size()) {
-                    selectedParticipant = allParticipants.get(sbdNum - 1);
-                } else {
+                selectedParticipant = sbdService.find(allParticipants, sbdNum);
+                if (selectedParticipant == null) {
                     model.addAttribute("sbdError", "Không tìm thấy thí sinh với SBD: " + sbd);
                 }
             } catch (NumberFormatException e) {
@@ -2610,7 +2611,7 @@ public class AdminController {
                 com.elevenof.backoffice.model.CompetitionParticipant hp =
                     allParticipants.stream().filter(p -> p.getId().equals(pid)).findFirst().orElse(null);
                 if (hp == null) continue;
-                int sbdPos = allParticipants.indexOf(hp) + 1;
+                Integer sbdPos = hp.getSbd();
                 long filled = assessmentResultRepository.countFilledAssessmentsByStepAndParticipant(selectedStep.getId(), pid);
                 java.util.Map<String, Object> entry = new java.util.HashMap<>();
                 entry.put("sbd", sbdPos);
@@ -2638,8 +2639,11 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
 
         try {
+            if (measurementService.isLocked(stepId)) throw new IllegalArgumentException("Bài thi đã khoá sổ, cần mở khoá trước khi sửa");
             java.util.List<com.elevenof.backoffice.model.CompetitionAssessment> assessments =
                 assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId);
+            String scorer = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+            Long scorerId = userRepository.findByPhone(scorer).map(com.elevenof.backoffice.model.User::getId).orElse(null);
 
             for (com.elevenof.backoffice.model.CompetitionAssessment assessment : assessments) {
                 for (int attempt = 1; attempt <= assessment.getAttemptsCount(); attempt++) {
@@ -2648,7 +2652,8 @@ public class AdminController {
                     if (val != null && !val.isBlank()) {
                         try {
                             java.math.BigDecimal value = new java.math.BigDecimal(val.trim());
-                            assessmentResultService.recordAttemptResult(assessment.getId(), participantId, attempt, value, null);
+                            measurementService.recordFromTablet(assessment.getId(), participantId, attempt, value,
+                                com.elevenof.backoffice.model.MeasurementStatus.OK, null, scorerId, null);
                         } catch (NumberFormatException ignored) {}
                     }
                 }

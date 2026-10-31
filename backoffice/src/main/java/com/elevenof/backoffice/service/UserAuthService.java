@@ -38,6 +38,7 @@ public class UserAuthService {
     private final CompetitionService competitionService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PanelService panelService;
     private final Random random = new SecureRandom();
 
     /**
@@ -169,8 +170,8 @@ public class UserAuthService {
             throw new InvalidCredentialsException("Tài khoản đã bị vô hiệu hóa");
         }
 
-        // Generate JWT token
-        String token = jwtTokenProvider.generateToken(user);
+        // Generate JWT token (with the scouting panel role, if any, for the admin site's menus)
+        String token = jwtTokenProvider.generateToken(user, panelService.highestRole(user.getId()).map(Enum::name).orElse(null));
 
         log.info("User logged in: {}", user.getPhone());
 

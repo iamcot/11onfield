@@ -9,5 +9,7 @@ export interface Me {
 }
 export const MeContext = createContext<Me>({ fullName: null, role: 'EDITOR' });
 export const useMe = () => useContext(MeContext);
-/** ADMIN and SUPER_USER may change data that EDITOR can only read. */
-export const useIsManager = () => ['ADMIN', 'SUPER_USER'].includes(useMe().role);
+/** ADMIN may change data that EDITOR can only read. */
+export const useIsManager = () => useMe().role === 'ADMIN';
+/** On a competition's scouting panel. */
+export const useIsPanel = () => ['HLV', 'TTV'].includes(useMe().role);

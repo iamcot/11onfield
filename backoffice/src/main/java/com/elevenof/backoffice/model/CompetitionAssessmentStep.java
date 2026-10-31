@@ -45,6 +45,25 @@ public class CompetitionAssessmentStep {
     @Builder.Default
     private Boolean hasRatingScale = true;
 
+    /** False for warm-up and recovery steps. */
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isScored = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 12)
+    @Builder.Default
+    private StepAudience audience = StepAudience.ALL;
+
+    /** Score topic (nhóm điểm) of the day this step counts towards. */
+    /** MEASURED: scouts, devices or a file; HLV: the head coach enters the values. */
+    @Column(nullable = false, length = 10)
+    @Builder.Default
+    private String scoreSource = "MEASURED";
+
+    @Column(name = "topic_id")
+    private Long topicId;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

@@ -58,8 +58,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminPlayerApiController {
 
-    private static final String STAFF = "hasAnyRole('EDITOR', 'ADMIN', 'SUPER_USER')";
-    private static final String MANAGER = "hasAnyRole('ADMIN', 'SUPER_USER')";
+    private static final String STAFF = "hasAnyRole('EDITOR', 'ADMIN')";
+    private static final String MANAGER = "hasRole('ADMIN')";
 
     private final PlayerRepository playerRepository;
     private final UserRepository userRepository;

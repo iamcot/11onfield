@@ -35,7 +35,7 @@ public class PlayerAttributeController {
         return ResponseEntity.ok(attributes);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/player/{playerId}")
     public ResponseEntity<PlayerAttribute> createOrUpdatePlayerAttribute(
             @PathVariable Long playerId,
@@ -52,7 +52,7 @@ public class PlayerAttributeController {
         return ResponseEntity.ok(attribute);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/player/{playerId}/bulk")
     public ResponseEntity<Void> bulkUpdatePlayerAttributes(
             @PathVariable Long playerId,
@@ -64,14 +64,14 @@ public class PlayerAttributeController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{attributeId}")
     public ResponseEntity<Void> deletePlayerAttribute(@PathVariable Long attributeId) {
         attributeService.deletePlayerAttribute(attributeId);
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/player/{playerId}")
     public ResponseEntity<Void> deleteAllPlayerAttributes(@PathVariable Long playerId) {
         attributeService.deleteAllPlayerAttributes(playerId);
