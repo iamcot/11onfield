@@ -16,6 +16,7 @@ interface Detail extends Omit<Row, 'greenCard'> {
   blocked: boolean; disciplineCount: number; flags: any; judgeNotes: Note[];
   greenCard?: { holderTitle: string; reason: string; usedAt: string };
   myGreenCard?: { id: number; title: string; used: boolean };
+  top30Decided?: boolean;
 }
 
 /** Which flags this role may raise (the server checks again). */
@@ -147,7 +148,7 @@ export default function ContestantDetail({ id, onChanged }: { id: number; onChan
             <Badge tone="green">Đã có Green Card</Badge> do {x.greenCard.holderTitle} · vào thẳng Top 30.<br />
             <span className="text-[#46564D]">Lý do: {x.greenCard.reason}</span>
           </p>
-        ) : x.myGreenCard && !x.myGreenCard.used ? (
+        ) : x.myGreenCard && !x.myGreenCard.used && !x.top30Decided ? (
           usingCard ? (
             <div>
               <Field label="Lý do dùng Green Card *"><Textarea value={cardReason} onChange={(e) => setCardReason(e.target.value)} /></Field>
@@ -163,7 +164,7 @@ export default function ContestantDetail({ id, onChanged }: { id: number; onChan
             </div>
           )
         ) : (
-          <p className="text-[14px] text-[#66766D]">{x.myGreenCard?.used ? 'Bạn đã dùng Green Card của mình.' : 'Thí sinh chưa có Green Card.'}</p>
+          <p className="text-[14px] text-[#66766D]">{x.myGreenCard?.used ? 'Bạn đã dùng Green Card của mình.' : x.myGreenCard && x.top30Decided ? 'Top 30 đã chốt, Green Card không dùng được nữa.' : 'Thí sinh chưa có Green Card.'}</p>
         )}
       </Card>
 

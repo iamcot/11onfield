@@ -45,6 +45,7 @@ public class AdminScoutingApiController {
     private final JudgeNoteRepository judgeNoteRepository;
     private final ParticipantFlagRepository flagRepository;
     private final GreenCardRepository greenCardRepository;
+    private final com.elevenof.backoffice.repository.SelectionDecisionRepository decisionRepository;
     private final ParticipantFlagService flagService;
     private final com.elevenof.backoffice.service.PanelService panelService;
 
@@ -152,6 +153,7 @@ public class AdminScoutingApiController {
         });
         greenCardRepository.findByCompetitionIdAndHolderUserId(competitionId, me.getId()).ifPresent(g ->
                 out.put("myGreenCard", Map.of("id", g.getId(), "title", g.getHolderTitle(), "used", g.getUsedAt() != null)));
+        out.put("top30Decided", top30Decided(competitionId));
         return ResponseEntity.ok(out);
     }
 
@@ -353,6 +355,8 @@ public class AdminScoutingApiController {
         GreenCard card = greenCardRepository.findByCompetitionIdAndHolderUserId(competitionId, currentUser(auth).getId()).orElse(null);
         if (card == null) return error(HttpStatus.FORBIDDEN, "Bạn không giữ Green Card của giải này");
         if (card.getUsedAt() != null) return error(HttpStatus.CONFLICT, "Green Card của bạn đã được sử dụng");
+        // A Green Card puts someone straight into the Top 30, so it is only usable before the list is finalised.
+        if (top30Decided(competitionId)) return error(HttpStatus.CONFLICT, "Top 30 đã chốt, không dùng Green Card được nữa");
         if (p.getStatus() == ParticipantStatus.WITHDRAWN) return error(HttpStatus.CONFLICT, "Thí sinh đã rút khỏi giải");
         if (greenCardRepository.findByCompetitionIdAndParticipantId(competitionId, participantId).isPresent()) {
             return error(HttpStatus.CONFLICT, "Thí sinh này đã có Green Card");
@@ -365,6 +369,10 @@ public class AdminScoutingApiController {
     }
 
     // ==================== HELPERS ====================
+
+    private boolean top30Decided(Long competitionId) {
+        return decisionRepository.findFirstByCompetitionIdAndRoundKeyOrderByIdDesc(competitionId, "TOP30").isPresent();
+    }
 
     private Competition activeCompetition() {
         List<Competition> active = competitionRepository.findByStatusNotInOrderBySeasonDesc(
