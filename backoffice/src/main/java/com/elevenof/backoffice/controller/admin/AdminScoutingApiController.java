@@ -33,14 +33,6 @@ public class AdminScoutingApiController {
     private static final String FIELD_STAFF = "hasAnyRole('HLV', 'TTV', 'MEDICAL', 'ADMIN')";
     private static final String ANY_STAFF = "hasAnyRole('EDITOR', 'HLV', 'TTV', 'MEDICAL', 'ADMIN')";
 
-    /** Component of the round score that is typed in by hand, with its maximum points. */
-    private static final Map<String, Object[]> COMPONENTS = new LinkedHashMap<>();
-    static {
-        COMPONENTS.put(ManualScore.BHL, new Object[]{"Ban huấn luyện (BHL)", 40});
-        COMPONENTS.put(ManualScore.TACTICAL_7V7, new Object[]{"Trận 7v7 chiến thuật", 20});
-        COMPONENTS.put(ManualScore.MIND_MEDIA, new Object[]{"Tư duy & truyền thông", 10});
-        COMPONENTS.put(ManualScore.GPS_AI, new Object[]{"GPS & AI", 20});
-    }
     private static final int GREEN_CARD_COUNT = 4;
 
     private final CompetitionRepository competitionRepository;
@@ -410,7 +402,6 @@ public class AdminScoutingApiController {
             rows.add(m);
         }
         List<Map<String, Object>> components = new ArrayList<>();
-        COMPONENTS.forEach((k, v) -> components.add(Map.of("key", k, "label", v[0], "max", v[1], "owner", ManualScore.BHL.equals(k) ? "HLV" : "TTV")));
         handTopics(stageId).forEach((k, t) -> components.add(Map.of("key", k, "label", t.getName(), "max", t.getMaxPoints(), "owner", "HLV")));
         return ResponseEntity.ok(Map.of("components", components, "participants", rows));
     }
@@ -424,11 +415,11 @@ public class AdminScoutingApiController {
         Long participantId = longOf(body.get("participantId"));
         String key = str(body.get("componentKey"));
         CompetitionScoreTopic handTopic = key == null ? null : handTopics(stageId).get(key);
-        if (participantId == null || key == null || (!COMPONENTS.containsKey(key) && handTopic == null)) return error(HttpStatus.BAD_REQUEST, "Thiếu thí sinh hoặc hạng mục điểm");
+        if (participantId == null || handTopic == null) return error(HttpStatus.BAD_REQUEST, "Thiếu thí sinh hoặc nhóm điểm HLV chấm tay");
         // The coaching staff score and the groups the head coach scores by hand are the HLV's; scouts enter the rest.
         // Admins may correct any.
-        if (!hasRole(auth, "ADMIN") && !hasRole(auth, "HLV") && (ManualScore.BHL.equals(key) || handTopic != null)) {
-            return error(HttpStatus.FORBIDDEN, (handTopic != null ? "Điểm " + handTopic.getName() : "Điểm BHL") + " do HLV nhập");
+        if (!hasRole(auth, "ADMIN") && !hasRole(auth, "HLV")) {
+            return error(HttpStatus.FORBIDDEN, "Điểm " + handTopic.getName() + " do HLV nhập");
         }
         if (!participantRepository.existsById(participantId)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy thí sinh");
         BigDecimal points;
@@ -437,7 +428,7 @@ public class AdminScoutingApiController {
         } catch (NumberFormatException e) {
             return error(HttpStatus.BAD_REQUEST, "Điểm không hợp lệ");
         }
-        BigDecimal max = handTopic != null ? handTopic.getMaxPoints() : BigDecimal.valueOf((Integer) COMPONENTS.get(key)[1]);
+        BigDecimal max = handTopic.getMaxPoints();
         if (points.signum() < 0 || points.compareTo(max) > 0) return error(HttpStatus.BAD_REQUEST, "Điểm phải từ 0 đến " + max.stripTrailingZeros().toPlainString());
         if (points.scale() > 2) return error(HttpStatus.BAD_REQUEST, "Điểm chỉ lấy tối đa 2 chữ số thập phân");
 

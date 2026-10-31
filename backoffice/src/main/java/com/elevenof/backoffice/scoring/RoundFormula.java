@@ -27,7 +27,19 @@ public record RoundFormula(List<Component> components, Map<String, String> topic
     public record ClassBand(BigDecimal min, String label) {
     }
 
-    /** The round 1 formula agreed in the plan, used until an admin saves one. */
+    /**
+     * The formula used until an admin saves one: the round score is the average of its days, each day out of 100, so
+     * the round is out of 100 too. What the coaches score by hand is part of a day (score groups "HLV chấm tay").
+     */
+    public static RoundFormula daysAverage(List<Integer> dayNumbers) {
+        List<Integer> days = dayNumbers == null || dayNumbers.isEmpty() ? List.of(1) : dayNumbers;
+        BigDecimal weight = BigDecimal.ONE.divide(BigDecimal.valueOf(days.size()), 4, RoundingMode.HALF_UP);
+        List<Component> components = new ArrayList<>();
+        for (Integer d : days) components.add(new Component("DAY" + d, "Ngày " + d, DAY, d, weight, null));
+        return new RoundFormula(components, Map.of(), combineRound1().classes(), List.of(DISCIPLINE));
+    }
+
+    /** The round 1 formula of the first plan (day 1 at 30% plus four hand scores). No longer the default. */
     public static RoundFormula combineRound1() {
         return new RoundFormula(
                 List.of(new Component("DAY1", "Ngày 1", DAY, 1, new BigDecimal("0.3"), new BigDecimal("30")),

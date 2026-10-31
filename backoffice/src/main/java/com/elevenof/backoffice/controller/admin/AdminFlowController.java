@@ -20,8 +20,6 @@ import java.util.Map;
 @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR', 'MEDICAL', 'HLV', 'TTV')")
 public class AdminFlowController {
 
-    private static final int MANUAL_COMPONENTS = 4;
-
     private final JdbcTemplate jdbc;
 
     @GetMapping
@@ -126,7 +124,7 @@ public class AdminFlowController {
                 SELECT COUNT(*) FROM competition_score_topics t
                 JOIN competition_assessment_days d ON d.id = t.assessment_day_id
                 WHERE d.stage_id = ? AND t.scored_by = 'HLV'""", stageId);
-        long expected = checked * (MANUAL_COMPONENTS + handGroups);
+        long expected = checked * handGroups;
         long entered = count("SELECT COUNT(DISTINCT participant_id, component_key) FROM manual_scores WHERE stage_id = ?", stageId);
         if (expected == 0) put(s, "diem-cham-tay", "todo", null, null);
         else if (entered >= expected) put(s, "diem-cham-tay", "done", entered + "/" + expected, null);

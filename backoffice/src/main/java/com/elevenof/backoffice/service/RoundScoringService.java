@@ -55,7 +55,10 @@ public class RoundScoringService {
                     RoundFormula def = parse(f.getDefinition());
                     return new FormulaView(f.getVersion(), f.getLockedAt() != null, true, def, def.maxTotal());
                 })
-                .orElseGet(() -> new FormulaView(0, false, false, RoundFormula.combineRound1(), RoundFormula.combineRound1().maxTotal()));
+                .orElseGet(() -> {
+                    RoundFormula def = defaultFormula(stageId);
+                    return new FormulaView(0, false, false, def, def.maxTotal());
+                });
     }
 
     /** Saves a new version; refused once the newest version is locked. */
@@ -79,7 +82,7 @@ public class RoundScoringService {
     public FormulaView lockFormula(Long stageId, Long userId) {
         ScoreFormula f = formulaRepository.findFirstByStageIdOrderByVersionDesc(stageId).orElse(null);
         if (f == null) {
-            saveFormula(stageId, RoundFormula.combineRound1(), userId);
+            saveFormula(stageId, defaultFormula(stageId), userId);
             f = formulaRepository.findFirstByStageIdOrderByVersionDesc(stageId).orElseThrow();
         }
         if (f.getLockedAt() == null) {
@@ -350,5 +353,11 @@ public class RoundScoringService {
         if (keys.isEmpty()) return formula;
         keys.add(RoundFormula.DISCIPLINE);
         return new RoundFormula(formula.components(), formula.topicManual(), formula.classes(), keys);
+    }
+
+    /** Average of the round's days (see RoundFormula.daysAverage). */
+    private RoundFormula defaultFormula(Long stageId) {
+        return RoundFormula.daysAverage(dayRepository.findByStageIdOrderByDisplayOrderAsc(stageId).stream()
+                .map(CompetitionAssessmentDay::getDayNumber).distinct().sorted().toList());
     }
 }

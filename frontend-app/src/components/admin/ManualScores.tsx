@@ -1,6 +1,6 @@
 'use client';
 
-// Points the devices cannot measure (BHL, 7v7, mind & media, GPS & AI), entered by staff for one round.
+// Score groups the head coach scores by hand ("HLV chấm tay" on the round setup), entered after the exam.
 
 import { useEffect, useState } from 'react';
 import { api, useApi } from '@/lib/admin/client';
@@ -8,7 +8,7 @@ import { useMe } from '@/components/admin/me';
 import { Button, Card, Field, Input, Loading, Modal, Select, Table, Td, Textarea, useUi } from '@/components/admin/ui';
 import { fmtDateTime } from '@/lib/admin/labels';
 
-/** owner: HLV for the coaching staff score (BHL), TTV for the rest. */
+/** A hand-scored score group of the round; owner is who enters it (HLV). */
 interface Component { key: string; label: string; max: number; owner?: 'HLV' | 'TTV' }
 interface Row {
   id: number; sbd: number; fullName: string;
@@ -21,10 +21,10 @@ interface Entry { componentKey: string; points: number; enteredBy: string | null
 function ScoreModal({ stageId, row, comps: all, onClose, onSaved }: { stageId: number; row: Row; comps: Component[]; onClose: () => void; onSaved: () => void }) {
   const { toast } = useUi();
   const me = useMe();
-  // A scout (TTV) enters every score except the head coach's BHL.
+  // Only the head coach (and the admin) enters these.
   const comps = me.role === 'TTV' ? all.filter((c) => c.owner !== 'HLV') : all;
   const history = useApi<Entry[]>(`stages/${stageId}/manual-scores/${row.id}/history`);
-  const [key, setKey] = useState(comps[0].key);
+  const [key, setKey] = useState(comps[0]?.key ?? '');
   const [points, setPoints] = useState('');
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
@@ -105,8 +105,11 @@ export default function ManualScores({ stageId }: { stageId: number }) {
   return (
     <Card>
       <p className="mb-3 max-w-2xl text-[13px] text-[#46564D]">
-        Những phần thiết bị không đo được, do ban huấn luyện và chuyên gia chấm sau khi thi: BHL, trận 7v7, tư duy và truyền thông, GPS và AI. Sửa điểm đã nhập phải có lý do. Bảng xếp hạng ghi “chưa đủ” cho đến khi các phần này được nhập.
+        Các nhóm điểm “HLV chấm tay” của vòng này (đặt ở bước Bài thi và thang điểm), ví dụ đối kháng, tâm lý, hình ảnh. HLV nhập điểm từng thí sinh sau khi thi; sửa điểm đã nhập phải có lý do. Bảng xếp hạng ghi “chưa đủ” cho đến khi các nhóm này được nhập.
       </p>
+      {data.data && data.data.components.length === 0 && (
+        <p className="mb-3 rounded-md bg-[#FDF1DE] px-3 py-2 text-[13px] text-[#8A4F07]">Vòng này chưa có nhóm điểm nào chọn “HLV chấm tay”, nên chưa có gì để nhập ở đây.</p>
+      )}
       <div className="mb-3 flex flex-wrap gap-2">
         <Input className="max-w-xs" placeholder="Tìm SBD hoặc tên" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
