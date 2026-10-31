@@ -50,6 +50,13 @@ public class UserProfileResponse {
     private List<HighlightDTO> highlights;
     private List<SocialDTO> socials;
 
+    /** Scouting Combine blocks the viewer may see; left out of the JSON when there is none. */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private CombineDTO combine;
+    /** The owner's own visibility settings; only sent to the owner. */
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private List<com.elevenof.backoffice.controller.api.UserController.VisibilitySettingDTO> visibility;
+
     // Follow counts
     private Long followersCount;
     private Long followingCount;

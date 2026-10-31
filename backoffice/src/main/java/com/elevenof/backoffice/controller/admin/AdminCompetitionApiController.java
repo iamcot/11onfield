@@ -47,6 +47,7 @@ public class AdminCompetitionApiController {
     private final PlayerRepository playerRepository;
     private final UserRepository userRepository;
     private final com.elevenof.backoffice.service.StageCheckinService checkinService;
+    private final com.elevenof.backoffice.service.VisibilityService visibilityService;
 
     // ==================== COMPETITIONS ====================
 
@@ -223,6 +224,65 @@ public class AdminCompetitionApiController {
     @PreAuthorize(MANAGER)
     public ResponseEntity<?> deactivate(@PathVariable Long id, @PathVariable Integer n) {
         return wrap(legacyAdminController.deactivateStage(id, n));
+    }
+
+    // ==================== VISIBILITY ====================
+
+    /** Visibility grid of a competition (stageId empty) or of one round; groups without a saved row show the default. */
+    @GetMapping("/competitions/{id}/visibility")
+    @PreAuthorize(MANAGER)
+    public Map<String, Object> visibility(@PathVariable Long id, @RequestParam(required = false) Long stageId) {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (VisibilityPolicy p : visibilityService.policies(id, stageId)) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("dataGroup", p.getDataGroup().name());
+            m.put("maxLevel", p.getMaxLevel().name());
+            m.put("ownerCanHide", p.getOwnerCanHide());
+            m.put("locked", p.getDataGroup().locked);
+            m.put("canOwnerHide", p.getDataGroup().ownerCanHide);
+            m.put("gated", p.getDataGroup().gated);
+            m.put("defaultLevel", p.getDataGroup().defaultLevel.name());
+            rows.add(m);
+        }
+        List<Map<String, Object>> stages = new ArrayList<>();
+        for (CompetitionStage s : stageRepository.findByCompetitionIdOrderByStageNumberAsc(id)) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", s.getId());
+            m.put("stageNumber", s.getStageNumber());
+            m.put("title", s.getTitle());
+            m.put("resultsReleaseAt", s.getResultsReleaseAt());
+            stages.add(m);
+        }
+        return Map.of("policies", rows, "stages", stages);
+    }
+
+    @PutMapping("/competitions/{id}/visibility")
+    @PreAuthorize(MANAGER)
+    public ResponseEntity<?> saveVisibility(@PathVariable Long id, @RequestParam(required = false) Long stageId, @RequestBody Map<String, Object> body) {
+        try {
+            visibilityService.savePolicy(id, stageId, DataGroup.valueOf(str(body.get("dataGroup"))),
+                VisibilityLevel.valueOf(str(body.get("maxLevel"))), !Boolean.FALSE.equals(body.get("ownerCanHide")));
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return error(HttpStatus.BAD_REQUEST, e.getMessage() != null ? e.getMessage() : "Dữ liệu không hợp lệ");
+        }
+        return ResponseEntity.ok(Map.of("message", "Đã lưu"));
+    }
+
+    /** Releases the round's results now, or at {@code releaseAt} (ISO local date-time); {@code release=false} takes them back. */
+    @PostMapping("/competitions/{id}/stages/{n}/release")
+    @PreAuthorize(MANAGER)
+    public ResponseEntity<?> releaseResults(@PathVariable Long id, @PathVariable Integer n, @RequestBody(required = false) Map<String, Object> body) {
+        try {
+            java.time.LocalDateTime at = body != null && Boolean.FALSE.equals(body.get("release")) ? null
+                : body != null && str(body.get("releaseAt")) != null ? java.time.LocalDateTime.parse(str(body.get("releaseAt")))
+                : java.time.LocalDateTime.now();
+            visibilityService.release(id, n, at);
+            return ResponseEntity.ok(Map.of("message", at == null ? "Đã thu hồi kết quả" : "Đã phát hành kết quả", "resultsReleaseAt", at == null ? "" : at.toString()));
+        } catch (java.time.format.DateTimeParseException e) {
+            return error(HttpStatus.BAD_REQUEST, "Giờ phát hành không hợp lệ");
+        } catch (IllegalArgumentException e) {
+            return error(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
 
     // ==================== CONTESTANTS ====================

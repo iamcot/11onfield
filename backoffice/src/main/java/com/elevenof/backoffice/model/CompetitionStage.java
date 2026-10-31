@@ -57,6 +57,9 @@ public class CompetitionStage {
     @Column(nullable = false)
     private Boolean isPublicScoring;
 
+    /** Round results go public from this moment; NULL = not released yet. */
+    private LocalDateTime resultsReleaseAt;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
