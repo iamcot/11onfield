@@ -331,7 +331,10 @@ public class AdminCombineController {
         try {
             measurementService.lockStep(stepId, currentUserId());
             // Closing a test is the moment the round score is stored again (ranking, Top 30 read the stored one).
-            stepRepository.findById(stepId).ifPresent(st -> roundScoringService.recompute(st.getAssessmentDay().getStage().getId()));
+            // Ids only: this controller has no open session, and getId() on a lazy proxy does not load it.
+            stepRepository.findById(stepId)
+                    .flatMap(st -> dayRepository.findById(st.getAssessmentDay().getId()))
+                    .ifPresent(d -> roundScoringService.recompute(d.getStage().getId()));
             return ResponseEntity.ok(Map.of("message", "Đã khoá sổ bài thi, điểm vòng đã tính lại"));
         } catch (IllegalArgumentException e) {
             return error(HttpStatus.BAD_REQUEST, e.getMessage());
