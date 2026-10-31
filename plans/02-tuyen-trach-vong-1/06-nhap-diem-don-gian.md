@@ -56,6 +56,41 @@ Trong màn Chấm điểm thêm chế độ **Bảng**:
 - Gõ liền một mạch, Tab/Enter sang ô kế, lưu theo hàng. Dùng lại `field-scoring/save` với `clientUuid` mỗi hàng.
 - Sau này OCR đổ số vào đúng bảng này để người kiểm rồi lưu.
 
+### 2b. Chế độ nhập theo nhóm thi (iPad của TTV tại bàn thi)
+
+Thực tế ở sân (theo slide thiết kế), mỗi lần thi là một nhóm 6–8 thí sinh. Cả nhóm quét QR báo danh ở bàn thi rồi thi
+cùng lúc, thường hết lượt 1 của cả nhóm rồi mới tới lượt 2. Màn nhập liệu phải theo đúng nhịp đó.
+
+**Luồng trên iPad** (TTV đã chọn bài thi và nội dung thi đang phụ trách):
+1. **Tạo nhóm thi**, rồi lần lượt **quét QR** hoặc **gõ SBD** để thêm thí sinh vào nhóm.
+   - Thí sinh bị cờ y tế hoặc không thuộc danh sách của ngày (mục 3) thì báo ngay và không cho thêm.
+2. Nhóm hiện dạng **danh sách**: mỗi hàng là một thí sinh (SBD, tên, ảnh nhỏ nếu có). Bài có bao nhiêu lượt thì có bấy nhiêu **cột điểm**.
+3. Nhập liệu:
+   - Ô đang nhập được tô sáng. Nút **Tiếp** (hoặc Enter) nhảy sang ô kế.
+   - Có toggle **Đi ngang / Đi dọc**:
+     - *Đi ngang*: một thí sinh thi hết các lượt của mình rồi mới sang người kế (lượt 1 → 2 → … của người A, rồi tới người B).
+     - *Đi dọc* (mặc định): cả nhóm thi lượt 1, rồi quay lại lượt 2 (A1 → B1 → C1 … → A2 → B2 …).
+   - TTV vẫn chạm được **ô bất kỳ** để nhập hoặc sửa.
+   - Mỗi ô có nút nhanh **Lỗi** (FAULT) hoặc **Bỏ thi** (DNS) như màn hiện tại.
+4. **Lưu**: mỗi ô (hoặc mỗi hàng khi đủ lượt) gọi `field-scoring/save` theo logic đã có:
+   - raw → official, kèm `clientUuid` để gửi lại không bị trùng;
+   - đi qua hàng đợi offline khi mất mạng;
+   - số ngoài ngưỡng thì báo "cần xem" ngay tại ô.
+5. Nhóm thi xong thì bấm **Xong nhóm** (xoá nhóm khỏi màn hình, dữ liệu đã lưu) rồi **Tạo nhóm mới**.
+
+**Danh sách đã thi**:
+- Nút mở **drawer trượt từ cạnh**, liệt kê các thí sinh đã thi **nội dung đang chọn** do **TTV đang đăng nhập** nhập, cùng điểm từng lượt.
+- Có nút **Hiệu chỉnh** ở từng thí sinh. Bấm vào thì các ô của hàng đó thành ô nhập ngay tại chỗ.
+- Sửa số đã có thì bắt buộc ghi lý do, theo luật raw/supersede hiện có.
+
+**Kỹ thuật**:
+- Nhóm thi chỉ cần lưu **cục bộ trên iPad**: state, cộng localStorage để không mất khi tải lại trang. Không cần bảng mới, vì nhóm chỉ là cách sắp xếp màn hình.
+  - Nếu muốn thống kê "nhóm thi số mấy" thì có thể thêm `group_no` vào `measurement_raw` sau.
+- API mới cho drawer: `GET /api/admin/field-scoring/mine?assessmentId=…`, trả các lượt mà `recorded_by` = người gọi, theo thí sinh và lượt.
+- Quét QR: dùng lại `SbdScanner` (đã có). Gõ SBD: dùng lại `scouting/participants?q=`.
+- Component mới, ví dụ `components/admin/day/GroupEntry.tsx`, là một chế độ trong màn Chấm điểm tại trạm, cạnh chế độ một thí sinh hiện có và chế độ Bảng (mục 2).
+- Bài "Điểm HLV" (mục 1) dùng cùng chế độ này khi HLV nhập tại sân.
+
 ### 3. Số người đi tiếp sang ngày sau
 
 - Mỗi ngày thi có cấu hình **"Số người đi tiếp"** `{x}` (ví dụ 110 sau ngày 1).
