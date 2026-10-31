@@ -6,7 +6,7 @@ import { api, useApi } from '@/lib/admin/client';
 import AddContestantModal from '@/components/admin/AddContestantModal';
 import CompetitionTabs from '@/components/admin/CompetitionTabs';
 import { useIsManager } from '@/components/admin/me';
-import { Badge, Button, ChevronCell, ClickRow, Input, Loading, Select, Table, Td, useUi } from '@/components/admin/ui';
+import { Badge, Button, ChevronCell, ClickRow, Input, LinkButton, Loading, Select, Table, Td, useUi } from '@/components/admin/ui';
 import { fmtDateTime, PARTICIPANT_STATUS, REGIONS } from '@/lib/admin/labels';
 
 interface Contestant {
@@ -58,6 +58,7 @@ export default function ContestantsPage() {
     <>
       <CompetitionTabs id={id}>
         {manager && <Button variant="primary" onClick={() => setAdding(true)}>+ Thêm cầu thủ</Button>}
+        <LinkButton href={`/quan-tri/giai-dau/${id}/thi-sinh/phieu-sbd`}>In phiếu SBD</LinkButton>
         {manager && <a className="inline-block border border-[#C9D5CD] px-4 py-2 text-[14px] font-medium hover:border-[#1F7A3A]" href={`/quan-tri/api/proxy/competitions/${id}/export/participants`}>Xuất Excel</a>}
       </CompetitionTabs>
       {adding && <AddContestantModal competitionId={id} onClose={() => setAdding(false)} onAdded={list.reload} />}

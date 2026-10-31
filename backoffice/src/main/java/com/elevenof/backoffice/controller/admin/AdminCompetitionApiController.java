@@ -43,6 +43,7 @@ public class AdminCompetitionApiController {
     private final CompetitionAssessmentResultRepository resultRepository;
     private final CompetitionAssessmentResultService assessmentResultService;
     private final StageResultRepository stageResultRepository;
+    private final CompetitionAssessmentStepScoreRepository stepScoreRepository;
     private final AdminController legacyAdminController;
     private final PlayerRepository playerRepository;
     private final UserRepository userRepository;
@@ -546,6 +547,99 @@ public class AdminCompetitionApiController {
             }
             return xlsx(wb, "ket-qua-" + id + ".xlsx");
         }
+    }
+
+    /**
+     * Minutes (biên bản) of one stage as Excel: one sheet per step (bài thi) with every attempt as recorded, the step score and
+     * level. dayId narrows it to one day. The "who entered it" column is not exported: results do not store the recorder yet.
+     */
+    @GetMapping("/competitions/{id}/stages/{n}/export/minutes")
+    @PreAuthorize(MANAGER)
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> exportMinutes(@PathVariable Long id, @PathVariable Integer n, @RequestParam(required = false) Long dayId) throws Exception {
+        CompetitionStage stage = stageRepository.findByCompetitionIdAndStageNumber(id, n).orElse(null);
+        if (stage == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy vòng thi");
+        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        Set<String> usedNames = new HashSet<>();
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            CellStyle bold = wb.createCellStyle();
+            Font font = wb.createFont();
+            font.setBold(true);
+            bold.setFont(font);
+            for (CompetitionAssessmentDay day : dayRepository.findByStageIdOrderByDisplayOrderAsc(stage.getId())) {
+                if (dayId != null && !dayId.equals(day.getId())) continue;
+                for (CompetitionAssessmentStep step : stepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(day.getId())) {
+                    List<CompetitionAssessment> assessments = assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(step.getId());
+                    Map<String, CompetitionAssessmentResult> raw = new HashMap<>();
+                    for (CompetitionAssessmentResult r : resultRepository.findByAssessmentAssessmentStepId(step.getId())) {
+                        raw.put(r.getAssessment().getId() + "_" + r.getParticipant().getId() + "_" + r.getAttemptNumber(), r);
+                    }
+                    Map<Long, CompetitionAssessmentStepScore> scores = new HashMap<>();
+                    for (CompetitionAssessmentStepScore sc : stepScoreRepository.findByAssessmentStepId(step.getId())) scores.put(sc.getParticipant().getId(), sc);
+
+                    Sheet sheet = wb.createSheet(sheetName(usedNames, "N" + day.getDayNumber() + " " + step.getTitle()));
+                    Row title = sheet.createRow(0);
+                    Cell tc = title.createCell(0);
+                    tc.setCellValue("Biên bản vòng " + stage.getStageNumber() + " — " + label(day.getDayNumber(), day.getTitle()) + " — " + step.getTitle());
+                    tc.setCellStyle(bold);
+                    sheet.createRow(1).createCell(0).setCellValue("Ngày thi: " + (day.getAssessmentDate() != null ? day.getAssessmentDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "—"));
+
+                    List<String> heads = new ArrayList<>(List.of("SBD", "Họ tên", "Số điện thoại"));
+                    for (CompetitionAssessment a : assessments) {
+                        for (int k = 1; k <= Math.max(a.getAttemptsCount() == null ? 1 : a.getAttemptsCount(), 1); k++) {
+                            heads.add(a.getTitle() + (a.getUnit() != null && !a.getUnit().isBlank() ? " (" + a.getUnit() + ")" : "") + " — lần " + k);
+                        }
+                    }
+                    heads.addAll(List.of("Điểm bài", "Mức", "Ghi chú", "Giờ ghi gần nhất"));
+                    Row head = sheet.createRow(3);
+                    for (int i = 0; i < heads.size(); i++) {
+                        Cell c = head.createCell(i);
+                        c.setCellValue(heads.get(i));
+                        c.setCellStyle(bold);
+                    }
+                    int r = 4;
+                    for (int i = 0; i < all.size(); i++) {
+                        CompetitionParticipant p = all.get(i);
+                        List<Object> vals = new ArrayList<>(List.of(i + 1, p.getUser().getFullName(), p.getUser().getPhone() == null ? "" : p.getUser().getPhone()));
+                        boolean any = false;
+                        StringBuilder notes = new StringBuilder();
+                        java.time.LocalDateTime last = null;
+                        for (CompetitionAssessment a : assessments) {
+                            for (int k = 1; k <= Math.max(a.getAttemptsCount() == null ? 1 : a.getAttemptsCount(), 1); k++) {
+                                CompetitionAssessmentResult res = raw.get(a.getId() + "_" + p.getId() + "_" + k);
+                                if (res == null || res.getResultValue() == null) { vals.add(""); continue; }
+                                any = true;
+                                vals.add(res.getResultValue().doubleValue());
+                                if (res.getNotes() != null && !res.getNotes().isBlank()) notes.append(a.getTitle()).append(" lần ").append(k).append(": ").append(res.getNotes()).append("; ");
+                                java.time.LocalDateTime at = res.getRecordedAt() != null ? res.getRecordedAt() : res.getUpdatedAt();
+                                if (at != null && (last == null || at.isAfter(last))) last = at;
+                            }
+                        }
+                        CompetitionAssessmentStepScore sc = scores.get(p.getId());
+                        if (!any && sc == null) continue;
+                        vals.add(sc != null && sc.getTotalScore() != null ? sc.getTotalScore().doubleValue() : "");
+                        vals.add(sc != null && sc.getRatingLevel() != null ? sc.getRatingLevel() : "");
+                        if (sc != null && sc.getNotes() != null && !sc.getNotes().isBlank()) notes.append(sc.getNotes());
+                        vals.add(notes.toString().trim());
+                        vals.add(last != null ? last.format(fmt) : "");
+                        row(sheet, r++, vals.toArray());
+                    }
+                    for (int i = 0; i < heads.size(); i++) sheet.setColumnWidth(i, i == 1 ? 9000 : i >= heads.size() - 2 ? 9000 : 4800);
+                }
+            }
+            if (wb.getNumberOfSheets() == 0) wb.createSheet("Chưa có bài thi");
+            return xlsx(wb, "bien-ban-" + id + "-vong-" + n + (dayId != null ? "-ngay-" + dayId : "") + ".xlsx");
+        }
+    }
+
+    /** Excel sheet names: at most 31 characters, none of []:*?/\, unique within the workbook. */
+    private static String sheetName(Set<String> used, String raw) {
+        String base = raw.replaceAll("[\\[\\]:*?/\\\\]", " ").trim();
+        if (base.length() > 28) base = base.substring(0, 28);
+        String name = base;
+        for (int i = 2; !used.add(name.toLowerCase()); i++) name = base + " " + i;
+        return name;
     }
 
     private static void header(Workbook wb, Sheet sheet, String... names) {
