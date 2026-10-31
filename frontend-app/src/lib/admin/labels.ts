@@ -80,7 +80,7 @@ export const ROLES: Record<string, string> = {
   MEDICAL: 'Y tế',
   ADMIN: 'Admin',
 };
-export const STAFF_ROLE_KEYS = ['EDITOR', 'MEDICAL', 'ADMIN'];
+export const STAFF_ROLE_KEYS = ['EDITOR', 'MEDICAL', 'ADMIN', 'COACH', 'SCOUTER'];
 
 export const FLAG_KINDS: Record<string, { label: string; tone: 'red' | 'gold' | 'gray' | 'green' }> = {
   MEDICAL_OUT: { label: 'Y tế: không đủ điều kiện', tone: 'red' },

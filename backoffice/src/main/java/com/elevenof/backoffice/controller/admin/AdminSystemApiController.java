@@ -30,7 +30,10 @@ public class AdminSystemApiController {
 
     private static final String MANAGER = "hasRole('ADMIN')";
     private static final String SUPER = "hasRole('ADMIN')";
-    private static final List<User.Role> STAFF_ROLES = List.of(User.Role.EDITOR, User.Role.MEDICAL, User.Role.ADMIN);
+    /** Admin site and scouting accounts, listed by default. */
+    private static final List<User.Role> STAFF_ROLES = List.of(User.Role.ADMIN, User.Role.EDITOR, User.Role.MEDICAL, User.Role.COACH, User.Role.SCOUTER);
+    /** Players have their own pages, so this screen never lists them. */
+    private static final List<User.Role> NOT_PLAYERS = java.util.Arrays.stream(User.Role.values()).filter(r -> r != User.Role.PLAYER).toList();
 
     private final NotificationScenarioRepository scenarioRepository;
     private final NotificationTemplateService templateService;
@@ -130,12 +133,13 @@ public class AdminSystemApiController {
         Page<User> result;
         String needle = q == null ? "" : q.trim();
         if (!needle.isEmpty()) {
-            // Search always spans every role so a player can be found and promoted.
-            result = userRepository.findAll((root, query, cb) -> cb.or(
+            // Search spans every role but players (they have their own pages).
+            List<User.Role> roles = all ? NOT_PLAYERS : STAFF_ROLES;
+            result = userRepository.findAll((root, query, cb) -> cb.and(root.get("role").in(roles), cb.or(
                     cb.like(root.get("phone"), "%" + needle + "%"),
-                    cb.like(cb.lower(root.get("fullName")), "%" + needle.toLowerCase() + "%")), pageable);
+                    cb.like(cb.lower(root.get("fullName")), "%" + needle.toLowerCase() + "%"))), pageable);
         } else if (all) {
-            result = userRepository.findAll(pageable);
+            result = userRepository.findByRoleIn(NOT_PLAYERS, pageable);
         } else {
             result = userRepository.findByRoleIn(STAFF_ROLES, pageable);
         }
