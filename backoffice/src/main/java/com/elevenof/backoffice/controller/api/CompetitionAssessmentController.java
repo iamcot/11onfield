@@ -25,6 +25,7 @@ public class CompetitionAssessmentController {
 
     private final CompetitionAssessmentStructureService structureService;
     private final CompetitionAssessmentResultService resultService;
+    private final com.elevenof.backoffice.service.RoundScoringService roundScoringService;
     private final com.elevenof.backoffice.repository.CompetitionStageRepository stageRepository;
     private final com.elevenof.backoffice.repository.CompetitionParticipantRepository participantRepository;
 
@@ -309,6 +310,8 @@ public class CompetitionAssessmentController {
 
         CompetitionStage stage = getStage(competitionId, stageNumber);
         resultService.recalculateAllScores(stage.getId());
+        // Combine stages: store the round score from the day totals (what ranking and Top 30 read).
+        roundScoringService.recompute(stage.getId());
 
         return ResponseEntity.ok().build();
     }

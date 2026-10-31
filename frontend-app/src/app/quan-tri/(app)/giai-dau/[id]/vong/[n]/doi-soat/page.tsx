@@ -243,6 +243,13 @@ function Guide() {
         <li>Thanh điều hướng hiện ✓ ở “Đối soát và khoá sổ” khi mọi bài tính điểm của vòng đã khoá.</li>
       </ul>
 
+      <p className={H}>Điểm tổng thay đổi khi nào</p>
+      <ul className="ml-5 list-disc">
+        <li><b>Tổng điểm ngày</b> (bảng chốt ngày, nhóm “Điểm từ ngày trước” của ngày sau) tính lại <b>ngay mỗi khi có số mới</b> được lưu hoặc được chốt tay. Lượt còn “Cần xem” chưa được tính.</li>
+        <li><b>Điểm vòng đã lưu</b> (dùng cho Xếp hạng 3 khu vực, Top 30) chỉ tính lại khi <b>khoá sổ một bài</b> hoặc khi bấm <b>Tính lại điểm</b> ở Kết quả vòng.</li>
+        <li>Khoá sổ không làm đổi số, chỉ giữ cho số không bị đổi nữa.</li>
+      </ul>
+
       <p className={H}>Trình tự cuối mỗi ngày thi</p>
       <ol className="ml-5 list-decimal">
         <li>Nhắc các TTV kiểm tra iPad: ô “chờ gửi” trên thanh trên cùng phải về 0 (có mạng là tự gửi).</li>

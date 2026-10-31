@@ -38,6 +38,7 @@ public class AdminCombineController {
     private final UserRepository userRepository;
     private final MeasurementService measurementService;
     private final ScoringService scoringService;
+    private final com.elevenof.backoffice.service.RoundScoringService roundScoringService;
 
     // ==================== CONFIG ====================
 
@@ -329,7 +330,9 @@ public class AdminCombineController {
     public ResponseEntity<?> lock(@PathVariable Long stepId) {
         try {
             measurementService.lockStep(stepId, currentUserId());
-            return ResponseEntity.ok(Map.of("message", "Đã khoá sổ bài thi"));
+            // Closing a test is the moment the round score is stored again (ranking, Top 30 read the stored one).
+            stepRepository.findById(stepId).ifPresent(st -> roundScoringService.recompute(st.getAssessmentDay().getStage().getId()));
+            return ResponseEntity.ok(Map.of("message", "Đã khoá sổ bài thi, điểm vòng đã tính lại"));
         } catch (IllegalArgumentException e) {
             return error(HttpStatus.BAD_REQUEST, e.getMessage());
         }
