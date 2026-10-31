@@ -10,7 +10,7 @@ import { api } from '@/lib/admin/client';
 import { isNetworkError, newClientUuid, queuePut, queueRemove, sendSave, type QueuedSave } from '@/lib/admin/offline-queue';
 import { Spinner } from './keypad';
 
-interface Assessment { id: number; title: string; unit: string | null; attemptsCount: number; scoringMethod: string }
+interface Assessment { id: number; title: string; unit: string | null; attemptsCount: number; scoringMethod: string; faultReasons?: string[] }
 interface Row {
   participantId: number;
   sbd: number;
@@ -64,6 +64,12 @@ export default function TableEntry({ stepId, assessments, flash, onQueueChange }
     const v = raw.trim().toUpperCase().replace(',', '.');
     if (v === shown(r, key) || v === '') { setDrafts((d) => { const n = { ...d }; delete n[id]; return n; }); return; }
     const status = v === 'L' ? 'FAULT' : v === 'K' ? 'DNS' : null;
+    const faults = assessments.find((a) => String(a.id) === key.split('_')[0])?.faultReasons || [];
+    if (status === 'FAULT' && faults.length === 0) {
+      setStates((s) => ({ ...s, [id]: 'error' }));
+      flash('error', `SBD ${r.sbd}: bài này không có lỗi được khai báo, gõ K nếu không thi`);
+      return;
+    }
     if (!status && Number.isNaN(Number(v))) {
       setStates((s) => ({ ...s, [id]: 'error' }));
       flash('error', `SBD ${r.sbd}: "${raw}" không phải số (gõ L = Lỗi, K = Không thi)`);
@@ -126,7 +132,7 @@ export default function TableEntry({ stepId, assessments, flash, onQueueChange }
           {rows ? `${filled}/${rows.length} người đủ số${listed ? ' · theo danh sách của ngày' : ''}` : ''}
         </span>
       </div>
-      <p className="mt-2 text-[14px] text-[#46564D]">Enter xuống dòng dưới, Tab sang lượt kế. Gõ <b>L</b> = Lỗi, <b>K</b> = Không thi. Ô tự lưu khi rời ô.</p>
+      <p className="mt-2 text-[14px] text-[#46564D]">Enter xuống dòng dưới, Tab sang lượt kế. Gõ <b>L</b> = Lỗi (chỉ bài có khai báo lỗi), <b>K</b> = Không thi. Ô tự lưu khi rời ô.</p>
       {error && <p role="alert" className="mt-3 rounded-lg bg-[#FDE4E1] p-3 font-semibold text-[#B42318]">{error}</p>}
       {!rows && !error && <p className="mt-3 flex items-center gap-2 text-[17px]"><Spinner /> Đang tải…</p>}
       {rows && (

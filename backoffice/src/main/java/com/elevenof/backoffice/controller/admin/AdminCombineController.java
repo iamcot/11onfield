@@ -69,6 +69,7 @@ public class AdminCombineController {
             m.put("plausibleMax", a.getPlausibleMax());
             m.put("tolerance", a.getTolerance());
             m.put("valueType", a.getValueType());
+            m.put("faultReasons", faultList(a.getFaultReasons()));
             return m;
         }).toList());
         out.put("levels", ratingRepository.findByAssessmentStepIdOrderByLevelDesc(stepId).stream().map(r -> {
@@ -124,7 +125,13 @@ public class AdminCombineController {
         return stepConfig(stepId);
     }
 
-    /** body: { direction?, plausibleMin?, plausibleMax?, tolerance?, valueType? }; a key with null clears that bound. */
+    /** The fault reasons stored one per line, as a list. */
+    public static List<String> faultList(String stored) {
+        if (stored == null || stored.isBlank()) return List.of();
+        return java.util.Arrays.stream(stored.split("\n")).map(String::trim).filter(x -> !x.isEmpty()).toList();
+    }
+
+    /** body: { direction?, plausibleMin?, plausibleMax?, tolerance?, valueType?, faultReasons?: [..] }; a key with null clears that bound. */
     @PutMapping("/assessments/{assessmentId}/combine-config")
     @Transactional
     public ResponseEntity<?> updateAssessmentConfig(@PathVariable Long assessmentId, @RequestBody Map<String, Object> body) {
@@ -137,6 +144,13 @@ public class AdminCombineController {
             if (body.containsKey("tolerance")) a.setTolerance(decimal(body.get("tolerance")));
         } catch (IllegalArgumentException e) {
             return error(HttpStatus.BAD_REQUEST, "Giá trị không hợp lệ");
+        }
+        if (body.containsKey("faultReasons")) {
+            List<String> reasons = body.get("faultReasons") instanceof List<?> l
+                    ? l.stream().map(String::valueOf).map(String::trim).filter(x -> !x.isEmpty()).distinct().limit(8).toList() : List.of();
+            String joined = String.join("\n", reasons);
+            if (joined.length() > 500) return error(HttpStatus.BAD_REQUEST, "Danh sách lỗi quá dài");
+            a.setFaultReasons(joined.isEmpty() ? null : joined);
         }
         if (body.get("valueType") != null) {
             String vt = body.get("valueType").toString();

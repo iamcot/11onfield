@@ -65,6 +65,10 @@ public class CompetitionAssessment {
     @Column(precision = 10, scale = 3)
     private BigDecimal plausibleMax;
 
+    /** Common faults of this test, one per line. Empty: the test has no "Lỗi", only "Không thi". */
+    @Column(name = "fault_reasons", length = 500)
+    private String faultReasons;
+
     /** Largest gap allowed between two sources of the same attempt. */
     @Column(precision = 10, scale = 3)
     private BigDecimal tolerance;

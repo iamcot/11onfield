@@ -128,6 +128,8 @@ BEGIN
     CALL sd_step(v_day1, 3, 'Agility',
                  'B4: luồn cọc chuyển hướng, 2 lượt. (ngưỡng tạm) Slide chỉ ghi Xanh < 15,2 s.', t_kythuat, 'MEASURED');
     CALL sd_content(1, 'Thời gian agility', 's', 2, 'BEST_OF', 'LOWER', 'NUMBER', 10, 30);
+    -- Lỗi hay gặp của bài luồn cọc: chỉ bài có khai báo lỗi mới có nút "Lỗi" ở màn chấm điểm.
+    UPDATE competition_assessments SET fault_reasons = CONCAT('Va cọc', CHAR(10), 'Trượt chân') WHERE id = @a;
     CALL sd_band(5, NULL, 15.19);
     CALL sd_band(4, 15.2, 16.5);
     CALL sd_band(3, 16.51, 17.8);

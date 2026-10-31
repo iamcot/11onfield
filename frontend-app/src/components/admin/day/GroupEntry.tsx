@@ -11,7 +11,7 @@ import SbdScanner from '@/components/admin/SbdScanner';
 import { isNetworkError, newClientUuid, queuePut, queueRemove, sendSave, type QueuedSave } from '@/lib/admin/offline-queue';
 import { Keypad, Spinner } from './keypad';
 
-interface Assessment { id: number; title: string; unit: string | null; attemptsCount: number; scoringMethod: string }
+interface Assessment { id: number; title: string; unit: string | null; attemptsCount: number; scoringMethod: string; faultReasons?: string[] }
 type CellStatus = 'FAULT' | 'DNS';
 type CellState = 'saving' | 'ok' | 'queued' | 'review' | 'error';
 
@@ -37,7 +37,6 @@ interface Lookup {
 interface MineRow { participantId: number; sbd: number; fullName: string; scores: Record<string, number>; statuses: Record<string, CellStatus> }
 
 const INK = 'text-[#06140D]';
-const FAULTS = ['Va cọc', 'Trượt chân', 'Lỗi khác'];
 const sig = (m: Member, key: string) => (m.statuses[key] ? `s:${m.statuses[key]}:${m.notes[key] || ''}` : `v:${m.values[key] || ''}`);
 const storeKey = (stepId: number) => `of:group:${stepId}`;
 
@@ -349,11 +348,14 @@ export default function GroupEntry({ dayId, stepId, assessments, competitionId, 
           <Keypad allowDot={target !== 'sbd'} onKey={onKey} />
           {target !== 'sbd' && (
             <div className="mt-3 space-y-2">
-              <div className="grid grid-cols-3 gap-2">
-                {FAULTS.map((f) => (
-                  <button key={f} type="button" onClick={() => mark('FAULT', f === 'Lỗi khác' ? undefined : f)} className="min-h-[52px] rounded-xl border-2 border-[#B42318] bg-white px-1 text-[15px] font-bold leading-tight text-[#B42318] active:bg-[#FDE4E1]">{f}</button>
-                ))}
-              </div>
+              {/* Only tests the admin listed faults for get Lỗi buttons; the rest only have Không thi. */}
+              {(assessments.find((a) => String(a.id) === target.key.split('_')[0])?.faultReasons || []).length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {(assessments.find((a) => String(a.id) === target.key.split('_')[0])?.faultReasons || []).map((f) => (
+                    <button key={f} type="button" onClick={() => mark('FAULT', f)} className="min-h-[52px] rounded-xl border-2 border-[#B42318] bg-white px-1 text-[15px] font-bold leading-tight text-[#B42318] active:bg-[#FDE4E1]">Lỗi: {f}</button>
+                  ))}
+                </div>
+              )}
               <button type="button" onClick={() => mark('DNS')} className="min-h-[52px] w-full rounded-xl bg-[#0B2419] text-[17px] font-bold text-white active:bg-[#18522F]">Không thi</button>
             </div>
           )}

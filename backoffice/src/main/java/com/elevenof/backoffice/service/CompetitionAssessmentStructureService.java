@@ -424,6 +424,7 @@ public class CompetitionAssessmentStructureService {
                         .plausibleMax(sourceAssessment.getPlausibleMax())
                         .tolerance(sourceAssessment.getTolerance())
                         .valueType(sourceAssessment.getValueType())
+                        .faultReasons(sourceAssessment.getFaultReasons())
                         .build();
                     newAssessment = assessmentRepository.save(newAssessment);
                     assessmentIds.put(sourceAssessment.getId(), newAssessment.getId());

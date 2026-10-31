@@ -14,7 +14,7 @@ import {
   flushQueue, isNetworkError, newClientUuid, queueAll, queuePut, queueRemove, sendSave, type QueuedSave,
 } from '@/lib/admin/offline-queue';
 
-interface Assessment { id: number; title: string; unit: string | null; attemptsCount: number; scoringMethod: string }
+interface Assessment { id: number; title: string; unit: string | null; attemptsCount: number; scoringMethod: string; faultReasons?: string[] }
 interface Ctx {
   competition?: { id: number; title: string };
   stage?: { id: number; stageNumber: number; title: string };
@@ -46,7 +46,8 @@ const COLORS: Record<string, { label: string; bg: string; fg: string }> = {
   YELLOW: { label: 'Vàng', bg: '#F5C451', fg: '#06140D' },
   GREEN: { label: 'Xanh', bg: '#1F7A3A', fg: '#FFFFFF' },
 };
-const FAULTS = ['Va cọc', 'Trượt chân', 'Lỗi khác'];
+/** The faults the admin listed for the test of a cell (assessmentId_attempt); none means no Lỗi button. */
+const faultsOf = (list: Assessment[] | undefined, key: string) => list?.find((a) => String(a.id) === key.split('_')[0])?.faultReasons || [];
 
 const METHOD: Record<string, string> = { BEST_OF: 'lấy lượt tốt nhất', SUM: 'cộng các lượt', AVERAGE: 'trung bình các lượt' };
 
@@ -588,11 +589,13 @@ export default function FieldScoring() {
                     {target !== 'sbd' && (
                       <div className="mt-3 space-y-2">
                         <p className="px-1 text-[14px] font-bold uppercase tracking-wide">Lượt này</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {FAULTS.map((f) => (
-                            <button key={f} type="button" onClick={() => markCell(target, 'FAULT', f === 'Lỗi khác' ? undefined : f)} className="min-h-[56px] rounded-xl border-2 border-[#B42318] bg-white px-1 text-[16px] font-bold leading-tight text-[#B42318] active:bg-[#FDE4E1]">{f}</button>
-                          ))}
-                        </div>
+                        {faultsOf(c.assessments, target).length > 0 && (
+                          <div className="grid grid-cols-3 gap-2">
+                            {faultsOf(c.assessments, target).map((f) => (
+                              <button key={f} type="button" onClick={() => markCell(target, 'FAULT', f)} className="min-h-[56px] rounded-xl border-2 border-[#B42318] bg-white px-1 text-[16px] font-bold leading-tight text-[#B42318] active:bg-[#FDE4E1]">Lỗi: {f}</button>
+                            ))}
+                          </div>
+                        )}
                         <div className="grid grid-cols-2 gap-2">
                           <button type="button" onClick={() => markCell(target, 'DNS')} className="min-h-[56px] rounded-xl bg-[#0B2419] text-[17px] font-bold text-white active:bg-[#18522F]">Không thi</button>
                           <button type="button" disabled={!statuses[target]} onClick={() => clearStatus(target)} className="min-h-[56px] rounded-xl border-2 border-[#0B2419]/30 bg-white text-[17px] font-semibold disabled:opacity-40">Bỏ đánh dấu</button>

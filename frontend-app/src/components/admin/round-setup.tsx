@@ -15,7 +15,7 @@ export const METHODS: Record<string, string> = { BEST_OF: 'lượt tốt nhất'
 type Action = 'NONE' | 'FLAG' | 'ELIMINATE';
 interface Config {
   stepId: number; title: string; isScored: boolean; audience: 'ALL' | 'OUTFIELD' | 'GOALKEEPER'; scoreSource?: 'MEASURED' | 'HLV'; topicId: number | null; locked: boolean;
-  assessments: { id: number; title: string; unit: string | null; attemptsCount: number; direction: 'HIGHER' | 'LOWER'; plausibleMin: number | null; plausibleMax: number | null; tolerance: number | null; valueType: string }[];
+  assessments: { id: number; title: string; unit: string | null; attemptsCount: number; direction: 'HIGHER' | 'LOWER'; plausibleMin: number | null; plausibleMax: number | null; tolerance: number | null; valueType: string; faultReasons?: string[] }[];
   levels: { level: number; color: Color; action: Action; description: string | null; conditions: { assessmentId: number; min: number | null; max: number | null }[] }[];
   topics: Topic[];
 }
@@ -23,7 +23,7 @@ export interface Topic { id?: number; topicKey: string; name: string; maxPoints:
 
 /** One editable level; bounds are kept as text so a half-typed number is not lost. */
 interface LevelForm { level: number; color: Color; action: Action; description: string; bounds: Record<number, { min: string; max: string }> }
-interface AssessmentForm { id: number; direction: 'HIGHER' | 'LOWER'; plausibleMin: string; plausibleMax: string; tolerance: string; valueType: string }
+interface AssessmentForm { id: number; direction: 'HIGHER' | 'LOWER'; plausibleMin: string; plausibleMax: string; tolerance: string; valueType: string; faults: string }
 
 export const COLORS: Record<Color, { label: string; bg: string; text: string }> = {
   GREY: { label: 'Xám', bg: '#C9D0CC', text: '#2B3530' },
@@ -53,6 +53,7 @@ function toForms(cfg: Config) {
   });
   const assessments: AssessmentForm[] = cfg.assessments.map((a) => ({
     id: a.id, direction: a.direction || 'HIGHER', plausibleMin: txt(a.plausibleMin), plausibleMax: txt(a.plausibleMax), tolerance: txt(a.tolerance), valueType: a.valueType || 'NUMBER',
+    faults: (a.faultReasons || []).join(', '),
   }));
   return { levels, assessments };
 }
@@ -128,7 +129,8 @@ export function StepEditor({ competitionId, stage, step, onChanged, onEditAssess
       for (const a of assessments) {
         await api(`assessments/${a.id}/combine-config`, {
           method: 'PUT',
-          body: { direction: a.direction, valueType: a.valueType, plausibleMin: num(a.plausibleMin), plausibleMax: num(a.plausibleMax), tolerance: num(a.tolerance) },
+          body: { direction: a.direction, valueType: a.valueType, plausibleMin: num(a.plausibleMin), plausibleMax: num(a.plausibleMax), tolerance: num(a.tolerance),
+            faultReasons: a.faults.split(',').map((x) => x.trim()).filter(Boolean) },
         });
       }
       if (head.isScored && assessments.length > 0) await api(`competitions/${competitionId}/stages/${stage}/assessment-steps/${step.id}/rating-scale`, {
@@ -193,9 +195,9 @@ export function StepEditor({ competitionId, stage, step, onChanged, onEditAssess
 
           <Card title="Nội dung thi">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[860px] text-[14px]">
+              <table className="w-full min-w-[1060px] text-[14px]">
                 <thead className="text-left text-[11px] uppercase tracking-wider text-[#56665D]">
-                  <tr><th className="py-1 pr-2 font-medium">Nội dung</th><th className="px-2 font-medium">Chiều tốt</th><th className="px-2 font-medium">Kiểu giá trị</th><th className="px-2 font-medium">Hợp lý từ</th><th className="px-2 font-medium">đến</th><th className="px-2 font-medium">Sai số</th>{onEditAssessment && <th className="w-24" />}</tr>
+                  <tr><th className="py-1 pr-2 font-medium">Nội dung</th><th className="px-2 font-medium">Chiều tốt</th><th className="px-2 font-medium">Kiểu giá trị</th><th className="px-2 font-medium">Hợp lý từ</th><th className="px-2 font-medium">đến</th><th className="px-2 font-medium">Sai số</th><th className="px-2 font-medium" title="Bài có lỗi hay gặp mới có nút Lỗi ở màn chấm điểm; để trống thì chỉ có Không thi">Lỗi hay gặp</th>{onEditAssessment && <th className="w-24" />}</tr>
                 </thead>
                 <tbody className="divide-y divide-[#E6ECE8]">
                   {data.assessments.map((a) => {
@@ -209,6 +211,7 @@ export function StepEditor({ competitionId, stage, step, onChanged, onEditAssess
                         <td className="px-2"><Input disabled={readOnly} inputMode="decimal" aria-label={`${a.title}: ngưỡng hợp lý nhỏ nhất`} value={f.plausibleMin} onChange={(e) => setAssessment(a.id, { plausibleMin: e.target.value })} /></td>
                         <td className="px-2"><Input disabled={readOnly} inputMode="decimal" aria-label={`${a.title}: ngưỡng hợp lý lớn nhất`} value={f.plausibleMax} onChange={(e) => setAssessment(a.id, { plausibleMax: e.target.value })} /></td>
                         <td className="px-2"><Input disabled={readOnly} inputMode="decimal" aria-label={`${a.title}: sai số giữa hai nguồn`} value={f.tolerance} onChange={(e) => setAssessment(a.id, { tolerance: e.target.value })} /></td>
+                        <td className="min-w-[13rem] px-2"><Input disabled={readOnly} aria-label={`${a.title}: lỗi hay gặp, cách nhau bằng dấu phẩy`} placeholder="VD: Va cọc, Trượt chân" value={f.faults} onChange={(e) => setAssessment(a.id, { faults: e.target.value })} /></td>
                         {onEditAssessment && (() => {
                           const full = step.assessments.find((x) => x.id === a.id);
                           return (
@@ -229,7 +232,7 @@ export function StepEditor({ competitionId, stage, step, onChanged, onEditAssess
                 </tbody>
               </table>
             </div>
-            <p className="mt-1 text-[12px] text-[#66766D]">Ngoài ngưỡng hợp lý, tablet cảnh báo và lượt đó vào hàng “cần xem”. Sai số là mức lệch cho phép giữa hai nguồn đo.</p>
+            <p className="mt-1 text-[12px] text-[#66766D]">Ngoài ngưỡng hợp lý, tablet cảnh báo và lượt đó vào hàng “cần xem”. Sai số là mức lệch cho phép giữa hai nguồn đo. Lỗi hay gặp (cách nhau bằng dấu phẩy) hiện thành nút “Lỗi” ở màn chấm điểm; để trống thì bài đó chỉ có “Không thi”.</p>
           </Card>
 
           {head.isScored && data.assessments.length > 0 && (

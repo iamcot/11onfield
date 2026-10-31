@@ -486,6 +486,7 @@ public class AdminCompetitionApiController {
             m.put("title", a.getTitle());
             m.put("unit", a.getUnit());
             m.put("attemptsCount", a.getAttemptsCount());
+            m.put("faultReasons", AdminCombineController.faultList(a.getFaultReasons()));
             m.put("scoringMethod", a.getScoringMethod() != null ? a.getScoringMethod().name() : null);
             assessmentList.add(m);
         }
@@ -587,6 +588,9 @@ public class AdminCompetitionApiController {
                             status = MeasurementStatus.valueOf(statusText);
                         } catch (IllegalArgumentException e) {
                             return error(HttpStatus.BAD_REQUEST, "Trạng thái lượt không hợp lệ: " + statusText);
+                        }
+                        if (status == MeasurementStatus.FAULT && AdminCombineController.faultList(a.getFaultReasons()).isEmpty()) {
+                            return error(HttpStatus.BAD_REQUEST, a.getTitle() + " không có lỗi nào được khai báo, hãy ghi Không thi");
                         }
                     }
                     BigDecimal value = null;
