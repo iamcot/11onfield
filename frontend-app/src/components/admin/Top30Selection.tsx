@@ -102,6 +102,8 @@ export default function Top30Selection({ id }: { id: string }) {
   const canVote = me.role === 'HLV' || me.role === 'TTV';
   const [group, setGroup] = useState<Group>('ALL');
   const [region, setRegion] = useState('');
+  const [sortVotes, setSortVotes] = useState(false);
+  const [sortTotal, setSortTotal] = useState(false);
   const ranking = useRanking(id, '');
   const votes = useApi<Votes>(`competitions/${id}/selection/${ROUND}/votes`);
   const decision = useApi<Decision>(`competitions/${id}/selection/${ROUND}/decision`);
@@ -166,7 +168,13 @@ export default function Top30Selection({ id }: { id: string }) {
 
   const decidedNotes = decision.data?.notes || {};
   const list = rows.filter((r) => inGroup(r, group) && (!region || r.region === region));
-  const shownRows = decided ? list.filter((r) => final.has(r.participantId)) : list;
+  const voteCount = (r: RankRow) => Number(votes.data?.counts?.[String(r.participantId)] ?? r.votes ?? 0);
+  // Header sorts, both descending: tap to sort, tap again to stop. With both on, votes first, then total.
+  // Equal rows keep the ranking order.
+  const sorted = [...list].sort((a, b) =>
+    (sortVotes ? voteCount(b) - voteCount(a) : 0)
+    || (sortTotal ? Number(b.total ?? -1) - Number(a.total ?? -1) : 0));
+  const shownRows = decided ? sorted.filter((r) => final.has(r.participantId)) : sorted;
   const judges = votes.data?.judges;
 
   return (
@@ -203,7 +211,16 @@ export default function Top30Selection({ id }: { id: string }) {
           <table className="w-full min-w-[900px] text-left text-[14px] whitespace-nowrap">
             <thead className="bg-[#F3F6F4] text-[11px] uppercase tracking-wider text-[#56665D]">
               <tr>
-                {['Hạng', 'SBD', 'Họ tên', 'Khu vực', 'Vị trí', 'Tổng', ...(staff ? [`Phiếu${judges != null ? ` (/${judges})` : ''}`] : []), 'Cờ'].map((h) => <th key={h} className="px-3 py-2.5 font-medium">{h}</th>)}
+                {['Hạng', 'SBD', 'Họ tên', 'Khu vực', 'Vị trí'].map((h) => <th key={h} className="px-3 py-2.5 font-medium">{h}</th>)}
+                <th className="px-3 py-2.5 font-medium" aria-sort={sortTotal ? 'descending' : 'none'}>
+                  <button type="button" onClick={() => setSortTotal(!sortTotal)} className={`uppercase tracking-wider ${sortTotal ? 'font-bold text-[#1F7A3A]' : 'hover:text-[#10231A]'}`}>Tổng {sortTotal ? '↓' : '↕'}</button>
+                </th>
+                {staff && (
+                  <th className="px-3 py-2.5 font-medium" aria-sort={sortVotes ? 'descending' : 'none'}>
+                    <button type="button" onClick={() => setSortVotes(!sortVotes)} className={`uppercase tracking-wider ${sortVotes ? 'font-bold text-[#1F7A3A]' : 'hover:text-[#10231A]'}`}>Phiếu{judges != null ? ` (/${judges})` : ''} {sortVotes ? '↓' : '↕'}</button>
+                  </th>
+                )}
+                <th className="px-3 py-2.5 font-medium">Cờ</th>
                 {canVote && !decided && <th className="px-3 py-2.5 font-medium">Phiếu của tôi</th>}
                 {superUser && <th className="px-3 py-2.5 font-medium">{decided ? 'Lý do' : 'Chọn'}</th>}
               </tr>
