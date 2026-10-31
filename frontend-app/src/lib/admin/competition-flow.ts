@@ -34,7 +34,6 @@ export const STEPS: FlowStep[] = [
   { id: 'cham-diem', label: 'Chấm điểm tại trạm', phase: 'day', perRound: true, path: '/vong/{n}/cham-diem' },
   { id: 'ghi-nhan', label: 'Ghi nhận thí sinh', phase: 'day', perRound: true, path: '/vong/{n}/ghi-nhan' },
   { id: 'doi-soat', label: 'Đối soát và khoá sổ', phase: 'after', perRound: true, path: '/vong/{n}/doi-soat' },
-  { id: 'diem-cham-tay', label: 'Điểm chấm tay', phase: 'after', perRound: true, path: '/vong/{n}/diem-cham-tay' },
   { id: 'ket-qua', label: 'Kết quả vòng', phase: 'after', perRound: true, path: '/vong/{n}/ket-qua' },
   { id: 'xep-hang', label: 'Xếp hạng 3 khu vực', phase: 'after', path: '/xep-hang' },
   { id: 'top-30', label: 'Top 30 và Green Card', phase: 'after', path: '/tuyen-chon' },

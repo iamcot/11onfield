@@ -469,7 +469,7 @@ public class AdminCompetitionApiController {
 
         List<CompetitionAssessmentStep> steps = stepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(day.getId());
         List<Map<String, Object>> stepList = new ArrayList<>();
-        for (CompetitionAssessmentStep s : steps) stepList.add(Map.of("id", s.getId(), "title", label(s.getStepNumber(), s.getTitle())));
+        for (CompetitionAssessmentStep s : steps) stepList.add(Map.of("id", s.getId(), "title", label(s.getStepNumber(), s.getTitle()), "scoreSource", s.getScoreSource()));
         out.put("steps", stepList);
 
         CompetitionAssessmentStep step = steps.stream().filter(s -> s.getId().equals(stepId)).findFirst().orElse(null);
@@ -555,6 +555,11 @@ public class AdminCompetitionApiController {
         Map<?, ?> notes = body.get("notes") instanceof Map<?, ?> m ? m : Map.of();
         String clientUuid = str(body.get("clientUuid"));
         if (flagService.isBlocked(participantId)) return error(HttpStatus.CONFLICT, "Thí sinh đã bị bác sĩ loại khỏi vòng thi, không thể ghi điểm");
+        // A coach's-score problem is entered by the head coach (or corrected by the admin), not by the scouts.
+        CompetitionAssessmentStep scoredStep = stepRepository.findById(stepId).orElse(null);
+        if (scoredStep != null && "HLV".equals(scoredStep.getScoreSource()) && !hasAuthority("ROLE_HLV") && !hasAuthority("ROLE_ADMIN")) {
+            return error(HttpStatus.FORBIDDEN, "Bài này là Điểm HLV, chỉ HLV nhập");
+        }
         Long userId = currentUserId();
         List<Map<String, Object>> review = new ArrayList<>();
         try {
@@ -635,6 +640,11 @@ public class AdminCompetitionApiController {
                 .map(CompetitionAssessmentStepRating::getColor).orElse(null) : null);
         out.put("warnings", warnings);
         return ResponseEntity.ok(out);
+    }
+
+    private static boolean hasAuthority(String authority) {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(authority));
     }
 
     private Long currentUserId() {

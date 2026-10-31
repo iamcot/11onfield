@@ -38,9 +38,11 @@ public class CompetitionScoreTopic {
 
     private Integer tieBreakOrder;
 
-    /** null: from the problems' levels; "HLV": entered by the head coach after the exam. */
+    /** null: average of its problems' levels; "PREV_DAY": the total of an earlier day (sourceDayId), out of 100. */
     @Column(length = 10)
-    private String scoredBy;
+    private String source;
+
+    private Long sourceDayId;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

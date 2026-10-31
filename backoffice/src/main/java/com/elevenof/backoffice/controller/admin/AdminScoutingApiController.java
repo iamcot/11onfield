@@ -44,8 +44,6 @@ public class AdminScoutingApiController {
     private final JudgeNoteRepository judgeNoteRepository;
     private final ParticipantFlagRepository flagRepository;
     private final GreenCardRepository greenCardRepository;
-    private final ManualScoreRepository manualScoreRepository;
-    private final CompetitionScoreTopicRepository topicRepository;
     private final ParticipantFlagService flagService;
     private final com.elevenof.backoffice.service.PanelService panelService;
 
@@ -71,7 +69,7 @@ public class AdminScoutingApiController {
         for (CompetitionAssessmentDay d : dayRepository.findByStageIdOrderByDisplayOrderAsc(live.getId())) {
             List<Map<String, Object>> steps = new ArrayList<>();
             for (CompetitionAssessmentStep s : stepRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(d.getId())) {
-                steps.add(Map.of("id", s.getId(), "title", label(s.getStepNumber(), s.getTitle())));
+                steps.add(Map.of("id", s.getId(), "title", label(s.getStepNumber(), s.getTitle()), "scoreSource", s.getScoreSource()));
             }
             days.add(Map.of("id", d.getId(), "title", label(d.getDayNumber(), d.getTitle()), "steps", steps));
         }
@@ -365,107 +363,6 @@ public class AdminScoutingApiController {
         return ResponseEntity.ok(Map.of("message", "Đã dùng Green Card: thí sinh vào thẳng Top 30"));
     }
 
-    // ==================== 1.13 MANUAL SCORES ====================
-
-    /** Contestants of the stage's competition with the values in force and a summary of the judges' records. */
-    @GetMapping("/stages/{stageId}/manual-scores")
-    @PreAuthorize(JUDGE)
-    @Transactional(readOnly = true)
-    public ResponseEntity<?> manualScores(@PathVariable Long stageId, @RequestParam(defaultValue = "") String q) {
-        CompetitionStage stage = stageRepository.findById(stageId).orElse(null);
-        if (stage == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy vòng thi");
-        Long competitionId = stage.getCompetition().getId();
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competitionId);
-        Map<Long, Integer> sbd = sbdMap(all);
-        Map<Long, Map<String, ManualScore>> current = new HashMap<>();
-        for (ManualScore s : manualScoreRepository.findCurrentByStageId(stageId)) {
-            current.computeIfAbsent(s.getParticipantId(), k -> new HashMap<>()).put(s.getComponentKey(), s);
-        }
-        Map<Long, int[]> notes = new HashMap<>();   // full, partial, none, withNote
-        for (JudgeNote n : judgeNoteRepository.findAll()) {
-            int[] a = notes.computeIfAbsent(n.getParticipantId(), k -> new int[4]);
-            a[n.getParticipation().ordinal()]++;
-            if (n.getNote() != null && !n.getNote().isBlank()) a[3]++;
-        }
-        String needle = q.trim().toLowerCase();
-        List<Map<String, Object>> rows = new ArrayList<>();
-        for (CompetitionParticipant p : all) {
-            if (p.getStatus() == ParticipantStatus.WITHDRAWN) continue;
-            if (!needle.isEmpty() && !String.valueOf(sbd.get(p.getId())).equals(needle)
-                    && (p.getUser().getFullName() == null || !p.getUser().getFullName().toLowerCase().contains(needle))) continue;
-            Map<String, Object> m = participantRow(p, sbd.get(p.getId()));
-            Map<String, Object> scores = new LinkedHashMap<>();
-            current.getOrDefault(p.getId(), Map.of()).forEach((k, s) -> scores.put(k, s.getPoints()));
-            m.put("scores", scores);
-            int[] a = notes.getOrDefault(p.getId(), new int[4]);
-            m.put("judges", Map.of("full", a[0], "partial", a[1], "none", a[2], "withNote", a[3]));
-            rows.add(m);
-        }
-        List<Map<String, Object>> components = new ArrayList<>();
-        handTopics(stageId).forEach((k, t) -> components.add(Map.of("key", k, "label", t.getName(), "max", t.getMaxPoints(), "owner", "HLV")));
-        return ResponseEntity.ok(Map.of("components", components, "participants", rows));
-    }
-
-    /** body: { participantId, componentKey, points, reason }. A change to an existing value needs a reason. */
-    @PutMapping("/stages/{stageId}/manual-scores")
-    @PreAuthorize(JUDGE)
-    @Transactional
-    public ResponseEntity<?> saveManualScore(@PathVariable Long stageId, @RequestBody Map<String, Object> body, Authentication auth) {
-        if (!stageRepository.existsById(stageId)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy vòng thi");
-        Long participantId = longOf(body.get("participantId"));
-        String key = str(body.get("componentKey"));
-        CompetitionScoreTopic handTopic = key == null ? null : handTopics(stageId).get(key);
-        if (participantId == null || handTopic == null) return error(HttpStatus.BAD_REQUEST, "Thiếu thí sinh hoặc nhóm điểm HLV chấm tay");
-        // The coaching staff score and the groups the head coach scores by hand are the HLV's; scouts enter the rest.
-        // Admins may correct any.
-        if (!hasRole(auth, "ADMIN") && !hasRole(auth, "HLV")) {
-            return error(HttpStatus.FORBIDDEN, "Điểm " + handTopic.getName() + " do HLV nhập");
-        }
-        if (!participantRepository.existsById(participantId)) return error(HttpStatus.NOT_FOUND, "Không tìm thấy thí sinh");
-        BigDecimal points;
-        try {
-            points = new BigDecimal(String.valueOf(body.get("points")).trim());
-        } catch (NumberFormatException e) {
-            return error(HttpStatus.BAD_REQUEST, "Điểm không hợp lệ");
-        }
-        BigDecimal max = handTopic.getMaxPoints();
-        if (points.signum() < 0 || points.compareTo(max) > 0) return error(HttpStatus.BAD_REQUEST, "Điểm phải từ 0 đến " + max.stripTrailingZeros().toPlainString());
-        if (points.scale() > 2) return error(HttpStatus.BAD_REQUEST, "Điểm chỉ lấy tối đa 2 chữ số thập phân");
-
-        ManualScore current = manualScoreRepository.findByStageIdAndParticipantIdOrderByIdAsc(stageId, participantId).stream()
-                .filter(s -> s.getComponentKey().equals(key)).reduce((a, b) -> b).orElse(null);
-        String reason = str(body.get("reason"));
-        if (current != null) {
-            if (current.getPoints().compareTo(points) == 0) return error(HttpStatus.BAD_REQUEST, "Điểm không thay đổi");
-            if (reason == null) return error(HttpStatus.BAD_REQUEST, "Cần ghi lý do khi sửa điểm đã nhập");
-        }
-        manualScoreRepository.save(ManualScore.builder().stageId(stageId).participantId(participantId).componentKey(key)
-                .points(points).enteredBy(currentUser(auth).getId()).enteredAt(LocalDateTime.now()).reason(reason)
-                .supersedesId(current != null ? current.getId() : null).build());
-        return ResponseEntity.ok(Map.of("message", "Đã lưu điểm"));
-    }
-
-    /** Every entry for one contestant, newest first, so the edit trail is visible. */
-    @GetMapping("/stages/{stageId}/manual-scores/{participantId}/history")
-    @PreAuthorize(JUDGE)
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> manualScoreHistory(@PathVariable Long stageId, @PathVariable Long participantId) {
-        List<ManualScore> rows = new ArrayList<>(manualScoreRepository.findByStageIdAndParticipantIdOrderByIdAsc(stageId, participantId));
-        Collections.reverse(rows);
-        Map<Long, User> users = usersById(rows.stream().map(ManualScore::getEnteredBy).toList());
-        List<Map<String, Object>> out = new ArrayList<>();
-        for (ManualScore s : rows) {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("componentKey", s.getComponentKey());
-            m.put("points", s.getPoints());
-            m.put("enteredBy", users.get(s.getEnteredBy()) != null ? users.get(s.getEnteredBy()).getFullName() : null);
-            m.put("enteredAt", s.getEnteredAt().toString());
-            m.put("reason", s.getReason());
-            out.add(m);
-        }
-        return out;
-    }
-
     // ==================== HELPERS ====================
 
     private Competition activeCompetition() {
@@ -571,14 +468,4 @@ public class AdminScoutingApiController {
         return ResponseEntity.status(status).body(Map.of("message", message));
     }
 
-    /** Score groups of this round that the head coach scores by hand, by their manual-score key (TOPIC_<id>). */
-    private Map<String, CompetitionScoreTopic> handTopics(Long stageId) {
-        Map<String, CompetitionScoreTopic> out = new LinkedHashMap<>();
-        for (CompetitionAssessmentDay d : dayRepository.findByStageIdOrderByDisplayOrderAsc(stageId)) {
-            for (CompetitionScoreTopic t : topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(d.getId())) {
-                if ("HLV".equals(t.getScoredBy())) out.put(ManualScore.topicKey(t.getId()), t);
-            }
-        }
-        return out;
-    }
 }

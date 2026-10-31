@@ -15,7 +15,8 @@ interface Ctx {
   competition?: { id: number; title: string };
   stage?: { id: number; stageNumber: number; title: string };
   days?: { id: number; title: string }[];
-  steps?: { id: number; title: string }[];
+  /** scoreSource HLV: the head coach's score; only the HLV (or admin) enters it. */
+  steps?: { id: number; title: string; scoreSource?: 'MEASURED' | 'HLV' }[];
   assessments?: Assessment[];
   participant?: { id: number; sbd: number; fullName: string; phone: string | null };
   scores?: Record<string, number>;
@@ -451,7 +452,7 @@ export default function FieldScoring() {
               {dayId && (
                 <div className="flex items-center gap-3 overflow-x-auto pb-1">
                   <span className="w-24 shrink-0 text-[15px] font-bold uppercase tracking-wide">Bước thi</span>
-                  {c.steps?.map((s) => <button key={s.id} type="button" className={seg(stepId === s.id)} onClick={() => pickStep(s.id)}>{s.title}</button>)}
+                  {c.steps?.filter((s) => s.scoreSource !== 'HLV' || me.role !== 'TTV').map((s) => <button key={s.id} type="button" className={seg(stepId === s.id)} onClick={() => pickStep(s.id)}>{s.title}{s.scoreSource === 'HLV' && <span className="ml-1.5 rounded bg-[#FDF1DE] px-1.5 text-[12px] font-semibold text-[#8A4F07]">Điểm HLV</span>}</button>)}
                   {c.steps?.length === 0 && <span className="text-[17px]">Ngày này chưa có bước thi.</span>}
                 </div>
               )}

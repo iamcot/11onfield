@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -102,6 +103,16 @@ public class ScoringService {
                 : officials.stream().map(MeasurementOfficial::getParticipantId).toList());
         Set<Long> goalkeepers = goalkeepers(participants);
         List<CompetitionScoreTopic> topics = topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(dayId);
+        // Groups that take an earlier day's total (day 2: "Điểm từ ngày trước"): that day's totals, per contestant.
+        Map<Long, Map<Long, BigDecimal>> earlierTotals = new HashMap<>();
+        for (CompetitionScoreTopic t : topics) {
+            if (!"PREV_DAY".equals(t.getSource()) || t.getSourceDayId() == null || t.getSourceDayId().equals(dayId)) continue;
+            earlierTotals.computeIfAbsent(t.getSourceDayId(), d -> {
+                Map<Long, BigDecimal> m = new HashMap<>();
+                for (ParticipantDay pd : scoreDay(d, participants)) if (pd.complete()) m.put(pd.participantId(), pd.total());
+                return m;
+            });
+        }
 
         List<ParticipantDay> out = new ArrayList<>();
         for (Long pid : participants) {
@@ -114,6 +125,14 @@ public class ScoringService {
             }
             List<TopicResult> topicResults = new ArrayList<>();
             for (CompetitionScoreTopic t : topics) {
+                if ("PREV_DAY".equals(t.getSource())) {
+                    // The earlier day's total (out of 100) at this group's weight; none until that day is complete.
+                    BigDecimal earlier = earlierTotals.getOrDefault(t.getSourceDayId(), Map.of()).get(pid);
+                    BigDecimal points = earlier == null ? null
+                            : earlier.multiply(t.getMaxPoints()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                    topicResults.add(new TopicResult(t.getId(), t.getTopicKey(), t.getName(), t.getMaxPoints(), points, 0, 0));
+                    continue;
+                }
                 List<Integer> levels = new ArrayList<>();
                 for (StepResult r : stepResults) {
                     if (!t.getId().equals(r.topicId()) || "NOT_APPLICABLE".equals(r.status())) continue;

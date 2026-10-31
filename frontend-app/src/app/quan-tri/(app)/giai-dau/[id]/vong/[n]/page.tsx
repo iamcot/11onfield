@@ -331,7 +331,7 @@ export default function RoundSetupPage() {
                     </div>
                   )}
                 </div>
-                <TopicsEditor key={`${currentDay.id}-${topicsVersion}`} dayId={currentDay.id} readOnly={!manager} onSaved={() => { setTopicsVersion((v) => v + 1); days.reload(); }} />
+                <TopicsEditor key={`${currentDay.id}-${topicsVersion}`} dayId={currentDay.id} readOnly={!manager} otherDays={(days.data || []).filter((d) => d.dayNumber < currentDay.dayNumber).map((d) => ({ id: d.id, label: `Ngày ${d.dayNumber}: ${d.title}` }))} onSaved={() => { setTopicsVersion((v) => v + 1); days.reload(); }} />
               </>
             )}
 

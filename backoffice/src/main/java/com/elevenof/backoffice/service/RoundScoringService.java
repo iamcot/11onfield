@@ -185,8 +185,6 @@ public class RoundScoringService {
             BigDecimal p = t.points();
             String source = "STEPS";
             String manualKey = formula.topicManual() != null ? formula.topicManual().get(t.key()) : null;
-            // A group the head coach scores by hand (no problems in it) takes the hand score entered for it.
-            if (t.steps() == 0 && manual.containsKey(ManualScore.topicKey(t.topicId()))) manualKey = ManualScore.topicKey(t.topicId());
             if (t.steps() == 0 && manualKey != null) {
                 BigDecimal m = manual.get(manualKey);
                 p = m == null ? null : m.min(t.maxPoints()).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
@@ -355,9 +353,9 @@ public class RoundScoringService {
         return new RoundFormula(formula.components(), formula.topicManual(), formula.classes(), keys);
     }
 
-    /** Average of the round's days (see RoundFormula.daysAverage). */
+    /** The round's last day (see RoundFormula.lastDay). */
     private RoundFormula defaultFormula(Long stageId) {
-        return RoundFormula.daysAverage(dayRepository.findByStageIdOrderByDisplayOrderAsc(stageId).stream()
+        return RoundFormula.lastDay(dayRepository.findByStageIdOrderByDisplayOrderAsc(stageId).stream()
                 .map(CompetitionAssessmentDay::getDayNumber).distinct().sorted().toList());
     }
 }

@@ -28,15 +28,13 @@ public record RoundFormula(List<Component> components, Map<String, String> topic
     }
 
     /**
-     * The formula used until an admin saves one: the round score is the average of its days, each day out of 100, so
-     * the round is out of 100 too. What the coaches score by hand is part of a day (score groups "HLV chấm tay").
+     * The formula used until an admin saves one: the round score is the total of the round's last day. Earlier days
+     * count through that day's "Điểm từ ngày trước" group (e.g. day 1 at 30% + day 2's own groups at 70%).
      */
-    public static RoundFormula daysAverage(List<Integer> dayNumbers) {
-        List<Integer> days = dayNumbers == null || dayNumbers.isEmpty() ? List.of(1) : dayNumbers;
-        BigDecimal weight = BigDecimal.ONE.divide(BigDecimal.valueOf(days.size()), 4, RoundingMode.HALF_UP);
-        List<Component> components = new ArrayList<>();
-        for (Integer d : days) components.add(new Component("DAY" + d, "Ngày " + d, DAY, d, weight, null));
-        return new RoundFormula(components, Map.of(), combineRound1().classes(), List.of(DISCIPLINE));
+    public static RoundFormula lastDay(List<Integer> dayNumbers) {
+        int last = dayNumbers == null || dayNumbers.isEmpty() ? 1 : dayNumbers.stream().max(Integer::compare).orElse(1);
+        return new RoundFormula(List.of(new Component("DAY" + last, "Ngày " + last, DAY, last, BigDecimal.ONE, null)),
+                Map.of(), combineRound1().classes(), List.of(DISCIPLINE));
     }
 
     /** The round 1 formula of the first plan (day 1 at 30% plus four hand scores). No longer the default. */

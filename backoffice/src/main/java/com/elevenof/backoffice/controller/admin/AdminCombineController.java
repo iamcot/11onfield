@@ -53,6 +53,7 @@ public class AdminCombineController {
         out.put("title", step.getTitle());
         out.put("isScored", step.getIsScored());
         out.put("audience", step.getAudience());
+        out.put("scoreSource", step.getScoreSource());
         out.put("topicId", step.getTopicId());
         out.put("locked", measurementService.isLocked(stepId));
         out.put("assessments", assessmentRepository.findByAssessmentStepIdOrderByDisplayOrderAsc(stepId).stream().map(a -> {
@@ -93,13 +94,14 @@ public class AdminCombineController {
         return ResponseEntity.ok(out);
     }
 
-    /** body: { isScored?, audience?, topicId? (null clears) } */
+    /** body: { isScored?, audience?, scoreSource? (MEASURED | HLV), topicId? (null clears) } */
     @PutMapping("/assessment-steps/{stepId}/combine-config")
     @Transactional
     public ResponseEntity<?> updateStepConfig(@PathVariable Long stepId, @RequestBody Map<String, Object> body) {
         CompetitionAssessmentStep step = stepRepository.findById(stepId).orElse(null);
         if (step == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy bài thi");
         if (body.containsKey("isScored")) step.setIsScored(Boolean.TRUE.equals(body.get("isScored")));
+        if (body.get("scoreSource") != null) step.setScoreSource("HLV".equals(String.valueOf(body.get("scoreSource"))) ? "HLV" : "MEASURED");
         if (body.get("audience") != null) {
             try {
                 step.setAudience(StepAudience.valueOf(body.get("audience").toString()));
@@ -200,7 +202,13 @@ public class AdminCombineController {
             t.setMaxPoints(max);
             t.setDisplayOrder(order++);
             t.setTieBreakOrder(m.get("tieBreakOrder") != null ? (int) num(m.get("tieBreakOrder")) : null);
-            t.setScoredBy("HLV".equals(str(m.get("scoredBy"))) ? "HLV" : null);
+            boolean prev = "PREV_DAY".equals(str(m.get("source")));
+            Long sourceDay = prev ? longOf(m.get("sourceDayId")) : null;
+            if (prev && (sourceDay == null || sourceDay.equals(dayId) || !dayRepository.existsById(sourceDay))) {
+                return error(HttpStatus.BAD_REQUEST, "Nhóm “" + name + "” lấy điểm từ ngày trước: cần chọn một ngày khác");
+            }
+            t.setSource(prev ? "PREV_DAY" : null);
+            t.setSourceDayId(sourceDay);
             keep.add(t);
         }
         if (!existing.isEmpty()) {
@@ -348,7 +356,8 @@ public class AdminCombineController {
         m.put("name", t.getName());
         m.put("maxPoints", t.getMaxPoints());
         m.put("tieBreakOrder", t.getTieBreakOrder());
-        m.put("scoredBy", t.getScoredBy());
+        m.put("source", t.getSource());
+        m.put("sourceDayId", t.getSourceDayId());
         return m;
     }
 

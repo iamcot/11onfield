@@ -14,12 +14,12 @@ export const METHODS: Record<string, string> = { BEST_OF: 'lượt tốt nhất'
 
 type Action = 'NONE' | 'FLAG' | 'ELIMINATE';
 interface Config {
-  stepId: number; title: string; isScored: boolean; audience: 'ALL' | 'OUTFIELD' | 'GOALKEEPER'; topicId: number | null; locked: boolean;
+  stepId: number; title: string; isScored: boolean; audience: 'ALL' | 'OUTFIELD' | 'GOALKEEPER'; scoreSource?: 'MEASURED' | 'HLV'; topicId: number | null; locked: boolean;
   assessments: { id: number; title: string; unit: string | null; attemptsCount: number; direction: 'HIGHER' | 'LOWER'; plausibleMin: number | null; plausibleMax: number | null; tolerance: number | null; valueType: string }[];
   levels: { level: number; color: Color; action: Action; description: string | null; conditions: { assessmentId: number; min: number | null; max: number | null }[] }[];
   topics: Topic[];
 }
-export interface Topic { id?: number; topicKey: string; name: string; maxPoints: number | string; tieBreakOrder?: number | string | null; scoredBy?: 'HLV' | null }
+export interface Topic { id?: number; topicKey: string; name: string; maxPoints: number | string; tieBreakOrder?: number | string | null; source?: 'PREV_DAY' | null; sourceDayId?: number | string | null }
 
 /** One editable level; bounds are kept as text so a half-typed number is not lost. */
 interface LevelForm { level: number; color: Color; action: Action; description: string; bounds: Record<number, { min: string; max: string }> }
@@ -92,7 +92,7 @@ export function StepEditor({ competitionId, stage, step, onChanged, onEditAssess
   const manager = useIsManager();
   const { toast } = useUi();
   const cfg = useApi<Config>(`assessment-steps/${step.id}/combine-config`);
-  const [head, setHead] = useState({ isScored: true, audience: 'ALL', topicId: '' });
+  const [head, setHead] = useState({ isScored: true, audience: 'ALL', topicId: '', scoreSource: 'MEASURED' });
   const [levels, setLevels] = useState<LevelForm[]>([]);
   const [assessments, setAssessments] = useState<AssessmentForm[]>([]);
   const [problems, setProblems] = useState<string[]>([]);
@@ -104,7 +104,7 @@ export function StepEditor({ competitionId, stage, step, onChanged, onEditAssess
     const f = toForms(cfg.data);
     setLevels(f.levels);
     setAssessments(f.assessments);
-    setHead({ isScored: cfg.data.isScored, audience: cfg.data.audience || 'ALL', topicId: cfg.data.topicId ? String(cfg.data.topicId) : '' });
+    setHead({ isScored: cfg.data.isScored, audience: cfg.data.audience || 'ALL', topicId: cfg.data.topicId ? String(cfg.data.topicId) : '', scoreSource: cfg.data.scoreSource || 'MEASURED' });
   }, [cfg.data]);
 
   const data = cfg.data;
@@ -124,7 +124,7 @@ export function StepEditor({ competitionId, stage, step, onChanged, onEditAssess
     setBusy(true);
     setProblems([]);
     try {
-      await api(`assessment-steps/${step.id}/combine-config`, { method: 'PUT', body: { isScored: head.isScored, audience: head.audience, topicId: head.topicId ? Number(head.topicId) : null } });
+      await api(`assessment-steps/${step.id}/combine-config`, { method: 'PUT', body: { isScored: head.isScored, audience: head.audience, scoreSource: head.scoreSource, topicId: head.topicId ? Number(head.topicId) : null } });
       for (const a of assessments) {
         await api(`assessments/${a.id}/combine-config`, {
           method: 'PUT',
@@ -164,7 +164,13 @@ export function StepEditor({ competitionId, stage, step, onChanged, onEditAssess
           {locked && <p className="border border-[#F0D9A0] bg-[#FBEFD5] px-3 py-2 text-[13px] text-[#8A5A00]">Bài đã khoá sổ nên không sửa được thang. Mở khoá ở màn Đối soát.</p>}
 
           <Card>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Field label="Nguồn điểm" hint={head.scoreSource === 'HLV' ? 'HLV nhập tại sân hoặc cuối giờ; TTV không nhập được' : 'TTV nhập, máy đo hoặc import file'}>
+              <Select disabled={readOnly} value={head.scoreSource} onChange={(e) => setHead({ ...head, scoreSource: e.target.value })}>
+                <option value="MEASURED">Số liệu đo</option>
+                <option value="HLV">Điểm HLV</option>
+              </Select>
+            </Field>
             <Field label="Tính điểm">
               <Select disabled={readOnly} value={head.isScored ? '1' : '0'} onChange={(e) => setHead({ ...head, isScored: e.target.value === '1' })}>
                 <option value="1">Có, tính vào nhóm điểm</option>
@@ -319,14 +325,15 @@ export function StepEditor({ competitionId, stage, step, onChanged, onEditAssess
   );
 }
 
-export function TopicsEditor({ dayId, onSaved, readOnly }: { dayId: number; onSaved: () => void; readOnly: boolean }) {
+/** otherDays: the round's other days, the choices of a group that takes an earlier day's total. */
+export function TopicsEditor({ dayId, onSaved, readOnly, otherDays = [] }: { dayId: number; onSaved: () => void; readOnly: boolean; otherDays?: { id: number; label: string }[] }) {
   const { toast } = useUi();
   const res = useApi<{ topics: Topic[]; totalPoints: number; warning: string | null }>(`assessment-days/${dayId}/topics`);
   const [rows, setRows] = useState<Topic[]>([]);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (res.data) setRows(res.data.topics.map((t) => ({ ...t, maxPoints: String(t.maxPoints), tieBreakOrder: t.tieBreakOrder ?? '' })));
+    if (res.data) setRows(res.data.topics.map((t) => ({ ...t, maxPoints: String(t.maxPoints), tieBreakOrder: t.tieBreakOrder ?? '', sourceDayId: t.sourceDayId ?? '' })));
   }, [res.data]);
 
   const total = rows.reduce((s, t) => s + (Number(t.maxPoints) || 0), 0);
@@ -344,7 +351,7 @@ export function TopicsEditor({ dayId, onSaved, readOnly }: { dayId: number; onSa
     try {
       const out = await api<{ warning: string | null }>(`assessment-days/${dayId}/topics`, {
         method: 'PUT',
-        body: { topics: rows.map((t) => ({ id: t.id, topicKey: String(t.topicKey).trim(), name: String(t.name).trim(), maxPoints: Number(t.maxPoints), tieBreakOrder: t.tieBreakOrder === '' || t.tieBreakOrder == null ? null : Number(t.tieBreakOrder), scoredBy: t.scoredBy || null })) },
+        body: { topics: rows.map((t) => ({ id: t.id, topicKey: String(t.topicKey).trim(), name: String(t.name).trim(), maxPoints: Number(t.maxPoints), tieBreakOrder: t.tieBreakOrder === '' || t.tieBreakOrder == null ? null : Number(t.tieBreakOrder), source: t.source || null, sourceDayId: t.source === 'PREV_DAY' && t.sourceDayId ? Number(t.sourceDayId) : null })) },
       });
       toast(out.warning ? `Đã lưu. ${out.warning}` : 'Đã lưu nhóm điểm');
       res.reload();
@@ -364,7 +371,7 @@ export function TopicsEditor({ dayId, onSaved, readOnly }: { dayId: number; onSa
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-[14px]">
               <thead className="text-left text-[11px] uppercase tracking-wider text-[#56665D]">
-                <tr><th className="w-20 py-1 font-medium">Thứ tự</th><th className="px-2 font-medium">Tên nhóm</th><th className="w-40 px-2 font-medium">Cách chấm</th><th className="w-28 px-2 font-medium">Điểm tối đa</th><th className="w-36 px-2 font-medium">Ưu tiên đồng điểm<span className="block text-[11px] font-normal normal-case tracking-normal text-[#66766D]">Nhập số, số nhỏ xét trước</span></th><th className="w-8" /></tr>
+                <tr><th className="w-20 py-1 font-medium">Thứ tự</th><th className="px-2 font-medium">Tên nhóm</th><th className="w-56 px-2 font-medium">Loại nhóm</th><th className="w-28 px-2 font-medium">Điểm tối đa</th><th className="w-36 px-2 font-medium">Ưu tiên đồng điểm<span className="block text-[11px] font-normal normal-case tracking-normal text-[#66766D]">Nhập số, số nhỏ xét trước</span></th><th className="w-8" /></tr>
               </thead>
               <tbody className="divide-y divide-[#E6ECE8]">
                 {rows.map((t, i) => (
@@ -372,10 +379,16 @@ export function TopicsEditor({ dayId, onSaved, readOnly }: { dayId: number; onSa
                     <td className="py-1.5"><div className="flex items-center gap-1"><Button small disabled={readOnly || i === 0} aria-label="Lên" onClick={() => move(i, -1)}>↑</Button><Button small disabled={readOnly || i === rows.length - 1} aria-label="Xuống" onClick={() => move(i, 1)}>↓</Button></div></td>
                     <td className="px-2"><Input disabled={readOnly} aria-label="Tên nhóm" value={t.name} onChange={(e) => set(i, { name: e.target.value })} /></td>
                     <td className="px-2">
-                      <Select disabled={readOnly} aria-label="Cách chấm" value={t.scoredBy || ''} onChange={(e) => set(i, { scoredBy: e.target.value === 'HLV' ? 'HLV' : null })}>
-                        <option value="">Theo bài thi</option>
-                        <option value="HLV">HLV chấm tay</option>
+                      <Select disabled={readOnly} aria-label="Loại nhóm" value={t.source || ''} onChange={(e) => set(i, { source: e.target.value === 'PREV_DAY' ? 'PREV_DAY' : null })}>
+                        <option value="">Từ bài thi (trung bình)</option>
+                        {otherDays.length > 0 && <option value="PREV_DAY">Điểm từ ngày trước</option>}
                       </Select>
+                      {t.source === 'PREV_DAY' && (
+                        <Select className="mt-1" disabled={readOnly} aria-label="Lấy điểm của ngày" value={String(t.sourceDayId ?? '')} onChange={(e) => set(i, { sourceDayId: e.target.value })}>
+                          <option value="">— Chọn ngày —</option>
+                          {otherDays.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+                        </Select>
+                      )}
                     </td>
                     <td className="px-2"><Input disabled={readOnly} inputMode="decimal" aria-label="Điểm tối đa" value={String(t.maxPoints)} onChange={(e) => set(i, { maxPoints: e.target.value })} /></td>
                     <td className="px-2"><Input disabled={readOnly} inputMode="numeric" aria-label="Ưu tiên đồng điểm" type="number" min={1} placeholder="Trống = không xét" value={String(t.tieBreakOrder ?? '')} onChange={(e) => set(i, { tieBreakOrder: e.target.value })} /></td>
@@ -397,7 +410,7 @@ export function TopicsEditor({ dayId, onSaved, readOnly }: { dayId: number; onSa
               </div>
             )}
           </div>
-          {!readOnly && <p className="mt-2 text-[12px] text-[#66766D]">Xoá một nhóm thì các bài đang thuộc nhóm đó thành “không thuộc nhóm”. Nhóm “Theo bài thi”: điểm = tổng mức 1–5 của các bài, quy theo điểm tối đa của nhóm. Nhóm “HLV chấm tay” (đối kháng, tâm lý, hình ảnh…) không cần bài thi: sau khi thi HLV nhập điểm từng thí sinh ở bước Điểm chấm tay. Ưu tiên đồng điểm: ghi 1 cho nhóm xét trước khi hai thí sinh bằng tổng điểm, 2 cho nhóm xét tiếp; để trống nếu không xét. Sau các nhóm, ai ít lỗi kỷ luật hơn xếp trên.</p>}
+          {!readOnly && <p className="mt-2 text-[12px] text-[#66766D]">Xoá một nhóm thì các bài đang thuộc nhóm đó thành “không thuộc nhóm”. Nhóm “Từ bài thi”: điểm = trung bình mức 1–5 của các bài trong nhóm, quy theo điểm tối đa (tỉ trọng) của nhóm; bài do HLV chấm thì đặt Nguồn điểm “Điểm HLV” ở bài. Nhóm “Điểm từ ngày trước”: không cần bài thi, lấy tổng kết (thang 100) của ngày được chọn quy theo tỉ trọng, ví dụ 30 điểm = 30% điểm ngày 1. Ưu tiên đồng điểm: ghi 1 cho nhóm xét trước khi hai thí sinh bằng tổng điểm, 2 cho nhóm xét tiếp; để trống nếu không xét. Sau các nhóm, ai ít lỗi kỷ luật hơn xếp trên.</p>}
         </>
       )}
     </Card>

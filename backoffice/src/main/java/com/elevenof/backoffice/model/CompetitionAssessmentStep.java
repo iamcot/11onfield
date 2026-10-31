@@ -56,6 +56,11 @@ public class CompetitionAssessmentStep {
     private StepAudience audience = StepAudience.ALL;
 
     /** Score topic (nhóm điểm) of the day this step counts towards. */
+    /** MEASURED: scouts, devices or a file; HLV: the head coach enters the values. */
+    @Column(nullable = false, length = 10)
+    @Builder.Default
+    private String scoreSource = "MEASURED";
+
     @Column(name = "topic_id")
     private Long topicId;
 

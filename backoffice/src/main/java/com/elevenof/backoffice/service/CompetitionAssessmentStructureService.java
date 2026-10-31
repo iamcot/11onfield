@@ -363,7 +363,7 @@ public class CompetitionAssessmentStructureService {
             for (CompetitionScoreTopic t : topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(sourceDay.getId())) {
                 CompetitionScoreTopic copy = topicRepository.save(CompetitionScoreTopic.builder()
                     .assessmentDayId(newDay.getId()).topicKey(t.getTopicKey()).name(t.getName()).maxPoints(t.getMaxPoints())
-                    .displayOrder(t.getDisplayOrder()).tieBreakOrder(t.getTieBreakOrder()).scoredBy(t.getScoredBy()).build());
+                    .displayOrder(t.getDisplayOrder()).tieBreakOrder(t.getTieBreakOrder()).source(t.getSource()).sourceDayId(t.getSourceDayId()).build());
                 topicIds.put(t.getId(), copy.getId());
             }
 
@@ -380,6 +380,7 @@ public class CompetitionAssessmentStructureService {
                     .hasRatingScale(sourceStep.getHasRatingScale())
                     .isScored(sourceStep.getIsScored())
                     .audience(sourceStep.getAudience())
+                    .scoreSource(sourceStep.getScoreSource())
                     .topicId(sourceStep.getTopicId() != null ? topicIds.get(sourceStep.getTopicId()) : null)
                     .build();
                 newStep = assessmentStepRepository.save(newStep);
