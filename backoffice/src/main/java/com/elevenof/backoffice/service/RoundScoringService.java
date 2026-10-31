@@ -34,6 +34,7 @@ public class RoundScoringService {
     private final CompetitionStageRepository stageRepository;
     private final CompetitionAssessmentDayRepository dayRepository;
     private final CompetitionParticipantRepository participantRepository;
+    private final com.elevenof.backoffice.service.SbdService sbdService;
     private final ManualScoreRepository manualScoreRepository;
     private final ParticipantFlagRepository flagRepository;
     private final GreenCardRepository greenCardRepository;
@@ -259,11 +260,11 @@ public class RoundScoringService {
         for (ScoreSnapshot s : snapshotRepository.findByStageIdIn(stages)) {
             latest.merge(s.getParticipantId(), s, (a, b) -> a.getComputedAt().isAfter(b.getComputedAt()) ? a : b);
         }
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competitionId);
+        List<CompetitionParticipant> all = sbdService.contestants(competitionId);
         Map<Long, Integer> sbd = new HashMap<>();
         Map<Long, CompetitionParticipant> byId = new HashMap<>();
         for (int i = 0; i < all.size(); i++) {
-            sbd.put(all.get(i).getId(), i + 1);
+            sbd.put(all.get(i).getId(), all.get(i).getSbd());
             byId.put(all.get(i).getId(), all.get(i));
         }
         Map<Long, String> positions = new HashMap<>();

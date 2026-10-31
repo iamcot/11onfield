@@ -29,6 +29,7 @@ public class AdminDayAdvanceController {
     private final JdbcTemplate jdbc;
     private final ScoringService scoringService;
     private final CompetitionParticipantRepository participantRepository;
+    private final com.elevenof.backoffice.service.SbdService sbdService;
     private final UserRepository userRepository;
     private final com.elevenof.backoffice.service.ParticipantFlagService flagService;
 
@@ -87,15 +88,16 @@ public class AdminDayAdvanceController {
         if (next == null) return error(HttpStatus.BAD_REQUEST, "Không có ngày thi sau ngày này");
         String note = body.get("note") == null ? "" : String.valueOf(body.get("note")).trim();
         if (note.isEmpty()) return error(HttpStatus.BAD_REQUEST, "Cần ghi lý do cho trường hợp ngoại lệ");
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competitionId(day));
+        List<CompetitionParticipant> all = sbdService.contestants(competitionId(day));
         int sbd;
         try {
             sbd = Integer.parseInt(String.valueOf(body.get("sbd")).trim());
         } catch (NumberFormatException e) {
             return error(HttpStatus.BAD_REQUEST, "SBD không hợp lệ");
         }
-        if (sbd < 1 || sbd > all.size()) return error(HttpStatus.BAD_REQUEST, "Không tìm thấy thí sinh với SBD: " + sbd);
-        Long pid = all.get(sbd - 1).getId();
+        CompetitionParticipant picked = sbdService.find(all, sbd);
+        if (picked == null) return error(HttpStatus.BAD_REQUEST, "Không tìm thấy thí sinh với SBD: " + sbd);
+        Long pid = picked.getId();
         Long have = jdbc.queryForObject("SELECT COUNT(*) FROM day_participants WHERE day_id = ? AND participant_id = ?", Long.class, next, pid);
         if (have != null && have > 0) return error(HttpStatus.CONFLICT, "SBD " + sbd + " đã có trong danh sách ngày sau");
         jdbc.update("INSERT INTO day_participants (day_id, participant_id, reason, note, added_by) VALUES (?, ?, 'EXCEPTION', ?, ?)",
@@ -132,10 +134,10 @@ public class AdminDayAdvanceController {
         for (int i = 0; i < ranked.size(); i++) { rankOf.put(ranked.get(i).participantId(), i + 1); totalOf.put(ranked.get(i).participantId(), ranked.get(i).total()); }
         out.put("ranked", ranked.size());
 
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competitionId(day));
+        List<CompetitionParticipant> all = sbdService.contestants(competitionId(day));
         Map<Long, Integer> sbdOf = new HashMap<>();
         Map<Long, String> nameOf = new HashMap<>();
-        for (int i = 0; i < all.size(); i++) { sbdOf.put(all.get(i).getId(), i + 1); nameOf.put(all.get(i).getId(), all.get(i).getUser().getFullName()); }
+        for (int i = 0; i < all.size(); i++) { sbdOf.put(all.get(i).getId(), all.get(i).getSbd()); nameOf.put(all.get(i).getId(), all.get(i).getUser().getFullName()); }
 
         List<Map<String, Object>> list = new ArrayList<>();
         if (next != null) {

@@ -37,6 +37,7 @@ public class AdminCompetitionApiController {
     private final CompetitionRepository competitionRepository;
     private final CompetitionStageRepository stageRepository;
     private final CompetitionParticipantRepository participantRepository;
+    private final com.elevenof.backoffice.service.SbdService sbdService;
     private final CompetitionNewsRepository newsRepository;
     private final CompetitionSponsorRepository sponsorRepository;
     private final CompetitionAssessmentDayRepository dayRepository;
@@ -299,13 +300,13 @@ public class AdminCompetitionApiController {
     @Transactional(readOnly = true)
     public List<Map<String, Object>> contestants(@PathVariable Long id) {
         List<Map<String, Object>> out = new ArrayList<>();
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+        List<CompetitionParticipant> all = sbdService.contestants(id);
         Map<Long, Long> playerIds = new HashMap<>();
         playerRepository.findByUserIdIn(all.stream().map(p -> p.getUser().getId()).toList())
                 .forEach(pl -> playerIds.put(pl.getUser().getId(), pl.getId()));
         Map<Long, Map<String, Object>> checkins = checkinService.latestByParticipant(id);
         for (int i = 0; i < all.size(); i++) {
-            Map<String, Object> m = contestant(all.get(i), i + 1);
+            Map<String, Object> m = contestant(all.get(i), all.get(i).getSbd());
             m.put("playerId", playerIds.get(all.get(i).getUser().getId()));
             m.put("lastCheckin", checkins.get(all.get(i).getId()));
             out.add(m);
@@ -489,15 +490,16 @@ public class AdminCompetitionApiController {
         }
         out.put("assessments", assessmentList);
 
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(c.getId());
+        List<CompetitionParticipant> all = sbdService.contestants(c.getId());
         CompetitionParticipant picked = null;
         int pickedSbd = 0;
         if (participantId != null) {
-            for (int i = 0; i < all.size(); i++) if (all.get(i).getId().equals(participantId)) { picked = all.get(i); pickedSbd = i + 1; }
+            for (int i = 0; i < all.size(); i++) if (all.get(i).getId().equals(participantId)) { picked = all.get(i); pickedSbd = all.get(i).getSbd(); }
         } else if (sbd != null && !sbd.isBlank()) {
             try {
                 int n = Integer.parseInt(sbd.trim());
-                if (n >= 1 && n <= all.size()) { picked = all.get(n - 1); pickedSbd = n; }
+                picked = sbdService.find(all, n);
+                if (picked != null) pickedSbd = n;
                 else out.put("sbdError", "Không tìm thấy thí sinh với SBD: " + sbd.trim());
             } catch (NumberFormatException e) {
                 out.put("sbdError", "SBD không hợp lệ");
@@ -532,7 +534,7 @@ public class AdminCompetitionApiController {
             for (int i = 0; i < all.size(); i++) {
                 if (all.get(i).getId().equals(pid)) {
                     Map<String, Object> m = new LinkedHashMap<>();
-                    m.put("sbd", i + 1);
+                    m.put("sbd", all.get(i).getSbd());
                     m.put("participantId", pid);
                     m.put("fullName", all.get(i).getUser().getFullName());
                     m.put("filled", resultRepository.countFilledAssessmentsByStepAndParticipant(step.getId(), pid));
@@ -627,7 +629,7 @@ public class AdminCompetitionApiController {
         if (step == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy bài thi");
         Long dayId = step.getAssessmentDay().getId();
         Long competitionId = step.getAssessmentDay().getStage().getCompetition().getId();
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competitionId);
+        List<CompetitionParticipant> all = sbdService.contestants(competitionId);
         Set<Long> listed = new HashSet<>(jdbc.queryForList("SELECT participant_id FROM day_participants WHERE day_id = ?", Long.class, dayId));
         Map<Long, Map<String, Object>> values = new HashMap<>();
         for (Map<String, Object> r : jdbc.queryForList("""
@@ -653,7 +655,7 @@ public class AdminCompetitionApiController {
             if (!listed.isEmpty() && !listed.contains(cp.getId())) continue;
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("participantId", cp.getId());
-            m.put("sbd", i + 1);
+            m.put("sbd", cp.getSbd());
             m.put("fullName", cp.getUser().getFullName());
             m.put("blocked", flagService.isBlocked(cp.getId()));
             Map<String, Object> v = values.get(cp.getId());
@@ -678,10 +680,10 @@ public class AdminCompetitionApiController {
         Long userId = currentUserId();
         if (userId == null) return error(HttpStatus.UNAUTHORIZED, "Chưa đăng nhập");
         Long competitionId = step.getAssessmentDay().getStage().getCompetition().getId();
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competitionId);
+        List<CompetitionParticipant> all = sbdService.contestants(competitionId);
         Map<Long, Integer> sbdOf = new HashMap<>();
         Map<Long, CompetitionParticipant> byId = new HashMap<>();
-        for (int i = 0; i < all.size(); i++) { sbdOf.put(all.get(i).getId(), i + 1); byId.put(all.get(i).getId(), all.get(i)); }
+        for (int i = 0; i < all.size(); i++) { sbdOf.put(all.get(i).getId(), all.get(i).getSbd()); byId.put(all.get(i).getId(), all.get(i)); }
 
         // Oldest first, so a later record of the same attempt (a correction) overwrites the earlier one.
         List<Map<String, Object>> raws = jdbc.queryForList("""
@@ -776,10 +778,10 @@ public class AdminCompetitionApiController {
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             Sheet sheet = wb.createSheet("Thí sinh");
             header(wb, sheet, "SBD", "Họ tên", "Số điện thoại", "Email", "Khu vực", "Trạng thái", "Ngày đăng ký");
-            List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+            List<CompetitionParticipant> all = sbdService.contestants(id);
             for (int i = 0; i < all.size(); i++) {
                 CompetitionParticipant p = all.get(i);
-                row(sheet, i + 1, i + 1, p.getUser().getFullName(), p.getUser().getPhone(), p.getUser().getEmail(),
+                row(sheet, i + 1, p.getSbd(), p.getUser().getFullName(), p.getUser().getPhone(), p.getUser().getEmail(),
                         p.getSelectedRegion() != null ? p.getSelectedRegion().name() : "",
                         p.getStatus() != null ? p.getStatus().name() : "",
                         p.getRegistrationDate() != null ? p.getRegistrationDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "");
@@ -793,9 +795,9 @@ public class AdminCompetitionApiController {
     @PreAuthorize(MANAGER)
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> exportResults(@PathVariable Long id) throws Exception {
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+        List<CompetitionParticipant> all = sbdService.contestants(id);
         Map<Long, Integer> sbd = new HashMap<>();
-        for (int i = 0; i < all.size(); i++) sbd.put(all.get(i).getId(), i + 1);
+        for (CompetitionParticipant x : all) sbd.put(x.getId(), x.getSbd());
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             List<CompetitionStage> stages = stageRepository.findByCompetitionIdOrderByStageNumberAsc(id);
             if (stages.isEmpty()) wb.createSheet("Chưa có vòng thi");
@@ -825,7 +827,7 @@ public class AdminCompetitionApiController {
     public ResponseEntity<?> exportMinutes(@PathVariable Long id, @PathVariable Integer n, @RequestParam(required = false) Long dayId) throws Exception {
         CompetitionStage stage = stageRepository.findByCompetitionIdAndStageNumber(id, n).orElse(null);
         if (stage == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy vòng thi");
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id);
+        List<CompetitionParticipant> all = sbdService.contestants(id);
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         Set<String> usedNames = new HashSet<>();
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
@@ -867,7 +869,7 @@ public class AdminCompetitionApiController {
                     int r = 4;
                     for (int i = 0; i < all.size(); i++) {
                         CompetitionParticipant p = all.get(i);
-                        List<Object> vals = new ArrayList<>(List.of(i + 1, p.getUser().getFullName(), p.getUser().getPhone() == null ? "" : p.getUser().getPhone()));
+                        List<Object> vals = new ArrayList<>(List.of(p.getSbd(), p.getUser().getFullName(), p.getUser().getPhone() == null ? "" : p.getUser().getPhone()));
                         boolean any = false;
                         StringBuilder notes = new StringBuilder();
                         java.time.LocalDateTime last = null;

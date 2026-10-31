@@ -69,9 +69,7 @@ public class StageCheckinService {
         return jdbc.queryForList("""
             SELECT sc.participant_id AS participantId, DATE_FORMAT(sc.checked_in_at, '%Y-%m-%dT%H:%i:%s') AS checkedInAt, u.id AS userId,
                    u.full_name AS fullName, u.phone, p.selected_region AS region,
-                   (SELECT COUNT(*) FROM competition_participants p2
-                     WHERE p2.competition_id = p.competition_id
-                       AND (p2.registration_date < p.registration_date OR (p2.registration_date = p.registration_date AND p2.id <= p.id))) AS sbd,
+                   p.sbd AS sbd,
                    (p.last_checkin_stage_id <> sc.stage_id) AS movedOn
             FROM stage_checkins sc
             JOIN competition_participants p ON p.id = sc.participant_id

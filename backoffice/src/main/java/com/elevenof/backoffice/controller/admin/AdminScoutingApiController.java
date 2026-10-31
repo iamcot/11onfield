@@ -38,6 +38,7 @@ public class AdminScoutingApiController {
     private final CompetitionRepository competitionRepository;
     private final CompetitionStageRepository stageRepository;
     private final CompetitionParticipantRepository participantRepository;
+    private final com.elevenof.backoffice.service.SbdService sbdService;
     private final CompetitionAssessmentDayRepository dayRepository;
     private final CompetitionAssessmentStepRepository stepRepository;
     private final UserRepository userRepository;
@@ -84,7 +85,7 @@ public class AdminScoutingApiController {
     public Map<String, Object> participants(@RequestParam(defaultValue = "") String q) {
         Competition c = activeCompetition();
         if (c == null) return Map.of("participants", List.of());
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(c.getId());
+        List<CompetitionParticipant> all = sbdService.contestants(c.getId());
         String needle = q.trim().toLowerCase();
         List<CompetitionParticipant> hit = new ArrayList<>();
         Map<Long, Integer> sbd = sbdMap(all);
@@ -117,7 +118,7 @@ public class AdminScoutingApiController {
         CompetitionParticipant p = participantRepository.findById(participantId).orElse(null);
         if (p == null) return error(HttpStatus.NOT_FOUND, "Không tìm thấy thí sinh");
         Long competitionId = p.getCompetition().getId();
-        int sbd = sbdMap(participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competitionId)).getOrDefault(p.getId(), 0);
+        int sbd = sbdMap(sbdService.contestants(competitionId)).getOrDefault(p.getId(), 0);
         Map<String, Object> out = participantRow(p, sbd);
         out.put("blocked", flagService.isBlocked(p.getId()));
 
@@ -164,7 +165,7 @@ public class AdminScoutingApiController {
         Competition c = activeCompetition();
         if (c == null) return error(HttpStatus.NOT_FOUND, "Chưa có giải đấu đang diễn ra");
         User me = currentUser(auth);
-        List<CompetitionParticipant> all = participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(c.getId());
+        List<CompetitionParticipant> all = sbdService.contestants(c.getId());
         Map<Long, Integer> sbd = sbdMap(all);
         Map<Long, JudgeNote> mine = judgeNoteRepository.findByJudgeUserIdAndStepId(me.getId(), stepId).stream()
                 .collect(Collectors.toMap(JudgeNote::getParticipantId, n -> n));
@@ -281,7 +282,7 @@ public class AdminScoutingApiController {
         Map<Long, CompetitionParticipant> ps = participantRepository.findAllById(
                 cards.stream().map(GreenCard::getParticipantId).filter(Objects::nonNull).toList()
         ).stream().collect(Collectors.toMap(CompetitionParticipant::getId, p -> p));
-        Map<Long, Integer> sbd = sbdMap(participantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(id));
+        Map<Long, Integer> sbd = sbdMap(sbdService.contestants(id));
         List<Map<String, Object>> rows = new ArrayList<>();
         for (GreenCard g : cards) {
             Map<String, Object> m = new LinkedHashMap<>();
@@ -376,10 +377,10 @@ public class AdminScoutingApiController {
                 .filter(s -> s.getStatus() == StageStatus.LIVE).map(CompetitionStage::getId).findFirst().orElse(null);
     }
 
-    /** SBD = position in registration order, the same numbering the scoring screen uses. */
+    /** participantId -> the stored SBD. */
     private static Map<Long, Integer> sbdMap(List<CompetitionParticipant> all) {
         Map<Long, Integer> m = new HashMap<>();
-        for (int i = 0; i < all.size(); i++) m.put(all.get(i).getId(), i + 1);
+        for (CompetitionParticipant p : all) m.put(p.getId(), p.getSbd());
         return m;
     }
 

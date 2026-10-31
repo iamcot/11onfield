@@ -47,6 +47,10 @@ public class CompetitionParticipant {
     @Column(nullable = false)
     private LocalDateTime registrationDate;
 
+    /** Số báo danh: fixed per competition, set by SbdService when the registration first becomes valid. */
+    @Column(insertable = false, updatable = false)
+    private Integer sbd;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

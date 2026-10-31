@@ -72,6 +72,7 @@ public class AdminController {
     private final com.elevenof.backoffice.service.NotificationTemplateService notificationTemplateService;
     private final com.elevenof.backoffice.repository.CompetitionRepository competitionRepository;
     private final com.elevenof.backoffice.repository.CompetitionParticipantRepository competitionParticipantRepository;
+    private final com.elevenof.backoffice.service.SbdService sbdService;
     private final com.elevenof.backoffice.repository.CompetitionNewsRepository competitionNewsRepository;
     private final com.elevenof.backoffice.repository.CompetitionSponsorRepository competitionSponsorRepository;
     private final com.elevenof.backoffice.repository.CompetitionStageRepository competitionStageRepository;
@@ -2554,22 +2555,21 @@ public class AdminController {
         com.elevenof.backoffice.model.CompetitionParticipant selectedParticipant = null;
         String resolvedSbd = sbd;
         java.util.List<com.elevenof.backoffice.model.CompetitionParticipant> allParticipants =
-            competitionParticipantRepository.findByCompetitionIdWithUserOrderByRegistrationDate(competition.getId());
+            sbdService.contestants(competition.getId());
 
         if (participantId != null) {
             for (int i = 0; i < allParticipants.size(); i++) {
                 if (allParticipants.get(i).getId().equals(participantId)) {
                     selectedParticipant = allParticipants.get(i);
-                    resolvedSbd = String.valueOf(i + 1);
+                    resolvedSbd = String.valueOf(allParticipants.get(i).getSbd());
                     break;
                 }
             }
         } else if (sbd != null && !sbd.isBlank()) {
             try {
                 int sbdNum = Integer.parseInt(sbd.trim());
-                if (sbdNum >= 1 && sbdNum <= allParticipants.size()) {
-                    selectedParticipant = allParticipants.get(sbdNum - 1);
-                } else {
+                selectedParticipant = sbdService.find(allParticipants, sbdNum);
+                if (selectedParticipant == null) {
                     model.addAttribute("sbdError", "Không tìm thấy thí sinh với SBD: " + sbd);
                 }
             } catch (NumberFormatException e) {
@@ -2611,7 +2611,7 @@ public class AdminController {
                 com.elevenof.backoffice.model.CompetitionParticipant hp =
                     allParticipants.stream().filter(p -> p.getId().equals(pid)).findFirst().orElse(null);
                 if (hp == null) continue;
-                int sbdPos = allParticipants.indexOf(hp) + 1;
+                Integer sbdPos = hp.getSbd();
                 long filled = assessmentResultRepository.countFilledAssessmentsByStepAndParticipant(selectedStep.getId(), pid);
                 java.util.Map<String, Object> entry = new java.util.HashMap<>();
                 entry.put("sbd", sbdPos);
