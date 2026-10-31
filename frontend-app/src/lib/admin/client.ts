@@ -22,7 +22,10 @@ export async function api<T = any>(path: string, init: { method?: string; body?:
     plain = text.length < 300 ? text : ''; // some older endpoints answer with a plain-text message
   }
   if (!res.ok) {
-    throw new Error(data?.message || plain || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : `Lỗi ${res.status}`));
+    // `problems` is the list of rule violations a scale save answers with
+    throw Object.assign(new Error(data?.message || plain || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : `Lỗi ${res.status}`)), {
+      problems: Array.isArray(data?.problems) ? (data.problems as string[]) : undefined,
+    });
   }
   // Any change may move the sidebar counts (approvals, verification), so ask the shell to refresh them.
   if (init.method !== undefined ? init.method !== 'GET' : init.body !== undefined || !!init.form) window.dispatchEvent(new Event('admin:badges'));
