@@ -309,9 +309,9 @@ public class CompetitionAssessmentController {
             @PathVariable Integer stageNumber) {
 
         CompetitionStage stage = getStage(competitionId, stageNumber);
-        resultService.recalculateAllScores(stage.getId());
-        // Combine stages: store the round score from the day totals (what ranking and Top 30 read).
-        roundScoringService.recompute(stage.getId());
+        // Combine stages (days with score groups) are scored from the day totals; the old per-step sum is only for the rest.
+        if (roundScoringService.isCombine(stage.getId())) roundScoringService.recompute(stage.getId());
+        else resultService.recalculateAllScores(stage.getId());
 
         return ResponseEntity.ok().build();
     }

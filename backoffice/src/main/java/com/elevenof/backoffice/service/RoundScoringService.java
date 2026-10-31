@@ -41,6 +41,7 @@ public class RoundScoringService {
     private final PlayerRepository playerRepository;
     private final CompetitionScoreTopicRepository topicRepository;
     private final ScoringService scoringService;
+    private final com.elevenof.backoffice.repository.StageResultRepository stageResultRepository;
     private final ObjectMapper objectMapper;
 
     // ============= Formula =============
@@ -90,6 +91,12 @@ public class RoundScoringService {
             formulaRepository.save(f);
         }
         return formula(stageId);
+    }
+
+    /** A stage scored by score groups (combine), as opposed to the old per-step sum. */
+    public boolean isCombine(Long stageId) {
+        return dayRepository.findByStageIdOrderByDisplayOrderAsc(stageId).stream()
+                .anyMatch(d -> !topicRepository.findByAssessmentDayIdOrderByDisplayOrderAsc(d.getId()).isEmpty());
     }
 
     // ============= Snapshots =============
@@ -151,7 +158,38 @@ public class RoundScoringService {
             snapshotRepository.save(s);
         }
         log.info("Stage {}: {} round scores recomputed with formula v{}", stageId, participants.size(), fv.version());
+        syncStageResults(stage, participants);
         return participants.size();
+    }
+
+    /**
+     * Copies the round score into stage_results, which the Kết quả vòng table and the public results read: score and
+     * rank for a complete round (rank by total, best first), empty for one that stopped early or is still missing
+     * points. Rows a person edited by hand (is_calculated = false) and notes / video stay as they are.
+     */
+    private void syncStageResults(CompetitionStage stage, Set<Long> participants) {
+        List<ScoreSnapshot> done = snapshotRepository.findByStageIdIn(List.of(stage.getId())).stream()
+                .filter(s -> participants.contains(s.getParticipantId()))
+                .toList();
+        List<ScoreSnapshot> ranked = done.stream().filter(s -> Boolean.TRUE.equals(s.getComplete()) && s.getTotal() != null)
+                .sorted(Comparator.comparing(ScoreSnapshot::getTotal).reversed().thenComparing(ScoreSnapshot::getParticipantId))
+                .toList();
+        Map<Long, Integer> rank = new HashMap<>();
+        for (int i = 0; i < ranked.size(); i++) rank.put(ranked.get(i).getParticipantId(), i + 1);
+        for (ScoreSnapshot s : done) {
+            com.elevenof.backoffice.model.StageResult r = stageResultRepository.findByStageIdAndParticipantId(stage.getId(), s.getParticipantId())
+                    .orElse(null);
+            if (r != null && Boolean.FALSE.equals(r.getIsCalculated())) continue;
+            if (r == null) {
+                CompetitionParticipant p = participantRepository.findById(s.getParticipantId()).orElse(null);
+                if (p == null) continue;
+                r = com.elevenof.backoffice.model.StageResult.builder().stage(stage).participant(p).isPublic(Boolean.TRUE.equals(stage.getIsPublicScoring())).isCalculated(true).build();
+            }
+            boolean complete = rank.containsKey(s.getParticipantId());
+            r.setScore(complete ? s.getTotal() : null);
+            r.setRankPosition(rank.get(s.getParticipantId()));
+            stageResultRepository.save(r);
+        }
     }
 
     private static Map<String, Object> component(RoundFormula.Component c, BigDecimal raw, BigDecimal points, boolean present) {

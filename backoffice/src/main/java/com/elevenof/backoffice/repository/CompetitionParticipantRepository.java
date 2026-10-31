@@ -66,7 +66,15 @@ public interface CompetitionParticipantRepository extends JpaRepository<Competit
      */
     List<CompetitionParticipant> findByCompetitionId(Long competitionId);
 
-    @Query("SELECT p FROM CompetitionParticipant p JOIN FETCH p.user WHERE p.competition.id = :competitionId ORDER BY p.registrationDate ASC")
+    /**
+     * The contestants of a competition in SBD order (SBD = position in this list). Same rule as the public player list
+     * (PlayerSpecification.registeredIn): an enabled PLAYER account with a verified player profile, not withdrawn.
+     * Registrations still waiting for profile approval get no SBD and do not appear on the scouting screens.
+     */
+    @Query("SELECT p FROM CompetitionParticipant p JOIN FETCH p.user u JOIN u.player pl WHERE p.competition.id = :competitionId"
+            + " AND u.role = com.elevenof.backoffice.model.User$Role.PLAYER AND u.enabled = true AND pl.verified = true"
+            + " AND p.status <> com.elevenof.backoffice.model.ParticipantStatus.WITHDRAWN"
+            + " ORDER BY p.registrationDate ASC, p.id ASC")
     List<CompetitionParticipant> findByCompetitionIdWithUserOrderByRegistrationDate(@Param("competitionId") Long competitionId);
 
     @Query("SELECT p FROM CompetitionParticipant p JOIN FETCH p.competition WHERE p.user.id IN :userIds")

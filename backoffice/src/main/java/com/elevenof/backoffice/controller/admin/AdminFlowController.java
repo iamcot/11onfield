@@ -33,7 +33,10 @@ public class AdminFlowController {
         if (comp.get("title") != null && comp.get("competition_start_date") != null) put(s, "thong-tin", "done", null, null);
         else put(s, "thong-tin", "warn", "thiếu thông tin", "Giải chưa có ngày thi đấu.");
 
-        long people = count("SELECT COUNT(*) FROM competition_participants WHERE competition_id = ?", id);
+        // Same rule as the contestant list (SBD): enabled PLAYER with a verified profile, not withdrawn.
+        long people = count("""
+                SELECT COUNT(*) FROM competition_participants p JOIN users u ON u.id = p.user_id JOIN players pl ON pl.id = u.id
+                WHERE p.competition_id = ? AND u.role = 'PLAYER' AND u.enabled = 1 AND pl.verified = 1 AND p.status <> 'WITHDRAWN'""", id);
         put(s, "thi-sinh", people > 0 ? "done" : "todo", people + " người", null);
 
         long rounds = count("SELECT COUNT(*) FROM competition_stages WHERE competition_id = ?", id);
