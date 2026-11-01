@@ -115,6 +115,14 @@ export default function StagesPage() {
                 </Field>
               </div>
             )}
+            {editing.n !== null && editing.form.stageType === 'REGIONAL_AUDITION' && (
+              <Field label="Khu vực" hint="Bỏ trống nếu áp dụng toàn giải">
+                <Select value={editing.form.region} onChange={(e) => set('region')(e.target.value)}>
+                  <option value="">— Không —</option>
+                  {Object.entries(REGIONS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </Select>
+              </Field>
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Ngày" hint="Để trống nếu chưa chốt — website sẽ hiện “Đang cập nhật”">
                 <Input type="date" value={editing.form.stageDate} onChange={(e) => set('stageDate')(e.target.value)} />
