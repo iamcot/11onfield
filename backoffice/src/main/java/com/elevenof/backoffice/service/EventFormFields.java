@@ -150,7 +150,8 @@ public class EventFormFields {
         for (String key : List.of("user.fullName", "user.dob", "user.phone", "user.email", "user.address",
                 "player.height", "player.weight", "player.positions", "player.preferredFoot", "player.club",
                 "user.avatar", "user.profileUrl")) {
-            out.add(fromProfile(byKey().get(key), !key.equals("player.club")));
+            ProfileField p = byKey().get(key);
+            out.add(fromProfile(p, !key.equals("player.club") && !READ_ONLY_TYPES.contains(p.type())));
         }
         return out;
     }
@@ -279,7 +280,8 @@ public class EventFormFields {
                     default -> { }
                 }
             }
-            if (value == null && f.isRequired()) missing.add(f.label());
+            // a photo or link comes from the profile, so a sender without one (a guest, a new account) is never blocked by it
+            if (value == null && f.isRequired() && !READ_ONLY_TYPES.contains(f.type())) missing.add(f.label());
             out.add(new Answer(f.id(), f.type(), f.label(), value, f.source()));
         }
         if (!missing.isEmpty()) throw new IllegalArgumentException("Vui lòng điền: " + String.join(", ", missing));
