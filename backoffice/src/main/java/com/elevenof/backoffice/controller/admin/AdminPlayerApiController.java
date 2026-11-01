@@ -73,6 +73,7 @@ public class AdminPlayerApiController {
     private final PlayerAttributeTypeService attributeTypeService;
     private final ApplicationEventPublisher eventPublisher;
     private final com.elevenof.backoffice.repository.CompetitionParticipantRepository participantRepository;
+    private final com.elevenof.backoffice.service.EventRegistrationService eventRegistrationService;
 
     private static ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("message", message));
@@ -103,6 +104,7 @@ public class AdminPlayerApiController {
         out.put("pendingHighlights", pendingHighlights);
         out.put("pendingApprovals", pendingAchievements + pendingHighlights);
         out.put("unverifiedPlayers", playerRepository.countByVerifiedFalseOrVerifiedIsNull());
+        out.put("waitingRegistrations", eventRegistrationService.countWaiting());
         return out;
     }
 

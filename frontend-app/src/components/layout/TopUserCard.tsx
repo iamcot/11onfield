@@ -1,6 +1,6 @@
 "use client";
 
-import { CompetitionIcon, EventIcon, HomeIcon } from "@/components/icons/nav-icons";
+import { TicketIcon, CompetitionIcon, EventIcon, HomeIcon } from "@/components/icons/nav-icons";
 import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
@@ -63,6 +63,12 @@ export default function TopUserCard() {
       href: newsHref,
       isActive: section === "news",
     },
+    {
+      icon: TicketIcon,
+      label: t("Sự kiện"),
+      href: "/events",
+      isActive: section === "events",
+    },
   ];
 
   return (
@@ -75,7 +81,7 @@ export default function TopUserCard() {
           <Link href="/" className="flex items-center">
             <Image
               src="/images/logo-white-full.png"
-              alt="11of Logo"
+              alt="11 On Field Logo"
               width={120}
               height={32}
               className="object-contain cursor-pointer"

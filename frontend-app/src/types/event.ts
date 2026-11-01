@@ -6,6 +6,51 @@ export type EventStatus =
   | "CANCELLED"
   | "DELETED";
 
+/** GENERAL: information only. RECRUITMENT (Tuyển sinh): players apply through a form. */
+export type EventType = "GENERAL" | "RECRUITMENT";
+
+export type FormFieldType =
+  | "text" | "textarea" | "number" | "date" | "email" | "phone"
+  | "select" | "radio" | "checkboxes" | "agree" | "heading"
+  | "image" | "link";
+
+/** One field of a recruitment event's form. `source` names the profile field it is filled from. */
+export interface FormField {
+  id: string;
+  type: FormFieldType;
+  label: string;
+  required?: boolean | null;
+  help?: string | null;
+  options?: string[] | null;
+  source?: string | null;
+}
+
+export interface RegistrationAnswer {
+  id: string;
+  type: FormFieldType;
+  label: string;
+  value: string | null;
+}
+
+export type RegistrationStatus = "SUBMITTED" | "FORWARDED";
+
+export interface MyRegistration {
+  id: number;
+  status: RegistrationStatus;
+  answers: RegistrationAnswer[];
+  createdAt: string;
+  updatedAt: string;
+  forwardedAt: string | null;
+}
+
+export interface RegistrationForm {
+  fields: FormField[];
+  prefill: Record<string, string>;
+  open: boolean;
+  partnerName: string | null;
+  registration: MyRegistration | null;
+}
+
 export interface EventListItem {
   id: number;
   title: string;
@@ -19,6 +64,8 @@ export interface EventListItem {
   provinceName: string | null;
   status: EventStatus;
   participantCount: number;
+  eventType?: EventType;
+  partnerName?: string | null;
 }
 
 export interface EventDetail {
@@ -35,6 +82,8 @@ export interface EventDetail {
   provinceName: string | null;
   status: EventStatus;
   participantCount: number;
+  eventType?: EventType;
+  partnerName?: string | null;
 }
 
 export interface EventsFilters {

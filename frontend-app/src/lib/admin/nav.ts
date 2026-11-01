@@ -7,7 +7,7 @@ export interface NavItem {
   legacy?: string;
   roles: AdminRole[];
   /** Key of the count from /badges shown next to the item. */
-  badge?: 'pendingApprovals' | 'unverifiedPlayers';
+  badge?: 'pendingApprovals' | 'unverifiedPlayers' | 'waitingRegistrations';
 }
 
 const STAFF: AdminRole[] = ['EDITOR', 'ADMIN'];
@@ -25,7 +25,7 @@ export const NAV: NavItem[] = [
   { label: 'Chọn Top 30', href: '/quan-tri/chon-top-30', roles: PANEL },
   { label: 'Cầu thủ', href: '/quan-tri/cau-thu', roles: STAFF, badge: 'unverifiedPlayers' },
   { label: 'Chờ duyệt', href: '/quan-tri/duyet', roles: STAFF, badge: 'pendingApprovals' },
-  { label: 'Sự kiện', href: '/quan-tri/su-kien', roles: STAFF },
+  { label: 'Sự kiện', href: '/quan-tri/su-kien', roles: STAFF, badge: 'waitingRegistrations' },
   { label: 'Loại chỉ số', href: '/quan-tri/loai-chi-so', roles: MANAGERS },
   { label: 'Thông báo', href: '/quan-tri/thong-bao', roles: MANAGERS },
   { label: 'Tài khoản', href: '/quan-tri/tai-khoan', roles: MANAGERS },

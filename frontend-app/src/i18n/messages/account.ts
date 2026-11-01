@@ -40,7 +40,7 @@ const account: Messages = {
   // login
   'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.': ['Login failed. Please check your details.', 'No se ha podido iniciar sesión. Revisa tus datos.', '로그인에 실패했습니다. 입력 정보를 확인하세요.'],
   'Trở lại': ['Back on', 'Vuelve al', '다시'],
-  'sân cỏ': ['the pitch', 'campo', '그라운드로'],
+  'sân cỏ': ['the field', 'campo', '그라운드로'],
   'Đăng nhập để cập nhật hồ sơ cầu thủ, xem lịch tuyển trạch khu vực và theo dõi kết quả của bạn.': [
     'Log in to update your player profile, see your regional trial schedule and follow your results.',
     'Inicia sesión para actualizar tu perfil, ver el calendario de pruebas de tu región y seguir tus resultados.',
@@ -177,7 +177,7 @@ const account: Messages = {
   'Vui lòng nhập họ và tên': ['Please enter your full name', 'Introduce tu nombre completo', '성명을 입력하세요'],
   'Vui lòng chọn ngày sinh': ['Please choose your date of birth', 'Selecciona tu fecha de nacimiento', '생년월일을 선택하세요'],
   'Email không hợp lệ': ['Invalid email', 'Correo no válido', '잘못된 이메일'],
-  'Chạm vào sân để chọn ít nhất một vị trí': ['Tap the pitch to choose at least one position', 'Toca el campo para elegir al menos una posición', '그라운드를 눌러 포지션을 하나 이상 선택하세요'],
+  'Chạm vào sân để chọn ít nhất một vị trí': ['Tap the field to choose at least one position', 'Toca el campo para elegir al menos una posición', '그라운드를 눌러 포지션을 하나 이상 선택하세요'],
   'Chiều cao từ 120 đến 230 cm': ['Height must be 120 to 230 cm', 'La altura debe estar entre 120 y 230 cm', '키는 120~230cm여야 합니다'],
   'Cân nặng từ 30 đến 150 kg': ['Weight must be 30 to 150 kg', 'El peso debe estar entre 30 y 150 kg', '몸무게는 30~150kg여야 합니다'],
   'Chọn khu vực bạn sẽ tham gia tuyển trạch': ['Choose the region where you will trial', 'Elige la región donde harás la prueba', '참가할 선발 지역을 선택하세요'],
@@ -209,7 +209,7 @@ const account: Messages = {
   'Chọn tỉnh / thành': ['Choose province / city', 'Elige provincia / ciudad', '성 / 시 선택'],
   'Email (không bắt buộc)': ['Email (optional)', 'Correo (opcional)', '이메일 (선택)'],
   'Nhận xác nhận hồ sơ và lịch tuyển trạch': ['Get your application confirmation and trial schedule', 'Recibe la confirmación y el calendario de pruebas', '지원 확인 및 선발 일정 수신'],
-  'Vị trí sở trường (chạm vào sân)': ['Preferred positions (tap the pitch)', 'Posiciones preferidas (toca el campo)', '선호 포지션 (그라운드를 누르세요)'],
+  'Vị trí sở trường (chạm vào sân)': ['Preferred positions (tap the field)', 'Posiciones preferidas (toca el campo)', '선호 포지션 (그라운드를 누르세요)'],
   'Đã chọn: {positions}': ['Selected: {positions}', 'Seleccionado: {positions}', '선택: {positions}'],
   'Chọn nhiều vị trí được, vị trí đầu tiên là vị trí chính': ['You can pick several; the first one is your main position', 'Puedes elegir varias; la primera es tu posición principal', '여러 개 선택 가능하며, 첫 번째가 주 포지션입니다'],
   'Chân thuận': ['Preferred foot', 'Pierna hábil', '주발'],

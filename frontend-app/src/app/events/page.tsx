@@ -22,6 +22,7 @@ import { formatDateOnly } from "@/utils/timezone";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useT } from "@/i18n/I18nProvider";
+import EventCover from "@/components/events/EventCover";
 
 function EventsContent() {
   const t = useT();
@@ -349,11 +350,9 @@ function EventsContent() {
                 className="flex-shrink-0 px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-xs"
               >
                 <option value="">{t("Trạng thái")}</option>
-                <option value="PLAN">{t("Đang lên kế hoạch")}</option>
                 <option value="OPEN_REGISTER">{t("Đang mở đăng ký")}</option>
                 <option value="CLOSE_REGISTER">{t("Đóng đăng ký")}</option>
                 <option value="COMPLETE">{t("Hoàn thành")}</option>
-                <option value="CANCELLED">{t("Hủy bỏ")}</option>
               </select>
             </div>
 
@@ -400,11 +399,9 @@ function EventsContent() {
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               >
                 <option value="">{t("Tất cả trạng thái")}</option>
-                <option value="PLAN">{t("Đang lên kế hoạch")}</option>
                 <option value="OPEN_REGISTER">{t("Đang mở đăng ký")}</option>
                 <option value="CLOSE_REGISTER">{t("Đóng đăng ký")}</option>
                 <option value="COMPLETE">{t("Hoàn thành")}</option>
-                <option value="CANCELLED">{t("Hủy bỏ")}</option>
               </select>
             </div>
 
@@ -463,11 +460,14 @@ function EventsContent() {
                         />
                       </div>
                     ) : (
-                      <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 text-sm">
-                          {t("Không có hình ảnh")}
-                        </span>
-                      </div>
+                      <EventCover
+                        id={event.id}
+                        title={event.title}
+                        eventType={event.eventType}
+                        partnerName={event.partnerName}
+                        startDate={event.startDate}
+                        className="w-full h-48"
+                      />
                     )}
 
                     {/* Event Info */}
@@ -478,7 +478,12 @@ function EventsContent() {
                       </h3>
 
                       {/* Status Badge */}
-                      <div className="mb-3">
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {event.eventType === "RECRUITMENT" && (
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full text-white bg-amber-500">
+                            {t("Tuyển sinh")}
+                          </span>
+                        )}
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${getStatusBadgeColor(
                             event.status,

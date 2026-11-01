@@ -25,4 +25,8 @@ public class EventListDTO {
     private String provinceName;
     private String status;
     private int participantCount;
+    /** GENERAL or RECRUITMENT (Tuyển sinh). */
+    private String eventType;
+    /** Recruiting unit of a recruitment event. */
+    private String partnerName;
 }

@@ -94,6 +94,8 @@ FRONTEND_URL=https://yourdomain.com:7070
 BUNNY_STREAM_LIBRARY_ID=123456
 BUNNY_STREAM_API_KEY=your-library-api-key
 BUNNY_STREAM_CDN_HOST=vz-xxxxxxxx-xxx.b-cdn.net
+# Who gets an email when a player applies to a "Tuyển sinh" event (comma separated; empty = every ADMIN account with an email)
+EVENT_REGISTRATION_ADMIN_EMAIL=admin@yourdomain.com
 SPRING_PROFILES_ACTIVE=prod
 ```
 

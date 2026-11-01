@@ -34,6 +34,7 @@ public class EventController {
     private final EventService eventService;
     private final UserRepository userRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final com.elevenof.backoffice.service.EventRegistrationService registrationService;
 
     @GetMapping
     public ResponseEntity<Page<EventListDTO>> getEvents(
@@ -66,7 +67,7 @@ public class EventController {
         }
         final Event.EventStatus eventStatus = tempStatus;
 
-        Specification<Event> spec = EventSpecification.withFilters(search, eventStatus, provinceId);
+        Specification<Event> spec = EventSpecification.publicWithFilters(search, eventStatus, provinceId);
         Page<Event> events = eventRepository.findAll(spec, pageable);
 
         Page<EventListDTO> eventList = events.map(event -> {
@@ -85,6 +86,8 @@ public class EventController {
                 .provinceName(event.getProvince() != null ? event.getProvince().getName() : null)
                 .status(event.getStatus().name())
                 .participantCount((int) participantCount)
+                .eventType(event.getEventType().name())
+                .partnerName(event.getPartnerName())
                 .build();
         });
 
@@ -96,7 +99,7 @@ public class EventController {
         Event event = eventRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
 
-        if (event.getStatus() == Event.EventStatus.DELETED) {
+        if (!EventSpecification.PUBLIC_STATUSES.contains(event.getStatus())) {
             throw new ResourceNotFoundException("Event not found");
         }
 
@@ -116,9 +119,40 @@ public class EventController {
             .provinceName(event.getProvince() != null ? event.getProvince().getName() : null)
             .status(event.getStatus().name())
             .participantCount((int) participantCount)
+            .eventType(event.getEventType().name())
+            .partnerName(event.getPartnerName())
             .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    // ==================== RECRUITMENT FORM ====================
+
+    private static String signedIn(Authentication auth) {
+        return auth == null || !auth.isAuthenticated() || auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken
+                ? null : auth.getName();
+    }
+
+    /** The registration form of a recruitment event, filled with the player's profile, and their application if sent. */
+    @GetMapping("/{id}/registration")
+    public ResponseEntity<Map<String, Object>> registrationForm(@PathVariable Long id, Authentication authentication) {
+        // open to guests too: they get the form without their profile filled in
+        return ResponseEntity.ok(registrationService.formFor(id, signedIn(authentication)));
+    }
+
+    /** Sends (or corrects, until 11of has passed it on) the player's application. Body: {answers: {fieldId: value}}. */
+    @PostMapping("/{id}/registration")
+    @SuppressWarnings("unchecked")
+    public ResponseEntity<Map<String, Object>> submitRegistration(@PathVariable Long id,
+                                                                  @RequestBody Map<String, Object> body,
+                                                                  Authentication authentication) {
+        Object answers = body.get("answers");
+        Map<String, Object> sent = answers instanceof Map<?, ?> m ? (Map<String, Object>) m : Map.of();
+        String userid = signedIn(authentication);
+        // saveToProfile: the guest just made an account while applying, so their answers fill the new profile
+        return ResponseEntity.ok(userid == null
+                ? registrationService.submitGuest(id, sent)
+                : registrationService.submit(id, userid, sent, Boolean.TRUE.equals(body.get("saveToProfile"))));
     }
 
     @PostMapping("/{id}/join")
@@ -137,6 +171,11 @@ public class EventController {
         Long userId = user.getId();
         log.info("[EventController] Resolved to userId (id): {}", userId);
 
+        Event target = eventRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
+        if (target.getEventType() == Event.EventType.RECRUITMENT) {
+            throw new IllegalArgumentException("Sự kiện tuyển sinh cần gửi hồ sơ đăng ký");
+        }
         eventService.joinEvent(userId, id);
         log.info("[EventController] joinEvent completed successfully");
 
@@ -237,6 +276,8 @@ public class EventController {
                 .provinceName(event.getProvince() != null ? event.getProvince().getName() : null)
                 .status(event.getStatus().name())
                 .participantCount((int) participantCount)
+                .eventType(event.getEventType().name())
+                .partnerName(event.getPartnerName())
                 .build();
         });
 

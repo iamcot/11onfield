@@ -1,10 +1,11 @@
 // Which main tab (header and bottom bar) is on: news is both the /news pages and `?tab=news` of a competition.
-export type NavSection = 'profile' | 'competitions' | 'news' | null;
+export type NavSection = 'profile' | 'competitions' | 'news' | 'events' | null;
 
 export function navSection(pathname: string, tab: string | null): NavSection {
   if (pathname === '/' || pathname.startsWith('/profile')) return 'profile';
   if (pathname.includes('/news') || (pathname.startsWith('/competitions') && tab === 'news')) return 'news';
   if (pathname.startsWith('/competitions')) return 'competitions';
+  if (pathname.startsWith('/events')) return 'events';
   return null;
 }
 

@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import { storage } from "@/lib/storage";
-import { EventDetail, EventListItem } from "@/types/event";
+import { EventDetail, EventListItem, MyRegistration, RegistrationForm } from "@/types/event";
 import { UserListItem } from "@/types/user";
 import { PaginatedResponse } from "@/types/api";
 
@@ -106,6 +106,26 @@ export const eventService = {
     } catch (error) {
       return false;
     }
+  },
+
+  /** Form of a recruitment event, filled with the player's profile, and what they already sent. */
+  /** Signed in: the form filled with the player's profile. Guest: the empty form. */
+  async getRegistrationForm(eventId: number): Promise<RegistrationForm> {
+    const token = storage.getToken();
+    return apiClient.get<RegistrationForm>(`/events/${eventId}/registration`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  },
+
+  /**
+   * Sends the application; without a token it goes in as a guest's.
+   * saveToProfile: the answers also fill the (new) profile where it is still empty.
+   */
+  async submitRegistration(eventId: number, answers: Record<string, unknown>, saveToProfile = false): Promise<MyRegistration> {
+    const token = storage.getToken();
+    return apiClient.post<MyRegistration>(`/events/${eventId}/registration`, { answers, saveToProfile }, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
   },
 
   async getParticipants(eventId: number): Promise<UserListItem[]> {

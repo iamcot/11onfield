@@ -1,6 +1,6 @@
 "use client";
 
-import { CompetitionIcon, EventIcon, HomeIcon } from "@/components/icons/nav-icons";
+import { TicketIcon, CompetitionIcon, EventIcon, HomeIcon } from "@/components/icons/nav-icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { competitionService } from "@/services/competition.service";
 import Link from "next/link";
@@ -57,7 +57,7 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
           }`}
         >
           <HomeIcon className="w-6 h-6 drop-shadow-md" />
-          <span className="text-xs mt-1 px-2 py-0.5 bg-black/30 rounded backdrop-blur-sm">Hồ sơ</span>
+          <span className="text-[11px] mt-1 px-1.5 py-0.5 bg-black/30 rounded backdrop-blur-sm whitespace-nowrap">Hồ sơ</span>
         </Link>
 
         <Link
@@ -69,7 +69,7 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
           }`}
         >
           <CompetitionIcon className="w-6 h-6 drop-shadow-md" />
-          <span className="text-xs mt-1 px-2 py-0.5 bg-black/30 rounded backdrop-blur-sm">Chương trình</span>
+          <span className="text-[11px] mt-1 px-1.5 py-0.5 bg-black/30 rounded backdrop-blur-sm whitespace-nowrap">Chương trình</span>
         </Link>
 
         <Link
@@ -81,7 +81,19 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
           }`}
         >
           <EventIcon className="w-6 h-6 drop-shadow-md" />
-          <span className="text-xs mt-1 px-2 py-0.5 bg-black/30 rounded backdrop-blur-sm">Tin tức</span>
+          <span className="text-[11px] mt-1 px-1.5 py-0.5 bg-black/30 rounded backdrop-blur-sm whitespace-nowrap">Tin tức</span>
+        </Link>
+
+        <Link
+          href="/events"
+          className={`flex flex-col items-center justify-center flex-1 transition ${
+            section === "events"
+              ? "text-white font-semibold"
+              : "text-white/80 hover:text-white"
+          }`}
+        >
+          <TicketIcon className="w-6 h-6 drop-shadow-md" />
+          <span className="text-[11px] mt-1 px-1.5 py-0.5 bg-black/30 rounded backdrop-blur-sm whitespace-nowrap">{t("Sự kiện")}</span>
         </Link>
 
         {/* one scanner for every QR: a shared profile opens and is followed, a check-in code checks in */}
@@ -95,7 +107,7 @@ export default function MobileNav({ backgroundImage }: MobileNavProps) {
             <rect x="7" y="7" width="4" height="4" /><rect x="13" y="7" width="4" height="4" /><rect x="7" y="13" width="4" height="4" />
             <path d="M13 13h4v4h-4z" />
           </svg>
-          <span className="text-xs mt-1 px-2 py-0.5 bg-black/30 rounded backdrop-blur-sm">{t("Quét QR")}</span>
+          <span className="text-[11px] mt-1 px-1.5 py-0.5 bg-black/30 rounded backdrop-blur-sm whitespace-nowrap">{t("Quét QR")}</span>
         </button>
       </div>
       {scanning && <QrScanner onClose={() => setScanning(false)} />}

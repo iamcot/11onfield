@@ -7,6 +7,12 @@ export const EVENT_STATUS: Record<string, { label: string; tone: 'green' | 'gold
   DELETED: { label: 'Đã xoá', tone: 'red' },
 };
 
+/** Applications to a recruitment event. */
+export const REG_STATUS: Record<'SUBMITTED' | 'FORWARDED', { label: string; tone: 'green' | 'gold' }> = {
+  SUBMITTED: { label: 'Chờ chuyển', tone: 'gold' },
+  FORWARDED: { label: 'Đã chuyển', tone: 'green' },
+};
+
 export const fmtDate = (d?: string | null) => (d ? d.split('-').reverse().join('/') : '');
 export const fmtDateTime = (d?: string | null) => {
   if (!d) return '';

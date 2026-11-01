@@ -9,4 +9,4 @@ export const DEFAULT_SHARE_IMAGE = { url: '/images/og-default.jpg', width: 1200,
 
 /** Short introduction of the programme: the description of pages that have none (Vietnamese key, translate it). */
 export const SITE_INTRO =
-  '11 người ra sân là chương trình tuyển trạch cầu thủ trẻ toàn quốc, đưa tài năng từ đường phố đến sân cỏ. Tạo hồ sơ cầu thủ miễn phí và ghi dấu ấn qua từng vòng tuyển chọn.';
+  '11 người ra sân là chương trình tuyển trạch cầu thủ trẻ toàn quốc, đưa tài năng từ đường phố đến sân vận động. Tạo hồ sơ cầu thủ miễn phí và ghi dấu ấn qua từng vòng tuyển chọn.';
