@@ -107,7 +107,7 @@ export default function Hero({
           </h1>
 
           <div className="of-in of-display mt-4 text-[17px] font-bold !leading-[1.3] tracking-[0.12em] sm:text-[22px] sm:tracking-[0.18em]" style={cssVars({ '--i': 0 })}>
-            <span className="of-shine-gold">{t('Từ Đường Phố ra Sân Vận Động')}</span>
+            <span className="of-shine-gold">{t('Từ Đường Phố đến Sân Vận Động')}</span>
           </div>
 
           <p className="of-in mt-5 max-w-[560px] text-[16px] text-[#E2EAE4] sm:text-[18px]" style={cssVars({ '--i': 1 })}>

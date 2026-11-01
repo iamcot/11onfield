@@ -13,6 +13,7 @@ import TopUserCard from "@/components/layout/TopUserCard";
 import RegistrationFormModal from "@/components/events/RegistrationFormModal";
 import { formatDateOnly } from "@/utils/timezone";
 import { useI18n } from "@/i18n/I18nProvider";
+import EventCover from "@/components/events/EventCover";
 
 export default function EventDetailPage() {
   const { t, intlLocale } = useI18n();
@@ -261,15 +262,25 @@ export default function EventDetailPage() {
           </button>
 
           {/* Event Image */}
-          {event.picture && (
-            <div className="mb-6 rounded-lg overflow-hidden shadow-lg">
+          <div className="mb-6 rounded-lg overflow-hidden shadow-lg">
+            {event.picture ? (
               <img
                 src={event.picture}
                 alt={event.title}
                 className="w-full h-64 md:h-96 object-cover"
               />
-            </div>
-          )}
+            ) : (
+              <EventCover
+                id={event.id}
+                title={event.title}
+                eventType={event.eventType}
+                partnerName={event.partnerName}
+                startDate={event.startDate}
+                className="w-full h-56 md:h-80"
+                large
+              />
+            )}
+          </div>
 
           {/* Event Info Card */}
           <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">

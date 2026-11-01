@@ -67,7 +67,7 @@ const home: Messages = {
   'Tìm kiếm': ['Finding', 'Buscamos', '그라운드에 설'],
   người: ['players', 'jugadores', '명을'],
   'ra sân': ['on the field', 'al campo', '찾아라'],
-  'Từ Đường Phố ra Sân Vận Động': ['From the Street to the Stadium', 'De la Calle al Estadio', '거리에서 스타디움으로'],
+  'Từ Đường Phố đến Sân Vận Động': ['From the Street to the Stadium', 'De la Calle al Estadio', '거리에서 스타디움으로'],
   'Cơ hội cho tài năng <b>16–21 tuổi</b> theo đuổi giấc mơ sân cỏ. Huấn luyện cùng <b>chuyên gia quốc tế đến từ La Liga</b>, Top 11 đi World Cup Tour, đến sân vận động quốc gia gặp <b>hàng triệu</b> khán giả.': [
     'A chance for talents <b>aged 16–21</b> to chase their football dream. Train with <b>international experts from La Liga</b>; the Top 11 go on the World Cup Tour and play at the national stadium in front of <b>millions</b> of fans.',
     'Una oportunidad para talentos de <b>16 a 21 años</b> que persiguen su sueño futbolístico. Entrena con <b>expertos internacionales de LaLiga</b>; el Top 11 viaja al World Cup Tour y juega en el estadio nacional ante <b>millones</b> de espectadores.',
