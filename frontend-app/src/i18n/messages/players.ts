@@ -271,6 +271,13 @@ const players: Messages = {
   ],
   'Chưa có thành tích.': ['No achievements yet.', 'Aún sin logros.', '아직 업적이 없습니다.'],
   'Chưa có thành tích. Bấm cây bút để thêm.': ['No achievements yet. Tap the pencil to add one.', 'Aún sin logros. Toca el lápiz para añadir uno.', '아직 업적이 없습니다. 연필을 눌러 추가하세요.'],
+  // stage around the player photo (lib/players/hero)
+  'Bật cao': ['Vertical jump', 'Salto vertical', '수직 점프'],
+  'Lực sút': ['Shot power', 'Potencia de tiro', '슈팅 파워'],
+  'Chân {foot} · Lực sút': ['{foot} foot · Shot', 'Pierna {foot} · Tiro', '{foot} · 슈팅'],
+  'Thuận cả hai chân': ['Two-footed', 'Ambidiestro', '양발잡이'],
+  '▲ {n}% so với TB': ['▲ {n}% vs average', '▲ {n}% sobre la media', '▲ 평균 대비 {n}%'],
+  '▼ {n}% so với TB': ['▼ {n}% vs average', '▼ {n}% bajo la media', '▼ 평균 대비 {n}%'],
 };
 
 export default players;

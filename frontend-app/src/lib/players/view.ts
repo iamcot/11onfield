@@ -13,6 +13,8 @@ export interface PlayerView {
   height: number | null;
   weight: number | null;
   foot: string | null;
+  positions: string[];
+  secondaryPosition: string | null;
   province: string | null;
   club?: string | null;
   group: PosGroup | null;
@@ -37,6 +39,8 @@ export function toPlayerView(p: PlayerListItem & { club?: string | null }): Play
     height: p.height,
     weight: p.weight,
     foot: p.preferredFoot,
+    positions: p.positions ?? [],
+    secondaryPosition: p.secondaryPosition ?? null,
     province: p.provinceName,
     club: p.club ?? null,
     group,
