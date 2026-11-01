@@ -8,7 +8,7 @@ export const PLAYER_TICKER = [
   'Tuyển trạch 3 miền',
   'Huấn luyện cùng chuyên gia La Liga',
   'Top 11 đi World Cup Tour',
-  'Ra sân quốc gia, hàng triệu khán giả',
+  'Đến sân vận động quốc gia, hàng triệu khán giả',
   'Đăng ký miễn phí',
 ];
 

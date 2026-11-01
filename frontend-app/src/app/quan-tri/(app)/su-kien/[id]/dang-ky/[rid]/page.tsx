@@ -73,7 +73,7 @@ function Sheet({ r }: { r: Registration }) {
       </div>
 
       <footer className="mt-8 border-t border-[#DCE5DF] pt-2 text-[11px] text-[#66766D]">
-        Hồ sơ do cầu thủ tự khai trên nền tảng 11 On Field và được 11of chuyển tới đơn vị tuyển sinh. Xuất ngày {new Date().toLocaleDateString('vi-VN')}.
+        Hồ sơ do cầu thủ tự khai trên nền tảng 11 On Field và được 11 On Field chuyển tới đơn vị tuyển sinh. Xuất ngày {new Date().toLocaleDateString('vi-VN')}.
       </footer>
     </article>
   );

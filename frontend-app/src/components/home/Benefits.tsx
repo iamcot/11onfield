@@ -6,7 +6,7 @@ import { useT } from '@/i18n/I18nProvider';
 const BENEFITS = [
   { icon: Icons.coach, title: 'Huấn luyện chuẩn chuyên nghiệp', text: '4 tháng cùng chuyên gia quốc tế đến từ La Liga và chuyên gia hàng đầu Việt Nam.' },
   { icon: Icons.globe, title: 'Đi World Cup Tour', text: 'Top 11 học hỏi trực tiếp nền bóng đá số 1 thế giới.' },
-  { icon: Icons.stadium, title: 'Ra sân vận động quốc gia', text: 'Final Match phát sóng truyền hình toàn quốc, gặp hàng triệu khán giả.' },
+  { icon: Icons.stadium, title: 'Đến sân vận động quốc gia', text: 'Final Match phát sóng truyền hình toàn quốc, gặp hàng triệu khán giả.' },
   { icon: Icons.contract, title: 'Hợp đồng CLB chuyên nghiệp', text: 'Cơ hội ký với CLB trong nước, quốc tế và được chọn vào Đội tuyển quốc gia.' },
   { icon: Icons.scholarship, title: 'Học bổng', text: 'Học bổng tú tài, cử nhân và đào tạo bóng đá chuyên nghiệp.' },
   { icon: Icons.trophy, title: 'Giải thưởng & thương hiệu', text: 'Hiện kim, hiện vật, cúp vàng và hàng triệu khán giả biết đến bạn.', gold: true },

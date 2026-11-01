@@ -169,11 +169,11 @@ public class EventRegistrationService {
             name = answers.stream().filter(a -> "text".equals(a.type()) && a.value() != null).map(EventFormFields.Answer::value).findFirst().orElse(null);
         }
         if (phone == null && email == null) {
-            throw new IllegalArgumentException("Cần số điện thoại hoặc email để 11of liên hệ với bạn");
+            throw new IllegalArgumentException("Cần số điện thoại hoặc email để 11 On Field liên hệ với bạn");
         }
         if (phone != null) phone = phone.replaceAll("[^0-9+]", "");
         if (phone != null && registrationRepository.existsByEventIdAndUserIsNullAndGuestPhone(eventId, phone)) {
-            throw new IllegalArgumentException("Số điện thoại này đã gửi hồ sơ cho sự kiện. Đăng nhập hoặc liên hệ 11of nếu cần sửa.");
+            throw new IllegalArgumentException("Số điện thoại này đã gửi hồ sơ cho sự kiện. Đăng nhập hoặc liên hệ 11 On Field nếu cần sửa.");
         }
         EventRegistration r = EventRegistration.builder().event(event)
                 .guestName(name != null && name.length() > 200 ? name.substring(0, 200) : name)

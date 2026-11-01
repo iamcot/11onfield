@@ -30,7 +30,7 @@ export function generateMetadata(): Metadata {
     // "{page name} - 11 người ra sân"; link previews take the same title and the page's description
     title: {
       template: `%s - ${brand}`,
-      default: t('11 người ra sân - Từ đường phố đến sân cỏ'),
+      default: t('11 người ra sân - Từ đường phố đến sân vận động'),
     },
     description: t(SITE_INTRO),
     keywords: ['bóng đá', 'cầu thủ', 'sân bóng', 'tuyển thủ', 'sự kiện bóng đá', 'đội bóng', 'football', 'soccer', '11 người ra sân'],

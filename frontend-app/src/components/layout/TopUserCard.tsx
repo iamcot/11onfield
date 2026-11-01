@@ -81,7 +81,7 @@ export default function TopUserCard() {
           <Link href="/" className="flex items-center">
             <Image
               src="/images/logo-white-full.png"
-              alt="11of Logo"
+              alt="11 On Field Logo"
               width={120}
               height={32}
               className="object-contain cursor-pointer"

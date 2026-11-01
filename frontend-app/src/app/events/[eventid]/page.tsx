@@ -371,7 +371,7 @@ export default function EventDetailPage() {
                   <>
                     <p className="font-semibold text-blue-800">{t("Hồ sơ đã được chuyển")}</p>
                     <p className="text-sm text-blue-800">
-                      {t("11of đã chuyển hồ sơ của bạn tới {partner} lúc {time}. Đơn vị sẽ liên hệ trực tiếp với bạn.", {
+                      {t("11 On Field đã chuyển hồ sơ của bạn tới {partner} lúc {time}. Đơn vị sẽ liên hệ trực tiếp với bạn.", {
                         partner: event.partnerName || t("đơn vị tuyển sinh"),
                         time: myReg.forwardedAt ? fmtDateTime(myReg.forwardedAt) : "",
                       })}
@@ -381,7 +381,7 @@ export default function EventDetailPage() {
                   <>
                     <p className="font-semibold text-green-900">{t("Đã gửi hồ sơ")}</p>
                     <p className="text-sm text-green-800">
-                      {t("Gửi lúc {time}. 11of đang xem hồ sơ và sẽ chuyển tới {partner}.", {
+                      {t("Gửi lúc {time}. 11 On Field đang xem hồ sơ và sẽ chuyển tới {partner}.", {
                         time: fmtDateTime(myReg.updatedAt),
                         partner: event.partnerName || t("đơn vị tuyển sinh"),
                       })}

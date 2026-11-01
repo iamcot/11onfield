@@ -112,7 +112,7 @@ export default function Hero({
 
           <p className="of-in mt-5 max-w-[560px] text-[16px] text-[#E2EAE4] sm:text-[18px]" style={cssVars({ '--i': 1 })}>
             {rich(
-              t('Cơ hội cho tài năng <b>16–21 tuổi</b> theo đuổi giấc mơ sân cỏ. Huấn luyện cùng <b>chuyên gia quốc tế đến từ La Liga</b>, Top 11 đi World Cup Tour, ra sân vận động quốc gia gặp <b>hàng triệu</b> khán giả.'),
+              t('Cơ hội cho tài năng <b>16–21 tuổi</b> theo đuổi giấc mơ sân cỏ. Huấn luyện cùng <b>chuyên gia quốc tế đến từ La Liga</b>, Top 11 đi World Cup Tour, đến sân vận động quốc gia gặp <b>hàng triệu</b> khán giả.'),
               { b: (c) => <strong className="text-white">{c}</strong> }
             )}
           </p>

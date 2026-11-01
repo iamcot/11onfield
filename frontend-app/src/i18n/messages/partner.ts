@@ -16,7 +16,7 @@ const partner: Messages = {
   '4 tháng huấn luyện': ['4 months of training', '4 meses de entrenamiento', '4개월 훈련'],
   'Phát sóng': ['On air', 'Emisión', '방송'],
   'tập phim truyền hình': ['TV episodes', 'episodios de TV', 'TV 에피소드'],
-  'Format truyền hình thực tế bóng đá <b>tiêu chuẩn quốc tế đầu tiên</b> tại Việt Nam: tìm kiếm, đào tạo và đưa 11 tài năng trẻ ra sân vận động quốc gia.': [
+  'Format truyền hình thực tế bóng đá <b>tiêu chuẩn quốc tế đầu tiên</b> tại Việt Nam: tìm kiếm, đào tạo và đưa 11 tài năng trẻ đến sân vận động quốc gia.': [
     "Vietnam's <b>first international-standard</b> football reality format: finding, training and taking 11 young talents to the national stadium.",
     'El <b>primer formato de telerrealidad futbolística de nivel internacional</b> de Vietnam: buscar, formar y llevar a 11 jóvenes talentos al estadio nacional.',
     '베트남 <b>최초의 국제 표준</b> 축구 리얼리티 포맷: 11명의 젊은 인재를 발굴하고 훈련시켜 국립경기장에 세웁니다.',

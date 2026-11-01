@@ -7,7 +7,7 @@ export function generateMetadata(): Metadata {
   return {
     // the root layout's title template does not reach its own page
     title: { absolute: `${t('Trang chủ')} - ${t('11 người ra sân')}` },
-    description: t('Nền tảng kết nối cầu thủ bóng đá từ đường phố đến sân cỏ. Khám phá tài năng, tham gia tuyển chọn, xây dựng sự nghiệp bóng đá chuyên nghiệp.'),
+    description: t('Nền tảng kết nối cầu thủ bóng đá từ đường phố đến sân vận động. Khám phá tài năng, tham gia tuyển chọn, xây dựng sự nghiệp bóng đá chuyên nghiệp.'),
     keywords: ['bóng đá', 'tuyển thủ', 'cầu thủ bóng đá', 'đào tạo bóng đá', 'tìm kiếm cầu thủ', 'tuyển sinh bóng đá'],
   };
 }
