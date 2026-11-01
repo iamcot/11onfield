@@ -62,7 +62,7 @@ public class EventRegistrationService {
 
     private Event recruitmentEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
-                .filter(e -> e.getStatus() != Event.EventStatus.DELETED)
+                .filter(e -> com.elevenof.backoffice.specification.EventSpecification.PUBLIC_STATUSES.contains(e.getStatus()))
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sự kiện"));
         if (event.getEventType() != Event.EventType.RECRUITMENT) {
             throw new IllegalArgumentException("Sự kiện này không nhận hồ sơ đăng ký");

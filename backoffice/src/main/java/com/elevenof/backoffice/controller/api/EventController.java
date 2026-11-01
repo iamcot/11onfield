@@ -67,7 +67,7 @@ public class EventController {
         }
         final Event.EventStatus eventStatus = tempStatus;
 
-        Specification<Event> spec = EventSpecification.withFilters(search, eventStatus, provinceId);
+        Specification<Event> spec = EventSpecification.publicWithFilters(search, eventStatus, provinceId);
         Page<Event> events = eventRepository.findAll(spec, pageable);
 
         Page<EventListDTO> eventList = events.map(event -> {
@@ -99,7 +99,7 @@ public class EventController {
         Event event = eventRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
 
-        if (event.getStatus() == Event.EventStatus.DELETED) {
+        if (!EventSpecification.PUBLIC_STATUSES.contains(event.getStatus())) {
             throw new ResourceNotFoundException("Event not found");
         }
 
