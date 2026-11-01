@@ -26,9 +26,19 @@ public class EventRegistration {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
+    /** The player's account; null when a guest applied without one (see guest*). */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "guest_name", length = 200)
+    private String guestName;
+
+    @Column(name = "guest_phone", length = 30)
+    private String guestPhone;
+
+    @Column(name = "guest_email", length = 200)
+    private String guestEmail;
 
     /** JSON list of {id, label, type, value}: a snapshot of the form as the player filled it. */
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -62,6 +72,10 @@ public class EventRegistration {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public String displayName() { return user != null ? user.getFullName() : guestName; }
+    public String displayPhone() { return user != null ? user.getPhone() : guestPhone; }
+    public String displayEmail() { return user != null ? user.getEmail() : guestEmail; }
 
     public enum Status {
         SUBMITTED,  // Đã gửi, chờ 11of chuyển

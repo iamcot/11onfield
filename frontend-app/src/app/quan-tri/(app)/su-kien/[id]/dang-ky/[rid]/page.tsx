@@ -16,7 +16,7 @@ interface Registration {
   forwardedAt: string | null;
   forwardedBy: string | null;
   event: { id: number; title: string; partnerName: string | null; startDate: string; endDate: string; location: string | null };
-  user: { userid: string; fullName: string; avatar: string | null; phone: string | null; email: string | null };
+  user: { userid: string | null; fullName: string; avatar: string | null; phone: string | null; email: string | null; guest?: boolean };
 }
 
 const show = (a: Answer) => (a.type === 'date' && a.value ? fmtDate(a.value) : a.value || '');
@@ -116,7 +116,10 @@ export default function RegistrationPage() {
   async function forward() {
     if (!single) return;
     const partner = single.event.partnerName || 'đơn vị tuyển sinh';
-    if (!(await confirm(`Xác nhận đã gửi hồ sơ của ${single.user.fullName} tới ${partner}? Cầu thủ sẽ nhận email báo hồ sơ đã được chuyển.`))) return;
+    const told = single.user.guest
+      ? single.user.email ? 'Khách sẽ nhận email báo hồ sơ đã được chuyển.' : 'Khách không để lại email nên sẽ không được báo, hãy gọi điện nếu cần.'
+      : 'Cầu thủ sẽ nhận email báo hồ sơ đã được chuyển.';
+    if (!(await confirm(`Xác nhận đã gửi hồ sơ của ${single.user.fullName} tới ${partner}? ${told}`))) return;
     setBusy(true);
     try {
       setData([await api<Registration>(`event-registrations/${single.id}/forward`, { method: 'POST' })]);
@@ -151,6 +154,7 @@ export default function RegistrationPage() {
           back={{ href: `/quan-tri/su-kien/${id}/dang-ky`, label: 'Danh sách hồ sơ' }}
         >
           <Button onClick={() => window.print()} disabled={!data}>Tải PDF</Button>
+          {single?.user.guest && <Badge tone="gold">Khách, chưa có tài khoản</Badge>}
           {single?.status === 'SUBMITTED' && <Button variant="primary" disabled={busy} onClick={forward}>Đánh dấu đã chuyển</Button>}
           {single?.status === 'FORWARDED' && <Button disabled={busy} onClick={unforward}>Hoàn tác</Button>}
         </PageTitle>

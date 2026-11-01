@@ -128,10 +128,16 @@ public class EventController {
 
     // ==================== RECRUITMENT FORM ====================
 
+    private static String signedIn(Authentication auth) {
+        return auth == null || !auth.isAuthenticated() || auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken
+                ? null : auth.getName();
+    }
+
     /** The registration form of a recruitment event, filled with the player's profile, and their application if sent. */
     @GetMapping("/{id}/registration")
     public ResponseEntity<Map<String, Object>> registrationForm(@PathVariable Long id, Authentication authentication) {
-        return ResponseEntity.ok(registrationService.formFor(id, authentication.getName()));
+        // open to guests too: they get the form without their profile filled in
+        return ResponseEntity.ok(registrationService.formFor(id, signedIn(authentication)));
     }
 
     /** Sends (or corrects, until 11of has passed it on) the player's application. Body: {answers: {fieldId: value}}. */
@@ -141,8 +147,12 @@ public class EventController {
                                                                   @RequestBody Map<String, Object> body,
                                                                   Authentication authentication) {
         Object answers = body.get("answers");
-        return ResponseEntity.ok(registrationService.submit(id, authentication.getName(),
-                answers instanceof Map<?, ?> m ? (Map<String, Object>) m : Map.of()));
+        Map<String, Object> sent = answers instanceof Map<?, ?> m ? (Map<String, Object>) m : Map.of();
+        String userid = signedIn(authentication);
+        // saveToProfile: the guest just made an account while applying, so their answers fill the new profile
+        return ResponseEntity.ok(userid == null
+                ? registrationService.submitGuest(id, sent)
+                : registrationService.submit(id, userid, sent, Boolean.TRUE.equals(body.get("saveToProfile"))));
     }
 
     @PostMapping("/{id}/join")

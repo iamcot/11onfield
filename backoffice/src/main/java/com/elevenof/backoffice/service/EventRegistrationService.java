@@ -57,6 +57,9 @@ public class EventRegistrationService {
     /** Sent after the application is saved, so a mail failure never loses an application. */
     public record SubmittedEvent(Long registrationId, boolean updated) {}
 
+    /** A guest's application was passed on; they have no account, so they only get an email. */
+    public record GuestForwardedEvent(Long registrationId) {}
+
     private Event recruitmentEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .filter(e -> e.getStatus() != Event.EventStatus.DELETED)
@@ -80,14 +83,14 @@ public class EventRegistrationService {
     @Transactional(readOnly = true)
     public Map<String, Object> formFor(Long eventId, String userid) {
         Event event = recruitmentEvent(eventId);
-        User user = user(userid);
+        User user = userid == null ? null : user(userid);
         List<EventFormFields.FormField> fields = formOf(event);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("fields", fields);
         out.put("prefill", formFields.prefill(fields, user));
         out.put("open", event.getStatus() == Event.EventStatus.OPEN_REGISTER);
         out.put("partnerName", event.getPartnerName());
-        out.put("registration", registrationRepository.findByEventIdAndUserId(eventId, user.getId())
+        out.put("registration", user == null ? null : registrationRepository.findByEventIdAndUserId(eventId, user.getId())
                 .map(this::mine).orElse(null));
         return out;
     }
@@ -115,7 +118,7 @@ public class EventRegistrationService {
      * Saves the player's application. They may send it again to correct it until 11of has passed it on.
      */
     @Transactional
-    public Map<String, Object> submit(Long eventId, String userid, Map<String, Object> sent) {
+    public Map<String, Object> submit(Long eventId, String userid, Map<String, Object> sent, boolean saveToProfile) {
         Event event = recruitmentEvent(eventId);
         if (event.getStatus() != Event.EventStatus.OPEN_REGISTER) {
             throw new IllegalArgumentException("Sự kiện đang không nhận đăng ký");
@@ -127,6 +130,7 @@ public class EventRegistrationService {
             throw new IllegalArgumentException("Hồ sơ đã được chuyển cho đơn vị tuyển sinh, không thể sửa nữa");
         }
         List<EventFormFields.Answer> answers = formFields.answers(formOf(event), sent, user);
+        if (saveToProfile) formFields.fillEmptyProfile(user, answers);
         if (r == null) r = EventRegistration.builder().event(event).user(user).build();
         r.setAnswers(formFields.writeAnswers(answers));
         r = registrationRepository.save(r);
@@ -144,9 +148,50 @@ public class EventRegistrationService {
         return mine(r);
     }
 
+    private static final Set<String> PHONE = Set.of("phone");
+    private static final Set<String> EMAIL = Set.of("email");
+
+    /**
+     * An application from someone who is not signed in and chose not to make an account.
+     * It keeps the name and contact they typed; one per phone number per event.
+     */
+    @Transactional
+    public Map<String, Object> submitGuest(Long eventId, Map<String, Object> sent) {
+        Event event = recruitmentEvent(eventId);
+        if (event.getStatus() != Event.EventStatus.OPEN_REGISTER) {
+            throw new IllegalArgumentException("Sự kiện đang không nhận đăng ký");
+        }
+        List<EventFormFields.Answer> answers = formFields.answers(formOf(event), sent, null);
+        String name = EventFormFields.pick(answers, "user.fullName", Set.of());
+        String phone = EventFormFields.pick(answers, "user.phone", PHONE);
+        String email = EventFormFields.pick(answers, "user.email", EMAIL);
+        if (name == null) {
+            name = answers.stream().filter(a -> "text".equals(a.type()) && a.value() != null).map(EventFormFields.Answer::value).findFirst().orElse(null);
+        }
+        if (phone == null && email == null) {
+            throw new IllegalArgumentException("Cần số điện thoại hoặc email để 11of liên hệ với bạn");
+        }
+        if (phone != null) phone = phone.replaceAll("[^0-9+]", "");
+        if (phone != null && registrationRepository.existsByEventIdAndUserIsNullAndGuestPhone(eventId, phone)) {
+            throw new IllegalArgumentException("Số điện thoại này đã gửi hồ sơ cho sự kiện. Đăng nhập hoặc liên hệ 11of nếu cần sửa.");
+        }
+        EventRegistration r = EventRegistration.builder().event(event)
+                .guestName(name != null && name.length() > 200 ? name.substring(0, 200) : name)
+                .guestPhone(phone != null && phone.length() > 30 ? phone.substring(0, 30) : phone)
+                .guestEmail(email != null && email.length() > 200 ? email.substring(0, 200) : email)
+                .answers(formFields.writeAnswers(answers)).build();
+        r = registrationRepository.save(r);
+        publisher.publishEvent(new SubmittedEvent(r.getId(), false));
+        return mine(r);
+    }
+
     private Map<String, String> vars(User user, Event event) {
+        return vars(user.getFullName(), event);
+    }
+
+    private Map<String, String> vars(String fullName, Event event) {
         Map<String, String> v = new HashMap<>();
-        v.put("fullName", user.getFullName() != null ? user.getFullName() : "");
+        v.put("fullName", fullName != null ? fullName : "");
         v.put("eventTitle", event.getTitle());
         v.put("partnerName", event.getPartnerName() != null && !event.getPartnerName().isBlank()
                 ? event.getPartnerName() : "đơn vị tuyển sinh");
@@ -163,11 +208,12 @@ public class EventRegistrationService {
         for (EventRegistration r : registrationRepository.findByEventIdWithUser(eventId)) {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", r.getId());
-            m.put("userid", r.getUser().getUserid());
-            m.put("fullName", r.getUser().getFullName());
-            m.put("phone", r.getUser().getPhone());
-            m.put("email", r.getUser().getEmail());
-            m.put("avatar", r.getUser().getAvatar());
+            m.put("userid", r.getUser() != null ? r.getUser().getUserid() : null);
+            m.put("fullName", r.displayName());
+            m.put("phone", r.displayPhone());
+            m.put("email", r.displayEmail());
+            m.put("avatar", r.getUser() != null ? r.getUser().getAvatar() : null);
+            m.put("guest", r.getUser() == null);
             m.put("status", r.getStatus().name());
             m.put("createdAt", r.getCreatedAt());
             m.put("updatedAt", r.getUpdatedAt());
@@ -204,11 +250,12 @@ public class EventRegistrationService {
         ev.put("location", e.getLocation());
         m.put("event", ev);
         Map<String, Object> u = new LinkedHashMap<>();
-        u.put("userid", r.getUser().getUserid());
-        u.put("fullName", r.getUser().getFullName());
-        u.put("avatar", r.getUser().getAvatar());
-        u.put("phone", r.getUser().getPhone());
-        u.put("email", r.getUser().getEmail());
+        u.put("userid", r.getUser() != null ? r.getUser().getUserid() : null);
+        u.put("fullName", r.displayName());
+        u.put("avatar", r.getUser() != null ? r.getUser().getAvatar() : null);
+        u.put("phone", r.displayPhone());
+        u.put("email", r.displayEmail());
+        u.put("guest", r.getUser() == null);
         m.put("user", u);
         return m;
     }
@@ -225,8 +272,12 @@ public class EventRegistrationService {
         r.setForwardedAt(LocalDateTime.now());
         r.setForwardedBy(userRepository.findByUserid(adminUserid).orElse(null));
         registrationRepository.save(r);
-        publisher.publishEvent(new NotificationEvent(this, r.getUser().getId(), "EVENT_REGISTRATION_FORWARDED",
-                vars(r.getUser(), r.getEvent()), String.format("{\"eventId\": %d}", r.getEvent().getId())));
+        if (r.getUser() != null) {
+            publisher.publishEvent(new NotificationEvent(this, r.getUser().getId(), "EVENT_REGISTRATION_FORWARDED",
+                    vars(r.getUser(), r.getEvent()), String.format("{\"eventId\": %d}", r.getEvent().getId())));
+        } else if (r.getGuestEmail() != null) {
+            publisher.publishEvent(new GuestForwardedEvent(r.getId()));
+        }
         return detailForAdmin(registrationId);
     }
 
@@ -261,7 +312,7 @@ public class EventRegistrationService {
                 return;
             }
             Event e = r.getEvent();
-            User u = r.getUser();
+            String who = r.displayName() != null ? r.displayName() : "Khách";
             String link = frontendUrl + "/quan-tri/su-kien/" + e.getId() + "/dang-ky/" + r.getId();
             StringBuilder rows = new StringBuilder();
             for (EventFormFields.Answer a : formFields.readAnswers(r.getAnswers())) {
@@ -274,7 +325,7 @@ public class EventRegistrationService {
                     rows.append(row(a.label(), EventFormFields.display(a), false));
                 }
             }
-            String subject = (submitted.updated() ? "[Cập nhật hồ sơ] " : "[Hồ sơ mới] ") + e.getTitle() + " – " + u.getFullName();
+            String subject = (submitted.updated() ? "[Cập nhật hồ sơ] " : "[Hồ sơ mới] ") + e.getTitle() + " – " + who + (r.getUser() == null ? " (chưa có tài khoản)" : "");
             String body = "<html><body style=\"font-family:Arial,sans-serif;color:#1d2a22\">"
                     + "<h2 style=\"margin:0 0 8px\">" + (submitted.updated() ? "Cầu thủ vừa sửa hồ sơ" : "Có hồ sơ tuyển sinh mới") + "</h2>"
                     + "<p>Sự kiện: <strong>" + esc(e.getTitle()) + "</strong>"
@@ -292,6 +343,28 @@ public class EventRegistrationService {
             }
         } catch (Exception ex) {
             log.error("Could not mail admins about event registration {}", submitted.registrationId(), ex);
+        }
+    }
+
+    @Async("notificationExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(readOnly = true, propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public void mailGuestForwarded(GuestForwardedEvent ev) {
+        try {
+            EventRegistration r = registrationRepository.findById(ev.registrationId()).orElse(null);
+            if (r == null || r.getGuestEmail() == null) return;
+            Map<String, String> v = vars(r.getGuestName(), r.getEvent());
+            String body = "<html><body style=\"font-family:Arial,sans-serif;color:#1d2a22\">"
+                    + "<h2>Xin chào " + esc(v.get("fullName")) + "!</h2>"
+                    + "<p>11 On Field đã chuyển hồ sơ đăng ký của bạn cho sự kiện <strong>" + esc(v.get("eventTitle"))
+                    + "</strong> tới <strong>" + esc(v.get("partnerName")) + "</strong>.</p>"
+                    + "<p>Đơn vị tuyển sinh sẽ liên hệ trực tiếp với bạn qua số điện thoại hoặc email trong hồ sơ.</p>"
+                    + "<p>Tạo hồ sơ cầu thủ miễn phí trên 11 On Field để theo dõi các đợt tuyển sinh tiếp theo: <a href=\""
+                    + frontendUrl + "/auth/register\">" + frontendUrl + "/auth/register</a></p>"
+                    + "<p><strong>Đội ngũ 11 On Field</strong></p></body></html>";
+            emailService.sendEmail(r.getGuestEmail(), "Hồ sơ \"" + v.get("eventTitle") + "\" của bạn đã được chuyển", body);
+        } catch (Exception ex) {
+            log.error("Could not mail guest about forwarded registration {}", ev.registrationId(), ex);
         }
     }
 

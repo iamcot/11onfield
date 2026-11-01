@@ -14,7 +14,9 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
 
     Optional<EventRegistration> findByEventIdAndUserId(Long eventId, Long userId);
 
-    @Query("SELECT r FROM EventRegistration r JOIN FETCH r.user WHERE r.event.id = :eventId ORDER BY r.createdAt DESC")
+    boolean existsByEventIdAndUserIsNullAndGuestPhone(Long eventId, String guestPhone);
+
+    @Query("SELECT r FROM EventRegistration r LEFT JOIN FETCH r.user WHERE r.event.id = :eventId ORDER BY r.createdAt DESC")
     List<EventRegistration> findByEventIdWithUser(@Param("eventId") Long eventId);
 
     long countByEventId(Long eventId);

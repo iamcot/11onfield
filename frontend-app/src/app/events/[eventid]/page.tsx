@@ -55,14 +55,11 @@ export default function EventDetailPage() {
           start_date: eventData.startDate
         });
 
-        // Check if user joined (only if authenticated)
-        if (isAuthenticated) {
-          if (eventData.eventType === "RECRUITMENT") {
-            setRegForm(await eventService.getRegistrationForm(eventId).catch(() => null));
-          } else {
-            const joined = await eventService.isUserJoined(eventId);
-            setIsJoined(joined);
-          }
+        // recruitment: guests get the empty form, signed-in players their prefilled one
+        if (eventData.eventType === "RECRUITMENT") {
+          setRegForm(await eventService.getRegistrationForm(eventId).catch(() => null));
+        } else if (isAuthenticated) {
+          setIsJoined(await eventService.isUserJoined(eventId));
         }
       } catch (err: any) {
         console.error("Error fetching event:", err);
@@ -202,7 +199,8 @@ export default function EventDetailPage() {
     }
   };
 
-  if (authLoading || isLoading) {
+  // only before the first load: signing up from the form must not unmount it
+  if ((authLoading || isLoading) && !event) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>{t("Đang tải...")}</p>
@@ -241,10 +239,6 @@ export default function EventDetailPage() {
     new Date(iso).toLocaleString(intlLocale, { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
 
   const openForm = () => {
-    if (!isAuthenticated) {
-      router.push(`/auth/login?redirect=${encodeURIComponent(`/events/${eventId}`)}`);
-      return;
-    }
     if (!regForm) return;
     track("event_registration_started", { event_id: eventId, event_title: event.title });
     setShowForm(true);
@@ -396,7 +390,7 @@ export default function EventDetailPage() {
                 )}
               </div>
             )}
-            {isRecruitment && isAuthenticated && regForm && (event.status === "OPEN_REGISTER" || myReg) && (
+            {isRecruitment && regForm && (event.status === "OPEN_REGISTER" || myReg) && (
               <div className="mb-6">
                 <button
                   onClick={openForm}
@@ -413,13 +407,13 @@ export default function EventDetailPage() {
               </div>
             )}
 
-            {!isAuthenticated && event.status === "OPEN_REGISTER" && (
+            {!isAuthenticated && !isRecruitment && event.status === "OPEN_REGISTER" && (
               <div className="mb-6">
                 <button
                   onClick={() => router.push("/auth/login")}
                   className="w-full md:w-auto px-6 py-3 btn-primary text-white rounded-md transition"
                 >
-                  {isRecruitment ? t("Đăng nhập để đăng ký") : t("Đăng nhập để tham gia")}
+                  {t("Đăng nhập để tham gia")}
                 </button>
               </div>
             )}
@@ -445,6 +439,7 @@ export default function EventDetailPage() {
           eventId={eventId}
           eventTitle={event.title}
           form={regForm}
+          guest={!isAuthenticated}
           onClose={() => setShowForm(false)}
           onSubmitted={(r) => {
             if (!myReg) track("event_registration_completed", { event_id: eventId, event_title: event.title });

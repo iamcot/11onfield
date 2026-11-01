@@ -42,7 +42,7 @@ public class EventFormFields {
     }
 
     /** One answer as stored with the application: what the field was called and what the player gave. */
-    public record Answer(String id, String type, String label, String value) {}
+    public record Answer(String id, String type, String label, String value, String source) {}
 
     /** A field of the player/user profile that a form can take over. */
     public record ProfileField(String key, String group, String label, String type, List<String> options,
@@ -220,7 +220,7 @@ public class EventFormFields {
             if (f.source() == null) continue;
             ProfileField p = profile.get(f.source());
             if (p == null) continue;
-            String v = p.read().apply(user);
+            String v = user == null ? null : p.read().apply(user);
             if (v != null && !v.isBlank()) out.put(f.id(), v);
         }
         return out;
@@ -239,12 +239,12 @@ public class EventFormFields {
         List<String> missing = new ArrayList<>();
         for (FormField f : fields) {
             if (f.type().equals("heading")) {
-                out.add(new Answer(f.id(), f.type(), f.label(), null));
+                out.add(new Answer(f.id(), f.type(), f.label(), null, null));
                 continue;
             }
             String value;
             if (READ_ONLY_TYPES.contains(f.type()) && f.source() != null && profile.containsKey(f.source())) {
-                value = profile.get(f.source()).read().apply(user);
+                value = user == null ? null : profile.get(f.source()).read().apply(user);
             } else {
                 Object raw = in.get(f.id());
                 if (raw instanceof Collection<?> c) {
@@ -280,10 +280,59 @@ public class EventFormFields {
                 }
             }
             if (value == null && f.isRequired()) missing.add(f.label());
-            out.add(new Answer(f.id(), f.type(), f.label(), value));
+            out.add(new Answer(f.id(), f.type(), f.label(), value, f.source()));
         }
         if (!missing.isEmpty()) throw new IllegalArgumentException("Vui lòng điền: " + String.join(", ", missing));
         return out;
+    }
+
+    /** The answer filled from the given profile field, else the first answer of one of the given types. */
+    public static String pick(List<Answer> answers, String source, Set<String> types) {
+        for (Answer a : answers) if (source.equals(a.source()) && a.value() != null) return a.value();
+        for (Answer a : answers) if (a.source() == null && types.contains(a.type()) && a.value() != null) return a.value();
+        return null;
+    }
+
+    private static Optional<String> keyOf(Map<String, String> m, String v) {
+        return m.entrySet().stream().filter(e -> e.getValue().equalsIgnoreCase(v)).map(Map.Entry::getKey).findFirst();
+    }
+
+    private static Integer intOf(String v) {
+        try { return (int) Math.round(Double.parseDouble(v.replace(',', '.'))); } catch (Exception e) { return null; }
+    }
+
+    private static boolean blank(Object o) { return o == null || (o instanceof String s && s.isBlank()); }
+
+    /**
+     * Copies the answers of profile fields into the player's profile where it is still empty
+     * (a guest who made an account while applying gets the profile they just typed). Never overwrites.
+     */
+    public void fillEmptyProfile(User user, List<Answer> answers) {
+        Map<String, String> v = new HashMap<>();
+        for (Answer a : answers) if (a.source() != null && a.value() != null && !a.value().isBlank()) v.put(a.source(), a.value().trim());
+        if (user.getDob() == null && v.containsKey("user.dob")) {
+            try { user.setDob(java.time.LocalDate.parse(v.get("user.dob"))); } catch (Exception ignored) { }
+        }
+        if (user.getGender() == null && v.containsKey("user.gender")) {
+            keyOf(GENDER, v.get("user.gender")).ifPresent(g -> user.setGender(User.Gender.valueOf(g)));
+        }
+        Player p = user.getPlayer();
+        if (p == null) return;
+        if (blank(p.getPersonalId()) && v.containsKey("player.personalId")) p.setPersonalId(v.get("player.personalId"));
+        if (blank(p.getAddress()) && v.containsKey("player.address")) p.setAddress(v.get("player.address"));
+        if (p.getHeight() == null && v.containsKey("player.height")) p.setHeight(intOf(v.get("player.height")));
+        if (p.getWeight() == null && v.containsKey("player.weight")) p.setWeight(intOf(v.get("player.weight")));
+        if (p.getYearsOfExperience() == null && v.containsKey("player.yearsOfExperience")) p.setYearsOfExperience(intOf(v.get("player.yearsOfExperience")));
+        if (blank(p.getPreferredFoot()) && v.containsKey("player.preferredFoot")) keyOf(FOOT, v.get("player.preferredFoot")).ifPresent(p::setPreferredFoot);
+        if (blank(p.getPositions()) && v.containsKey("player.positions")) {
+            List<String> keys = Arrays.stream(v.get("player.positions").split(",")).map(String::trim)
+                    .map(x -> POSITION.containsKey(x) ? Optional.of(x) : keyOf(POSITION, x)).flatMap(Optional::stream).distinct().toList();
+            if (!keys.isEmpty()) p.setPositions(String.join(",", keys));
+        }
+        if (blank(p.getSchool()) && v.containsKey("player.school")) p.setSchool(v.get("player.school"));
+        if (blank(p.getClub()) && v.containsKey("player.club")) p.setClub(v.get("player.club"));
+        if (blank(p.getAcademy()) && v.containsKey("player.academy")) p.setAcademy(v.get("player.academy"));
+        if (blank(p.getBio()) && v.containsKey("player.bio")) p.setBio(v.get("player.bio"));
     }
 
     /** A stored value as people read it: dates as dd/MM/yyyy. */

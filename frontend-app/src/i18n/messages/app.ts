@@ -483,6 +483,33 @@ const app: Messages = {
   'Từ hồ sơ': ['From profile', 'Del perfil', '프로필에서'],
   'Huỷ': ['Cancel', 'Cancelar', '취소'],
   'Gửi lại hồ sơ': ['Resend application', 'Reenviar solicitud', '지원서 다시 보내기'],
+  'Số điện thoại cần 10 số, bắt đầu bằng 0, để tạo tài khoản': ['Phone number needs 10 digits starting with 0 to make an account', 'El teléfono necesita 10 dígitos empezando por 0 para crear la cuenta', '계정을 만들려면 0으로 시작하는 10자리 전화번호가 필요합니다'],
+  'Số điện thoại cần 10 số, bắt đầu bằng 0': ['Phone number needs 10 digits starting with 0', 'El teléfono necesita 10 dígitos empezando por 0', '0으로 시작하는 10자리 전화번호가 필요합니다'],
+  'Mật khẩu cần ít nhất 8 ký tự': ['Password needs at least 8 characters', 'La contraseña necesita al menos 8 caracteres', '비밀번호는 8자 이상이어야 합니다'],
+  'Số điện thoại này đã có tài khoản 11onfield. Hãy đăng nhập để gửi hồ sơ, hoặc bỏ chọn ô tạo tài khoản.': [
+    'This phone number already has an 11onfield account. Log in to apply, or untick the account box.',
+    'Este teléfono ya tiene una cuenta de 11onfield. Inicia sesión para inscribirte o desmarca la casilla de cuenta.',
+    '이 전화번호는 이미 11onfield 계정이 있습니다. 로그인해 지원하거나 계정 만들기 선택을 해제하세요.',
+  ],
+  'Đã có tài khoản 11onfield?': ['Already have an 11onfield account?', '¿Ya tienes cuenta de 11onfield?', '이미 11onfield 계정이 있나요?'],
+  'để thông tin hồ sơ được điền sẵn.': ['to have your profile filled in.', 'para rellenar los datos de tu perfil.', '프로필 정보가 자동으로 채워집니다.'],
+  'Gửi đơn đồng thời đăng ký hồ sơ trên 11onfield': ['Also create my profile on 11onfield', 'Crear también mi perfil en 11onfield', '11onfield 프로필도 함께 만들기'],
+  'Đặt mật khẩu tài khoản (ít nhất 8 ký tự)': ['Choose an account password (at least 8 characters)', 'Elige una contraseña (mínimo 8 caracteres)', '계정 비밀번호 설정 (8자 이상)'],
+  'Đăng nhập bằng số điện thoại trong đơn và mật khẩu này để theo dõi hồ sơ.': [
+    'Log in with the phone number in the form and this password to follow your application.',
+    'Inicia sesión con el teléfono del formulario y esta contraseña para seguir tu solicitud.',
+    '양식의 전화번호와 이 비밀번호로 로그인해 지원 현황을 확인하세요.',
+  ],
+  'Tài khoản và hồ sơ 11onfield của bạn đã được tạo từ thông tin trong đơn.': [
+    'Your 11onfield account and profile were created from the form.',
+    'Tu cuenta y tu perfil de 11onfield se crearon con los datos del formulario.',
+    '양식 정보로 11onfield 계정과 프로필이 만들어졌습니다.',
+  ],
+  '11of sẽ kiểm tra và chuyển hồ sơ của bạn tới đơn vị tuyển sinh, rồi báo cho bạn qua email nếu bạn có để lại email.': [
+    '11of will review your application, pass it on to the recruiting club and let you know by email if you left one.',
+    '11of revisará tu solicitud, la enviará a la entidad que capta y te avisará por correo si dejaste uno.',
+    '11of가 지원서를 검토해 모집 기관에 전달하고, 이메일을 남겼다면 이메일로 알려드립니다.',
+  ],
 };
 
 export default app;

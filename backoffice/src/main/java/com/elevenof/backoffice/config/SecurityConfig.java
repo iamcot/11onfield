@@ -60,6 +60,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/{userid}/followers").permitAll() // Allow anonymous access to followers list
                 .requestMatchers("/api/events").permitAll() // Allow anonymous access to events list
                 .requestMatchers("/api/events/{id}").permitAll() // Allow anonymous access to event details
+                .requestMatchers("/api/events/{id}/registration").permitAll() // recruitment form: guests may apply too
                 .requestMatchers("/api/events/{id}/participants").permitAll() // Allow anonymous access to participants list
                 .requestMatchers("/api/events/user/{userid}/joined").permitAll() // Allow anonymous access to user's joined events
                 .requestMatchers("/api/competitions/current").permitAll()

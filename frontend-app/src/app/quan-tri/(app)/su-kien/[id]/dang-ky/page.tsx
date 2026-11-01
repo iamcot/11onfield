@@ -9,7 +9,9 @@ import { Badge, Button, ClickRow, LinkButton, Loading, PageTitle, Select, Table,
 
 interface Row {
   id: number;
-  userid: string;
+  userid: string | null;
+  /** applied without an 11onfield account */
+  guest?: boolean;
   fullName: string;
   phone: string | null;
   email: string | null;
@@ -95,7 +97,11 @@ export default function EventRegistrationsPage() {
                     {r.avatar ? <img src={r.avatar} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" /> : <div className="h-9 w-9 shrink-0 rounded-full bg-[#E6ECE8]" />}
                     <div>
                       <div className="font-medium">{r.fullName}</div>
-                      <Link href={`/profile/${r.userid}`} target="_blank" className="text-[12px] text-[#66766D] hover:text-[#1F6B32]">Xem hồ sơ 11of ↗</Link>
+                      {r.userid ? (
+                        <Link href={`/profile/${r.userid}`} target="_blank" className="text-[12px] text-[#66766D] hover:text-[#1F6B32]">Xem hồ sơ 11of ↗</Link>
+                      ) : (
+                        <span className="text-[12px] text-[#9A6B00]">Khách, chưa có tài khoản</span>
+                      )}
                     </div>
                   </div>
                 </Td>
