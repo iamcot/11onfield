@@ -50,7 +50,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/health").permitAll()
-                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll() // Register and login are public
+                .requestMatchers("/api/auth/register", "/api/auth/register/send-otp", "/api/auth/login").permitAll() // Register and login are public
                 .requestMatchers("/api/auth/forgot-password", "/api/auth/verify-otp", "/api/auth/reset-password").permitAll() // Password reset flow
                 .requestMatchers("/api/provinces").permitAll()
                 .requestMatchers("/api/users/players").permitAll() // Allow anonymous access to players list

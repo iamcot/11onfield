@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { eventService } from "@/services/event.service";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRegisterOtp } from "@/hooks/useRegisterOtp";
 import type { RegisterData } from "@/types";
 import type { FormField, MyRegistration, RegistrationForm } from "@/types/event";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -66,6 +67,11 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
   const nameField = fieldOf("user.fullName");
   const phoneField = fieldOf("user.phone");
   const valueOf = (f?: FormField) => (f ? String(values[f.id] ?? "").trim() : "");
+  const accountPhone = (phoneField ? valueOf(phoneField) : account.phone).replace(/[^0-9]/g, "");
+  const otp = useRegisterOtp();
+  // making the account needs the phone confirmed: the first press sends a code, the second sends the form with it
+  const needsAccount = wasGuest && makeAccount && !accountMade && !locked;
+  const otpSent = needsAccount && otp.sentTo === accountPhone;
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -95,7 +101,7 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
     }
     if (wasGuest && makeAccount && !accountMade) {
       const name = nameField ? valueOf(nameField) : account.fullName.trim();
-      const phone = (phoneField ? valueOf(phoneField) : account.phone).replace(/[^0-9]/g, "");
+      const phone = accountPhone;
       if (!nameField && !name) e.acc_fullName = t("Vui lòng điền mục này");
       if (!PHONE_RE.test(phone)) {
         if (phoneField) e[phoneField.id] = t("Số điện thoại cần 10 số, bắt đầu bằng 0, để tạo tài khoản");
@@ -114,6 +120,24 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
     if (locked || sending) return;
     setServerError("");
     if (!validate()) return;
+    if (needsAccount && !otpSent) {
+      try {
+        await otp.send(accountPhone);
+      } catch (err: any) {
+        const msg = t(err?.message || "Không gửi được mã OTP. Vui lòng thử lại.");
+        setServerError(
+          /đã được sử dụng|tồn tại|exists/i.test(msg)
+            ? t("Số điện thoại này đã có tài khoản 11onfield. Hãy đăng nhập để gửi hồ sơ, hoặc bỏ chọn ô tạo tài khoản.")
+            : msg,
+        );
+      }
+      return;
+    }
+    if (needsAccount && !otp.codeValid) {
+      setErrors((e) => ({ ...e, acc_otp: t("Mã OTP phải gồm 6 chữ số") }));
+      document.getElementById("rf-account")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setSending(true);
     try {
       let saveToProfile = false;
@@ -128,8 +152,9 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
           const positions = valueOf(fieldOf("player.positions")).split(",").map((x) => POSITION_KEY[x.trim()] ?? "").filter(Boolean);
           const data: RegisterData = {
             fullName: nameField ? valueOf(nameField) : account.fullName.trim(),
-            phone: (phoneField ? valueOf(phoneField) : account.phone).replace(/[^0-9]/g, ""),
+            phone: accountPhone,
             password: account.password,
+            otpCode: otp.code,
             role: "PLAYER",
             ...(email ? { email } : {}),
             ...(dob ? { dob } : {}),
@@ -144,6 +169,10 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
             await register(data);
           } catch (err: any) {
             const msg = t(err?.message || "Đăng ký thất bại. Vui lòng thử lại.");
+            if (/OTP/i.test(msg)) {
+              setErrors((e) => ({ ...e, acc_otp: msg }));
+              return;
+            }
             setServerError(
               /điện thoại|tồn tại|exists/i.test(msg)
                 ? t("Số điện thoại này đã có tài khoản 11onfield. Hãy đăng nhập để gửi hồ sơ, hoặc bỏ chọn ô tạo tài khoản.")
@@ -392,6 +421,40 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
                         {errors.acc_password && <p className="mt-1 text-xs text-red-600">{errors.acc_password}</p>}
                         <p className="mt-1 text-xs text-gray-500">{t("Đăng nhập bằng số điện thoại trong đơn và mật khẩu này để theo dõi hồ sơ.")}</p>
                       </div>
+                      {otpSent && (
+                        <div className="rounded-md border border-green-200 bg-green-50 p-3 sm:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700" htmlFor="rf-otp">
+                            {t("Mã OTP (6 chữ số)")}
+                          </label>
+                          <input
+                            id="rf-otp"
+                            className={`${inputCls} mt-1 text-center font-mono !text-xl tracking-[0.4em]`}
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            autoFocus
+                            maxLength={6}
+                            placeholder="000000"
+                            value={otp.code}
+                            onChange={(e) => {
+                              otp.setCode(e.target.value);
+                              setErrors(({ acc_otp: _, ...rest }) => rest);
+                            }}
+                          />
+                          {errors.acc_otp && <p className="mt-1 text-xs text-red-600">{errors.acc_otp}</p>}
+                          <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+                            <span className="text-gray-600">{t("Đã gửi mã qua Zalo tới {phone}. Mã có hiệu lực 5 phút.", { phone: accountPhone })}</span>
+                            <button
+                              type="button"
+                              disabled={otp.cooldown > 0 || otp.sending}
+                              onClick={() => otp.send(accountPhone).catch((err: any) => setServerError(t(err?.message || "Không gửi được mã OTP. Vui lòng thử lại.")))}
+                              className="font-semibold text-green-700 underline disabled:text-gray-400 disabled:no-underline"
+                            >
+                              {otp.sending ? t("Đang gửi mã…") : otp.cooldown > 0 ? t("Gửi lại mã sau {s} giây", { s: otp.cooldown }) : t("Gửi lại mã OTP")}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -405,10 +468,16 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
                   <button
                     type="button"
                     onClick={submit}
-                    disabled={sending}
+                    disabled={sending || otp.sending}
                     className="flex-[2] rounded-md bg-green-600 px-6 py-3 font-semibold text-white hover:bg-green-700 disabled:bg-gray-300 md:ml-auto md:flex-none"
                   >
-                    {sending ? t("Đang gửi…") : sentBefore ? t("Gửi lại hồ sơ") : t("Gửi hồ sơ")}
+                    {sending || otp.sending
+                      ? t("Đang gửi…")
+                      : needsAccount && !otpSent
+                      ? t("Nhận mã OTP qua Zalo")
+                      : sentBefore
+                      ? t("Gửi lại hồ sơ")
+                      : t("Gửi hồ sơ")}
                   </button>
                 )}
               </div>

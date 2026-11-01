@@ -83,6 +83,28 @@ const account: Messages = {
   'Gửi mã OTP': ['Send OTP code', 'Enviar código OTP', 'OTP 코드 보내기'],
   'Mã OTP phải gồm 6 chữ số': ['The OTP code must be 6 digits', 'El código OTP debe tener 6 dígitos', 'OTP 코드는 6자리여야 합니다'],
   'Mã OTP không đúng hoặc đã hết hạn': ['The OTP code is wrong or has expired', 'El código OTP no es correcto o ha caducado', 'OTP 코드가 틀렸거나 만료되었습니다'],
+  // sign-up phone check (registration page and the event form)
+  'Nhận mã OTP qua Zalo': ['Get OTP code via Zalo', 'Recibir código OTP por Zalo', 'Zalo로 OTP 코드 받기'],
+  'Đã gửi mã qua Zalo tới {phone}. Mã có hiệu lực 5 phút.': [
+    'Code sent via Zalo to {phone}. It is valid for 5 minutes.',
+    'Código enviado por Zalo a {phone}. Es válido durante 5 minutos.',
+    'Zalo로 {phone} 번호에 코드를 보냈습니다. 5분 동안 유효합니다.',
+  ],
+  'Đang gửi mã…': ['Sending code…', 'Enviando código…', '코드 보내는 중…'],
+  'Gửi lại mã sau {s} giây': ['Resend code in {s}s', 'Reenviar código en {s} s', '{s}초 후 코드 다시 보내기'],
+  'Không gửi được mã OTP. Vui lòng thử lại.': ["Couldn't send the OTP code. Please try again.", 'No se pudo enviar el código OTP. Inténtalo de nuevo.', 'OTP 코드를 보내지 못했습니다. 다시 시도해 주세요.'],
+  'Vui lòng nhập mã OTP đã gửi tới số điện thoại': ['Please enter the OTP code sent to your phone', 'Introduce el código OTP enviado a tu teléfono', '휴대폰으로 보낸 OTP 코드를 입력하세요'],
+  'Vui lòng đợi 60 giây trước khi gửi lại mã OTP': ['Please wait 60 seconds before asking for a new OTP code', 'Espera 60 segundos antes de pedir un nuevo código OTP', '새 OTP 코드를 요청하려면 60초 기다려 주세요'],
+  'Số điện thoại này đã nhận đủ 5 mã OTP hôm nay. Vui lòng thử lại vào ngày mai.': [
+    'This phone number has already received 5 OTP codes today. Please try again tomorrow.',
+    'Este número ya ha recibido 5 códigos OTP hoy. Inténtalo de nuevo mañana.',
+    '이 전화번호는 오늘 OTP 코드를 5번 받았습니다. 내일 다시 시도해 주세요.',
+  ],
+  'Không gửi được mã OTP qua Zalo. Hãy kiểm tra số điện thoại có dùng Zalo và thử lại sau ít phút.': [
+    "Couldn't send the OTP code via Zalo. Check that this number uses Zalo and try again in a few minutes.",
+    'No se pudo enviar el código OTP por Zalo. Comprueba que este número usa Zalo e inténtalo en unos minutos.',
+    'Zalo로 OTP 코드를 보내지 못했습니다. 이 번호가 Zalo를 사용하는지 확인하고 잠시 후 다시 시도해 주세요.',
+  ],
   'Xác minh OTP': ['Verify OTP', 'Verificar OTP', 'OTP 인증'],
   'Nhập mã 6 số đã gửi đến': ['Enter the 6-digit code sent to', 'Introduce el código de 6 dígitos enviado a', '다음 번호로 보낸 6자리 코드를 입력하세요:'],
   'Kiểm tra': ['Check', 'Revisa', '확인하세요'],

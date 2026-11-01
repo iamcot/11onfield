@@ -7,6 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.elevenof.backoffice.exception.RateLimitExceededException;
@@ -31,6 +32,8 @@ public class OtpService {
     private static final int OTP_EXPIRY_MINUTES = 5;
     private static final int MAX_ATTEMPTS = 5;
     private static final int MAX_OTP_PER_DAY = 5; // Maximum 5 OTP requests per day per phone
+    public static final int RESEND_COOLDOWN_SECONDS = 60;
+    public static final int OTP_EXPIRY_SECONDS = OTP_EXPIRY_MINUTES * 60;
 
     // Generate and send OTP
     public void generateAndSendOtp(String phone, String purpose) throws Exception {
@@ -41,12 +44,19 @@ public class OtpService {
         // Validate MAX_OTP_PER_DAY only if not in test mode
         if (!testMode && otpCountToday >= MAX_OTP_PER_DAY) {
             log.warn("Daily OTP limit exceeded for phone: {} (count: {})", phone, otpCountToday);
-            throw new RateLimitExceededException("Daily OTP limit exceeded. Maximum 5 OTP requests per day.");
+            throw new RateLimitExceededException("Số điện thoại này đã nhận đủ " + MAX_OTP_PER_DAY + " mã OTP hôm nay. Vui lòng thử lại vào ngày mai.");
         }
 
         if (testMode && otpCountToday >= MAX_OTP_PER_DAY) {
             log.debug("Test mode: Daily OTP limit exceeded but allowing request for phone: {} (count: {})",
                 phone, otpCountToday);
+        }
+
+        // One code per minute per phone and purpose, so the button cannot be hammered
+        Optional<OtpVerification> last = otpRepository.findTopByPhoneAndPurposeOrderByCreatedAtDesc(phone, purpose);
+        if (!testMode && last.isPresent()
+                && last.get().getCreatedAt().isAfter(LocalDateTime.now().minusSeconds(RESEND_COOLDOWN_SECONDS))) {
+            throw new RateLimitExceededException("Vui lòng đợi " + RESEND_COOLDOWN_SECONDS + " giây trước khi gửi lại mã OTP");
         }
 
         // Generate 6-digit OTP
@@ -73,7 +83,9 @@ public class OtpService {
         log.info("OTP sent to phone: {} (daily count: {}, testMode: {})", phone, otpCountToday + 1, testMode);
     }
 
-    // Verify OTP
+    // Verify OTP. Runs in its own transaction so a wrong guess is counted even when the caller
+    // then throws and rolls its own work back; otherwise the attempt limit would never stick.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean verifyOtp(String phone, String otpCode, String purpose) {
         Optional<OtpVerification> otpOpt = otpRepository
                 .findTopByPhoneAndPurposeAndVerifiedFalseOrderByCreatedAtDesc(phone, purpose);

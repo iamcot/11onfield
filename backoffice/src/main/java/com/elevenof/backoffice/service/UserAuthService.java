@@ -11,6 +11,9 @@ import com.elevenof.backoffice.dto.response.AuthResponse;
 import com.elevenof.backoffice.dto.response.TokenResponse;
 import com.elevenof.backoffice.dto.response.UserResponse;
 import com.elevenof.backoffice.exception.InvalidCredentialsException;
+import com.elevenof.backoffice.exception.InvalidOtpException;
+import com.elevenof.backoffice.exception.OtpSendFailedException;
+import com.elevenof.backoffice.exception.RateLimitExceededException;
 import com.elevenof.backoffice.exception.UserAlreadyExistsException;
 import com.elevenof.backoffice.model.Player;
 import com.elevenof.backoffice.model.Region;
@@ -39,7 +42,10 @@ public class UserAuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final PanelService panelService;
+    private final OtpService otpService;
     private final Random random = new SecureRandom();
+
+    public static final String OTP_PURPOSE_REGISTRATION = "REGISTRATION";
 
     /**
      * Generate a unique 16-character userid
@@ -59,10 +65,47 @@ public class UserAuthService {
         return userid.toString();
     }
 
+    /** Step 1 of sign-up: send a code to the phone (Zalo ZNS). Refused when the phone already has an account. */
+    public void sendRegistrationOtp(String phone) {
+        if (userRepository.existsByPhone(phone)) {
+            throw new UserAlreadyExistsException("Số điện thoại đã được sử dụng");
+        }
+        try {
+            otpService.generateAndSendOtp(phone, OTP_PURPOSE_REGISTRATION);
+        } catch (RateLimitExceededException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Could not send sign-up OTP to {}: {}", phone, e.getMessage());
+            throw new OtpSendFailedException("Không gửi được mã OTP qua Zalo. Hãy kiểm tra số điện thoại có dùng Zalo và thử lại sau ít phút.");
+        }
+    }
+
+    private User.Role parseSignupRole(String raw) {
+        User.Role role;
+        try {
+            role = User.Role.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Vai trò không hợp lệ");
+        }
+        if (role != User.Role.USER && role != User.Role.PLAYER) {
+            throw new IllegalArgumentException("Vai trò không hợp lệ");
+        }
+        return role;
+    }
+
     public AuthResponse register(RegisterRequest request) {
         // Validate phone uniqueness
         if (userRepository.existsByPhone(request.getPhone())) {
             throw new UserAlreadyExistsException("Số điện thoại đã được sử dụng");
+        }
+
+        // Self sign-up makes fans and players only; staff accounts are made by an admin
+        User.Role role = parseSignupRole(request.getRole());
+
+        // The phone must be confirmed with the code sent to it. Checked after the cheap checks above so a
+        // rejected request does not burn the code, and before anything is written.
+        if (!otpService.verifyOtp(request.getPhone(), request.getOtpCode(), OTP_PURPOSE_REGISTRATION)) {
+            throw new InvalidOtpException("Mã OTP không đúng hoặc đã hết hạn");
         }
 
         // Validate email uniqueness (if provided)
@@ -79,7 +122,7 @@ public class UserAuthService {
                 .email(request.getEmail())
                 .dob(request.getDob())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(User.Role.valueOf(request.getRole().toUpperCase()))
+                .role(role)
                 .enabled(true)
                 .accountNonExpired(true)
                 .accountNonLocked(true)

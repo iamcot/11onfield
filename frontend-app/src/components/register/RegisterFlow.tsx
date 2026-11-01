@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useRegisterOtp } from '@/hooks/useRegisterOtp';
 import { competitionService, type Stage } from '@/services/competition.service';
 import { provinceService, type Province } from '@/services/province.service';
 import type { RegisterData } from '@/types';
@@ -216,6 +217,9 @@ export default function RegisterFlow() {
   const [apiError, setApiError] = useState('');
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [stages, setStages] = useState<Stage[]>([]);
+  const otp = useRegisterOtp();
+  // the code box shows once a code went to the phone in the form (changing the phone asks for a new one)
+  const otpSent = otp.sentTo === form.phone;
 
   useEffect(() => {
     provinceService.getAllProvinces().then(setProvinces).catch(() => setProvinces([]));
@@ -279,7 +283,7 @@ export default function RegisterFlow() {
       track('form_validation_error', { form_name: 'registration', step: screen, fields_with_errors: Object.keys(e) });
       return;
     }
-    if (screen === 'confirm') return submit();
+    if (screen === 'confirm') return otpSent ? submit() : requestOtp();
     setStep((s) => Math.min(steps.length - 1, s + 1));
     scrollTop();
   };
@@ -291,13 +295,43 @@ export default function RegisterFlow() {
     scrollTop();
   };
 
+  const errorText = (err: unknown, fallback: string) => {
+    const raw = (err as { message?: string })?.message;
+    // fetch() rejects with a TypeError when the API is unreachable or blocked by CORS
+    return err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw ?? '')
+      ? t('Không kết nối được máy chủ. Kiểm tra mạng và thử lại sau ít phút.')
+      : t(raw || fallback);
+  };
+
+  const requestOtp = async () => {
+    setApiError('');
+    try {
+      await otp.send(form.phone);
+      track('register_otp_sent', { role: form.isPlayer ? 'PLAYER' : 'USER' });
+    } catch (err: unknown) {
+      const message = errorText(err, 'Không gửi được mã OTP. Vui lòng thử lại.');
+      track('api_error', { endpoint: '/auth/register/send-otp', error_message: message, user_action: 'registration_otp' });
+      if (/đã được sử dụng/i.test(message)) {
+        setStep(0);
+        setErrors({ phone: message });
+      } else {
+        setApiError(message);
+      }
+    }
+  };
+
   const submit = async () => {
+    if (!otp.codeValid) {
+      setErrors({ otp: t('Mã OTP phải gồm 6 chữ số') });
+      return;
+    }
     setSubmitting(true);
     setApiError('');
     const data: RegisterData = {
       fullName: form.fullName.trim(),
       phone: form.phone,
       password: form.password,
+      otpCode: otp.code,
       role: form.isPlayer ? 'PLAYER' : 'USER',
       ...(form.email ? { email: form.email.trim() } : {}),
       ...(form.provinceId ? { provinceId: Number(form.provinceId) } : {}),
@@ -320,14 +354,11 @@ export default function RegisterFlow() {
       setDone(true);
       scrollTop();
     } catch (err: unknown) {
-      const raw = (err as { message?: string })?.message;
-      // fetch() rejects with a TypeError when the API is unreachable or blocked by CORS
-      const message =
-        err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw ?? '')
-          ? t('Không kết nối được máy chủ. Kiểm tra mạng và thử lại sau ít phút.')
-          : t(raw || 'Đăng ký thất bại. Vui lòng thử lại.');
+      const message = errorText(err, 'Đăng ký thất bại. Vui lòng thử lại.');
       track('api_error', { endpoint: '/auth/register', error_message: message, user_action: 'registration_attempt' });
-      if (/điện thoại/i.test(message)) {
+      if (/OTP/i.test(message)) {
+        setErrors({ otp: message });
+      } else if (/điện thoại/i.test(message)) {
         setStep(0);
         setErrors({ phone: message });
       } else {
@@ -627,6 +658,38 @@ export default function RegisterFlow() {
                           </>
                         )}
                       </div>
+                      {otpSent && (
+                        <div className="mt-6 border border-[rgba(166,227,90,.35)] bg-[rgba(166,227,90,.06)] p-4">
+                          <Field
+                            label={t('Mã OTP (6 chữ số)')}
+                            error={errors.otp}
+                            hint={t('Đã gửi mã qua Zalo tới {phone}. Mã có hiệu lực 5 phút.', { phone: form.phone })}
+                          >
+                            <input
+                              className="of-field of-num text-center !text-[26px] tracking-[0.5em]"
+                              type="text"
+                              inputMode="numeric"
+                              autoComplete="one-time-code"
+                              autoFocus
+                              maxLength={6}
+                              placeholder="000000"
+                              value={otp.code}
+                              onChange={(e) => {
+                                otp.setCode(e.target.value);
+                                if (errors.otp) setErrors((x) => ({ ...x, otp: undefined }));
+                              }}
+                            />
+                          </Field>
+                          <button
+                            type="button"
+                            disabled={otp.cooldown > 0 || otp.sending}
+                            onClick={requestOtp}
+                            className="mt-3 text-[13px] text-[color:var(--lime-2)] underline underline-offset-2 disabled:no-underline disabled:opacity-60"
+                          >
+                            {otp.sending ? t('Đang gửi mã…') : otp.cooldown > 0 ? t('Gửi lại mã sau {s} giây', { s: otp.cooldown }) : t('Gửi lại mã OTP')}
+                          </button>
+                        </div>
+                      )}
                       {apiError && <div className="mt-4 border border-[#FF8A80]/50 bg-[#FF8A80]/10 px-4 py-3 text-[14px] text-[#FFD2CC]">{apiError}</div>}
                     </>
                   )}
@@ -640,8 +703,17 @@ export default function RegisterFlow() {
                     ) : (
                       <span />
                     )}
-                    <button type="button" onClick={next} disabled={submitting} className="of-btn flex-1 sm:flex-none">
-                      {submitting ? t('Đang gửi…') : screen === 'confirm' ? t('Gửi hồ sơ') : t('Tiếp tục')} {!submitting && <ArrowRight />}
+                    <button type="button" onClick={next} disabled={submitting || otp.sending} className="of-btn flex-1 sm:flex-none">
+                      {submitting || otp.sending
+                        ? t('Đang gửi…')
+                        : screen !== 'confirm'
+                        ? t('Tiếp tục')
+                        : otpSent
+                        ? form.isPlayer
+                          ? t('Gửi hồ sơ')
+                          : t('Tạo tài khoản')
+                        : t('Nhận mã OTP qua Zalo')}{' '}
+                      {!submitting && !otp.sending && <ArrowRight />}
                     </button>
                   </div>
                 </div>
