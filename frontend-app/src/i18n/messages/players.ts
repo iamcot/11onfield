@@ -276,7 +276,6 @@ const players: Messages = {
   'Lực sút': ['Shot power', 'Potencia de tiro', '슈팅 파워'],
   'Chân {foot} · Lực sút': ['{foot} foot · Shot', 'Pierna {foot} · Tiro', '{foot} · 슈팅'],
   'Thuận cả hai chân': ['Two-footed', 'Ambidiestro', '양발잡이'],
-  'Phụ: {list}': ['Also: {list}', 'También: {list}', '보조: {list}'],
   '▲ {n}% so với TB': ['▲ {n}% vs average', '▲ {n}% sobre la media', '▲ 평균 대비 {n}%'],
   '▼ {n}% so với TB': ['▼ {n}% vs average', '▼ {n}% bajo la media', '▼ 평균 대비 {n}%'],
 };

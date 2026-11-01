@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import PlayerStage from '@/components/pp/PlayerStage';
-import { heroFacts } from '@/lib/players/hero';
+import { heroFacts, positionCode } from '@/lib/players/hero';
 import Radar from '@/components/pp/Radar';
 import { IconArrow, IconClose, IconHex, IconNext, IconPrev } from '@/components/pp/icons';
 import { useT } from '@/i18n/I18nProvider';
@@ -141,7 +141,7 @@ export default function PlayerDrawer({
           <div className="pp-dr-stage">
             <PlayerStage
               image={p.fullBody}
-              bigText={pos?.code ?? String(p.ovr || '')}
+              bigText={positionCode(p.positions) ?? String(p.ovr || '')}
               name={given}
               facts={heroFacts({ height: p.height, weight: p.weight, foot: p.foot, age: p.age, positions: p.positions, secondaryPosition: p.secondaryPosition })}
               enterKey={p.id}

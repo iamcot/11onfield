@@ -210,11 +210,13 @@
 .pp-stage { position: relative; height: min(64vh, 560px); min-height: 420px; perspective: 1100px; overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; contain: layout paint; }
 .pp-stage.drag { cursor: grabbing; }
 .pp-stage .beam { position: absolute; left: 50%; top: -10%; width: 120%; height: 100%; transform: translateX(-50%); background: conic-gradient(from 180deg at 50% 0%, transparent 160deg, rgba(255, 244, 205, 0.14) 172deg, rgba(255, 244, 205, 0.24) 180deg, rgba(255, 244, 205, 0.14) 188deg, transparent 200deg); }
-.pp-stage .bignum { position: absolute; left: 50%; top: 5%; transform: translateX(-50%); font: 900 min(52vw, 300px)/0.8 var(--f-display); color: transparent; -webkit-text-stroke: 2px rgba(166, 227, 90, 0.18); pointer-events: none; white-space: nowrap; }
+.pp-stage .bignum { position: absolute; left: 50%; top: 5%; transform: translateX(-50%); font-family: var(--f-display); font-weight: 900; font-size: min(52vw, 300px); line-height: 0.8; color: transparent; -webkit-text-stroke: 1.5px rgba(166, 227, 90, 0.2); pointer-events: none; white-space: nowrap; }
 .pp-stage .vname { position: absolute; left: 4%; top: 10%; writing-mode: vertical-rl; transform: rotate(180deg); font: 800 clamp(30px, 6vw, 52px)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.08); max-height: 80%; overflow: hidden; }
 .pp-stage .pitch-wrap { position: absolute; left: 50%; bottom: 0; width: min(150%, 760px); height: 46%; transform: translateX(-50%); perspective: 520px; perspective-origin: 50% 0%; pointer-events: none; -webkit-mask-image: radial-gradient(60% 70% at 50% 42%, #000 45%, transparent 100%); mask-image: radial-gradient(60% 70% at 50% 42%, #000 45%, transparent 100%); }
 .pp-stage .pitch { position: absolute; left: 50%; top: 12%; width: 72%; aspect-ratio: 52 / 30; margin-left: -36%; transform-origin: 50% 50%; will-change: transform; }
 .pp-stage .pitch svg { width: 100%; height: 100%; overflow: visible; display: block; }
+.pp-stage .pitch .spot text { font: 700 15px/1 var(--f-display); text-anchor: middle; fill: #d6fa9e; letter-spacing: 0.04em; }
+.pp-stage .pitch .spot.main text { fill: #fff; font-size: 16px; }
 .pp-stage .hero { position: absolute; left: 50%; bottom: 17%; height: 68%; transform: translateX(-50%); transform-origin: 50% 100%; z-index: 10; will-change: transform; }
 .pp-stage .hero img.p { height: 100%; width: auto; max-width: none; filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.6)); }
 .pp-stage .hero img.refl { position: absolute; left: 0; top: 100%; height: 100%; width: auto; max-width: none; transform: scaleY(-1); opacity: 0.13; -webkit-mask-image: linear-gradient(0deg, #000, transparent 28%); mask-image: linear-gradient(0deg, #000, transparent 28%); }
@@ -245,7 +247,7 @@
 .pp-pin.star { border-color: rgba(196, 244, 126, 0.85); box-shadow: 0 0 24px rgba(166, 227, 90, 0.25); }
 .pp-pin.ruler-label { width: auto; background: none; border: 0; padding: 0; -webkit-backdrop-filter: none; backdrop-filter: none; z-index: 14; }
 .pp-pin.ruler-label.small .v { font-size: 20px; }
-.pp-hchips { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 15; display: flex; gap: 6px; max-width: 94%; flex-wrap: wrap; justify-content: center; pointer-events: none; }
+.pp-hchips { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 15; display: flex; gap: 6px; max-width: 94%; flex-wrap: wrap; justify-content: center; pointer-events: none; }
 .pp-hchips .chip { font-size: 11px; font-weight: 600; padding: 5px 9px; border-radius: 999px; white-space: nowrap; background: rgba(6, 18, 11, 0.72); border: 1px solid rgba(255, 255, 255, 0.14); }
 .pp-hchips .chip.ok { background: rgba(166, 227, 90, 0.16); border-color: rgba(166, 227, 90, 0.55); color: var(--lime-2); }
 @media (max-width: 420px) {

@@ -315,11 +315,17 @@ export default function PlayerStage({ image, bigText, name, facts, enterKey, cla
             </g>
             {facts.primary && <ellipse cx={facts.primary.x} cy={facts.primary.y} rx="92" ry="68" fill={`url(#${gradId.current})`} />}
             {facts.secondary.map((s) => (
-              <g key={`${s.x}-${s.y}`}>
-                <circle cx={s.x} cy={s.y} r="22" fill="#c4f47e" opacity=".14" />
-                <circle cx={s.x} cy={s.y} r="7" fill="#0c140e" stroke="#c4f47e" strokeOpacity=".8" strokeWidth="2" />
+              <g key={s.code} className="spot">
+                <circle cx={s.x} cy={s.y} r="15" fill="#d6fa9e" fillOpacity=".22" stroke="#c4f47e" strokeOpacity=".7" strokeWidth="1.5" />
+                <text x={s.x} y={s.y + 5}>{s.code}</text>
               </g>
             ))}
+            {facts.primary && (
+              <g className="spot main">
+                <circle cx={facts.primary.x - 66} cy={facts.primary.y + 8} r="17" fill="#0c2a12" stroke="#c4f47e" strokeWidth="2" />
+                <text x={facts.primary.x - 66} y={facts.primary.y + 14}>{facts.primary.code}</text>
+              </g>
+            )}
           </svg>
         </div>
       </div>

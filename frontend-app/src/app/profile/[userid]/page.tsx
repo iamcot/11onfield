@@ -12,7 +12,7 @@ import { PhotoGuide } from "@/components/player-profile/Guides";
 import HighlightsBlock from "@/components/player-profile/HighlightsBlock";
 import { IconCamera, IconCheck, IconHex, IconPen, IconPrev, IconShare, IconUpload } from "@/components/pp/icons";
 import PlayerStage from "@/components/pp/PlayerStage";
-import { heroFacts } from "@/lib/players/hero";
+import { heroFacts, positionCode } from "@/lib/players/hero";
 import Radar from "@/components/pp/Radar";
 import "@/components/pp/pp.css";
 import { useAuth } from "@/contexts/AuthContext";
@@ -546,7 +546,7 @@ export default function UserProfilePage() {
           <div className="pp-pstage">
             <PlayerStage
               image={profile.fullBodyPhoto ?? null}
-              bigText={pos?.code ?? String(ovr || "")}
+              bigText={positionCode(profile.positions) ?? String(ovr || "")}
               name={given}
               facts={heroFacts({ height: profile.height, weight: profile.weight, foot: profile.preferredFoot, age, positions: profile.positions, secondaryPosition: profile.secondaryPosition, combine })}
               enterKey={profile.fullBodyPhoto ?? "figure"}

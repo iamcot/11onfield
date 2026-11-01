@@ -7,7 +7,7 @@
 // the body facts step back (height becomes a small ruler label, weight + BMI a chip), positions stay on the pitch.
 
 import type { CombineData } from '@/services/user.service';
-import { FOOT_LABEL, POS_GROUP } from './stats';
+import { FOOT_LABEL } from './stats';
 
 export type HeroAnchor = 'head' | 'thigh' | 'foot';
 
@@ -40,6 +40,8 @@ export interface HeroChip {
 export interface HeroSpot {
   x: number;
   y: number;
+  /** Short football code shown on the pitch (CM, ST...). */
+  code: string;
 }
 
 export interface HeroFacts {
@@ -77,12 +79,18 @@ export const POSITION_LABEL: Record<string, string> = {
 
 /** Where each position stands on a 520 x 300 pitch, own goal on the left. */
 const SPOT: Record<string, HeroSpot> = {
-  goalkeeper: { x: 38, y: 150 },
-  centerback: { x: 112, y: 150 },
-  defender: { x: 140, y: 64 },
-  midfielder: { x: 262, y: 150 },
-  striker: { x: 418, y: 150 },
+  goalkeeper: { x: 38, y: 150, code: 'GK' },
+  centerback: { x: 112, y: 150, code: 'CB' },
+  defender: { x: 140, y: 64, code: 'FB' },
+  midfielder: { x: 262, y: 150, code: 'CM' },
+  striker: { x: 418, y: 150, code: 'ST' },
 };
+
+/** Football code of the player's main position (the big outline text behind the photo), or null. */
+export function positionCode(positions?: string[] | null): string | null {
+  const id = (positions ?? []).map((x) => x.trim()).find((x) => SPOT[x]);
+  return id ? SPOT[id].code : null;
+}
 
 type Test = NonNullable<CombineData['tests']>[number];
 
@@ -156,12 +164,10 @@ export function heroFacts(p: HeroInput): HeroFacts {
 
   const index = bmi(height, weight);
   const chips: HeroChip[] = [];
-  const primaryId = (p.positions ?? []).map((x) => x.trim()).find((x) => POS_GROUP[x]);
-  if (primaryId) chips.push({ text: POSITION_LABEL[primaryId], ok: true });
+  const primaryId = (p.positions ?? []).map((x) => x.trim()).find((x) => SPOT[x]);
   const secondaryIds = Array.from(
     new Set([...(p.positions ?? []).map((x) => x.trim()), (p.secondaryPosition ?? '').trim()].filter((x) => SPOT[x] && x !== primaryId)),
   );
-  if (secondaryIds.length) chips.push({ text: 'Phụ: {list}', vars: { list: secondaryIds.map((x) => POSITION_LABEL[x]).join(' · ') } });
 
   // weight: its own card until the sprint card takes the left side, then a chip
   if (weight && !sprint) {
