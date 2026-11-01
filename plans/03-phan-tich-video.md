@@ -1,6 +1,6 @@
 # 03 · Công cụ phân tích video trận đấu (độc lập)
 
-> Trạng thái: **nháp để thảo luận** (31/10/2026). Thay cho GĐ4 (`plans/02-tuyen-trach-vong-1/04-phan-tich-video.md`).
+> Trạng thái: **nháp — đã chốt 7/8 câu hỏi mục 11** (31/10/2026). Thay cho GĐ4 (`plans/02-tuyen-trach-vong-1/04-phan-tich-video.md`).
 > Mục ghi **(giả định)** là đề xuất mặc định, chờ chốt ở mục 11.
 
 ## 1. Mục tiêu và phạm vi
@@ -37,26 +37,31 @@ Video ─► 1. Nạp & cắt ─► 2. Thiết lập sân ─► 3. Thiết l�
 
 ## 3. Thiết lập sân
 
-- **Mẫu sân** (cấu hình): 5v5 (40 × 20 m), 7v7 (50–60 × 30–40 m, nhập kích thước thật), 11v11 (105 × 68 m), hoặc tự nhập.
-  Mẫu chứa các điểm biết trước: 4 góc, giao vạch giữa với biên, chấm giữa sân, góc vòng cấm, chấm phạt đền.
+- **Mẫu sân** (cấu hình): 5v5, 7v7, 11v11 hoặc tự nhập. **Kích thước sân nhập theo từng clip/dự án** (không cố định): gợi ý
+  5v5 ~40 × 20 m, 7v7 ~50–60 × 30–40 m, 11v11 105 × 68 m, nhưng người dùng luôn nhập dài × rộng thật của sân trong clip.
+  Mẫu chứa các điểm biết trước: 4 góc, giao vạch giữa với biên, chấm giữa sân, góc vòng cấm, chấm phạt đền (tự co theo kích thước đã nhập).
 - **Hiệu chuẩn tay (MVP)**: người dùng bấm ≥ 4 điểm trên khung hình, khớp với điểm trên sơ đồ; tính homography, hiện lưới
   sân chồng lên video để kiểm tra bằng mắt; báo sai số chiếu lại (reprojection error, mục tiêu < 0,5 m).
-- Sửa **méo ống kính** (camera góc rộng, action cam) bằng hiệu chuẩn bàn cờ một lần cho mỗi camera.
-- Lưu hiệu chuẩn theo **sân + vị trí camera** để dùng lại cho các trận sau.
+- **Profile thiết bị quay** (dùng lại, không theo trận): mỗi dòng máy (iPhone 15, Sony "V1"…) lưu một profile gồm độ phân giải/fps,
+  hệ số **sửa méo ống kính** từ hiệu chuẩn bàn cờ một lần. Đổi máy chỉ cần chọn profile khác; thêm máy mới = thêm một profile.
+- Lưu **hiệu chuẩn sân** (homography theo mốc) theo **sân + vị trí camera** để dùng lại cho các trận sau. Tách khỏi profile thiết bị
+  để đổi máy hay đổi sân đều không phải làm lại phần kia.
 - **Camera lia/zoom (sau MVP)**: mô hình nhận điểm mốc sân (keypoint) chạy mỗi khung để có homography theo từng khung.
 - Vùng sân (dùng cho metric): 3 phần ba theo chiều dọc, 5 hành lang theo chiều ngang, vòng cấm, lưới 12 × 8 cho xT/heatmap.
   Tự co giãn theo kích thước sân.
 
 ## 4. Thiết lập cầu thủ
 
-- **Roster**: mỗi đội có tên, màu áo chính/thủ môn, danh sách cầu thủ (mã, tên, số áo, vị trí, chân thuận nếu có).
-  Nhập tay hoặc từ CSV. Mã cầu thủ là mã tự do (có thể là SBD của 11onfield, công cụ không cần biết).
+- **Roster (file cấu hình ngoài)**: một file CSV/JSON người dùng tự soạn, mỗi đội có tên, màu áo chính/thủ môn, danh sách cầu thủ
+  (**mã id + số áo do người dùng đặt**, tên, vị trí, chân thuận nếu có). Nhập tay hoặc từ CSV. Công cụ chỉ **gán track vào id**,
+  không diễn giải id/số áo — nên id có thể là SBD của 11onfield hay gì tuỳ bạn.
 - **Chia đội**: lấy màu vùng thân của mỗi track, gom cụm (k-means) thành đội A, đội B, thủ môn, trọng tài; người dùng xác nhận
   cụm nào là đội nào.
 - **Gán track → cầu thủ**:
-  - Tự động khi đọc được số áo ổn định qua nhiều khung (OCR chữ số, bỏ phiếu theo track).
-  - Còn lại: màn "dòng thời gian track" cho thấy track chưa gán, bấm track rồi chọn cầu thủ.
+  - **MVP (đã chốt)**: ở khung đầu mỗi hiệp, người dùng **bấm chọn từng người** và gán vào id trong roster; tool bám theo suốt sau đó.
+  - Khi track đứt rồi xuất hiện lại: màn "dòng thời gian track" cho thấy track chưa gán, bấm track rồi chọn lại cầu thủ.
   - Đánh dấu đoạn nghi đổi mã (hai track cùng đội giao nhau, track mất rồi xuất hiện lại) để người kiểm.
+  - OCR số áo để tự gán là **tiện ích về sau (M3)**, không cần cho MVP.
 - **Thay người**: ghi giờ vào/ra để metric tính theo phút có mặt.
 - Điều kiện quay giúp định danh: áo bib hai màu tương phản, **số áo cỡ lớn cả mặt trước và sau**, thủ môn khác màu.
 
@@ -116,8 +121,9 @@ ngắn hơn, nên "chuyền tịnh tiến 30 m" không có nghĩa nếu giữ ng
 | Công suất chuyển hoá (tuỳ chọn) | Theo mô hình di Prampero, cho tải tổng hợp |
 | Phân bố theo hiệp/15 phút | Thấy độ tụt thể lực |
 
-- **(giả định)** Cầu thủ trẻ: thêm bộ ngưỡng U15–U19 (ví dụ HSR > 18, sprint > 21 km/h) hoặc ngưỡng **tương đối** theo tốc độ
-  tối đa của chính cầu thủ (HSR > 60%, sprint > 80%). Chọn bộ ngưỡng khi chạy.
+- **Mặc định (đã chốt): lứa 16–21 tuổi (U16–U21).** Bảng trên là chuẩn người lớn để tham chiếu; bộ ngưỡng U16–U21 đề xuất
+  **(giả định, chốt sau dữ liệu đầu)**: HSR > 18 km/h, sprint > 21 km/h, giữ Z1–Z3 như bảng. Có thể bật thêm ngưỡng
+  **tương đối** theo tốc độ tối đa của chính cầu thủ (HSR > 60%, sprint > 80%) khi tốc độ đỉnh giữa người chơi chênh lớn.
 
 ### 6.2 Kỹ thuật, có bóng
 
@@ -170,7 +176,7 @@ ngắn hơn, nên "chuyền tịnh tiến 30 m" không có nghĩa nếu giữ ng
 | Mức | Có gì | Metric có được |
 | --- | --- | --- |
 | **M0** | Thu 3–5 video mẫu đúng điều kiện quay; thử nhanh mô hình phát hiện | Không (chốt phần cứng và cách quay) |
-| **M1 · MVP** | Camera cố định, hiệu chuẩn tay, nhận diện + bám vết người, chia đội màu áo, gán cầu thủ bằng tay có hỗ trợ, toạ độ 10 Hz | 6.1 thể lực đầy đủ; heatmap, vị trí trung bình, hình dạng đội hình (6.4 phần không cần bóng) |
+| **M1 · MVP** | Camera cố định, hiệu chuẩn tay, nhận diện + bám vết người, chia đội màu áo, **gán cầu thủ bằng tay (bấm chọn ở khung đầu) + sửa khi track đứt**, toạ độ 10 Hz | 6.1 thể lực đầy đủ; heatmap, vị trí trung bình, hình dạng đội hình (6.4 phần không cần bóng) |
 | **M2** | Phát hiện + bám vết bóng, người giữ bóng, chuỗi kiểm soát, sự kiện tự động + màn duyệt + gắn tay | 6.2 cơ bản (chuyền, carry, qua người, sút), 6.3 tranh chấp/thu hồi/áp sát, 6.4 kiểm soát bóng, PPDA, field tilt, mạng chuyền |
 | **M3** | Mô hình: xG, xT, pitch control; OCR số áo tự động; camera lia (homography theo khung) | xG, xA, xT, kiểm soát không gian, chạy chỗ, áp lực khi nhận bóng, phản pressing |
 | **M4 · Hoàn chỉnh** | Nhiều camera, sân 11v11, xử lý theo lô/GPU đám mây, so sánh nhiều trận, phân vị theo vị trí/lứa tuổi, xuất chuẩn mở (SPADL, tracking theo định dạng chung), đóng gói cài đặt | Báo cáo cầu thủ theo mùa, hồ sơ so sánh |
@@ -183,7 +189,7 @@ ngắn hơn, nên "chuyền tịnh tiến 30 m" không có nghĩa nếu giữ ng
 | --- | --- | --- |
 | Hiệu chuẩn | Đo thực tế 10 điểm trên sân, so với toạ độ chiếu | Sai số < 0,5 m (camera cố định) |
 | Theo dõi | % thời gian mỗi cầu thủ được theo dõi, số lần đổi mã / trận | ≥ 90% người ngoài sân; ≤ 5 lần đổi mã cần sửa / 10 phút |
-| Thể lực | So với GPS vest trên cùng trận | Quãng đường lệch ≤ 5%, tốc độ tối đa ≤ 1,5 km/h, số sprint ≤ 15% |
+| Thể lực | **Không có GPS vest** → đo gián tiếp: (a) cho 1–2 người chạy các đoạn **mốc đã đo bằng thước** (20 m, 40 m, chạy vòng biết chu vi) rồi so quãng đường/tốc độ; (b) bấm giờ vài pha sprint; (c) kiểm tính nhất quán nội bộ (hai hiệp, hai lần chạy cùng đoạn) | Đoạn mốc lệch ≤ 5%, tốc độ đỉnh ở đoạn mốc ≤ 1,5 km/h |
 | Bóng | % khung bóng trong cuộc được phát hiện | ≥ 70% (sân 7v7, camera cao) |
 | Sự kiện | Precision/recall theo loại, so với gắn tay của 2 người trên 3 trận | Chuyền ≥ 85%/75%; tranh chấp, thu hồi ≥ 70%/60% |
 | Hiệu năng | Thời gian xử lý trận 2 × 25 phút, 1080p | ≤ 1,5 lần thời lượng trên GPU 8–12 GB |
@@ -192,14 +198,17 @@ Bộ gắn tay chuẩn (3 trận) là việc phải làm sớm: vừa để đo,
 
 ## 9. Kiến trúc kỹ thuật
 
-- **Repo/thư mục**: `tools/match-analyzer/` trong repo này **(giả định)** hoặc repo riêng nếu muốn phát hành độc lập.
+- **Repo/thư mục**: **repo riêng** (đã chốt) — không đặt trong repo 11of.
 - **Python 3.11**: OpenCV, PyTorch, ONNX Runtime, `supervision` (vẽ, tiện ích track), ByteTrack/BoT-SORT, pandas/Polars + Parquet.
 - **Giao diện**: web chạy localhost (FastAPI + trang React/Vite tĩnh): thiết lập sân, roster, dòng thời gian track, duyệt sự
   kiện, xem báo cáo. Một lệnh CLI cho chạy theo lô: `analyzer run project/`.
 - **Thư mục dự án mỗi trận**: `match.json`, `calibration.json`, `roster.json`, `detections/`, `tracking.parquet`,
   `events.json`, `metrics.json`, `report.html`, `annotated.mp4`. Mỗi bước đọc đầu ra bước trước, chạy lại được từng bước.
+- **Profile dùng chung** (thiết bị quay + sân) để ở thư mục chung (vd `~/.match-analyzer/profiles/`), dùng lại giữa các trận;
+  khi tạo dự án thì **sao bản chụp vào `calibration.json`** để thư mục dự án tự chứa, mang sang máy khác vẫn mở được.
 - **Mô hình** và giấy phép:
-  - Phát hiện người/bóng: RT-DETR hoặc YOLOX (Apache 2.0). Tránh Ultralytics YOLO (AGPL) nếu định phát hành đóng.
+  - Dùng nội bộ cho cuộc thi → **giấy phép không ràng buộc**, dùng được cả **Ultralytics YOLO (AGPL)** — thường là lựa chọn
+    phát hiện + bám vết dễ và nhanh nhất để thử ngay. Vẫn ghi RT-DETR/YOLOX (Apache 2.0) làm phương án nếu sau này công khai repo.
   - Tinh chỉnh trên ảnh sân của mình; dữ liệu mở như SoccerNet (tracking, calibration) dùng để khởi đầu, **cần kiểm điều
     khoản** (một số bộ chỉ cho nghiên cứu).
   - OCR số áo: mô hình phân loại chữ số nhỏ, huấn luyện trên ảnh cắt từ video của mình.
@@ -220,8 +229,9 @@ Bộ gắn tay chuẩn (3 trận) là việc phải làm sớm: vừa để đo,
 - **Phần cứng**: Mac Apple Silicon (MacBook M5 là máy chính), PC Windows có GPU NVIDIA ≥ 8 GB VRAM chạy nhanh nhất. RAM
   ≥ 16 GB, khuyên 24–32 GB cho video 4K. Tránh thư viện chỉ chạy trên một hệ điều hành hoặc chỉ có CUDA. Đo tốc độ thật
   trên cả hai máy ở M0.
-- **Điều kiện quay**: camera cố định cao 4–6 m giữa biên dọc, thấy trọn sân, 1080p 50/60 fps hoặc 4K 30 fps, khoá zoom/phơi
-  sáng; áo bib số lớn; mốc sân rõ.
+- **Điều kiện quay**: điện thoại iPhone hoặc máy Sony đặt trên chân máy, **cố định** (khoá zoom/pan/phơi sáng), cao 4–6 m
+  giữa biên dọc, thấy trọn sân; 1080p 50/60 fps hoặc 4K 30 fps; mốc sân rõ; áo bib (số lớn nếu có). Ống kính điện thoại/action
+  cam góc rộng → cần **hiệu chuẩn bàn cờ sửa méo** một lần cho mỗi máy (mục 3).
 
 ## 10. Bảng việc
 
@@ -236,11 +246,11 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 | A1.2 | Thiết lập sân: mẫu sân, bấm mốc, homography, lưới kiểm tra, sửa méo, lưu theo sân/camera | M1 | A1.1 | Chưa làm |
 | A1.3 | Roster: nhập tay/CSV, màu áo, thay người | M1 | A1.1 | Chưa làm |
 | A1.4 | Nhận diện + bám vết người, chia đội theo màu áo | M1 | A0.2 | Chưa làm |
-| A1.5 | Định danh: dòng thời gian track, gán cầu thủ, đoạn nghi đổi mã | M1 | A1.3, A1.4 | Chưa làm |
+| A1.5 | Định danh: bấm chọn từng người ở khung đầu, dòng thời gian track để sửa khi đứt, đoạn nghi đổi mã | M1 | A1.3, A1.4 | Chưa làm |
 | A1.6 | Toạ độ sân 10 Hz, lọc nhiễu, vận tốc/gia tốc → `tracking.parquet` | M1 | A1.2, A1.5 | Chưa làm |
 | A1.7 | Metric thể lực (6.1) + heatmap + hình dạng đội hình | M1 | A1.6 | Chưa làm |
 | A1.8 | Báo cáo HTML, video có vẽ khung, xuất CSV/JSON | M1 | A1.7 | Chưa làm |
-| A1.9 | Kiểm chứng với GPS, ghi kết quả vào file này | M1 | A1.7 | Chưa làm |
+| A1.9 | Kiểm chứng thể lực không GPS (chạy đoạn mốc đo bằng thước, bấm giờ sprint), ghi kết quả vào file này | M1 | A1.7 | Chưa làm |
 | A2.1 | Phát hiện + bám vết bóng, nội suy | M2 | A1.4 | Chưa làm |
 | A2.2 | Người giữ bóng, chuỗi kiểm soát, pha bóng | M2 | A2.1, A1.6 | Chưa làm |
 | A2.3 | Suy sự kiện (lược đồ SPADL) | M2 | A2.2 | Chưa làm |
@@ -257,11 +267,18 @@ Trạng thái: `Chưa làm` · `Đang làm` · `Review` · `Xong` · `Chờ ch�
 
 ## 11. Câu hỏi cần chốt
 
-- [ ] Quay bằng gì: camera cố định trên cao, điện thoại trên chân máy, hay camera AI có sẵn (Veo, Pixellot…)? Camera có lia không?
-- [ ] Loại trận ưu tiên: 7v7 (kích thước sân thật?) trước, 11v11 sau?
-- [ ] Có áo bib in số cỡ lớn không?
-- [x] Máy xử lý: MacBook M5 và PC Windows, dùng qua lại được (mục 9).
-- [ ] Có GPS vest để kiểm chứng không, hãng nào?
-- [ ] Bộ ngưỡng tốc độ: chuẩn người lớn, theo lứa tuổi, hay tương đối theo từng cầu thủ?
-- [ ] Công cụ chỉ dùng nội bộ hay có thể phát hành/bán (quyết định chọn mô hình theo giấy phép)?
-- [ ] Đặt trong repo này (`tools/match-analyzer/`) hay repo riêng?
+Đã chốt (31/10/2026):
+
+- [x] **Quay bằng**: điện thoại iPhone hoặc máy Sony "V1", đặt trên chân máy — **camera cố định, khoá zoom/pan** (không lia) ở MVP. Camera lia để sau (M3).
+- [x] **Loại trận**: 7v7 trước, 11v11 sau. ⚠️ còn cần **kích thước sân thật** của sân 7v7 sẽ quay.
+- [x] **Máy xử lý**: MacBook M5 và PC Windows, dùng qua lại được (mục 9).
+- [x] **GPS vest**: **không có**. Kiểm chứng thể lực đổi sang cách gián tiếp (mục 8).
+- [x] **Ngưỡng tốc độ**: theo **lứa 16–21 tuổi** (U16–U21), dùng bộ ngưỡng trẻ ở mục 6.1.
+- [x] **Mục đích**: chỉ **dùng nội bộ cho một cuộc thi** → không phát hành/bán, nên **giấy phép mô hình thoải mái** (dùng được cả AGPL như Ultralytics YOLO). Nếu sau này công khai repo thì xem lại (mục 9).
+- [x] **Repo**: **repo riêng** (không đặt trong repo 11of).
+
+Còn mở:
+
+- [ ] Kích thước sân 7v7 thật (dài × rộng, m) của sân sẽ dùng.
+- [ ] Model chính xác của máy Sony "V1" (để chọn hiệu chuẩn méo ống kính đúng).
+- [ ] Áo bib: có số cỡ lớn cả trước và sau không? (ảnh hưởng OCR số áo tự động ở M3; MVP vẫn gán tay được).
