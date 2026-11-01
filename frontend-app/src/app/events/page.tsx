@@ -478,7 +478,12 @@ function EventsContent() {
                       </h3>
 
                       {/* Status Badge */}
-                      <div className="mb-3">
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {event.eventType === "RECRUITMENT" && (
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full text-white bg-amber-500">
+                            {t("Tuyển sinh")}
+                          </span>
+                        )}
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full text-white ${getStatusBadgeColor(
                             event.status,

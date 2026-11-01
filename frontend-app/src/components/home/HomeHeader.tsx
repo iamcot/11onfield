@@ -68,7 +68,8 @@ export default function HomeHeader({
       : { href: '/auth/register', label: t('Đăng ký'), long: t('Đăng ký miễn phí') };
   // the partner page is password-protected and not linked from the public site
   const cross = isPartner ? { href: '/', label: t('Cầu thủ') } : null;
-  const extra = [...(cross ? [cross] : []), { href: '/competitions', label: t('Chương trình') }];
+  const events = isPartner ? null : { href: '/events', label: t('Sự kiện') };
+  const extra = [...(cross ? [cross] : []), { href: '/competitions', label: t('Chương trình') }, ...(events ? [events] : [])];
   const showLogin = !isPartner && !isAuthenticated;
 
   return (
@@ -98,6 +99,11 @@ export default function HomeHeader({
             {cross && (
               <Link href={cross.href} className="of-navlink hidden lg:inline-block" style={{ color: 'var(--gold-2)' }}>
                 {cross.label} ›
+              </Link>
+            )}
+            {events && (
+              <Link href={events.href} className="of-navlink hidden lg:inline-block" style={{ color: 'var(--gold-2)' }}>
+                {events.label}
               </Link>
             )}
             <LanguageSwitcher className="hidden lg:inline-flex" />

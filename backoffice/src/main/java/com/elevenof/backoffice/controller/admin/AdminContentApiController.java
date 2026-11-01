@@ -4,16 +4,19 @@ import com.elevenof.backoffice.model.Competition;
 import com.elevenof.backoffice.model.CompetitionNews;
 import com.elevenof.backoffice.model.CompetitionSponsor;
 import com.elevenof.backoffice.model.Event;
+import com.elevenof.backoffice.model.EventRegistration;
 import com.elevenof.backoffice.model.NewsStatus;
 import com.elevenof.backoffice.model.Province;
 import com.elevenof.backoffice.model.User;
 import com.elevenof.backoffice.repository.CompetitionNewsRepository;
 import com.elevenof.backoffice.repository.CompetitionRepository;
 import com.elevenof.backoffice.repository.CompetitionSponsorRepository;
+import com.elevenof.backoffice.repository.EventRegistrationRepository;
 import com.elevenof.backoffice.repository.EventRepository;
 import com.elevenof.backoffice.repository.ProvinceRepository;
 import com.elevenof.backoffice.repository.UserRepository;
 import com.elevenof.backoffice.service.BackgroundRemovalService;
+import com.elevenof.backoffice.service.EventFormFields;
 import com.elevenof.backoffice.service.EventService;
 import com.elevenof.backoffice.service.S3Service;
 import com.elevenof.backoffice.specification.EventSpecification;
@@ -53,6 +56,8 @@ public class AdminContentApiController {
     private final UserRepository userRepository;
     private final S3Service s3Service;
     private final BackgroundRemovalService backgroundRemovalService;
+    private final EventFormFields formFields;
+    private final EventRegistrationRepository registrationRepository;
 
     private static ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("message", message));
@@ -104,7 +109,8 @@ public class AdminContentApiController {
 
     public record EventRequest(String title, String picture, String shortContent, String content,
                                String startDate, String startTime, String endDate, String endTime,
-                               String location, Long provinceId, String status) {}
+                               String location, Long provinceId, String status,
+                               String eventType, String partnerName, List<EventFormFields.FormField> formSchema) {}
 
     private Map<String, Object> eventJson(Event e, boolean full) {
         Map<String, Object> m = new LinkedHashMap<>();
@@ -119,11 +125,18 @@ public class AdminContentApiController {
         m.put("provinceId", e.getProvince() != null ? e.getProvince().getId() : null);
         m.put("provinceName", e.getProvince() != null ? e.getProvince().getName() : null);
         m.put("status", e.getStatus().name());
+        m.put("eventType", e.getEventType().name());
+        m.put("partnerName", e.getPartnerName());
         if (full) {
             m.put("shortContent", e.getShortContent());
             m.put("content", e.getContent());
+            m.put("formSchema", formFields.parse(e.getFormSchema()));
         } else {
             m.put("participantCount", eventService.getParticipantCount(e.getId()));
+            if (e.getEventType() == Event.EventType.RECRUITMENT) {
+                m.put("registrationCount", registrationRepository.countByEventId(e.getId()));
+                m.put("waitingCount", registrationRepository.countByEventIdAndStatus(e.getId(), EventRegistration.Status.SUBMITTED));
+            }
         }
         return m;
     }
@@ -166,6 +179,14 @@ public class AdminContentApiController {
         e.setLocation(r.location());
         e.setProvince(r.provinceId() != null ? provinceRepository.findById(r.provinceId()).orElseThrow() : null);
         e.setStatus(Event.EventStatus.valueOf(r.status()));
+        e.setEventType(r.eventType() != null && !r.eventType().isBlank()
+                ? Event.EventType.valueOf(r.eventType()) : Event.EventType.GENERAL);
+        e.setPartnerName(blankToNull(r.partnerName()) != null ? r.partnerName().trim() : null);
+        if (e.getEventType() == Event.EventType.RECRUITMENT) {
+            List<EventFormFields.FormField> form = r.formSchema() == null || r.formSchema().isEmpty()
+                    ? formFields.defaultForm() : r.formSchema();
+            e.setFormSchema(formFields.normalize(form));
+        }
     }
 
     @PostMapping("/events")

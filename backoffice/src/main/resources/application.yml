@@ -137,6 +137,10 @@ zalo:
 app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:7070}
+  # Who gets an email when a player applies to a recruitment ("Tuyển sinh") event; comma separated.
+  # Empty = every enabled ADMIN account that has an email.
+  event-registration:
+    admin-email: ${EVENT_REGISTRATION_ADMIN_EMAIL:}
   # Bunny Stream for highlight videos uploaded by players; any empty value = video upload off
   bunny:
     library-id: ${BUNNY_STREAM_LIBRARY_ID:}

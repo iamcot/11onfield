@@ -61,3 +61,10 @@ export const CompetitionIcon = ({ className = "w-5 h-5" }: IconProps) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 01-10 0V4zm10 1h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3" />
   </svg>
 );
+
+/** "Sự kiện" in the header and the bottom bar (the calendar is already "Tin tức"). */
+export const TicketIcon = ({ className = "w-5 h-5" }: IconProps) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+  </svg>
+);

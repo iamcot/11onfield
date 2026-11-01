@@ -22,7 +22,7 @@ export default function AdminShell({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const items = NAV.filter((i) => i.roles.includes(me.role));
-  const [badges, setBadges] = useState<{ pendingApprovals: number; unverifiedPlayers: number; pendingAchievements: number; pendingHighlights: number } | null>(null);
+  const [badges, setBadges] = useState<{ pendingApprovals: number; unverifiedPlayers: number; pendingAchievements: number; pendingHighlights: number; waitingRegistrations: number } | null>(null);
   const [bellOpen, setBellOpen] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
   const canSeeBadges = ['EDITOR', 'ADMIN'].includes(me.role);

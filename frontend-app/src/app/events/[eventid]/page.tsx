@@ -5,9 +5,12 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { eventService } from "@/services/event.service";
-import { EventDetail, getStatusDisplayName, getStatusBadgeColor } from "@/types/event";
+import { EventDetail, RegistrationForm, getStatusDisplayName, getStatusBadgeColor } from "@/types/event";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
+import TopBar from "@/components/layout/TopBar";
+import TopUserCard from "@/components/layout/TopUserCard";
+import RegistrationFormModal from "@/components/events/RegistrationFormModal";
 import { formatDateOnly } from "@/utils/timezone";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -24,6 +27,9 @@ export default function EventDetailPage() {
   const [joinLoading, setJoinLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // recruitment events: the form and what the player already sent
+  const [regForm, setRegForm] = useState<RegistrationForm | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -51,8 +57,12 @@ export default function EventDetailPage() {
 
         // Check if user joined (only if authenticated)
         if (isAuthenticated) {
-          const joined = await eventService.isUserJoined(eventId);
-          setIsJoined(joined);
+          if (eventData.eventType === "RECRUITMENT") {
+            setRegForm(await eventService.getRegistrationForm(eventId).catch(() => null));
+          } else {
+            const joined = await eventService.isUserJoined(eventId);
+            setIsJoined(joined);
+          }
         }
       } catch (err: any) {
         console.error("Error fetching event:", err);
@@ -204,7 +214,9 @@ export default function EventDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex">
         <Sidebar onLogout={handleLogout} />
-        <main className="flex-1 p-4 md:p-8 mb-16 md:mb-0">
+        <TopBar />
+        <TopUserCard />
+        <main className="flex-1 p-4 pt-24 md:p-8 md:pt-24 mb-16 md:mb-0">
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg shadow p-8 text-center">
               <p className="text-red-600">{error || t("Không tìm thấy sự kiện")}</p>
@@ -222,13 +234,29 @@ export default function EventDetailPage() {
     );
   }
 
-  const canJoin = event.status === "OPEN_REGISTER" && isAuthenticated;
+  const isRecruitment = event.eventType === "RECRUITMENT";
+  const canJoin = event.status === "OPEN_REGISTER" && isAuthenticated && !isRecruitment;
+  const myReg = regForm?.registration ?? null;
+  const fmtDateTime = (iso: string) =>
+    new Date(iso).toLocaleString(intlLocale, { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
+
+  const openForm = () => {
+    if (!isAuthenticated) {
+      router.push(`/auth/login?redirect=${encodeURIComponent(`/events/${eventId}`)}`);
+      return;
+    }
+    if (!regForm) return;
+    track("event_registration_started", { event_id: eventId, event_title: event.title });
+    setShowForm(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar onLogout={handleLogout} />
+      <TopBar />
+      <TopUserCard />
 
-      <main className="flex-1 p-4 md:p-8 mb-16 md:mb-0">
+      <main className="flex-1 p-4 pt-24 md:p-8 md:pt-24 mb-16 md:mb-0">
         <div className="max-w-4xl mx-auto">
           {/* Back Button */}
           <button
@@ -254,13 +282,18 @@ export default function EventDetailPage() {
             {/* Title and Status */}
             <div className="flex flex-col md:flex-row md:flex-wrap md:items-start md:justify-between gap-4 mb-4">
               <h1 className="text-xl md:text-3xl font-bold text-gray-800 md:flex-1">{event.title}</h1>
-              <span
-                className={`px-3 py-1 text-sm font-semibold rounded-full text-white self-start ${getStatusBadgeColor(
-                  event.status
-                )}`}
-              >
-                {t(getStatusDisplayName(event.status))}
-              </span>
+              <div className="flex flex-wrap gap-2 self-start">
+                {isRecruitment && (
+                  <span className="px-3 py-1 text-sm font-semibold rounded-full bg-amber-500 text-white">{t("Tuyển sinh")}</span>
+                )}
+                <span
+                  className={`px-3 py-1 text-sm font-semibold rounded-full text-white ${getStatusBadgeColor(
+                    event.status
+                  )}`}
+                >
+                  {t(getStatusDisplayName(event.status))}
+                </span>
+              </div>
             </div>
 
             {/* Short Description */}
@@ -284,6 +317,13 @@ export default function EventDetailPage() {
                   {event.provinceName && (
                     <p className="text-sm text-gray-500">{event.provinceName}</p>
                   )}
+                </div>
+              )}
+
+              {isRecruitment && event.partnerName && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 mb-1">{t("Đơn vị tuyển sinh")}</h3>
+                  <p className="text-gray-800">{event.partnerName}</p>
                 </div>
               )}
 
@@ -330,13 +370,56 @@ export default function EventDetailPage() {
               </div>
             )}
 
+            {/* Recruitment: apply with the form, then follow the application */}
+            {isRecruitment && isAuthenticated && myReg && (
+              <div className={`mb-4 rounded-md border p-4 ${myReg.status === "FORWARDED" ? "border-blue-200 bg-blue-50" : "border-green-200 bg-green-50"}`}>
+                {myReg.status === "FORWARDED" ? (
+                  <>
+                    <p className="font-semibold text-blue-800">{t("Hồ sơ đã được chuyển")}</p>
+                    <p className="text-sm text-blue-800">
+                      {t("11of đã chuyển hồ sơ của bạn tới {partner} lúc {time}. Đơn vị sẽ liên hệ trực tiếp với bạn.", {
+                        partner: event.partnerName || t("đơn vị tuyển sinh"),
+                        time: myReg.forwardedAt ? fmtDateTime(myReg.forwardedAt) : "",
+                      })}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-semibold text-green-900">{t("Đã gửi hồ sơ")}</p>
+                    <p className="text-sm text-green-800">
+                      {t("Gửi lúc {time}. 11of đang xem hồ sơ và sẽ chuyển tới {partner}.", {
+                        time: fmtDateTime(myReg.updatedAt),
+                        partner: event.partnerName || t("đơn vị tuyển sinh"),
+                      })}
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+            {isRecruitment && isAuthenticated && regForm && (event.status === "OPEN_REGISTER" || myReg) && (
+              <div className="mb-6">
+                <button
+                  onClick={openForm}
+                  className={`w-full md:w-auto px-6 py-3 rounded-md transition font-semibold ${
+                    myReg ? "bg-white border border-green-600 text-green-700 hover:bg-green-50" : "bg-green-600 text-white hover:bg-green-700"
+                  }`}
+                >
+                  {!myReg
+                    ? t("Tham gia")
+                    : myReg.status === "SUBMITTED" && event.status === "OPEN_REGISTER"
+                      ? t("Xem / sửa hồ sơ")
+                      : t("Xem hồ sơ đã gửi")}
+                </button>
+              </div>
+            )}
+
             {!isAuthenticated && event.status === "OPEN_REGISTER" && (
               <div className="mb-6">
                 <button
                   onClick={() => router.push("/auth/login")}
                   className="w-full md:w-auto px-6 py-3 btn-primary text-white rounded-md transition"
                 >
-                  {t("Đăng nhập để tham gia")}
+                  {isRecruitment ? t("Đăng nhập để đăng ký") : t("Đăng nhập để tham gia")}
                 </button>
               </div>
             )}
@@ -356,6 +439,20 @@ export default function EventDetailPage() {
       </main>
 
       <MobileNav backgroundImage="/images/ground.jpg" />
+
+      {showForm && regForm && (
+        <RegistrationFormModal
+          eventId={eventId}
+          eventTitle={event.title}
+          form={regForm}
+          onClose={() => setShowForm(false)}
+          onSubmitted={(r) => {
+            if (!myReg) track("event_registration_completed", { event_id: eventId, event_title: event.title });
+            if (!myReg) setEvent({ ...event, participantCount: event.participantCount + 1 });
+            setRegForm({ ...regForm, registration: r });
+          }}
+        />
+      )}
     </div>
   );
 }

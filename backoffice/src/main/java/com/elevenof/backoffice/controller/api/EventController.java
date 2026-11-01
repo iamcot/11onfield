@@ -34,6 +34,7 @@ public class EventController {
     private final EventService eventService;
     private final UserRepository userRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final com.elevenof.backoffice.service.EventRegistrationService registrationService;
 
     @GetMapping
     public ResponseEntity<Page<EventListDTO>> getEvents(
@@ -85,6 +86,8 @@ public class EventController {
                 .provinceName(event.getProvince() != null ? event.getProvince().getName() : null)
                 .status(event.getStatus().name())
                 .participantCount((int) participantCount)
+                .eventType(event.getEventType().name())
+                .partnerName(event.getPartnerName())
                 .build();
         });
 
@@ -116,9 +119,30 @@ public class EventController {
             .provinceName(event.getProvince() != null ? event.getProvince().getName() : null)
             .status(event.getStatus().name())
             .participantCount((int) participantCount)
+            .eventType(event.getEventType().name())
+            .partnerName(event.getPartnerName())
             .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    // ==================== RECRUITMENT FORM ====================
+
+    /** The registration form of a recruitment event, filled with the player's profile, and their application if sent. */
+    @GetMapping("/{id}/registration")
+    public ResponseEntity<Map<String, Object>> registrationForm(@PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok(registrationService.formFor(id, authentication.getName()));
+    }
+
+    /** Sends (or corrects, until 11of has passed it on) the player's application. Body: {answers: {fieldId: value}}. */
+    @PostMapping("/{id}/registration")
+    @SuppressWarnings("unchecked")
+    public ResponseEntity<Map<String, Object>> submitRegistration(@PathVariable Long id,
+                                                                  @RequestBody Map<String, Object> body,
+                                                                  Authentication authentication) {
+        Object answers = body.get("answers");
+        return ResponseEntity.ok(registrationService.submit(id, authentication.getName(),
+                answers instanceof Map<?, ?> m ? (Map<String, Object>) m : Map.of()));
     }
 
     @PostMapping("/{id}/join")
@@ -137,6 +161,11 @@ public class EventController {
         Long userId = user.getId();
         log.info("[EventController] Resolved to userId (id): {}", userId);
 
+        Event target = eventRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
+        if (target.getEventType() == Event.EventType.RECRUITMENT) {
+            throw new IllegalArgumentException("Sự kiện tuyển sinh cần gửi hồ sơ đăng ký");
+        }
         eventService.joinEvent(userId, id);
         log.info("[EventController] joinEvent completed successfully");
 
@@ -237,6 +266,8 @@ public class EventController {
                 .provinceName(event.getProvince() != null ? event.getProvince().getName() : null)
                 .status(event.getStatus().name())
                 .participantCount((int) participantCount)
+                .eventType(event.getEventType().name())
+                .partnerName(event.getPartnerName())
                 .build();
         });
 

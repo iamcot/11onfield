@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { api, useApi } from '@/lib/admin/client';
 import { EVENT_STATUS, fmtDate } from '@/lib/admin/labels';
 import { Badge, Button, ChevronCell, ClickRow, Input, LinkButton, Loading, PageTitle, Pagination, Select, Table, Td, useUi } from '@/components/admin/ui';
@@ -15,6 +16,9 @@ interface EventRow {
   provinceName: string | null;
   status: string;
   participantCount: number;
+  eventType?: string;
+  registrationCount?: number;
+  waitingCount?: number;
 }
 
 export default function EventsPage() {
@@ -79,13 +83,23 @@ export default function EventsPage() {
                 <Td>
                   <div className="flex items-center gap-3">
                     {e.picture ? <img src={e.picture} alt="" className="h-10 w-14 shrink-0 object-cover" /> : <div className="h-10 w-14 shrink-0 bg-[#F3F6F4]" />}
-                    <span className="font-medium">{e.title}</span>
+                    <div className="min-w-0">
+                      <span className="font-medium">{e.title}</span>
+                      {e.eventType === 'RECRUITMENT' && <div className="mt-0.5"><Badge tone="gold">Tuyển sinh</Badge></div>}
+                    </div>
                   </div>
                 </Td>
                 <Td className="whitespace-nowrap text-[#46564D]">{fmtDate(e.startDate)}{e.endDate !== e.startDate && ` – ${fmtDate(e.endDate)}`}</Td>
                 <Td className="text-[#46564D]">{[e.location, e.provinceName].filter(Boolean).join(', ')}</Td>
                 <Td><Badge tone={EVENT_STATUS[e.status]?.tone}>{EVENT_STATUS[e.status]?.label || e.status}</Badge></Td>
-                <Td className="tabular-nums">{e.participantCount}</Td>
+                <Td className="tabular-nums">
+                  {e.eventType === 'RECRUITMENT' ? (
+                    <Link href={`/quan-tri/su-kien/${e.id}/dang-ky`} onClick={(ev) => ev.stopPropagation()} className="whitespace-nowrap text-[#1F6B32] underline-offset-2 hover:underline">
+                      {e.registrationCount ?? 0} hồ sơ
+                      {!!e.waitingCount && <span className="ml-1 text-[12px] text-[#9A6B00]">({e.waitingCount} chờ chuyển)</span>}
+                    </Link>
+                  ) : e.participantCount}
+                </Td>
                 <Td className="whitespace-nowrap text-right">
                   <Button small variant={e.status === 'DELETED' ? 'ghost' : 'danger'} onClick={() => act(e)}>{e.status === 'DELETED' ? 'Khôi phục' : 'Xoá'}</Button>
                 </Td>

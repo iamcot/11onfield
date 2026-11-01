@@ -248,6 +248,7 @@ jobs:
           MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           MAIL_FROM=${{ secrets.MAIL_FROM }}
+          EVENT_REGISTRATION_ADMIN_EMAIL=${{ secrets.EVENT_REGISTRATION_ADMIN_EMAIL }}
           SPRING_PROFILES_ACTIVE=prod
           EOF
           sg 11of-deploy -c "chmod 640 ${{ env.DEPLOY_PATH }}/backend/.env" || true

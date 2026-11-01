@@ -1,6 +1,6 @@
 "use client";
 
-import { CompetitionIcon, EventIcon, HomeIcon } from "@/components/icons/nav-icons";
+import { TicketIcon, CompetitionIcon, EventIcon, HomeIcon } from "@/components/icons/nav-icons";
 import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
@@ -62,6 +62,12 @@ export default function TopUserCard() {
       label: t("Tin tức"),
       href: newsHref,
       isActive: section === "news",
+    },
+    {
+      icon: TicketIcon,
+      label: t("Sự kiện"),
+      href: "/events",
+      isActive: section === "events",
     },
   ];
 

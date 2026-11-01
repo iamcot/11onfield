@@ -425,6 +425,64 @@ const app: Messages = {
   'Đối kháng': ['Duels', 'Duelos', '경합'],
   'Tâm lý': ['Mindset', 'Mentalidad', '심리'],
   'Chọn ngôn ngữ': ['Choose language', 'Elige idioma', '언어 선택'],
+  // recruitment events ("Tuyển sinh") and their registration form
+  'Tuyển sinh': ['Recruitment', 'Captación', '선수 모집'],
+  'Đơn vị tuyển sinh': ['Recruiting club', 'Entidad que capta', '모집 기관'],
+  'đơn vị tuyển sinh': ['the recruiting club', 'la entidad que capta', '모집 기관'],
+  'Hồ sơ đã được chuyển': ['Application passed on', 'Solicitud enviada', '지원서 전달 완료'],
+  '11of đã chuyển hồ sơ của bạn tới {partner} lúc {time}. Đơn vị sẽ liên hệ trực tiếp với bạn.': [
+    '11of passed your application on to {partner} at {time}. They will contact you directly.',
+    '11of envió tu solicitud a {partner} el {time}. Se pondrán en contacto contigo directamente.',
+    '11of가 {time}에 지원서를 {partner}에 전달했습니다. 기관에서 직접 연락드립니다.',
+  ],
+  'Đã gửi hồ sơ': ['Application sent', 'Solicitud enviada', '지원서 제출 완료'],
+  'Gửi lúc {time}. 11of đang xem hồ sơ và sẽ chuyển tới {partner}.': [
+    'Sent at {time}. 11of is reviewing it and will pass it on to {partner}.',
+    'Enviada el {time}. 11of la está revisando y la enviará a {partner}.',
+    '{time}에 제출됨. 11of가 검토 후 {partner}에 전달합니다.',
+  ],
+  'Tham gia': ['Apply', 'Inscribirme', '지원하기'],
+  'Xem / sửa hồ sơ': ['View / edit application', 'Ver / editar solicitud', '지원서 보기 / 수정'],
+  'Xem hồ sơ đã gửi': ['View sent application', 'Ver solicitud enviada', '제출한 지원서 보기'],
+  'Đăng nhập để đăng ký': ['Log in to apply', 'Inicia sesión para inscribirte', '로그인하고 지원하기'],
+  'Vui lòng điền mục này': ['Please fill this in', 'Rellena este campo', '이 항목을 입력해 주세요'],
+  'Hồ sơ của bạn chưa có ảnh này. Hãy cập nhật trong trang hồ sơ.': [
+    "Your profile doesn't have this photo yet. Add it on your profile page.",
+    'Tu perfil aún no tiene esta foto. Añádela en tu página de perfil.',
+    '프로필에 이 사진이 없습니다. 프로필 페이지에서 추가해 주세요.',
+  ],
+  '— Chọn —': ['— Choose —', '— Elige —', '— 선택 —'],
+  'Tôi đồng ý': ['I agree', 'Acepto', '동의합니다'],
+  'Đã cập nhật hồ sơ': ['Application updated', 'Solicitud actualizada', '지원서 수정 완료'],
+  '11of sẽ kiểm tra và chuyển hồ sơ của bạn tới {partner}. Bạn sẽ nhận được email khi hồ sơ đã được chuyển.': [
+    "11of will review your application and pass it on to {partner}. You'll get an email once it has been sent.",
+    '11of revisará tu solicitud y la enviará a {partner}. Recibirás un correo cuando se haya enviado.',
+    '11of가 지원서를 검토한 후 {partner}에 전달합니다. 전달되면 이메일로 알려드립니다.',
+  ],
+  '11of sẽ kiểm tra và chuyển hồ sơ của bạn tới đơn vị tuyển sinh. Bạn sẽ nhận được email khi hồ sơ đã được chuyển.': [
+    "11of will review your application and pass it on to the recruiting club. You'll get an email once it has been sent.",
+    '11of revisará tu solicitud y la enviará a la entidad que capta. Recibirás un correo cuando se haya enviado.',
+    '11of가 지원서를 검토한 후 모집 기관에 전달합니다. 전달되면 이메일로 알려드립니다.',
+  ],
+  'Hồ sơ đã được chuyển cho đơn vị tuyển sinh nên không sửa được nữa.': [
+    'Your application has been passed on, so it can no longer be edited.',
+    'Tu solicitud ya se envió, así que no se puede editar.',
+    '지원서가 이미 전달되어 더 이상 수정할 수 없습니다.',
+  ],
+  'Sự kiện đang không nhận đăng ký.': ['This event is not taking applications right now.', 'Este evento no admite inscripciones ahora.', '현재 이 이벤트는 지원을 받지 않습니다.'],
+  'Bạn đã gửi hồ sơ. Có thể sửa và gửi lại cho tới khi 11of chuyển hồ sơ đi.': [
+    'You have applied. You can edit and resend it until 11of passes it on.',
+    'Ya enviaste tu solicitud. Puedes editarla y reenviarla hasta que 11of la envíe.',
+    '지원서를 제출했습니다. 11of가 전달하기 전까지 수정해 다시 보낼 수 있습니다.',
+  ],
+  'Các mục có nhãn “Từ hồ sơ” đã được điền sẵn từ hồ sơ 11of của bạn. Hãy kiểm tra lại trước khi gửi.': [
+    'Fields marked “From profile” are filled in from your 11of profile. Please check them before sending.',
+    'Los campos marcados “Del perfil” se rellenan con tu perfil de 11of. Revísalos antes de enviar.',
+    '“프로필에서” 표시 항목은 11of 프로필로 미리 채워졌습니다. 보내기 전에 확인해 주세요.',
+  ],
+  'Từ hồ sơ': ['From profile', 'Del perfil', '프로필에서'],
+  'Huỷ': ['Cancel', 'Cancelar', '취소'],
+  'Gửi lại hồ sơ': ['Resend application', 'Reenviar solicitud', '지원서 다시 보내기'],
 };
 
 export default app;

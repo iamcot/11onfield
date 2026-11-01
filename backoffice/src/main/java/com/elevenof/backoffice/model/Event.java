@@ -57,6 +57,20 @@ public class Event {
     @Column(nullable = false, length = 20)
     private EventStatus status;
 
+    /** GENERAL: information only. RECRUITMENT (Tuyển sinh): players apply through the form below. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_type", nullable = false, length = 20)
+    @Builder.Default
+    private EventType eventType = EventType.GENERAL;
+
+    /** The unit (club, academy, school) the applications of a recruitment event are passed on to. */
+    @Column(name = "partner_name", length = 200)
+    private String partnerName;
+
+    /** Registration form of a recruitment event: JSON list of fields, see EventFormFields. */
+    @Column(name = "form_schema", columnDefinition = "TEXT")
+    private String formSchema;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -72,6 +86,11 @@ public class Event {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public enum EventType {
+        GENERAL,      // Sự kiện thường
+        RECRUITMENT   // Tuyển sinh: có nút tham gia mở biểu mẫu đăng ký
     }
 
     public enum EventStatus {

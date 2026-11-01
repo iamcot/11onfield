@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import { storage } from "@/lib/storage";
-import { EventDetail, EventListItem } from "@/types/event";
+import { EventDetail, EventListItem, MyRegistration, RegistrationForm } from "@/types/event";
 import { UserListItem } from "@/types/user";
 import { PaginatedResponse } from "@/types/api";
 
@@ -106,6 +106,23 @@ export const eventService = {
     } catch (error) {
       return false;
     }
+  },
+
+  /** Form of a recruitment event, filled with the player's profile, and what they already sent. */
+  async getRegistrationForm(eventId: number): Promise<RegistrationForm> {
+    const token = storage.getToken();
+    if (!token) throw new Error("Vui lòng đăng nhập để đăng ký");
+    return apiClient.get<RegistrationForm>(`/events/${eventId}/registration`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  async submitRegistration(eventId: number, answers: Record<string, unknown>): Promise<MyRegistration> {
+    const token = storage.getToken();
+    if (!token) throw new Error("Vui lòng đăng nhập để đăng ký");
+    return apiClient.post<MyRegistration>(`/events/${eventId}/registration`, { answers }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
   },
 
   async getParticipants(eventId: number): Promise<UserListItem[]> {
