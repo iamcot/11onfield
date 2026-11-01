@@ -10,6 +10,16 @@ import java.util.List;
 
 public class EventSpecification {
 
+    /** What the public site shows: not drafts (PLAN), cancelled or deleted events. */
+    public static final java.util.Set<Event.EventStatus> PUBLIC_STATUSES = java.util.EnumSet.of(
+            Event.EventStatus.OPEN_REGISTER, Event.EventStatus.CLOSE_REGISTER, Event.EventStatus.COMPLETE);
+
+    /** The admin filters, limited to events the public may see. */
+    public static Specification<Event> publicWithFilters(String search, Event.EventStatus status, Long provinceId) {
+        Specification<Event> visible = (root, query, cb) -> root.get("status").in(PUBLIC_STATUSES);
+        return visible.and(withFilters(search, status, provinceId));
+    }
+
     public static Specification<Event> withFilters(
             String search,
             Event.EventStatus status,

@@ -215,6 +215,14 @@ public class AdminCompetitionApiController {
         } catch (Exception e) {
             return error(HttpStatus.BAD_REQUEST, "Ngày không hợp lệ");
         }
+        // region (khu vực) of a regional audition can be changed; empty = whole competition
+        if (body.containsKey("region")) {
+            try {
+                s.setRegion(str(body.get("region")) != null ? Region.valueOf(str(body.get("region"))) : null);
+            } catch (Exception e) {
+                return error(HttpStatus.BAD_REQUEST, "Khu vực không hợp lệ");
+            }
+        }
         s.setTitle(title);
         s.setDescription(str(body.get("description")));
         s.setStageTime(str(body.get("stageTime")));
