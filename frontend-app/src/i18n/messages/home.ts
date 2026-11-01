@@ -4,19 +4,19 @@ import type { Messages } from './types';
 const home: Messages = {
   // metadata
   '11 người ra sân': ['11 On Field', '11 On Field', '11 On Field'],
-  '11 người ra sân - Từ đường phố đến sân cỏ': ['11 On Field - From the street to the pitch', '11 On Field - De la calle al campo', '11 On Field - 거리에서 그라운드로'],
-  'Nền tảng kết nối cầu thủ bóng đá từ đường phố đến sân cỏ. Khám phá tài năng, tham gia tuyển chọn, xây dựng sự nghiệp bóng đá chuyên nghiệp.': [
-    'The platform that takes footballers from the street to the pitch. Discover talent, enter the selection and build a professional football career.',
-    'La plataforma que lleva a los futbolistas de la calle al campo. Descubre talento, participa en la selección y construye una carrera profesional.',
-    '거리의 축구 선수를 그라운드로 연결하는 플랫폼. 재능을 발견하고, 선발에 참여하고, 프로 축구 커리어를 쌓으세요.',
+  '11 người ra sân - Từ đường phố đến sân vận động': ['11 On Field - From the street to the stadium', '11 On Field - De la calle al estadio', '11 On Field - 거리에서 경기장으로'],
+  'Nền tảng kết nối cầu thủ bóng đá từ đường phố đến sân vận động. Khám phá tài năng, tham gia tuyển chọn, xây dựng sự nghiệp bóng đá chuyên nghiệp.': [
+    'The platform that takes footballers from the street to the stadium. Discover talent, enter the selection and build a professional football career.',
+    'La plataforma que lleva a los futbolistas de la calle al estadio. Descubre talento, participa en la selección y construye una carrera profesional.',
+    '거리의 축구 선수를 경기장으로 연결하는 플랫폼. 재능을 발견하고, 선발에 참여하고, 프로 축구 커리어를 쌓으세요.',
   ],
-  '11 người ra sân là chương trình tuyển trạch cầu thủ trẻ toàn quốc, đưa tài năng từ đường phố đến sân cỏ. Tạo hồ sơ cầu thủ miễn phí và ghi dấu ấn qua từng vòng tuyển chọn.': [
-    '11 On Field is a nationwide trial programme for young footballers, taking talent from the street to the pitch. Create a free player profile and make your mark round after round.',
-    '11 On Field es un programa nacional de pruebas para jóvenes futbolistas que lleva el talento de la calle al campo. Crea tu perfil de jugador gratis y deja huella en cada fase.',
-    '11 On Field는 거리의 재능을 그라운드로 이끄는 전국 유소년 축구 선수 선발 프로그램입니다. 무료로 선수 프로필을 만들고 라운드마다 실력을 보여주세요.',
+  '11 người ra sân là chương trình tuyển trạch cầu thủ trẻ toàn quốc, đưa tài năng từ đường phố đến sân vận động. Tạo hồ sơ cầu thủ miễn phí và ghi dấu ấn qua từng vòng tuyển chọn.': [
+    '11 On Field is a nationwide trial programme for young footballers, taking talent from the street to the stadium. Create a free player profile and make your mark round after round.',
+    '11 On Field es un programa nacional de pruebas para jóvenes futbolistas que lleva el talento de la calle al estadio. Crea tu perfil de jugador gratis y deja huella en cada fase.',
+    '11 On Field는 거리의 재능을 경기장으로 이끄는 전국 유소년 축구 선수 선발 프로그램입니다. 무료로 선수 프로필을 만들고 라운드마다 실력을 보여주세요.',
   ],
   'Cùng tham gia 11 người ra sân và tiếp sức {name} chinh phục ước mơ sân cỏ!': [
-    'Join 11 On Field and help {name} chase the dream of the pitch!',
+    'Join 11 On Field and help {name} chase the dream of the field!',
     '¡Únete a 11 On Field y apoya a {name} en su sueño de llegar al campo!',
     '11 On Field에 함께하고 {name} 선수의 그라운드 꿈을 응원해 주세요!',
   ],
@@ -66,9 +66,9 @@ const home: Messages = {
   'Mùa {n}': ['Season {n}', 'Temporada {n}', '시즌 {n}'],
   'Tìm kiếm': ['Finding', 'Buscamos', '그라운드에 설'],
   người: ['players', 'jugadores', '명을'],
-  'ra sân': ['on the pitch', 'al campo', '찾아라'],
-  'Từ Đường Phố ra Sân Vận Động': ['From the Street to the Stadium', 'De la Calle al Estadio', '거리에서 스타디움으로'],
-  'Cơ hội cho tài năng <b>16–21 tuổi</b> theo đuổi giấc mơ sân cỏ. Huấn luyện cùng <b>chuyên gia quốc tế đến từ La Liga</b>, Top 11 đi World Cup Tour, ra sân vận động quốc gia gặp <b>hàng triệu</b> khán giả.': [
+  'ra sân': ['on the field', 'al campo', '찾아라'],
+  'Từ Đường Phố đến Sân Vận Động': ['From the Street to the Stadium', 'De la Calle al Estadio', '거리에서 스타디움으로'],
+  'Cơ hội cho tài năng <b>16–21 tuổi</b> theo đuổi giấc mơ sân cỏ. Huấn luyện cùng <b>chuyên gia quốc tế đến từ La Liga</b>, Top 11 đi World Cup Tour, đến sân vận động quốc gia gặp <b>hàng triệu</b> khán giả.': [
     'A chance for talents <b>aged 16–21</b> to chase their football dream. Train with <b>international experts from La Liga</b>; the Top 11 go on the World Cup Tour and play at the national stadium in front of <b>millions</b> of fans.',
     'Una oportunidad para talentos de <b>16 a 21 años</b> que persiguen su sueño futbolístico. Entrena con <b>expertos internacionales de LaLiga</b>; el Top 11 viaja al World Cup Tour y juega en el estadio nacional ante <b>millones</b> de espectadores.',
     '<b>16–21세</b> 인재가 축구의 꿈을 좇을 기회. <b>라리가 출신 국제 전문가</b>와 함께 훈련하고, Top 11은 월드컵 투어를 떠나 국립경기장에서 <b>수백만</b> 관중을 만납니다.',
@@ -109,7 +109,7 @@ const home: Messages = {
   '30.000 hồ sơ': ['30,000 applicants', '30.000 candidaturas', '지원자 30,000명'],
   'Huấn luyện cùng chuyên gia La Liga': ['Train with La Liga experts', 'Entrena con expertos de LaLiga', '라리가 전문가와 훈련'],
   'Top 11 đi World Cup Tour': ['Top 11 go on the World Cup Tour', 'El Top 11 va al World Cup Tour', 'Top 11 월드컵 투어'],
-  'Ra sân quốc gia, hàng triệu khán giả': ['National stadium, millions watching', 'Estadio nacional, millones de espectadores', '국립경기장, 수백만 관중'],
+  'Đến sân vận động quốc gia, hàng triệu khán giả': ['National stadium, millions watching', 'Estadio nacional, millones de espectadores', '국립경기장, 수백만 관중'],
 
   // benefits
   'Không chỉ hào quang': ['More than the spotlight', 'Más que fama', '화려함 그 이상'],
@@ -131,7 +131,7 @@ const home: Messages = {
     'El Top 11 aprende de primera mano del fútbol número 1 del mundo.',
     'Top 11은 세계 최고의 축구를 직접 배웁니다.',
   ],
-  'Ra sân vận động quốc gia': ['Play at the national stadium', 'Juega en el estadio nacional', '국립경기장 출전'],
+  'Đến sân vận động quốc gia': ['Play at the national stadium', 'Juega en el estadio nacional', '국립경기장 출전'],
   'Final Match phát sóng truyền hình toàn quốc, gặp hàng triệu khán giả.': [
     'The Final Match is broadcast nationwide to millions of viewers.',
     'La Final Match se emite por televisión a todo el país ante millones de espectadores.',
@@ -170,7 +170,7 @@ const home: Messages = {
   'Đánh giá chuyên sâu bằng dữ liệu': ['In-depth, data-driven assessment', 'Evaluación a fondo basada en datos', '데이터 기반 심층 평가'],
   'Lên tuyển': ['Squad call-up', 'Convocatoria', '대표팀 합류'],
   '4 tháng huấn luyện, 10 tập thử thách': ['4 months of training, 10 challenge episodes', '4 meses de entrenamiento, 10 episodios de retos', '4개월 훈련, 10회 챌린지'],
-  'Ra sân': ['On the pitch', 'Al campo', '출전'],
+  'Ra sân': ['On the field', 'Al campo', '출전'],
   'Không cảm tính': ['No gut feelings', 'Sin subjetividad', '감이 아닌'],
   'Chấm điểm': ['Scored', 'Puntuación', '평가는'],
   'bằng dữ liệu': ['by data', 'basada en datos', '데이터로'],
@@ -294,7 +294,7 @@ const home: Messages = {
   'Bàn tay nắm chặt huy hiệu 11 On Field trên ngực áo': ['A hand gripping the 11 On Field crest on a shirt', 'Una mano aprieta el escudo de 11 On Field en la camiseta', '가슴의 11 On Field 엠블럼을 움켜쥔 손'],
   'Bạn có đủ khát khao?': ['Hungry enough?', '¿Tienes suficiente hambre?', '간절함이 있나요?'],
   'Đừng chỉ mơ ước.': ["Don't just dream.", 'No te limites a soñar.', '꿈만 꾸지 마세요.'],
-  'Hãy ra sân.': ['Get on the pitch.', 'Salta al campo.', '그라운드로 나오세요.'],
+  'Hãy ra sân.': ['Get on the field.', 'Salta al campo.', '그라운드로 나오세요.'],
   'Đăng ký miễn phí trong 5 phút. Hồ sơ của bạn sẽ đến tay Ban huấn luyện.': [
     'Sign up free in 5 minutes. Your profile goes straight to the coaching staff.',
     'Inscríbete gratis en 5 minutos. Tu perfil llegará al cuerpo técnico.',

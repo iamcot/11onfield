@@ -37,7 +37,7 @@ const doc: LegalDoc = {
         ['Laws of the game:', 'The programme strictly applies the current Laws of the Game for 11-a-side football issued by the Vietnam Football Federation (VFF) and FIFA.'],
         ['Format flexibility:', 'Because this is a reality TV programme, the organisers have full discretion to adjust match length, filming schedules and the structure of challenges to optimise production quality at each stage.'],
         ['Filming schedule:', 'Players must cooperate with and follow the flexible filming times set out in the full production schedule assigned by the production company.'],
-        ['Equipment:', 'On the pitch, players must wear the kit provided by the organisers, proper football boots (suited to natural or artificial turf) and shin guards for safety.'],
+        ['Equipment:', 'On the field, players must wear the kit provided by the organisers, proper football boots (suited to natural or artificial turf) and shin guards for safety.'],
         ['Attendance:', 'Players must arrive at the training ground, match venue or set at least 45 minutes before filming starts. Arriving late or being absent without good reason more than twice will lead to disciplinary action under the programme rules.'],
       ],
     },
@@ -69,7 +69,7 @@ const doc: LegalDoc = {
       title: '8. Code of conduct & media',
       items: [
         ['Media statements:', "Players may not give press interviews or livestreams about the programme without written approval from the organisers' communications team."],
-        ['Behaviour:', "Violence on the pitch, cheating, match-fixing and racist or religiously discriminatory remarks that damage the programme's reputation are strictly prohibited."],
+        ['Behaviour:', "Violence on the field, cheating, match-fixing and racist or religiously discriminatory remarks that damage the programme's reputation are strictly prohibited."],
         ['Social media:', "Throughout the broadcast period, players must ensure their personal posts respect public decency and do not engage negatively with or stir up controversy (anti-fans) that harms the programme's brand."],
       ],
     },

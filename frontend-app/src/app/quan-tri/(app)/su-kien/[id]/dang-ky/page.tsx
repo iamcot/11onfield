@@ -98,7 +98,7 @@ export default function EventRegistrationsPage() {
                     <div>
                       <div className="font-medium">{r.fullName}</div>
                       {r.userid ? (
-                        <Link href={`/profile/${r.userid}`} target="_blank" className="text-[12px] text-[#66766D] hover:text-[#1F6B32]">Xem hồ sơ 11of ↗</Link>
+                        <Link href={`/profile/${r.userid}`} target="_blank" className="text-[12px] text-[#66766D] hover:text-[#1F6B32]">Xem hồ sơ 11 On Field ↗</Link>
                       ) : (
                         <span className="text-[12px] text-[#9A6B00]">Khách, chưa có tài khoản</span>
                       )}

@@ -38,7 +38,7 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
               <Link href="/">
                 <Image
                   src="/images/logo-white-full.png"
-                  alt="11of Logo"
+                  alt="11 On Field Logo"
                   width={120}
                   height={50}
                   className="object-contain cursor-pointer"

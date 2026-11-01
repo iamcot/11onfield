@@ -53,7 +53,7 @@ export function PartnerHero() {
           </div>
           <p className="of-in mt-5 max-w-[560px] text-[17px] text-[#E2EAE4] sm:text-[19px]" style={cssVars({ '--i': 1 })}>
             {rich(
-              t('Format truyền hình thực tế bóng đá <b>tiêu chuẩn quốc tế đầu tiên</b> tại Việt Nam: tìm kiếm, đào tạo và đưa 11 tài năng trẻ ra sân vận động quốc gia.'),
+              t('Format truyền hình thực tế bóng đá <b>tiêu chuẩn quốc tế đầu tiên</b> tại Việt Nam: tìm kiếm, đào tạo và đưa 11 tài năng trẻ đến sân vận động quốc gia.'),
               strong()
             )}
           </p>

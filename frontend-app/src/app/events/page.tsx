@@ -22,6 +22,7 @@ import { formatDateOnly } from "@/utils/timezone";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useT } from "@/i18n/I18nProvider";
+import EventCover from "@/components/events/EventCover";
 
 function EventsContent() {
   const t = useT();
@@ -459,11 +460,14 @@ function EventsContent() {
                         />
                       </div>
                     ) : (
-                      <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 text-sm">
-                          {t("Không có hình ảnh")}
-                        </span>
-                      </div>
+                      <EventCover
+                        id={event.id}
+                        title={event.title}
+                        eventType={event.eventType}
+                        partnerName={event.partnerName}
+                        startDate={event.startDate}
+                        className="w-full h-48"
+                      />
                     )}
 
                     {/* Event Info */}

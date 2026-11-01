@@ -88,7 +88,7 @@ public class EventFormFields {
                     u -> u.getAddress() != null && u.getAddress().getProvince() != null ? u.getAddress().getProvince().getName() : null),
             new ProfileField("user.address", "Tài khoản", "Địa chỉ liên hệ", "text", null, u -> fullAddress(u.getAddress())),
             new ProfileField("user.avatar", "Tài khoản", "Ảnh đại diện", "image", null, User::getAvatar),
-            new ProfileField("user.profileUrl", "Tài khoản", "Link hồ sơ 11of", "link", null,
+            new ProfileField("user.profileUrl", "Tài khoản", "Link hồ sơ 11 On Field", "link", null,
                     u -> u.getUserid() != null ? frontendUrl + "/profile/" + u.getUserid() : null),
 
             new ProfileField("player.personalId", "Cầu thủ", "Số CCCD/định danh", "text", null,

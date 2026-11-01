@@ -3,12 +3,12 @@
 import { useT } from '@/i18n/I18nProvider';
 
 export const PLAYER_TICKER = [
-  'Từ Đường Phố ra Sân Vận Động',
+  'Từ Đường Phố đến Sân Vận Động',
   '30.000 hồ sơ',
   'Tuyển trạch 3 miền',
   'Huấn luyện cùng chuyên gia La Liga',
   'Top 11 đi World Cup Tour',
-  'Ra sân quốc gia, hàng triệu khán giả',
+  'Đến sân vận động quốc gia, hàng triệu khán giả',
   'Đăng ký miễn phí',
 ];
 

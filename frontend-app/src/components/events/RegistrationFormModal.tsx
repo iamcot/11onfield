@@ -296,14 +296,14 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
             </div>
             <h3 className="text-xl font-bold text-gray-800">{sentBefore ? t("Đã cập nhật hồ sơ") : t("Đã gửi hồ sơ")}</h3>
             {wasGuest && makeAccount && (
-              <p className="max-w-md rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">{t("Tài khoản và hồ sơ 11onfield của bạn đã được tạo từ thông tin trong đơn.")}</p>
+              <p className="max-w-md rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">{t("Tài khoản và hồ sơ 11 On Field của bạn đã được tạo từ thông tin trong đơn.")}</p>
             )}
             <p className="max-w-md text-gray-600">
               {wasGuest && !makeAccount
-                ? t("11of sẽ kiểm tra và chuyển hồ sơ của bạn tới đơn vị tuyển sinh, rồi báo cho bạn qua email nếu bạn có để lại email.")
+                ? t("11 On Field sẽ kiểm tra và chuyển hồ sơ của bạn tới đơn vị tuyển sinh, rồi báo cho bạn qua email nếu bạn có để lại email.")
                 : form.partnerName
-                ? t("11of sẽ kiểm tra và chuyển hồ sơ của bạn tới {partner}. Bạn sẽ nhận được email khi hồ sơ đã được chuyển.", { partner: form.partnerName })
-                : t("11of sẽ kiểm tra và chuyển hồ sơ của bạn tới đơn vị tuyển sinh. Bạn sẽ nhận được email khi hồ sơ đã được chuyển.")}
+                ? t("11 On Field sẽ kiểm tra và chuyển hồ sơ của bạn tới {partner}. Bạn sẽ nhận được email khi hồ sơ đã được chuyển.", { partner: form.partnerName })
+                : t("11 On Field sẽ kiểm tra và chuyển hồ sơ của bạn tới đơn vị tuyển sinh. Bạn sẽ nhận được email khi hồ sơ đã được chuyển.")}
             </p>
             <button type="button" onClick={onClose} className="mt-2 rounded-md bg-green-600 px-6 py-2.5 text-white hover:bg-green-700">{t("Đóng")}</button>
           </div>
@@ -315,17 +315,17 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
               ) : !form.open ? (
                 <p className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">{t("Sự kiện đang không nhận đăng ký.")}</p>
               ) : sentBefore ? (
-                <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">{t("Bạn đã gửi hồ sơ. Có thể sửa và gửi lại cho tới khi 11of chuyển hồ sơ đi.")}</p>
+                <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">{t("Bạn đã gửi hồ sơ. Có thể sửa và gửi lại cho tới khi 11 On Field chuyển hồ sơ đi.")}</p>
               ) : wasGuest ? (
                 <p className="mb-4 rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-600">
-                  {t("Đã có tài khoản 11onfield?")}{" "}
+                  {t("Đã có tài khoản 11 On Field?")}{" "}
                   <Link href={`/auth/login?redirect=${encodeURIComponent(`/events/${eventId}`)}`} className="font-semibold text-green-700 underline">
                     {t("Đăng nhập")}
                   </Link>{" "}
                   {t("để thông tin hồ sơ được điền sẵn.")}
                 </p>
               ) : fromProfile.size > 0 ? (
-                <p className="mb-4 rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-600">{t("Các mục có nhãn “Từ hồ sơ” đã được điền sẵn từ hồ sơ 11of của bạn. Hãy kiểm tra lại trước khi gửi.")}</p>
+                <p className="mb-4 rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-600">{t("Các mục có nhãn “Từ hồ sơ” đã được điền sẵn từ hồ sơ 11 On Field của bạn. Hãy kiểm tra lại trước khi gửi.")}</p>
               ) : null}
 
               {form.registration?.status === "FORWARDED" ? (
@@ -393,7 +393,7 @@ export default function RegistrationFormModal({ eventId, eventTitle, form, guest
                       onChange={(e) => setMakeAccount(e.target.checked)}
                       className="mt-1 h-4 w-4 accent-green-700"
                     />
-                    <span className="font-medium text-gray-800">{t("Gửi đơn đồng thời đăng ký hồ sơ trên 11onfield")}</span>
+                    <span className="font-medium text-gray-800">{t("Gửi đơn đồng thời đăng ký hồ sơ trên 11 On Field")}</span>
                   </label>
                   {makeAccount && !accountMade && (
                     <div className="mt-2 grid gap-2 pl-6 sm:grid-cols-2">
