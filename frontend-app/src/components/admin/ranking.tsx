@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useApi } from '@/lib/admin/client';
 import { Badge, Select } from '@/components/admin/ui';
-import { POSITIONS, REGIONS } from '@/lib/admin/labels';
+import { REGIONS } from '@/lib/admin/labels';
 
 export interface RankComponent { key: string; label: string; type: string; raw: number | null; points: number | null; present: boolean }
 export interface RankRow {
@@ -25,7 +25,7 @@ export function useRanking(id: string, region: string) {
 }
 
 export const fmt = (n: number | null | undefined, digits = 1) => (n == null ? '—' : Number(n).toFixed(digits).replace('.', ','));
-export const positionLabel = (p: string | null) => (p ? p.split(',').map((x) => POSITIONS[x.trim().toLowerCase()] || x.trim()).join(', ') : '—');
+export { positionLabel } from '@/lib/admin/labels';
 
 /** Group switch + region filter shared by the ranking and selection pages. */
 export function RankFilters({ group, onGroup, region, onRegion }: { group: Group; onGroup: (g: Group) => void; region: string; onRegion: (r: string) => void }) {

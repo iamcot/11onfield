@@ -24,8 +24,12 @@ export const POSITIONS: Record<string, string> = {
   striker: 'Tiền đạo',
   midfielder: 'Tiền vệ',
   defender: 'Hậu vệ',
+  centerback: 'Trung vệ',
   goalkeeper: 'Thủ môn',
 };
+/** Players may pick several positions at registration (pitch picker), stored as "striker,midfielder". */
+export const positionLabel = (p: string | null | undefined) =>
+  p ? p.split(',').map((x) => x.trim()).filter(Boolean).map((x) => POSITIONS[x.toLowerCase()] || x).join(', ') || '—' : '—';
 export const LEVELS: Record<string, string> = {
   CAU_THU_MOI: 'Cầu thủ mới',
   NGHIEP_DU: 'Nghiệp dư',
