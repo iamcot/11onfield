@@ -281,7 +281,7 @@ public class QuizGameService {
                 note == null ? null : note.substring(0, Math.min(note.length(), 200)));
         if (added == 0) return false;
         jdbc.update("UPDATE quiz_questions SET report_count = report_count + 1 WHERE id = ?", questionId);
-        jdbc.update("UPDATE quiz_questions SET status = 'hidden', review_note = 'Bị cầu thủ báo lỗi 3 lần' WHERE id = ? AND status = 'active' AND report_count >= 3", questionId);
+        jdbc.update("UPDATE quiz_questions SET status = 'hidden', review_note = ? WHERE id = ? AND status = 'active' AND report_count >= 3", QuizBankService.REPORT_HIDE_NOTE, questionId);
         return true;
     }
 

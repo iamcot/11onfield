@@ -16,6 +16,7 @@ export interface QuizQuestion {
   id: number; topic: string; difficulty: number; pool: string; body: string; options: string[]; correct: number;
   explanation: string | null; mediaType: string; diagram: Diagram | null; mediaUrl: string | null;
   status: 'pending' | 'active' | 'hidden'; verified: number; reviewNote: string | null; reportCount: number;
+  reports?: { reason: string; note: string | null; createdAt: string }[];
   timesServed: number; timesCorrect: number; source: string; model: string | null; createdAt: string;
 }
 export interface GenResult { requested: number; returned: number; invalid: number; duplicates: number; saved: number; verifyFailed: number; error: string | null }

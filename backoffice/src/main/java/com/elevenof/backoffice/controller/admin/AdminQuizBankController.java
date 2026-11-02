@@ -125,6 +125,17 @@ public class AdminQuizBankController {
         }
     }
 
+    /** Closes the players' reports of a question that was checked and is right; a question the reports hid is used again. */
+    @PostMapping("/questions/{id}/dismiss-reports")
+    public ResponseEntity<?> dismissReports(@PathVariable long id, Authentication auth) {
+        try {
+            bank.dismissReports(id, who(auth));
+            return ResponseEntity.ok(Map.of("id", id));
+        } catch (IllegalArgumentException e) {
+            return error(e.getMessage());
+        }
+    }
+
     /** Body `{ids: [..], status: active|hidden|pending}`: approve or hide many at once. */
     @PostMapping("/questions/status")
     public ResponseEntity<?> setStatus(@RequestBody Map<String, Object> body, Authentication auth) {

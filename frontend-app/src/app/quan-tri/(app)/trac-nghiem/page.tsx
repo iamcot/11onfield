@@ -9,12 +9,16 @@ import {
   type GenResult, type Overview, type QuizQuestion, type QuizTopic, type SettingsField,
 } from '@/lib/quiz/admin';
 import PitchDiagram from '@/components/quiz/PitchDiagram';
+import { REPORT_REASONS } from '@/lib/quiz/play';
+
+const REPORT_REASON_LABELS: Record<string, string> = Object.fromEntries(REPORT_REASONS.map((x) => [x.key, x.label]));
 import QuestionEditor from '@/components/admin/quiz/QuestionEditor';
 import { Badge, Button, Card, Check, Field, Input, Loading, Modal, PageTitle, Pagination, Select, Table, Td, Textarea, useUi } from '@/components/admin/ui';
 
 const TABS = [
   { key: 'tong-quan', label: 'Tổng quan kho' },
   { key: 'duyet', label: 'Chờ duyệt' },
+  { key: 'bao-loi', label: 'Bị báo lỗi' },
   { key: 'cau-hoi', label: 'Tất cả câu hỏi' },
   { key: 'chu-de', label: 'Chủ đề' },
   { key: 'cai-dat', label: 'Bật tắt & cài đặt' },
@@ -30,6 +34,10 @@ export default function QuizAdminPage() {
   const topics = useApi<QuizTopic[]>('quiz/topics');
   const status = useApi<{ values: Record<string, number> }>('quiz/settings');
   const go = (t: TabKey, extra = '') => router.push(`${pathname}?tab=${t}${extra}`);
+  const ov = useApi<Overview>('quiz/overview');
+  const reported = Number(ov.data?.totals.reported || 0);
+  // after an approve, hide, edit or dismiss: this page's counts and the sidebar badge
+  const changed = () => { ov.reload(); window.dispatchEvent(new Event('admin:badges')); };
   const on = status.data?.values.enabled === 1;
 
   return (
@@ -51,15 +59,17 @@ export default function QuizAdminPage() {
             className={`whitespace-nowrap border-b-2 px-3 py-2 text-[14px] font-medium ${tab === t.key ? 'border-[#1F7A3A] text-[#0F3324]' : 'border-transparent text-[#66766D] hover:text-[#10231A]'}`}
           >
             {t.label}
+            {t.key === 'bao-loi' && reported > 0 && <span className="ml-1.5 rounded-full bg-[#B42318] px-1.5 py-px text-[11px] font-semibold text-white">{reported}</span>}
           </button>
         ))}
       </div>
       <Loading error={topics.error} loading={topics.loading && !topics.data} />
       {topics.data && (
         <>
-          {tab === 'tong-quan' && <OverviewTab topics={topics.data} onOpen={(topic, d) => go('cau-hoi', `&topic=${topic}&difficulty=${d}`)} />}
-          {tab === 'duyet' && <QuestionsTab key="duyet" topics={topics.data} review />}
-          {tab === 'cau-hoi' && <QuestionsTab key="all" topics={topics.data} />}
+          {tab === 'tong-quan' && <OverviewTab topics={topics.data} onOpen={(topic, d) => go('cau-hoi', `&topic=${topic}&difficulty=${d}`)} onTab={go} />}
+          {tab === 'duyet' && <QuestionsTab key="duyet" topics={topics.data} review onChanged={changed} />}
+          {tab === 'bao-loi' && <QuestionsTab key="bao-loi" topics={topics.data} reported onChanged={changed} />}
+          {tab === 'cau-hoi' && <QuestionsTab key={`all-${params.get('status') || ''}`} topics={topics.data} onChanged={changed} />}
           {tab === 'chu-de' && <TopicsTab topics={topics.data} reload={topics.reload} />}
           {tab === 'cai-dat' && <SettingsTab onChanged={status.reload} />}
         </>
@@ -70,7 +80,7 @@ export default function QuizAdminPage() {
 
 // ---------- overview + AI writing ----------
 
-function OverviewTab({ topics, onOpen }: { topics: QuizTopic[]; onOpen: (topic: string, difficulty: number) => void }) {
+function OverviewTab({ topics, onOpen, onTab }: { topics: QuizTopic[]; onOpen: (topic: string, difficulty: number) => void; onTab: (t: TabKey, extra?: string) => void }) {
   const { toast } = useUi();
   const [target, setTarget] = useState(30);
   const ov = useApi<Overview>(`quiz/overview?target=${target}`);
@@ -135,13 +145,24 @@ function OverviewTab({ topics, onOpen }: { topics: QuizTopic[]; onOpen: (topic: 
       {ov.data && (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {[
-              ['Đang dùng', ov.data.totals.active],
-              ['Chờ duyệt', ov.data.totals.pending],
-              ['Đã ẩn', ov.data.totals.hidden],
-              ['Bị báo lỗi', ov.data.totals.reported],
-            ].map(([l, v]) => (
-              <Card key={l as string}><div className="text-[12px] uppercase tracking-wider text-[#66766D]">{l}</div><div className="mt-1 text-[26px] font-semibold">{v}</div></Card>
+            {([
+              ['Đang dùng', ov.data.totals.active, () => onTab('cau-hoi', '&status=active'), ''],
+              ['Chờ duyệt', ov.data.totals.pending, () => onTab('duyet'), Number(ov.data.totals.pending) > 0 ? 'text-[#8A5A00]' : ''],
+              ['Đã ẩn', ov.data.totals.hidden, () => onTab('cau-hoi', '&status=hidden'), ''],
+              ['Bị báo lỗi', ov.data.totals.reported, () => onTab('bao-loi'), Number(ov.data.totals.reported) > 0 ? 'text-[#B42318]' : ''],
+            ] as const).map(([l, v, open, tone]) => (
+              <button
+                key={l}
+                type="button"
+                onClick={open}
+                className="group flex items-start justify-between rounded-lg border border-[#DCE5DF] bg-white p-4 text-left shadow-[0_1px_2px_rgba(16,35,26,0.06)] transition hover:border-[#1F7A3A] hover:shadow-[0_2px_8px_rgba(16,35,26,0.12)] lg:p-5"
+              >
+                <span>
+                  <span className="block text-[12px] uppercase tracking-wider text-[#66766D]">{l}</span>
+                  <span className={`mt-1 block text-[26px] font-semibold ${tone}`}>{v}</span>
+                </span>
+                <span aria-hidden className="text-[20px] text-[#9AA9A0] transition group-hover:translate-x-0.5 group-hover:text-[#1F7A3A]">›</span>
+              </button>
             ))}
           </div>
           {!ov.data.totals.aiConfigured && (
@@ -239,12 +260,12 @@ function OverviewTab({ topics, onOpen }: { topics: QuizTopic[]; onOpen: (topic: 
 
 // ---------- question list (review queue and full bank) ----------
 
-function QuestionsTab({ topics, review }: { topics: QuizTopic[]; review?: boolean }) {
+function QuestionsTab({ topics, review, reported, onChanged }: { topics: QuizTopic[]; review?: boolean; reported?: boolean; onChanged?: () => void }) {
   const params = useSearchParams();
   const { toast } = useUi();
   const [topic, setTopic] = useState(params.get('topic') || '');
   const [difficulty, setDifficulty] = useState(params.get('difficulty') || '');
-  const [status, setStatus] = useState(review ? 'pending' : params.get('status') || '');
+  const [status, setStatus] = useState(review ? 'pending' : reported ? 'reported' : params.get('status') || '');
   const [q, setQ] = useState('');
   const [page, setPage] = useState(0);
   const [picked, setPicked] = useState<number[]>([]);
@@ -262,6 +283,18 @@ function QuestionsTab({ topics, review }: { topics: QuizTopic[]; review?: boolea
       toast(`${s === 'active' ? 'Đã duyệt' : s === 'hidden' ? 'Đã ẩn' : 'Đã chuyển về chờ duyệt'} ${r.changed} câu`);
       setPicked([]);
       list.reload();
+      onChanged?.();
+    } catch (e) {
+      toast((e as Error).message, 'error');
+    }
+  }
+
+  async function dismiss(id: number) {
+    try {
+      await api(`quiz/questions/${id}/dismiss-reports`, { body: {} });
+      toast('Đã bỏ báo lỗi, câu hỏi dùng tiếp');
+      list.reload();
+      onChanged?.();
     } catch (e) {
       toast((e as Error).message, 'error');
     }
@@ -282,7 +315,7 @@ function QuestionsTab({ topics, review }: { topics: QuizTopic[]; review?: boolea
             {Object.entries(LEVELS).map(([k, v]) => <option key={k} value={k}>{k}. {v}</option>)}
           </Select>
         </Field>
-        {!review && (
+        {!review && !reported && (
           <Field label="Trạng thái" className="w-40">
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="">Tất cả</option>
@@ -294,6 +327,7 @@ function QuestionsTab({ topics, review }: { topics: QuizTopic[]; review?: boolea
         <Field label="Tìm trong câu hỏi" className="min-w-[200px] flex-1"><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Từ khoá…" /></Field>
         <Button variant="primary" onClick={() => setEditing('new')}>+ Thêm câu hỏi</Button>
       </div>
+      {reported && <p className="text-[13px] text-[#66766D]">Câu cầu thủ báo lỗi. Sai thì bấm Sửa rồi lưu (lưu xong báo lỗi tự đóng); không sai thì bấm "Câu đúng, bỏ báo lỗi". Câu bị báo 3 lần đã tự ẩn, bỏ báo lỗi sẽ cho dùng lại.</p>}
       {review && <p className="text-[13px] text-[#66766D]">Câu AI viết nằm ở đây đến khi có người duyệt. Câu AI tự kiểm tra lệch đáp án đã bị ẩn sẵn và nằm ở tab Tất cả câu hỏi (lọc Đã ẩn).</p>}
       <div className="flex flex-wrap items-center gap-2 text-[13px]">
         <Check label={`Chọn cả trang (${items.length})`} checked={!!items.length && picked.length === items.length} onChange={(v) => setPicked(v ? items.map((i) => i.id) : [])} />
@@ -307,7 +341,7 @@ function QuestionsTab({ topics, review }: { topics: QuizTopic[]; review?: boolea
         <span className="ml-auto text-[#66766D]">{list.data?.total ?? 0} câu</span>
       </div>
       <Loading error={list.error} loading={list.loading && !list.data} />
-      {list.data && !items.length && <p className="rounded-lg border border-[#DCE5DF] bg-white px-4 py-6 text-center text-[#66766D]">{review ? 'Không có câu nào chờ duyệt.' : 'Không có câu hỏi nào khớp bộ lọc.'}</p>}
+      {list.data && !items.length && <p className="rounded-lg border border-[#DCE5DF] bg-white px-4 py-6 text-center text-[#66766D]">{review ? 'Không có câu nào chờ duyệt.' : reported ? 'Không còn câu nào bị báo lỗi.' : 'Không có câu hỏi nào khớp bộ lọc.'}</p>}
       <div className="space-y-3">
         {items.map((it) => {
           const v = verifiedLabel(it.verified);
@@ -333,10 +367,25 @@ function QuestionsTab({ topics, review }: { topics: QuizTopic[]; review?: boolea
                   </ol>
                   {it.explanation && <p className="mt-2 text-[13px] text-[#46564D]">💡 {it.explanation}</p>}
                   {it.reviewNote && <p className="mt-1 text-[13px] text-[#B42318]">{it.reviewNote}</p>}
+                  {!!it.reports?.length && (
+                    <div className="mt-3 rounded-md border border-[#F5C2BB] bg-[#FDF1EF] px-3 py-2 text-[13px]">
+                      <div className="font-medium text-[#B42318]">Cầu thủ báo lỗi</div>
+                      <ul className="mt-1 space-y-0.5 text-[#46564D]">
+                        {it.reports.map((rp, i) => (
+                          <li key={i}>
+                            • {REPORT_REASON_LABELS[rp.reason] || rp.reason}
+                            {rp.note && <span className="text-[#10231A]">: “{rp.note}”</span>}
+                            <span className="text-[#8A968F]"> · {new Date(rp.createdAt).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 {it.diagram && <PitchDiagram diagram={it.diagram} animate={false} className="rounded-md" />}
               </div>
               <div className="mt-3 flex flex-wrap justify-end gap-2">
+                {it.reportCount > 0 && <Button small variant="primary" onClick={() => dismiss(it.id)}>Câu đúng, bỏ báo lỗi</Button>}
                 <Button small onClick={() => setEditing(it)}>Sửa</Button>
                 {it.status !== 'active' && <Button small variant="primary" onClick={() => setMany([it.id], 'active')}>Duyệt</Button>}
                 {it.status !== 'hidden' && <Button small variant="danger" onClick={() => setMany([it.id], 'hidden')}>Ẩn</Button>}
@@ -351,7 +400,7 @@ function QuestionsTab({ topics, review }: { topics: QuizTopic[]; review?: boolea
           question={editing === 'new' ? null : editing}
           topics={topics}
           onClose={() => setEditing(null)}
-          onSaved={() => { setEditing(null); list.reload(); }}
+          onSaved={() => { setEditing(null); list.reload(); onChanged?.(); }}
         />
       )}
     </div>

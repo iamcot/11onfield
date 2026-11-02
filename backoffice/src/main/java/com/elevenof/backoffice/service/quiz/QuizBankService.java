@@ -291,6 +291,7 @@ public class QuizBankService {
                     m.put("createdAt", rs.getTimestamp("created_at"));
                     return m;
                 }, pageArgs.toArray());
+        attachReports(rows);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("total", total == null ? 0 : total);
         out.put("page", page);
@@ -329,16 +330,75 @@ public class QuizBankService {
                 f.topic, f.difficulty, f.pool, f.c.body().trim(), f.c.options().get(0), f.c.options().get(1), f.c.options().get(2), f.c.options().get(3),
                 f.c.correct(), blankToNull(f.c.explanation()), f.mediaType, f.c.diagram(), f.mediaUrl, hash, status,
                 body.containsKey("reviewNote") ? blankToNull(str(body.get("reviewNote"))) : old.get("review_note"), by, id);
+        // saving the question is how an editor fixes what the players reported
+        clearReports(id);
     }
 
-    /** Approves (active), hides or sends back to the queue several questions at once. Returns how many changed. */
+    /** Players' reports of each listed question (reason counts and the latest notes) as `reports`. */
+    private void attachReports(List<Map<String, Object>> rows) {
+        List<Object> ids = new ArrayList<>();
+        for (Map<String, Object> m : rows) if (((Number) m.get("reportCount")).intValue() > 0) ids.add(m.get("id"));
+        if (ids.isEmpty()) return;
+        String marks = String.join(",", Collections.nCopies(ids.size(), "?"));
+        Map<Long, List<Map<String, Object>>> byQuestion = new HashMap<>();
+        jdbc.query("SELECT question_id, reason, note, created_at FROM quiz_question_reports WHERE question_id IN (" + marks + ") ORDER BY created_at DESC",
+                rs -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("reason", rs.getString("reason"));
+                    m.put("note", rs.getString("note"));
+                    m.put("createdAt", rs.getTimestamp("created_at"));
+                    byQuestion.computeIfAbsent(rs.getLong("question_id"), k -> new ArrayList<>()).add(m);
+                }, ids.toArray());
+        for (Map<String, Object> m : rows) {
+            List<Map<String, Object>> list = byQuestion.get((Long) m.get("id"));
+            if (list != null) m.put("reports", list);
+        }
+    }
+
+    /** Closes the players' reports of a question (it was fixed, or checked and found right). */
+    private void clearReports(long id) {
+        jdbc.update("DELETE FROM quiz_question_reports WHERE question_id = ?", id);
+        jdbc.update("UPDATE quiz_questions SET report_count = 0 WHERE id = ?", id);
+    }
+
+    /**
+     * "Câu đúng, bỏ báo lỗi": the reports are closed and the question goes back into play when the reports had hidden it
+     * (a question hidden for another reason stays hidden).
+     */
+    @Transactional
+    public void dismissReports(long id, String by) {
+        Map<String, Object> old = jdbc.queryForList("SELECT status, review_note FROM quiz_questions WHERE id = ?", id).stream().findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Không có câu hỏi " + id));
+        clearReports(id);
+        boolean hiddenByReports = "hidden".equals(old.get("status")) && REPORT_HIDE_NOTE.equals(old.get("review_note"));
+        jdbc.update("UPDATE quiz_questions SET status = ?, review_note = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id = ?",
+                hiddenByReports ? "active" : old.get("status"), hiddenByReports ? null : old.get("review_note"), by, id);
+    }
+
+    /** Questions waiting for an editor: in the review queue or reported by players (sidebar badge). */
+    public long countToHandle() {
+        Long n = jdbc.queryForObject("SELECT COUNT(*) FROM quiz_questions WHERE status = 'pending' OR report_count > 0", Long.class);
+        return n == null ? 0 : n;
+    }
+
+    /** Note written when the third report hides a question (`QuizGameService.report`). */
+    public static final String REPORT_HIDE_NOTE = "Bị cầu thủ báo lỗi 3 lần";
+
+    /** Approves (active), hides or sends back to the queue several questions at once; approving or hiding closes their reports. Returns how many changed. */
+    @Transactional
     public int setStatus(List<Long> ids, String status, String by) {
         if (!QuizBankRules.STATUSES.contains(status)) throw new IllegalArgumentException("Trạng thái không hợp lệ");
         if (ids == null || ids.isEmpty()) return 0;
         String marks = String.join(",", Collections.nCopies(ids.size(), "?"));
         List<Object> args = new ArrayList<>(List.of(status, by));
         args.addAll(ids);
-        return jdbc.update("UPDATE quiz_questions SET status = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id IN (" + marks + ")", args.toArray());
+        int changed = jdbc.update("UPDATE quiz_questions SET status = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id IN (" + marks + ")", args.toArray());
+        // approving or hiding is the editor's answer to any open reports of those questions
+        if (!"pending".equals(status)) {
+            jdbc.update("DELETE FROM quiz_question_reports WHERE question_id IN (" + marks + ")", ids.toArray());
+            jdbc.update("UPDATE quiz_questions SET report_count = 0 WHERE id IN (" + marks + ")", ids.toArray());
+        }
+        return changed;
     }
 
     private record Fields(String topic, int difficulty, String pool, QuizBankRules.Candidate c, String mediaType, String mediaUrl) {}
@@ -420,7 +480,7 @@ public class QuizBankService {
         totals.put("active", active);
         totals.put("pending", pending);
         totals.put("hidden", hidden);
-        totals.put("reported", jdbc.queryForObject("SELECT COUNT(*) FROM quiz_questions WHERE pool = ? AND report_count > 0 AND status <> 'hidden'", Long.class, p));
+        totals.put("reported", jdbc.queryForObject("SELECT COUNT(*) FROM quiz_questions WHERE pool = ? AND report_count > 0", Long.class, p));
         totals.put("aiConfigured", ai.isConfigured());
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("pool", p);
