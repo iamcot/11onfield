@@ -20,5 +20,10 @@ public interface PlayerHighlightRepository extends JpaRepository<PlayerHighlight
     @Query("DELETE FROM PlayerHighlight ph WHERE ph.player.id = :playerId")
     void deleteByPlayerId(@Param("playerId") Long playerId);
 
+    /** Link highlights only: uploaded videos live on Bunny and are never re-created from a form. */
+    @Modifying
+    @Query("DELETE FROM PlayerHighlight ph WHERE ph.player.id = :playerId AND ph.kind <> com.elevenof.backoffice.model.PlayerHighlight.Kind.VIDEO")
+    void deleteLinksByPlayerId(@Param("playerId") Long playerId);
+
     long countByApprovalStatus(PlayerHighlight.ApprovalStatus status);
 }

@@ -6,7 +6,7 @@ import { useT } from '@/i18n/I18nProvider';
 import { mediaService, type MediaConfig } from '@/services/media.service';
 import type { Highlight } from '@/services/user.service';
 import { VideoGuide } from './Guides';
-import HighlightViewer, { youtubeId } from './HighlightViewer';
+import HighlightViewer, { platformName, youtubeId } from './HighlightViewer';
 import { ItemActions, ReviewFlag } from './ItemStatus';
 
 /** Picture of a clip: the Bunny poster, else the YouTube thumbnail when we can tell the video id. */
@@ -21,13 +21,13 @@ function Clip({ h, badge, onOpen }: { h: Highlight; badge?: ReactNode; onOpen: (
   const t = useT();
   const [noPoster, setNoPoster] = useState(false);
   const poster = posterOf(h);
-  const caption = h.title || (h.kind === 'VIDEO' ? t('Video highlight') : h.platform || t('Video highlight'));
+  const caption = h.title || platformName(h) || t('Video highlight');
   const grey = h.approvalStatus !== 'APPROVED' || !poster || noPoster ? ' grey' : '';
   return (
     <button type="button" className={`pp-clip${grey}`} onClick={onOpen} aria-label={t('Xem {n}', { n: caption })}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {poster && !noPoster && <img src={poster} alt="" loading="lazy" onError={() => setNoPoster(true)} />}
-      {badge ? <span className="badge">{badge}</span> : <span className="src">{h.kind === 'VIDEO' ? '11 On Field' : h.platform || t('Link')}</span>}
+      {badge ? <span className="badge">{badge}</span> : <span className="src">{h.kind === 'VIDEO' || h.platform === 'bunny' ? '11 On Field' : platformName(h) || t('Link')}</span>}
       <span className="play">
         <IconPlay />
       </span>

@@ -74,6 +74,9 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .logout(logout -> logout.disable())
+            // no or expired token on a protected endpoint: 401, so the app knows to sign in again (Spring's default is 403)
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(
+                new org.springframework.security.web.authentication.HttpStatusEntryPoint(org.springframework.http.HttpStatus.UNAUTHORIZED)))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

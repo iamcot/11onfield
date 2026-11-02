@@ -1239,19 +1239,21 @@ public class AdminController {
             // First, build a map of existing highlights by URL to preserve their approval status
             java.util.Map<String, com.elevenof.backoffice.model.PlayerHighlight.ApprovalStatus> existingHighlightApprovalMap =
                 new java.util.HashMap<>();
+            java.util.Set<String> videoHighlightUrls = new java.util.HashSet<>();
             if (existingPlayer.getHighlights() != null) {
                 for (com.elevenof.backoffice.model.PlayerHighlight existingHl : existingPlayer.getHighlights()) {
                     String urlKey = existingHl.getUrl().trim().toLowerCase();
                     existingHighlightApprovalMap.put(urlKey, existingHl.getApprovalStatus());
+                    if (existingHl.getKind() == com.elevenof.backoffice.model.PlayerHighlight.Kind.VIDEO) videoHighlightUrls.add(urlKey);
                 }
             }
 
-            // Now delete all and recreate
-            playerHighlightRepository.deleteByPlayerId(id);
+            // Now delete the links and recreate them; uploaded videos stay as they are
+            playerHighlightRepository.deleteLinksByPlayerId(id);
 
             if (highlightsUrls != null) {
                 highlightsUrls.forEach((baseKey, url) -> {
-                    if (url != null && !url.trim().isEmpty()) {
+                    if (url != null && !url.trim().isEmpty() && !videoHighlightUrls.contains(url.trim().toLowerCase())) {
                         String dateStr = highlightsDates.get(baseKey);
                         LocalDate highlightDate = null;
                         if (dateStr != null && !dateStr.trim().isEmpty()) {

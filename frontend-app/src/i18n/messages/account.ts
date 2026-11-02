@@ -20,6 +20,11 @@ const account: Messages = {
     'No se puede conectar con el servidor. Revisa tu conexión e inténtalo de nuevo en unos minutos.',
     '서버에 연결할 수 없습니다. 네트워크를 확인하고 잠시 후 다시 시도하세요.',
   ],
+  'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.': [
+    'Your session has expired. Please log in again.',
+    'Tu sesión ha caducado. Vuelve a iniciar sesión.',
+    '세션이 만료되었습니다. 다시 로그인해 주세요.',
+  ],
   'Có lỗi xảy ra. Vui lòng thử lại.': ['Something went wrong. Please try again.', 'Se ha producido un error. Inténtalo de nuevo.', '오류가 발생했습니다. 다시 시도해 주세요.'],
   'Tài khoản': ['Account', 'Cuenta', '계정'],
   'Mật khẩu': ['Password', 'Contraseña', '비밀번호'],

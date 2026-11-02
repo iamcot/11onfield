@@ -19,6 +19,9 @@ public class PlatformDetector {
         String lowerUrl = url.toLowerCase();
 
         // Video platforms
+        if (lowerUrl.contains("mediadelivery.net") || lowerUrl.contains(".b-cdn.net")) {
+            return "bunny";
+        }
         if (lowerUrl.contains("youtube.com") || lowerUrl.contains("youtu.be")) {
             return "youtube";
         }

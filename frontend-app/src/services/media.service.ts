@@ -4,6 +4,8 @@ import { storage } from '@/lib/storage';
 // The player's own media on the profile page (PlayerMediaController): full-body photo, highlights and achievements
 // added one by one. Items are never edited: hide or delete, then add a new one that waits for review again.
 
+// Every method is async, so a missing token (just logged out) rejects the promise the caller already catches
+// instead of throwing while the page renders.
 const auth = () => {
   const token = storage.getToken();
   if (!token) throw new Error('Vui lòng đăng nhập');
@@ -26,7 +28,7 @@ export interface VideoUploadInfo {
 export type AchievementType = 'INDIVIDUAL' | 'TEAM' | 'PARTICIPANT';
 
 export const mediaService = {
-  config: () => apiClient.get<MediaConfig>('/users/me/media-config', auth()),
+  config: async () => apiClient.get<MediaConfig>('/users/me/media-config', auth()),
 
   uploadFullBody(file: File) {
     const form = new FormData();
@@ -35,20 +37,20 @@ export const mediaService = {
     return apiClient.postMultipart<{ fullBodyPhoto: string }>('/users/me/full-body', form, auth());
   },
 
-  addLinkHighlight: (url: string, title?: string) => apiClient.post<{ id: number }>('/users/me/highlights', { url, title }, auth()),
+  addLinkHighlight: async (url: string, title?: string) => apiClient.post<{ id: number }>('/users/me/highlights', { url, title }, auth()),
 
-  startVideoUpload: (title: string, size: number) =>
+  startVideoUpload: async (title: string, size: number) =>
     apiClient.post<VideoUploadInfo>('/users/me/highlights/video-upload', { title, size }, auth()),
 
-  addVideoHighlight: (videoId: string, title?: string) => apiClient.post<{ id: number }>('/users/me/highlights/video', { videoId, title }, auth()),
+  addVideoHighlight: async (videoId: string, title?: string) => apiClient.post<{ id: number }>('/users/me/highlights/video', { videoId, title }, auth()),
 
-  hideHighlight: (id: number, hidden: boolean) => apiClient.put<void>(`/users/me/highlights/${id}/hidden`, { hidden }, auth()),
-  deleteHighlight: (id: number) => apiClient.delete<void>(`/users/me/highlights/${id}`, auth()),
+  hideHighlight: async (id: number, hidden: boolean) => apiClient.put<void>(`/users/me/highlights/${id}/hidden`, { hidden }, auth()),
+  deleteHighlight: async (id: number) => apiClient.delete<void>(`/users/me/highlights/${id}`, auth()),
 
-  addAchievement: (type: AchievementType, title: string, description?: string, date?: string) =>
+  addAchievement: async (type: AchievementType, title: string, description?: string, date?: string) =>
     apiClient.post<{ id: number }>('/users/me/achievements', { type, title, description, date: date || null }, auth()),
-  hideAchievement: (id: number, hidden: boolean) => apiClient.put<void>(`/users/me/achievements/${id}/hidden`, { hidden }, auth()),
-  deleteAchievement: (id: number) => apiClient.delete<void>(`/users/me/achievements/${id}`, auth()),
+  hideAchievement: async (id: number, hidden: boolean) => apiClient.put<void>(`/users/me/achievements/${id}/hidden`, { hidden }, auth()),
+  deleteAchievement: async (id: number) => apiClient.delete<void>(`/users/me/achievements/${id}`, auth()),
 
   /**
    * Sends a video straight from the browser to Bunny Stream with TUS (the server only signs the upload, same scheme as

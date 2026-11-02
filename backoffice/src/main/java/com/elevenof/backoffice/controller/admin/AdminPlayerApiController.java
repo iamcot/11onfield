@@ -335,11 +335,14 @@ public class AdminPlayerApiController {
                 oldAch.put(a.getType() + ":" + a.getTitle().trim().toLowerCase(), a.getApprovalStatus());
             }
             Map<String, PlayerHighlight.ApprovalStatus> oldHl = new HashMap<>();
+            java.util.Set<String> videoUrls = new java.util.HashSet<>();
             for (PlayerHighlight h : highlightRepository.findByPlayerIdOrderByCreatedAtDesc(id)) {
                 oldHl.put(h.getUrl().trim().toLowerCase(), h.getApprovalStatus());
+                if (h.getKind() == PlayerHighlight.Kind.VIDEO) videoUrls.add(h.getUrl().trim().toLowerCase());
             }
             achievementRepository.deleteByPlayerId(id);
-            highlightRepository.deleteByPlayerId(id);
+            // uploaded videos stay as they are: re-creating them as links would lose the Bunny video
+            highlightRepository.deleteLinksByPlayerId(id);
             socialRepository.deleteByPlayerId(id);
 
             if (r.achievements() != null) {
@@ -354,7 +357,7 @@ public class AdminPlayerApiController {
             }
             if (r.highlights() != null) {
                 for (ItemDto h : r.highlights()) {
-                    if (blankToNull(h.url()) == null) continue;
+                    if (blankToNull(h.url()) == null || videoUrls.contains(h.url().trim().toLowerCase())) continue;
                     highlightRepository.save(PlayerHighlight.builder()
                             .player(pl).url(h.url().trim()).platform(PlatformDetector.detectPlatform(h.url())).highlightDate(parseDate(h.date()))
                             .approvalStatus(oldHl.getOrDefault(h.url().trim().toLowerCase(), PlayerHighlight.ApprovalStatus.PENDING))
