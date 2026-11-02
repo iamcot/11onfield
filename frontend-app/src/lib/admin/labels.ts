@@ -24,7 +24,6 @@ export const POSITIONS: Record<string, string> = {
   striker: 'Tiền đạo',
   midfielder: 'Tiền vệ',
   defender: 'Hậu vệ',
-  centerback: 'Trung vệ',
   goalkeeper: 'Thủ môn',
 };
 /** Players may pick several positions at registration (pitch picker), stored as "striker,midfielder". */

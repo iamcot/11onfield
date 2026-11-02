@@ -126,7 +126,7 @@ export default function PlayersSection() {
 
         {/* Mobile: Filter chips */}
         <div className="md:hidden flex gap-2 overflow-x-auto pb-2">
-          {(["striker:Tiền đạo", "midfielder:Tiền vệ", "defender:Hậu vệ", "centerback:Trung vệ", "goalkeeper:Thủ môn"] as string[]).map((p) => { // i18n-ignore: value:label pairs, label translated below
+          {(["striker:Tiền đạo", "midfielder:Tiền vệ", "defender:Hậu vệ", "goalkeeper:Thủ môn"] as string[]).map((p) => { // i18n-ignore: value:label pairs, label translated below
             const [val, label] = p.split(":");
             return (
               <button key={val} onClick={() => handleFilterChange("positions", filters.positions?.[0] === val ? [] : [val])}
@@ -171,7 +171,6 @@ export default function PlayersSection() {
             <option value="striker">{t("Tiền đạo")}</option>
             <option value="midfielder">{t("Tiền vệ")}</option>
             <option value="defender">{t("Hậu vệ")}</option>
-            <option value="centerback">{t("Trung vệ")}</option>
             <option value="goalkeeper">{t("Thủ môn")}</option>
           </select>
           <select value={filters.provinceId || ""} onChange={(e) => handleFilterChange("provinceId", e.target.value ? parseInt(e.target.value) : null)}

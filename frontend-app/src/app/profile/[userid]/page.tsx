@@ -52,7 +52,6 @@ const POSITION_OPTIONS = [
   { id: "striker", label: "Tiền đạo" },
   { id: "midfielder", label: "Tiền vệ" },
   { id: "defender", label: "Hậu vệ" },
-  { id: "centerback", label: "Trung vệ" },
   { id: "goalkeeper", label: "Thủ môn" },
 ];
 

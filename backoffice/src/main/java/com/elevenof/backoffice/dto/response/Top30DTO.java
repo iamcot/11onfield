@@ -19,7 +19,7 @@ public class Top30DTO {
         private String userid;
         private String fullName;
         private String avatar;
-        /** First position of the player: goalkeeper, defender, centerback, midfielder, striker. */
+        /** First position of the player: goalkeeper, defender, midfielder, striker. */
         private String position;
     }
 }

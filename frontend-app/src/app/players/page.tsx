@@ -429,7 +429,6 @@ function PlayersContent() {
                 <option value="striker">{t("Tiền đạo")}</option>
                 <option value="midfielder">{t("Tiền vệ")}</option>
                 <option value="defender">{t("Hậu vệ")}</option>
-                <option value="centerback">{t("Trung vệ")}</option>
                 <option value="goalkeeper">{t("Thủ môn")}</option>
               </select>
 
@@ -569,7 +568,6 @@ function PlayersContent() {
                 <option value="striker">{t("Tiền đạo")}</option>
                 <option value="midfielder">{t("Tiền vệ")}</option>
                 <option value="defender">{t("Hậu vệ")}</option>
-                <option value="centerback">{t("Trung vệ")}</option>
                 <option value="goalkeeper">{t("Thủ môn")}</option>
               </select>
 
