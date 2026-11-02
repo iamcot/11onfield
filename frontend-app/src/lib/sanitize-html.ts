@@ -44,3 +44,16 @@ export function textToHtml(s: string): string {
   const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return s.split(/\n{2,}/).map((para) => `<p>${esc(para).replace(/\n/g, '<br>')}</p>`).join('');
 }
+
+/**
+ * Plain text of a rich-text bio, for the textarea where the player edits it: tags dropped, entities decoded
+ * ("m&igrave;nh" gives "mình"), one line per paragraph or <br>.
+ */
+export function htmlToText(html: string): string {
+  if (typeof window === 'undefined' || !looksLikeHtml(html)) return html;
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+  const root = doc.body.firstElementChild as HTMLElement;
+  root.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+  root.querySelectorAll('p, div, li, h2, h3, h4, blockquote').forEach((el) => el.append('\n'));
+  return (root.textContent ?? '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}

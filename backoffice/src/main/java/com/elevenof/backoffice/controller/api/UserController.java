@@ -309,7 +309,8 @@ public class UserController {
                         .date(h.getHighlightDate())
                         .approvalStatus(h.getApprovalStatus().name())
                         .kind(h.getKind() != null ? h.getKind().name() : "LINK")
-                        .posterUrl(h.getPosterUrl())
+                        .posterUrl(h.getPosterUrl() == null && h.getKind() == PlayerHighlight.Kind.VIDEO && h.getVideoId() != null
+                            ? bunnyStreamService.thumbnailUrl(h.getVideoId()) : h.getPosterUrl())
                         .embedUrl(h.getKind() == PlayerHighlight.Kind.VIDEO && h.getVideoId() != null
                             ? com.elevenof.backoffice.util.BunnyRules.embedUrl(bunnyStreamService.getLibraryId(), h.getVideoId()) : null)
                         .hidden(finalIsOwner ? Boolean.TRUE.equals(h.getHidden()) : null)

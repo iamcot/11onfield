@@ -34,6 +34,18 @@ export const storage = {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   },
 
+  /** True when the stored access token is past its `exp` (with a small margin), or cannot be read. */
+  isTokenExpired: (token: string | null = storage.getToken()): boolean => {
+    if (!token) return true;
+    try {
+      const part = token.split('.')[1];
+      const payload = JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/')));
+      return typeof payload.exp === 'number' && payload.exp * 1000 < Date.now() + 10_000;
+    } catch {
+      return false; // not a JWT we can read: let the server decide
+    }
+  },
+
   clearAuth: (): void => {
     if (typeof window === 'undefined') return;
     localStorage.removeItem(TOKEN_KEY);

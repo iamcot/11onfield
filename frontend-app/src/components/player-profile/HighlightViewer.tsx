@@ -11,6 +11,12 @@ type Source =
   | { kind: 'frame'; src: string; control: 'youtube' | 'playerjs' | null }
   | { kind: 'link'; href: string };
 
+/** The platform name worth showing: "other" and our own Bunny clips say nothing useful. */
+export function platformName(h: Highlight): string | null {
+  const p = h.platform?.trim();
+  return p && p !== 'other' && p !== 'bunny' ? p : null;
+}
+
 export function youtubeId(url: string): string | null {
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{11})/);
   return m ? m[1] : null;
@@ -23,6 +29,15 @@ export function sourceOf(h: Highlight): Source {
     // the first tap turns the sound on
     const src = h.embedUrl.replace('autoplay=false', 'autoplay=true').replace('preload=false', 'preload=true');
     return { kind: 'frame', src: src + '&muted=true&loop=true', control: 'playerjs' };
+  }
+  // a Bunny clip saved as a plain link (its player page) still plays here
+  const bunny = h.url.match(/(?:iframe|player)\.mediadelivery\.net\/(?:play|embed)\/(\d+)\/([0-9a-fA-F-]{16,64})/);
+  if (bunny) {
+    return {
+      kind: 'frame',
+      src: `https://iframe.mediadelivery.net/embed/${bunny[1]}/${bunny[2]}?autoplay=true&preload=true&responsive=true&muted=true&loop=true`,
+      control: 'playerjs',
+    };
   }
   const yt = youtubeId(h.url);
   if (yt) {
@@ -53,7 +68,7 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
   const src = sourceOf(h);
-  const caption = h.title || h.platform || t('Video highlight');
+  const caption = h.title || platformName(h) || t('Video highlight');
 
   useEffect(() => {
     setPaused(false);
@@ -102,7 +117,7 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
           {poster && <img src={poster} alt="" />}
           {src.kind === 'link' && (
             <a className="pp-btn pp-btn-lime of-cut" href={src.href} target="_blank" rel="noopener noreferrer">
-              {t('Mở trên {n}', { n: h.platform || t('trang gốc') })}
+              {t('Mở trên {n}', { n: platformName(h) || t('trang gốc') })}
             </a>
           )}
         </div>

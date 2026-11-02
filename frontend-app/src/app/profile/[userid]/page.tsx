@@ -1,7 +1,7 @@
 "use client";
 
 import HomeFooter from "@/components/home/HomeFooter";
-import { looksLikeHtml, sanitizeHtml } from "@/lib/sanitize-html";
+import { htmlToText, looksLikeHtml, sanitizeHtml } from "@/lib/sanitize-html";
 import MobileNav from "@/components/layout/MobileNav";
 import TopBar from "@/components/layout/TopBar";
 import TopUserCard from "@/components/layout/TopUserCard";
@@ -194,7 +194,8 @@ export default function UserProfilePage() {
       foot: profile.preferredFoot ?? "",
       dob: profile.dob ?? "",
       provinceId: profile.address?.province?.id ? String(profile.address.province.id) : "",
-      bio: profile.bio ?? "",
+      // a bio written in the admin is rich text: edit its words, not its tags and entities
+      bio: htmlToText(profile.bio ?? ""),
       height: profile.height ? String(profile.height) : "",
       weight: profile.weight ? String(profile.weight) : "",
       club: profile.club ?? "",
@@ -232,7 +233,7 @@ export default function UserProfilePage() {
       toast(t("Đã lưu"));
       if (key === "id") refreshUser().catch(() => undefined);
     } catch (e) {
-      setFormError((e as { message?: string })?.message || t("Có lỗi xảy ra. Vui lòng thử lại."));
+      setFormError(t((e as { message?: string })?.message || "Có lỗi xảy ra. Vui lòng thử lại."));
     } finally {
       setSaving(false);
     }
