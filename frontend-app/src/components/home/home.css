@@ -620,6 +620,181 @@
     display: none;
   }
 }
+
+/* ---------- header buttons: one chamfered frame and one height for every control ----------
+   Secondary (.of-hbtn, outline), primary (.of-btn.of-btn--hdr), icon squares (.of-hicon, the flag
+   button), and the signed-in user chip (.of-huser). 36px on phones, 40px from lg. */
+.of-header,
+.of-appbar {
+  --hb-h: 36px;
+  --hb-c: 8px;
+}
+@media (min-width: 1024px) {
+  .of-header,
+  .of-appbar {
+    --hb-h: 40px;
+    --hb-c: 9px;
+  }
+}
+.of-hbtn,
+.of-hicon,
+.of-huser {
+  --c: var(--hb-c, 9px);
+  --b: 1.5px;
+  --ring: rgba(238, 243, 236, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--hb-h, 40px);
+  flex-shrink: 0;
+  color: #eef3ec;
+  background: rgba(6, 20, 14, 0.55);
+  transition: background 0.2s, color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.of-hbtn:hover,
+.of-hbtn:focus-visible,
+.of-hicon:hover,
+.of-hicon:focus-visible,
+.of-huser:hover,
+.of-huser:focus-visible,
+.of-hicon[aria-expanded='true'],
+.of-huser[aria-expanded='true'] {
+  --ring: var(--lime, #a6e35a);
+  background: rgba(166, 227, 90, 0.12);
+  color: #fff;
+}
+.of-hbtn {
+  padding: 0 18px;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.of-hbtn--gold {
+  --ring: var(--gold, #e3c27e);
+  color: var(--gold-3, #f3dfaf);
+}
+.of-hbtn--gold:hover,
+.of-hbtn--gold:focus-visible {
+  --ring: var(--gold-3, #f3dfaf);
+  background: rgba(227, 194, 126, 0.14);
+  color: #fff1cf;
+}
+.of-btn.of-btn--hdr {
+  --c: var(--hb-c, 9px);
+  min-height: var(--hb-h, 40px);
+  height: var(--hb-h, 40px);
+  padding: 0 18px;
+  font-size: 17px;
+}
+@media (max-width: 1023px) {
+  .of-btn.of-btn--hdr { padding: 0 12px; font-size: 15px; }
+}
+.of-hicon {
+  width: var(--hb-h, 40px);
+}
+.of-hicon--avatar {
+  padding: 1.5px;
+}
+.of-hbadge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 4;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  font: 700 9px/15px var(--font-hud), sans-serif;
+  text-align: center;
+  color: #fff;
+  background: #ff5a4f;
+  clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+}
+.of-havatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  object-fit: cover;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 800;
+  color: var(--lime-2, #b8f26a);
+  background: linear-gradient(140deg, #2f6b2a, #10301d);
+}
+.of-havatar--md {
+  width: 100%;
+  height: 100%;
+  font-size: 18px;
+  clip-path: polygon(calc(var(--hb-c, 9px) - 1px) 0, 100% 0, 100% calc(100% - var(--hb-c, 9px) + 1px), calc(100% - var(--hb-c, 9px) + 1px) 100%, 0 100%, 0 calc(var(--hb-c, 9px) - 1px));
+}
+.of-havatar--sm {
+  width: calc(var(--hb-h, 40px) - 10px);
+  height: calc(var(--hb-h, 40px) - 10px);
+  font-size: 16px;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.of-huser {
+  gap: 10px;
+  padding: 0 12px 0 5px;
+}
+.of-huser-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-hud), sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+.of-hsep {
+  width: 1px;
+  height: 24px;
+  margin: 0 2px;
+  background: rgba(238, 243, 236, 0.16);
+}
+.of-hmenu {
+  --c: 12px;
+  --ring: rgba(166, 227, 90, 0.35);
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 110;
+  width: 232px;
+  padding: 6px 0;
+  background: #0a1d14;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+.of-hmenu-head {
+  padding: 10px 16px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(166, 227, 90, 0.16);
+  font-size: 14px;
+}
+.of-hmenu-item {
+  display: block;
+  width: 100%;
+  padding: 9px 16px;
+  text-align: left;
+  font-size: 14px;
+  color: #d3ddd6;
+  transition: background 0.15s, color 0.15s;
+}
+.of-hmenu-item:hover,
+.of-hmenu-item:focus-visible {
+  background: rgba(166, 227, 90, 0.1);
+  color: #fff;
+}
+.of-hmenu-item--danger {
+  color: #ff8a80;
+}
+.of-hmenu-item--danger:hover {
+  background: rgba(255, 90, 79, 0.12);
+  color: #ffb4ad;
+}
 .of-menu {
   position: fixed;
   inset: 0;
@@ -1867,11 +2042,13 @@ html body .of-app select option { background: #0b1f15; color: #fff; }
    Language switcher: flag button, centred picker, stadium-board wipe
    ========================================================================== */
 .of-lang-btn {
-  /* chamfered square filled by the flag; the ring comes from .of-cut::before, never border + clip-path */
-  --c: 8px;
-  --ring: rgba(255, 255, 255, 0.45);
-  width: 40px;
-  height: 40px;
+  /* chamfered square filled by the flag, sized like the header's other buttons (--hb-h);
+     the ring comes from .of-cut::before, never border + clip-path */
+  --c: var(--hb-c, 8px);
+  --b: 1.5px;
+  --ring: rgba(255, 255, 255, 0.5);
+  width: var(--hb-h, 40px);
+  height: var(--hb-h, 40px);
   flex-shrink: 0;
   overflow: hidden;
   transition: filter 0.2s;
@@ -1881,17 +2058,6 @@ html body .of-app select option { background: #0b1f15; color: #fff; }
   --ring: var(--lime, #a6e35a);
   --b: 2px;
   filter: brightness(1.08);
-}
-.of-lang-btn.of-lang-btn--round {
-  /* round, like the app bar's bell and avatar: no chamfer, ring from a box-shadow */
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  clip-path: none;
-  box-shadow: 0 0 0 2px var(--ring);
-}
-.of-lang-btn--round::before {
-  display: none;
 }
 .of-lang-flag {
   display: block;

@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cssVars } from './ui';
 import { useT } from '@/i18n/I18nProvider';
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
+import { AvatarButton, BellButton, UserMenu } from '@/components/layout/HeaderUser';
 
 type NavLink = { id: string; label: string };
 
@@ -71,11 +72,13 @@ export default function HomeHeader({
   const events = isPartner ? null : { href: '/events', label: t('Sự kiện') };
   const extra = [...(cross ? [cross] : []), { href: '/competitions', label: t('Chương trình') }, ...(events ? [events] : [])];
   const showLogin = !isPartner && !isAuthenticated;
+  // signed in: the bell and avatar replace the sign-up button, as in the app pages' header
+  const signedIn = !isPartner && !!profileHref;
 
   return (
     <>
       <header className={`of-header ${solid ? 'is-solid' : ''}`}>
-        <div className="mx-auto flex h-full max-w-[1240px] items-center gap-3 px-4 lg:gap-8 lg:px-6">
+        <div className="mx-auto flex h-full max-w-[1240px] items-center gap-3 px-4 lg:gap-6 lg:px-6 xl:gap-8">
           <Link href="/" className="flex shrink-0 items-center" aria-label={`11 On Field – ${t('Trang chủ')}`}>
             <Image
               src="/images/logo-white-full.png"
@@ -95,39 +98,56 @@ export default function HomeHeader({
             ))}
           </nav>
 
-          <div className="ml-auto flex shrink-0 items-center gap-2 lg:gap-4">
-            {cross && (
-              <Link href={cross.href} className="of-navlink hidden lg:inline-block" style={{ color: 'var(--gold-2)' }}>
-                {cross.label} ›
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 lg:gap-2.5">
+            {/* wide screens: secondary links as outline buttons, then the primary button and the flag.
+                Below xl they live in the menu, next to the section links */}
+            <div className="hidden items-center gap-2.5 xl:flex">
+              {cross && (
+                <Link href={cross.href} className="of-hbtn of-hbtn--gold of-cut">
+                  {cross.label} ›
+                </Link>
+              )}
+              {events && (
+                <Link href={events.href} className="of-hbtn of-hbtn--gold of-cut">
+                  {events.label}
+                </Link>
+              )}
+              {showLogin && (
+                <Link href="/auth/login" className="of-hbtn of-cut">
+                  {t('Đăng nhập')}
+                </Link>
+              )}
+              {signedIn && <span className="of-hsep" aria-hidden="true" />}
+            </div>
+            {!signedIn && (
+              <Link href={primary.href} className="of-btn of-btn--hdr">
+                {primary.label}
               </Link>
             )}
-            {events && (
-              <Link href={events.href} className="of-navlink hidden lg:inline-block" style={{ color: 'var(--gold-2)' }}>
-                {events.label}
-              </Link>
+            <LanguageSwitcher />
+            {signedIn ? (
+              <>
+                <BellButton />
+                <div className="hidden xl:flex">
+                  <UserMenu />
+                </div>
+                <div className="flex xl:hidden">
+                  <AvatarButton onClick={() => setOpen((v) => !v)} expanded={open} />
+                </div>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="of-hicon of-cut xl:!hidden"
+                aria-label={open ? t('Đóng menu') : t('Mở menu')}
+                aria-expanded={open}
+                onClick={() => setOpen((v) => !v)}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h11M4 17h16" />}
+                </svg>
+              </button>
             )}
-            <LanguageSwitcher className="hidden lg:inline-flex" />
-            {showLogin && (
-              <Link href="/auth/login" className="of-navlink hidden xl:inline-block">
-                {t('Đăng nhập')}
-              </Link>
-            )}
-            <Link href={primary.href} className="of-btn of-btn--sm lg:!min-h-[44px] lg:!px-6 lg:!text-lg">
-              {primary.label}
-            </Link>
-            <LanguageSwitcher className="lg:hidden" />
-            <button
-              type="button"
-              className="of-iconbtn of-iconbtn--mobile of-cut of-cut--sm"
-              style={cssVars({ '--c': '8px' })}
-              aria-label={open ? t('Đóng menu') : t('Mở menu')}
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h11M4 17h16" />}
-              </svg>
-            </button>
           </div>
         </div>
         <div className="of-header-progress" />
