@@ -10,6 +10,8 @@ import NewsTab from "@/components/competition/NewsTab";
 import PlayersTab from "@/components/competition/PlayersTab";
 import Top30Tab from "@/components/competition/Top30Tab";
 import RoundRail from "@/components/competition/RoundRail";
+import QuizTab from "@/components/quiz/QuizTab";
+import { quizService, type QuizStatus } from "@/services/quiz.service";
 import "@/components/pp/pp.css";
 import { useI18n } from "@/i18n/I18nProvider";
 import { activeRoundIndex, finalIsOpen, sortRounds } from "@/lib/players/rounds";
@@ -36,7 +38,7 @@ const STATUS_LABELS: Record<string, string> = {
   COMPLETED: "Đã hoàn thành",
 };
 
-type Tab = "players" | "top30" | "news";
+type Tab = "players" | "top30" | "news" | "quiz";
 
 export default function CompetitionDetailPage() {
   const { t } = useI18n();
@@ -54,6 +56,12 @@ export default function CompetitionDetailPage() {
   const [reg, setReg] = useState<ParticipantStatus | null>(null);
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const [quiz, setQuiz] = useState<QuizStatus | null>(null);
+
+  // the practice tab shows when the feature is on (or for staff testing it while it is off)
+  useEffect(() => {
+    quizService.status().then(setQuiz).catch(() => setQuiz(null));
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -93,7 +101,7 @@ export default function CompetitionDetailPage() {
   const finalOpen = useMemo(() => finalIsOpen(rounds, competition?.status), [rounds, competition]);
 
   // the ranking tab exists only once the jury has finalized the Top 30
-  const tab: Tab = wanted === "news" ? "news" : wanted === "top30" && top30 ? "top30" : "players";
+  const tab: Tab = wanted === "news" ? "news" : wanted === "top30" && top30 ? "top30" : wanted === "quiz" && quiz?.visible ? "quiz" : "players";
 
   const setTab = (next: Tab) => {
     const q = new URLSearchParams(search.toString());
@@ -210,10 +218,17 @@ export default function CompetitionDetailPage() {
             {t("Tin tức")}
             {news.length > 0 && <sup>{news.length}</sup>}
           </button>
+          {quiz?.visible && (
+            <button className="of-cut" role="tab" aria-selected={tab === "quiz"} onClick={() => setTab("quiz")}>
+              {t("Luyện tập")}
+              {quiz.testing && <sup>{t("thử")}</sup>}
+            </button>
+          )}
         </div>
         {tab === "players" && <PlayersTab competitionId={competition.id} finalOpen={finalOpen} total={competition.participantCount} top30={top30 ? new Set(top30.players.map((p) => p.userid)) : undefined} />}
         {tab === "top30" && top30 && <Top30Tab top30={top30} competitionId={competition.id} />}
         {tab === "news" && <NewsTab competitionId={competitionId} news={news} />}
+        {tab === "quiz" && quiz?.visible && <QuizTab competitionId={competitionId} status={quiz} />}
       </section>
 
       <HomeFooter />

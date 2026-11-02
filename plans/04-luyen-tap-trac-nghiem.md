@@ -15,10 +15,10 @@ Kế hoạch đầy đủ (doc): https://claude.ai/artifact/EWeQyQnctwud4pTxtmvR
 | # | Nội dung | Trạng thái |
 | --- | --- | --- |
 | 0 | AI gateway bên AnyLearn | Xong (anylearn#36) |
-| 1 | Kho câu hỏi (BE): V45, `service/quiz/*`, `/api/admin/quiz/*` | PR này |
-| 2 | Trang `/quan-tri/trac-nghiem`: ma trận, hàng chờ duyệt, sửa, trình sửa sơ đồ, chủ đề | Chưa |
-| 3 | Game + bảng xếp hạng (BE) | Chưa |
-| 4 | Giao diện cầu thủ: tab "Luyện tập" trong trang giải, vẽ sơ đồ SVG + hoạt cảnh | Chưa |
+| 1 | Kho câu hỏi (BE): V45, `service/quiz/*`, `/api/admin/quiz/*` | Xong (#29) |
+| 2 | Trang `/quan-tri/trac-nghiem`: ma trận, hàng chờ duyệt, sửa, trình sửa sơ đồ, chủ đề, công tắc | Xong (#29) |
+| 3 | Game + bảng xếp hạng (BE): V46, `QuizGameService`, `/api/quiz/*` | Xong (#29) |
+| 4 | Giao diện cầu thủ: tab "Luyện tập" trong trang giải, vẽ sơ đồ SVG + hoạt cảnh | Xong (#29) |
 | 5 | Clip, đề thi chính thức (kho `exam`), dịch câu hỏi | Sau |
 
 ## Giai đoạn 1: kho câu hỏi
@@ -58,3 +58,12 @@ Tối đa 22 cầu thủ, 12 mũi tên (`run`, `pass`, `shot`, `dribble`), 6 vù
 
 - AnyLearn chờ AI tối đa 30 giây, nên một đợt chủ đề có sơ đồ tối đa 4 câu (chủ đề khác 10 câu). Đợt lỗi vẫn ghi vào `quiz_gen_runs` kèm lỗi (ví dụ "Đã hết hạn mức AI hôm nay" khi chạm trần token bên AnyLearn).
 - Trên production `ZNS_RELAY_URL` nên trỏ thẳng vào AnyLearn trên cùng máy (`http://127.0.0.1:8080/v2/api/open/zns/otp`) để gọi AI không đi vòng qua internet.
+
+## Giai đoạn 2 đến 4 (đã làm)
+
+- **Công tắc**: dòng `configurations` `quiz/enabled` (mặc định 0 = tắt). Tắt thì cầu thủ không thấy tab, API trả 403; ADMIN và EDITOR vẫn thấy tab có nhãn "thử" để chơi thử. Chỉ ADMIN bật/tắt được (tab "Bật tắt & cài đặt"). Các con số khác (`seconds`, `daily_rank_cap`, `stars_per_rank`, `no_repeat_days`, `mock_size`, `mock_minutes`, `board_enabled`) nằm trong một bảng `QuizSettings.FIELDS`.
+- **Game (V46)**: `quiz_profiles` (hạng, sao, lượt giữ hạng, chuỗi), `quiz_attempts` (một dòng mỗi câu phát ra; thứ tự đáp án trộn riêng, đáp án đúng chỉ trả về sau khi trả lời), `quiz_board` (sao ròng theo tuần `W2026-45` và tháng `M2026-11`), `quiz_mocks`. 8 hạng Phong trào → Huyền thoại, 5 sao mỗi hạng; đủ sao thì câu đúng kế tiếp lên hạng; hết sao còn 1 lượt giữ hạng rồi mới rớt. Độ khó theo hạng (`QuizGameRules.MIX`). Trả lời đúng dưới 1,5 giây hoặc lúc rời trang bị gắn cờ, không tính BXH. Câu bị 3 người báo lỗi tự ẩn.
+- **API cầu thủ**: `GET /api/quiz/status` (công khai), `GET me`, `POST start {mode rank|practice, topic?, difficulty?}`, `POST answer {attemptId, option, away}`, `POST questions/{id}/report`, `POST mock/start`, `POST mock/{id}/submit`, `GET mock/history`, `GET leaderboard?type=week|month|all&competitionId=` (công khai khi bật).
+- **FE**: tab "Luyện tập" (`?tab=quiz`) trong `/competitions/[id]`; trang chơi `/competitions/[id]/luyen-tap?mode=rank|practice|mock`; BXH `/competitions/[id]/luyen-tap/bang-xep-hang` (lọc tuần/tháng/mọi lúc, tất cả hoặc thí sinh giải). Sơ đồ `components/quiz/PitchDiagram` dùng chung cho trang chơi và trình sửa (kéo thả). Chữ dịch ở `i18n/messages/quiz.ts`.
+- **Đã thử** (02/11/2026) trên MariaDB với bản dump và AI giả: sinh đề + kiểm tra mù (câu lệch tự ẩn), duyệt hàng loạt, bật/tắt, leo 2 hạng rồi rớt, gắn cờ, đề thử 20 câu, BXH theo giải; giao diện quản trị và cầu thủ (điện thoại 390 px) không lỗi console; `next build` qua.
+- **Trước khi bật trên production**: deploy anylearn (gateway) và 11of, để AI viết đủ câu ở tab "Tổng quan kho", duyệt, rồi ADMIN bật công tắc.

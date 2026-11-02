@@ -1,0 +1,99 @@
+/* Football quiz practice (player side). Lives inside .pp, so it reuses its colours, fonts and cut corners. */
+.qz { display: grid; gap: 14px; padding-block: 14px 28px; }
+.qz-card { background: var(--pp-panel); --c: 14px; padding: 16px; }
+.qz-test { display: inline-block; font: 700 10px/1 var(--f-hud); letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 8px; border-radius: 3px; background: rgba(243, 223, 175, 0.16); color: var(--pp-gold); }
+
+/* rank card */
+.qz-rank { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; background: linear-gradient(160deg, rgba(166, 227, 90, 0.22), rgba(9, 30, 20, 0.9) 60%); }
+.qz-crest { width: 64px; height: 64px; display: grid; place-items: center; --c: 12px; background: radial-gradient(circle at 50% 30%, #2f7d47, #0e2e1c); font: 800 28px/1 var(--f-display); color: var(--lime-2); }
+.qz-crest.gold { background: radial-gradient(circle at 50% 30%, #8a6d2a, #2a1e05); color: var(--pp-gold); }
+.qz-rank h2 { margin: 2px 0 0; font: 800 30px/0.95 var(--f-display); text-transform: uppercase; }
+.qz-stars { display: flex; gap: 4px; margin-top: 8px; align-items: center; }
+.qz-stars i { width: 18px; height: 18px; display: block; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); background: rgba(255, 255, 255, 0.16); }
+.qz-stars i.on { background: linear-gradient(180deg, #ffe694, #ffb600); }
+.qz-stars i.pop { animation: qz-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
+.qz-guard { font-size: 12px; color: var(--pp-mute); margin-left: 6px; }
+.qz-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12.5px; color: var(--pp-mute); }
+.qz-meta b { color: #fff; font-variant-numeric: tabular-nums; }
+
+/* ladder of ranks */
+.qz-ladder { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.qz-ladder span { flex: 1 0 auto; text-align: center; padding: 6px 8px; font: 700 10px/1.2 var(--f-hud); letter-spacing: 0.06em; text-transform: uppercase; background: rgba(255, 255, 255, 0.05); color: var(--pp-dim); border-radius: 3px; }
+.qz-ladder span.done { color: var(--lime-2); background: rgba(166, 227, 90, 0.1); }
+.qz-ladder span.now { color: #0b2412; background: var(--lime); }
+
+/* modes */
+.qz-modes { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.qz-mode { text-align: left; padding: 16px; background: var(--pp-panel) !important; --c: 14px; display: grid; gap: 6px; transition: transform 0.2s; }
+.qz-mode:hover { transform: translateY(-2px); }
+.qz-mode b { font: 800 22px/1 var(--f-display); text-transform: uppercase; }
+.qz-mode span { font-size: 13px; color: var(--pp-mute); }
+.qz-mode.main { background: linear-gradient(170deg, rgba(166, 227, 90, 0.3), rgba(14, 46, 29, 0.92) 60%) !important; --ring: var(--lime); }
+.qz-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* question */
+.qz-q { display: grid; gap: 12px; }
+.qz-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.qz-timer { position: relative; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden; }
+.qz-timer i { position: absolute; inset: 0; transform-origin: left; background: var(--lime); }
+.qz-timer.low i { background: var(--pp-red); }
+.qz-sec { font: 800 26px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.qz-sec.low { color: var(--pp-red); }
+.qz-body { font-size: 18px; line-height: 1.45; font-weight: 600; margin: 0; text-wrap: pretty; }
+.qz-pitch { --c: 12px; overflow: hidden; }
+.qz-opts { display: grid; gap: 8px; }
+@media (min-width: 720px) { .qz-opts { grid-template-columns: 1fr 1fr; } }
+.qz-opt { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 56px; padding: 8px 12px 8px 8px; text-align: left; background: rgba(255, 255, 255, 0.06) !important; --c: 10px; font-size: 15px; line-height: 1.35; transition: transform 0.15s, background-color 0.15s; }
+.qz-opt:not(:disabled):hover { background: rgba(166, 227, 90, 0.14) !important; transform: translateX(3px); }
+.qz-opt .k { width: 36px; height: 36px; display: grid; place-items: center; font: 800 18px/1 var(--f-display); background: rgba(0, 0, 0, 0.35); border-radius: 4px; color: var(--lime-2); }
+.qz-opt.picked { background: rgba(255, 255, 255, 0.14) !important; }
+.qz-opt.right { background: rgba(166, 227, 90, 0.26) !important; --ring: var(--lime); }
+.qz-opt.right .k { background: var(--lime); color: #0b2412; }
+.qz-opt.wrong { background: rgba(255, 122, 102, 0.22) !important; }
+.qz-opt.wrong .k { background: var(--pp-red); color: #2a0b05; }
+.qz-opt:disabled { opacity: 1 !important; }
+
+/* result */
+.qz-verdict { display: flex; align-items: center; gap: 12px; animation: pp-fade 0.3s; }
+.qz-verdict b { font: 800 34px/1 var(--f-display); text-transform: uppercase; }
+.qz-verdict.ok b { color: var(--lime-2); }
+.qz-verdict.no b { color: var(--pp-red); }
+.qz-up { padding: 14px; text-align: center; --c: 14px; background: linear-gradient(170deg, rgba(243, 223, 175, 0.3), rgba(30, 24, 8, 0.9)); animation: qz-pop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+.qz-up b { display: block; font: 800 36px/1 var(--f-display); color: var(--pp-gold); text-transform: uppercase; }
+.qz-explain { font-size: 14.5px; line-height: 1.5; color: #e6efe9; background: rgba(0, 0, 0, 0.28); padding: 12px; border-left: 3px solid var(--lime); }
+.qz-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.qz-link { font-size: 13px; color: var(--pp-mute); text-decoration: underline; }
+
+/* mock exam */
+.qz-mock-bar { position: sticky; top: 64px; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(6, 22, 14, 0.94); --c: 10px; }
+.qz-dots { display: flex; flex-wrap: wrap; gap: 4px; }
+.qz-dots button { width: 26px; height: 26px; font: 700 11px/1 var(--f-hud); border-radius: 4px; background: rgba(255, 255, 255, 0.07); color: var(--pp-mute); }
+.qz-dots button.done { background: rgba(166, 227, 90, 0.25); color: #fff; }
+.qz-dots button.right { background: var(--lime); color: #0b2412; }
+.qz-dots button.wrong { background: var(--pp-red); color: #2a0b05; }
+.qz-dots button[aria-current='true'] { outline: 2px solid #fff; }
+.qz-score { font: 800 64px/1 var(--f-display); color: var(--lime-2); }
+.qz-groups { display: grid; gap: 8px; }
+.qz-gbar { display: grid; grid-template-columns: 110px minmax(0, 1fr) 48px; gap: 10px; align-items: center; font-size: 13px; }
+.qz-gbar span { height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; }
+.qz-gbar span i { display: block; height: 100%; background: var(--lime); transform-origin: left; animation: qz-grow 0.8s ease-out both; }
+
+/* leaderboard */
+.qz-board { display: grid; gap: 6px; }
+.qz-row { display: grid; grid-template-columns: 34px 40px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 12px 8px 8px; background: var(--pp-panel); --c: 10px; }
+.qz-row .pl { font: 800 20px/1 var(--f-display); text-align: center; color: var(--pp-mute); }
+.qz-row.p1 .pl { color: #ffd64d; } .qz-row.p2 .pl { color: #dfe7e3; } .qz-row.p3 .pl { color: #e0a36b; }
+.qz-row.me { --ring: var(--lime); background: linear-gradient(90deg, rgba(166, 227, 90, 0.2), var(--pp-panel) 50%); }
+.qz-row .av { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 30%, #2f7d47, #0e2e1c); display: grid; place-items: center; font: 800 18px/1 var(--f-display); color: var(--lime-3); }
+.qz-row .av img { width: 100%; height: 100%; object-fit: cover; }
+.qz-row b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qz-row small { color: var(--pp-mute); font-size: 12px; }
+.qz-row .st { text-align: right; font: 800 22px/1 var(--f-display); color: var(--lime-2); font-variant-numeric: tabular-nums; }
+.qz-row .st small { display: block; font: 600 10px/1.3 var(--f-hud); letter-spacing: 0.08em; text-transform: uppercase; }
+
+@keyframes qz-pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes qz-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .qz-stars i.pop, .qz-up, .qz-gbar span i, .qz-verdict { animation: none; }
+  .qz-mode, .qz-opt { transition: none; }
+}
