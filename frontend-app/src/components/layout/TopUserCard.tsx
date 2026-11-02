@@ -1,13 +1,12 @@
 "use client";
 
-import { TicketIcon, CompetitionIcon, EventIcon, HomeIcon } from "@/components/icons/nav-icons";
+import { TicketIcon, CompetitionIcon, EventIcon, HomeIcon, QuizIcon } from "@/components/icons/nav-icons";
 import { useAuth } from "@/contexts/AuthContext";
-import { competitionService } from "@/services/competition.service";
 import Image from "next/image";
 import Link from "next/link";
-import { navSection, newsHrefOf } from "@/lib/nav";
+import { navSection } from "@/lib/nav";
+import { useCompetitionNav } from "@/hooks/useQuizNav";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { BellButton, UserMenu } from "./HeaderUser";
 import { useT } from "@/i18n/I18nProvider";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
@@ -18,13 +17,7 @@ export default function TopUserCard() {
   const pathname = usePathname();
   const search = useSearchParams();
   const section = navSection(pathname, search.get("tab"));
-  const [newsHref, setNewsHref] = useState("/competitions");
-
-  useEffect(() => {
-    competitionService.getCurrentCompetition().then((c) => {
-      if (c) setNewsHref(newsHrefOf(c.id));
-    });
-  }, []);
+  const { newsHref, quizHref } = useCompetitionNav();
 
   // Navigation items
   const navItems = [
@@ -52,6 +45,7 @@ export default function TopUserCard() {
       href: "/events",
       isActive: section === "events",
     },
+    ...(quizHref ? [{ icon: QuizIcon, label: t("Luyện tập"), href: quizHref, isActive: section === "quiz" }] : []),
   ];
 
   return (

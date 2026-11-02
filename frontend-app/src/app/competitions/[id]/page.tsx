@@ -10,6 +10,7 @@ import NewsTab from "@/components/competition/NewsTab";
 import PlayersTab from "@/components/competition/PlayersTab";
 import Top30Tab from "@/components/competition/Top30Tab";
 import RoundRail from "@/components/competition/RoundRail";
+import { quizHrefOf } from "@/lib/nav";
 import "@/components/pp/pp.css";
 import { useI18n } from "@/i18n/I18nProvider";
 import { activeRoundIndex, finalIsOpen, sortRounds } from "@/lib/players/rounds";
@@ -54,6 +55,10 @@ export default function CompetitionDetailPage() {
   const [reg, setReg] = useState<ParticipantStatus | null>(null);
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
+  // the quiz practice has its own page (main menu "Luyện tập"); old ?tab=quiz links go there
+  useEffect(() => {
+    if (wanted === "quiz") router.replace(quizHrefOf(competitionId));
+  }, [wanted, competitionId, router]);
 
   useEffect(() => {
     Promise.all([

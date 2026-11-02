@@ -71,6 +71,7 @@ public class AdminPlayerApiController {
     private final PlayerAttributeRepository attributeRepository;
     private final PlayerAttributeService attributeService;
     private final PlayerAttributeTypeService attributeTypeService;
+    private final com.elevenof.backoffice.service.quiz.QuizBankService quizBankService;
     private final ApplicationEventPublisher eventPublisher;
     private final com.elevenof.backoffice.repository.CompetitionParticipantRepository participantRepository;
     private final com.elevenof.backoffice.service.EventRegistrationService eventRegistrationService;
@@ -105,6 +106,7 @@ public class AdminPlayerApiController {
         out.put("pendingApprovals", pendingAchievements + pendingHighlights);
         out.put("unverifiedPlayers", playerRepository.countByVerifiedFalseOrVerifiedIsNull());
         out.put("waitingRegistrations", eventRegistrationService.countWaiting());
+        out.put("quizToHandle", quizBankService.countToHandle());
         return out;
     }
 

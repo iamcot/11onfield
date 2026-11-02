@@ -179,3 +179,7 @@ html body textarea {
     -webkit-text-fill-color: #374151 !important;
   }
 }
+
+/* Quiz practice: pitch diagram arrows fade in, the answering player's ring pulses (opacity/transform only). */
+@keyframes quizFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes quizPulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.25); opacity: 0.35; } }

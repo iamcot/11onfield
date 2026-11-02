@@ -4,6 +4,7 @@ import partner from './partner';
 import account from './account';
 import app from './app';
 import players from './players';
+import quiz from './quiz';
 
 /** Every translatable string, keyed by its Vietnamese source: [English, Español, 한국어]. */
 export const MESSAGES: Messages = {
@@ -12,4 +13,5 @@ export const MESSAGES: Messages = {
   ...account,
   ...app,
   ...players,
+  ...quiz,
 };

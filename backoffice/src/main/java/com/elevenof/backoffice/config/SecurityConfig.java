@@ -70,6 +70,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/competitions/{id}/news/{newsId}").permitAll()
                 .requestMatchers("/api/competitions/{id}/sponsors").permitAll()
                 .requestMatchers("/api/competitions/{id}/stages").permitAll()
+                .requestMatchers("/api/quiz/status", "/api/quiz/leaderboard").permitAll() // quiz practice: tab switch and boards
                 .requestMatchers("/api/admin/**").hasAnyRole("EDITOR", "HLV", "TTV", "MEDICAL", "ADMIN") // per-endpoint rules via @PreAuthorize
                 .anyRequest().authenticated()
             )
