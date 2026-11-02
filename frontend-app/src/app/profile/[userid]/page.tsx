@@ -9,6 +9,7 @@ import ProfileShareSheet from "@/components/qr/ProfileShareSheet";
 import AchievementsBlock, { type TypedAchievement } from "@/components/player-profile/AchievementsBlock";
 import CombineCard from "@/components/player-profile/CombineCard";
 import { PhotoGuide } from "@/components/player-profile/Guides";
+import PhotoCropper, { type CropKind } from "@/components/media/PhotoCropper";
 import HighlightsBlock from "@/components/player-profile/HighlightsBlock";
 import { IconCamera, IconCheck, IconHex, IconPen, IconPrev, IconShare, IconUpload } from "@/components/pp/icons";
 import PlayerStage from "@/components/pp/PlayerStage";
@@ -44,7 +45,7 @@ import type { EventListItem } from "@/types/event";
 import type { UserListItem } from "@/types/user";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 
 type EditKey = "avatar" | "id" | "bio" | "body" | "info" | null;
 
@@ -117,6 +118,13 @@ export default function UserProfilePage() {
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [fullGuide, setFullGuide] = useState(false);
   const [fullBusy, setFullBusy] = useState(false);
+  // a picked photo waits here until the person crops it to just themselves
+  const [crop, setCrop] = useState<{ kind: CropKind; file: File } | null>(null);
+  const pickPhoto = (kind: CropKind) => (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) setCrop({ kind, file });
+  };
   const [sharing, setSharing] = useState(false);
   const autoFollowed = useRef(false);
   const [visBusy, setVisBusy] = useState(false);
@@ -429,7 +437,7 @@ export default function UserProfilePage() {
                 </button>
                 <label className="pp-btn pp-btn-lime pp-btn-sm of-cut pp-file">
                   {avatarBusy ? t("Đang tách nền...") : t("Chọn ảnh")}
-                  <input type="file" accept="image/jpeg,image/png,image/webp" disabled={avatarBusy} onChange={(e) => uploadAvatar(e.target.files?.[0])} aria-label={t("Chọn ảnh đại diện")} />
+                  <input type="file" accept="image/jpeg,image/png,image/webp" disabled={avatarBusy} onChange={pickPhoto("avatar")} aria-label={t("Chọn ảnh đại diện")} />
                 </label>
               </div>
             </PhotoGuide>
@@ -582,7 +590,7 @@ export default function UserProfilePage() {
                       </button>
                       <label className="pp-btn pp-btn-lime pp-btn-sm of-cut pp-file">
                         {t("Chọn ảnh")}
-                        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => uploadFull(e.target.files?.[0])} aria-label={t("Chọn ảnh toàn thân")} />
+                        <input type="file" accept="image/jpeg,image/png,image/webp" onChange={pickPhoto("full")} aria-label={t("Chọn ảnh toàn thân")} />
                       </label>
                     </div>
                   </PhotoGuide>
@@ -880,6 +888,19 @@ export default function UserProfilePage() {
         )}
       </section>
 
+      {crop && (
+        <PhotoCropper
+          file={crop.file}
+          kind={crop.kind}
+          onCancel={() => setCrop(null)}
+          onDone={(file) => {
+            const kind = crop.kind;
+            setCrop(null);
+            if (kind === "avatar") uploadAvatar(file);
+            else uploadFull(file);
+          }}
+        />
+      )}
       {sharing && (
         <ProfileShareSheet userid={userid} name={profile.fullName} onClose={() => setSharing(false)} onCopied={() => toast(t("Đã chép link hồ sơ"))} />
       )}

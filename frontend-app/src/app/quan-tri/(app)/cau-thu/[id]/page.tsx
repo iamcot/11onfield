@@ -4,6 +4,7 @@ import { type RefObject, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { api, uploadImage, useApi } from '@/lib/admin/client';
 import RichText from '@/components/admin/RichText';
+import PhotoCropper from '@/components/media/PhotoCropper';
 import { sanitizeHtml, textToHtml } from '@/lib/sanitize-html';
 import { ACHIEVEMENT_TYPES, APPROVAL, FEET, LEVELS, POSITIONS, fmtDate } from '@/lib/admin/labels';
 import { useIsManager } from '@/components/admin/me';
@@ -45,6 +46,8 @@ export default function PlayerEditPage() {
   const [tab, setTab] = useState<'info' | 'media'>('info');
   const [uploading, setUploading] = useState<'' | 'avatar' | 'fullBodyPhoto'>('');
   const [cutOut, setCutOut] = useState(true);
+  // a picked photo waits here until it is cropped to just the player
+  const [crop, setCrop] = useState<{ key: 'avatar' | 'fullBodyPhoto'; file: File } | null>(null);
   const avatarRef = useRef<HTMLInputElement>(null);
   const fullBodyRef = useRef<HTMLInputElement>(null);
 
@@ -132,7 +135,7 @@ export default function PlayerEditPage() {
       <div className="text-[13px] font-medium text-[#46564D]">{label}</div>
       {manager && (
         <div className="flex flex-wrap justify-center gap-2">
-          <input ref={ref} type="file" accept="image/*" hidden onChange={(e) => pickPhoto(key, e.target.files?.[0])} />
+          <input ref={ref} type="file" accept="image/*" hidden onChange={(e) => { const file = e.target.files?.[0]; e.target.value = ''; if (file) setCrop({ key, file }); }} />
           <Button small disabled={!!uploading} onClick={() => ref.current?.click()}>{uploading === key ? (cutOut ? 'Đang xoá nền…' : 'Đang tải lên…') : 'Tải ảnh lên'}</Button>
           {f[key] && <Button small variant="danger" onClick={() => set(key)('')}>Bỏ ảnh</Button>}
         </div>
@@ -168,6 +171,18 @@ export default function PlayerEditPage() {
         {manager && <Button variant="primary" disabled={saving || !ready} onClick={save}>{saving ? 'Đang lưu…' : 'Lưu hồ sơ'}</Button>}
       </PageTitle>
       <Loading error={detail.error} loading={detail.loading && !p} />
+      {crop && (
+        <PhotoCropper
+          file={crop.file}
+          kind={crop.key === 'avatar' ? 'avatar' : 'full'}
+          onCancel={() => setCrop(null)}
+          onDone={(file) => {
+            const key = crop.key;
+            setCrop(null);
+            pickPhoto(key, file);
+          }}
+        />
+      )}
       {p && ready && (
         <div className="space-y-4">
           {!manager && <p className="rounded-md border border-[#E9CF95] bg-[#FDF6E7] px-3 py-2 text-[14px] text-[#8A5A00]">Bạn chỉ có quyền xem hồ sơ và duyệt thành tích, highlight.</p>}

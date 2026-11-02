@@ -278,6 +278,28 @@ const players: Messages = {
   'Thuận cả hai chân': ['Two-footed', 'Ambidiestro', '양발잡이'],
   '▲ {n}% so với TB': ['▲ {n}% vs average', '▲ {n}% sobre la media', '▲ 평균 대비 {n}%'],
   '▼ {n}% so với TB': ['▼ {n}% vs average', '▼ {n}% bajo la media', '▼ 평균 대비 {n}%'],
+
+  // photo cropper (avatar and full-body upload)
+  'Cắt ảnh': ['Crop photo', 'Recortar foto', '사진 자르기'],
+  'Cắt ảnh đại diện': ['Crop profile photo', 'Recortar foto de perfil', '프로필 사진 자르기'],
+  'Cắt ảnh toàn thân': ['Crop full-body photo', 'Recortar foto de cuerpo entero', '전신 사진 자르기'],
+  'Kéo khung cho vừa mặt và vai của bạn, chỉ một mình bạn trong khung.': [
+    'Drag the frame around your face and shoulders, with only you inside it.',
+    'Ajusta el marco a tu cara y hombros, solo tú dentro del marco.',
+    '얼굴과 어깨에 맞게 틀을 조정하세요. 틀 안에는 본인만 있어야 합니다.',
+  ],
+  'Kéo khung ôm sát người bạn từ đầu đến chân, bỏ người và cảnh xung quanh.': [
+    'Drag the frame tight around you from head to toe, leaving out other people and the scenery.',
+    'Ajusta el marco a tu cuerpo de la cabeza a los pies, dejando fuera a otras personas y el fondo.',
+    '머리부터 발끝까지 몸에 딱 맞게 틀을 조정하고, 다른 사람과 주변 배경은 빼 주세요.',
+  ],
+  'Không xem trước được ảnh này để cắt. Bạn có thể tải ảnh gốc lên.': [
+    "This photo can't be previewed for cropping. You can upload the original.",
+    'No se puede previsualizar esta foto para recortarla. Puedes subir la original.',
+    '이 사진은 자르기 미리보기를 할 수 없습니다. 원본을 업로드할 수 있습니다.',
+  ],
+  'Tải ảnh gốc': ['Upload original', 'Subir original', '원본 업로드'],
+  'Cắt và tải lên': ['Crop and upload', 'Recortar y subir', '자르고 업로드'],
 };
 
 export default players;
