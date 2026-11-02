@@ -9,7 +9,7 @@ import RankCard from './RankCard';
 import BoardList from './BoardList';
 import './quiz.css';
 
-/** "Luyện tập" tab of a competition: the player's rank, the three ways to play and this week's top 5. */
+/** Hub of the quiz practice (/competitions/[id]/luyen-tap without a mode): the player's rank, the three ways to play and this week's top 5. */
 export default function QuizTab({ competitionId, status }: { competitionId: number; status: QuizStatus }) {
   const { t } = useI18n();
   const signedIn = !!storage.getToken();
@@ -59,7 +59,7 @@ export default function QuizTab({ competitionId, status }: { competitionId: numb
       ) : (
         <div className="qz-card of-cut" style={{ display: 'grid', gap: 10, justifyItems: 'start' }}>
           <p style={{ margin: 0 }}>{t('Đăng nhập để luyện tập và lên bảng xếp hạng.')}</p>
-          <Link href={`/auth/login?redirect=${encodeURIComponent(`/competitions/${competitionId}?tab=quiz`)}`} className="pp-btn pp-btn-lime of-cut">{t('Đăng nhập')}</Link>
+          <Link href={`/auth/login?redirect=${encodeURIComponent(base)}`} className="pp-btn pp-btn-lime of-cut">{t('Đăng nhập')}</Link>
         </div>
       )}
 

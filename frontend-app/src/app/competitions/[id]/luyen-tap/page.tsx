@@ -10,6 +10,7 @@ import TopUserCard from "@/components/layout/TopUserCard";
 import MobileNav from "@/components/layout/MobileNav";
 import PitchDiagram from "@/components/quiz/PitchDiagram";
 import RankCard from "@/components/quiz/RankCard";
+import QuizTab from "@/components/quiz/QuizTab";
 import "@/components/pp/pp.css";
 import "@/components/quiz/quiz.css";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -30,7 +31,9 @@ export default function QuizPlayPage() {
   const router = useRouter();
   const competitionId = parseInt(params.id as string);
   const base = `/competitions/${competitionId}/luyen-tap`;
-  const mode: Mode = (["rank", "practice", "mock"] as const).find((m) => m === search.get("mode")) || "rank";
+  // no mode in the address = the hub (rank, the three ways to play, weekly board); a mode = its set-up and play screens
+  const chosen = (["rank", "practice", "mock"] as const).find((m) => m === search.get("mode")) ?? null;
+  const mode: Mode = chosen || "rank";
   // read after mount: the server render has no token, so deciding during render breaks hydration
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
 
@@ -179,7 +182,9 @@ export default function QuizPlayPage() {
       <TopUserCard />
       <section className="pp-wrap" style={{ maxWidth: wide ? 1180 : 820 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, paddingTop: 16 }}>
-          <Link href={`/competitions/${competitionId}?tab=quiz`} className="qz-link">← {t("Về trang giải")}</Link>
+          {chosen
+            ? <Link href={base} className="qz-link">← {t("Luyện tập")}</Link>
+            : <Link href={`/competitions/${competitionId}`} className="qz-link">← {t("Về trang giải")}</Link>}
           <Link href={`${base}/bang-xep-hang`} className="qz-link">{t("Bảng xếp hạng")}</Link>
         </div>
         {children}
@@ -190,6 +195,13 @@ export default function QuizPlayPage() {
   );
 
   if (signedIn === null) return shell(<div className="pp-spin" />);
+  if (status && !status.visible) {
+    return shell(<div className="pp-empty" style={{ paddingTop: 60 }}><b>{t("Tính năng luyện tập đang tạm tắt")}</b>{t("Quay lại sau nhé.")}</div>);
+  }
+  // the hub; an unanswered question left open still comes back first
+  if (!chosen && view === "lobby") {
+    return shell(status ? <div style={{ paddingTop: 12 }}><QuizTab competitionId={competitionId} status={status} /></div> : <div className="pp-spin" />);
+  }
   if (!signedIn) {
     return shell(
       <div className="qz"><div className="qz-card of-cut" style={{ display: "grid", gap: 10, justifyItems: "start" }}>
@@ -197,9 +209,6 @@ export default function QuizPlayPage() {
         <Link href={`/auth/login?redirect=${encodeURIComponent(`${base}?mode=${mode}`)}`} className="pp-btn pp-btn-lime of-cut">{t("Đăng nhập")}</Link>
       </div></div>
     );
-  }
-  if (status && !status.visible) {
-    return shell(<div className="pp-empty" style={{ paddingTop: 60 }}><b>{t("Tính năng luyện tập đang tạm tắt")}</b>{t("Quay lại sau nhé.")}</div>);
   }
   if (!me) return shell(error ? <p className="err" style={{ marginTop: 20 }}>{error}</p> : <div className="pp-spin" />);
 
