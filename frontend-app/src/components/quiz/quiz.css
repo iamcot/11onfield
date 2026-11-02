@@ -41,15 +41,20 @@
 .qz-sec.low { color: var(--pp-red); }
 .qz-body { font-size: 18px; line-height: 1.45; font-weight: 600; margin: 0; text-wrap: pretty; }
 .qz-pitch { --c: 12px; overflow: hidden; }
+.qz-stage { display: grid; gap: 12px; }
+@media (min-width: 1000px) { .qz-stage.has-media { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; } .qz-stage.has-media .qz-opts { grid-template-columns: 1fr; } }
+.qz-side { display: grid; gap: 10px; align-content: start; }
+.qz-qcard { background: #1C2E22; --c: 12px; --ring: rgba(166, 227, 90, 0.45); padding: 14px 16px; }
+.qz-media { display: block; width: 100%; border-radius: 8px; }
 .qz-opts { display: grid; gap: 8px; }
 @media (min-width: 720px) { .qz-opts { grid-template-columns: 1fr 1fr; } }
-.qz-opt { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 56px; padding: 8px 12px 8px 8px; text-align: left; background: rgba(255, 255, 255, 0.06) !important; --c: 10px; font-size: 15px; line-height: 1.35; transition: transform 0.15s, background-color 0.15s; }
-.qz-opt:not(:disabled):hover { background: rgba(166, 227, 90, 0.14) !important; transform: translateX(3px); }
+.qz-opt { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 56px; padding: 8px 12px 8px 8px; text-align: left; background: #1C2E22 !important; --c: 10px; font-size: 15px; line-height: 1.35; transition: transform 0.15s, background-color 0.15s; }
+.qz-opt:not(:disabled):hover { background: #24402E !important; transform: translateX(3px); }
 .qz-opt .k { width: 36px; height: 36px; display: grid; place-items: center; font: 800 18px/1 var(--f-display); background: rgba(0, 0, 0, 0.35); border-radius: 4px; color: var(--lime-2); }
-.qz-opt.picked { background: rgba(255, 255, 255, 0.14) !important; }
-.qz-opt.right { background: rgba(166, 227, 90, 0.26) !important; --ring: var(--lime); }
+.qz-opt.picked { background: #2A4733 !important; --ring: var(--lime-2); }
+.qz-opt.right { background: #2E5A2A !important; --ring: var(--lime); }
 .qz-opt.right .k { background: var(--lime); color: #0b2412; }
-.qz-opt.wrong { background: rgba(255, 122, 102, 0.22) !important; }
+.qz-opt.wrong { background: #4A2420 !important; }
 .qz-opt.wrong .k { background: var(--pp-red); color: #2a0b05; }
 .qz-opt:disabled { opacity: 1 !important; }
 

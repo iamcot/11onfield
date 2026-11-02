@@ -173,11 +173,11 @@ export default function QuizPlayPage() {
   }
 
   // ---------- render ----------
-  const shell = (children: React.ReactNode) => (
+  const shell = (children: React.ReactNode, wide = false) => (
     <div className="pp min-h-screen pt-16 pb-24 md:pb-8">
       <TopBar />
       <TopUserCard />
-      <section className="pp-wrap" style={{ maxWidth: 820 }}>
+      <section className="pp-wrap" style={{ maxWidth: wide ? 1180 : 820 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, paddingTop: 16 }}>
           <Link href={`/competitions/${competitionId}?tab=quiz`} className="qz-link">← {t("Về trang giải")}</Link>
           <Link href={`${base}/bang-xep-hang`} className="qz-link">{t("Bảng xếp hạng")}</Link>
@@ -224,10 +224,13 @@ export default function QuizPlayPage() {
             <i style={{ transform: `scaleX(${left.share})`, transition: "transform 0.25s linear" }} />
           </div>
         )}
-        <p className="qz-body">{q.body}</p>
+        {/* picture first, then the question right above its answers, so nothing needs scrolling back */}
+        <div className={`qz-stage ${q.diagram || q.mediaUrl ? "has-media" : ""}`}>
         {q.diagram && <div className="qz-pitch of-cut"><PitchDiagram diagram={q.diagram} /></div>}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {!q.diagram && q.mediaUrl && <img src={q.mediaUrl} alt="" style={{ width: "100%", borderRadius: 8 }} />}
+        {!q.diagram && q.mediaUrl && <img src={q.mediaUrl} alt="" className="qz-media" />}
+        <div className="qz-side">
+        <div className="qz-qcard of-cut"><p className="qz-body">{q.body}</p></div>
         <div className="qz-opts" role="group" aria-label={t("Các đáp án")}>
           {q.options.map((o, i) => (
             <button key={i} type="button" className={`qz-opt of-cut ${cls(i)}`} disabled={!!ans || busy} onClick={() => answer(i)}>
@@ -235,6 +238,8 @@ export default function QuizPlayPage() {
               <span>{o}</span>
             </button>
           ))}
+        </div>
+        </div>
         </div>
         {error && <p className="err">{error}</p>}
         {ans && (
@@ -269,7 +274,8 @@ export default function QuizPlayPage() {
             </details>
           </>
         )}
-      </div>
+      </div>,
+      !!(q.diagram || q.mediaUrl)
     );
   }
 
@@ -285,8 +291,10 @@ export default function QuizPlayPage() {
           <span className={`qz-sec ${mockLeft <= 60 ? "low" : ""}`}>{mm}</span>
         </div>
         <span className="pp-hud pp-mute">{t(GROUP_LABELS[item.group] || item.group)} · {t(item.topicLabel)}</span>
-        <p className="qz-body">{item.body}</p>
+        <div className={`qz-stage ${item.diagram ? "has-media" : ""}`}>
         {item.diagram && <div className="qz-pitch of-cut"><PitchDiagram diagram={item.diagram} /></div>}
+        <div className="qz-side">
+        <div className="qz-qcard of-cut"><p className="qz-body">{item.body}</p></div>
         <div className="qz-opts">
           {item.options.map((o, i) => (
             <button key={i} type="button" className={`qz-opt of-cut ${mockAns[mockAt] === i ? "picked" : ""}`}
@@ -294,6 +302,8 @@ export default function QuizPlayPage() {
               <span className="k">{LETTERS[i]}</span><span>{o}</span>
             </button>
           ))}
+        </div>
+        </div>
         </div>
         <div className="qz-dots" aria-label={t("Chuyển câu")}>
           {mock.items.map((_, k) => (
@@ -308,7 +318,8 @@ export default function QuizPlayPage() {
             {t("Nộp bài")}{done < mock.items.length ? ` (${t("còn {n} câu", { n: mock.items.length - done })})` : ""}
           </button>
         </div>
-      </div>
+      </div>,
+      !!item.diagram
     );
   }
 
@@ -342,14 +353,18 @@ export default function QuizPlayPage() {
         </div>
         {item && rv && (
           <div className="qz-q">
-            <p className="qz-body">{item.body}</p>
+            <div className={`qz-stage ${item.diagram ? "has-media" : ""}`}>
             {item.diagram && <div className="qz-pitch of-cut"><PitchDiagram diagram={item.diagram} animate={false} /></div>}
+            <div className="qz-side">
+            <div className="qz-qcard of-cut"><p className="qz-body">{item.body}</p></div>
             <div className="qz-opts">
               {item.options.map((o, i) => (
                 <div key={i} className={`qz-opt of-cut ${i === rv.correctOption ? "right" : rv.chosen === i ? "wrong" : ""}`}>
                   <span className="k">{LETTERS[i]}</span><span>{o}</span>
                 </div>
               ))}
+            </div>
+            </div>
             </div>
             {rv.chosen < 0 && <p className="pp-mute" style={{ margin: 0, fontSize: 13 }}>{t("Bạn bỏ trống câu này.")}</p>}
             {rv.explanation && <div className="qz-explain">💡 {rv.explanation}</div>}
@@ -359,7 +374,8 @@ export default function QuizPlayPage() {
           <button type="button" className="pp-btn pp-btn-lime of-cut" disabled={busy} onClick={startMock}>{t("Làm đề khác")}</button>
           <button type="button" className="pp-btn pp-btn-ghost of-cut" onClick={() => { setView("lobby"); setMock(null); }}>{t("Về sảnh")}</button>
         </div>
-      </div>
+      </div>,
+      true
     );
   }
 
