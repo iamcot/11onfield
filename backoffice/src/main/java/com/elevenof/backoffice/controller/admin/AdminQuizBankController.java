@@ -2,6 +2,8 @@ package com.elevenof.backoffice.controller.admin;
 
 import com.elevenof.backoffice.service.quiz.QuizBankRules;
 import com.elevenof.backoffice.service.quiz.QuizBankService;
+import com.elevenof.backoffice.service.quiz.QuizGameService;
+import com.elevenof.backoffice.service.quiz.QuizSettings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,8 @@ import java.util.Map;
 public class AdminQuizBankController {
 
     private final QuizBankService bank;
+    private final QuizSettings settings;
+    private final QuizGameService game;
 
     private static ResponseEntity<Map<String, Object>> error(String message) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", message));
@@ -131,5 +135,34 @@ public class AdminQuizBankController {
         } catch (IllegalArgumentException e) {
             return error(e.getMessage());
         }
+    }
+
+    // ---------- settings and stats ----------
+
+    /** `{values: {enabled, seconds, ...}, fields: [{key, label, def, min, max}]}`; `enabled` is the feature switch. */
+    @GetMapping("/settings")
+    public Map<String, Object> settings() {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("values", settings.all());
+        out.put("fields", QuizSettings.FIELDS);
+        return out;
+    }
+
+    /** Body `{key: value, ...}`; only ADMIN may switch the feature on or off for players. */
+    @PutMapping("/settings")
+    public ResponseEntity<?> saveSettings(@RequestBody Map<String, Object> body, Authentication auth) {
+        boolean admin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (body.containsKey("enabled") && !admin) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "Chỉ ADMIN được bật hoặc tắt tính năng"));
+        try {
+            settings.save(body);
+            return ResponseEntity.ok(settings());
+        } catch (IllegalArgumentException e) {
+            return error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/stats")
+    public Map<String, Object> stats() {
+        return game.stats();
     }
 }
