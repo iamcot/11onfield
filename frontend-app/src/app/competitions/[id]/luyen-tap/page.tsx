@@ -56,11 +56,14 @@ export default function QuizPlayPage() {
   const offset = useRef(0);
   const away = useRef(false);
 
-  const toHub = () => {
-    setView("lobby"); setQ(null); setAns(null); setMock(null); setMockRes(null); setError("");
-    router.push(base);
-  };
+  const toHub = () => router.push(base);
   const autoStarted = useRef(false);
+  // any link to the hub (back link, main menu) leaves the current screen
+  useEffect(() => {
+    if (chosen) return;
+    autoStarted.current = false;
+    setView("lobby"); setQ(null); setAns(null); setMock(null); setMockRes(null); setError("");
+  }, [chosen]);
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(""), 3500); };
 
   const loadMe = useCallback(async () => {
