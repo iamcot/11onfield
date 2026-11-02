@@ -56,7 +56,11 @@ export default function QuizPlayPage() {
   const offset = useRef(0);
   const away = useRef(false);
 
-  const setMode = (m: Mode) => router.replace(`${base}?mode=${m}`, { scroll: false });
+  const toHub = () => {
+    setView("lobby"); setQ(null); setAns(null); setMock(null); setMockRes(null); setError("");
+    router.push(base);
+  };
+  const autoStarted = useRef(false);
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(""), 3500); };
 
   const loadMe = useCallback(async () => {
@@ -145,6 +149,14 @@ export default function QuizPlayPage() {
       setBusy(false);
     }
   }
+  // the hub's "Leo hạng" and "Đề thi thử" cards go straight into play; only topic practice asks for a topic first
+  useEffect(() => {
+    if (!me || view !== "lobby" || autoStarted.current) return;
+    if (chosen === "rank") { autoStarted.current = true; start("rank"); }
+    if (chosen === "mock") { autoStarted.current = true; startMock(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me, view, chosen]);
+
   const submitMock = useCallback(async () => {
     if (!mock || busy) return;
     setBusy(true);
@@ -273,7 +285,7 @@ export default function QuizPlayPage() {
             )}
             <div className="qz-actions">
               <button type="button" className="pp-btn pp-btn-lime of-cut" disabled={busy} onClick={() => start(q.mode)}>{t("Câu tiếp")} →</button>
-              <button type="button" className="pp-btn pp-btn-ghost of-cut" onClick={() => { setView("lobby"); setQ(null); setAns(null); }}>{t("Về sảnh")}</button>
+              <button type="button" className="pp-btn pp-btn-ghost of-cut" onClick={toHub}>{t("Về sảnh")}</button>
             </div>
             <details>
               <summary className="qz-link" style={{ cursor: "pointer" }}>{t("Báo câu hỏi sai")}</summary>
@@ -381,40 +393,22 @@ export default function QuizPlayPage() {
         )}
         <div className="qz-actions">
           <button type="button" className="pp-btn pp-btn-lime of-cut" disabled={busy} onClick={startMock}>{t("Làm đề khác")}</button>
-          <button type="button" className="pp-btn pp-btn-ghost of-cut" onClick={() => { setView("lobby"); setMock(null); }}>{t("Về sảnh")}</button>
+          <button type="button" className="pp-btn pp-btn-ghost of-cut" onClick={toHub}>{t("Về sảnh")}</button>
         </div>
       </div>,
       true
     );
   }
 
-  // ----- lobby -----
+  // ----- set-up: topic practice picks a topic and level; rank and mock start by themselves -----
   const groups = Object.keys(GROUP_LABELS).filter((g) => me.topics.some((x) => x.group === g));
   return shell(
     <div className="qz">
       {status?.testing && <span className="qz-test" style={{ justifySelf: "start" }}>{t("Đang thử · chỉ quản trị thấy")}</span>}
-      <RankCard
-        rank={me.rank} rankLabel={me.rankLabel} stars={me.stars} starsPerRank={me.starsPerRank} guard={me.guard} ranks={me.ranks}
-        extra={<div className="qz-meta"><span>{t("Hôm nay")} <b>{me.todayCount}{me.dailyCap > 0 ? `/${me.dailyCap}` : ""}</b></span><span>{t("Chuỗi")} <b>{me.streak}</b></span><span>{t("Đúng")} <b>{me.answered ? Math.round((100 * me.correct) / me.answered) : 0}%</b></span></div>}
-      />
-      <div className="pp-seg" role="group" aria-label={t("Chế độ")} style={{ justifySelf: "start", maxWidth: "100%", overflowX: "auto" }}>
-        {([["rank", "Leo hạng"], ["practice", "Theo chủ đề"], ["mock", "Đề thi thử"]] as const).map(([k, l]) => (
-          <button key={k} type="button" aria-pressed={mode === k} onClick={() => setMode(k)}>{t(l)}</button>
-        ))}
-      </div>
-
-      {mode === "rank" && (
-        <div className="qz-card of-cut" style={{ display: "grid", gap: 12 }}>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>
-            {t("Mỗi câu {s} giây. Đúng được 1 sao, sai mất 1 sao. Đủ {n} sao thì câu đúng tiếp theo đưa bạn lên hạng. Hết sao thì còn 1 lượt giữ hạng trước khi rớt.", { s: me.seconds, n: me.starsPerRank })}
-          </p>
-          <p className="pp-mute" style={{ margin: 0, fontSize: 13 }}>{t("Hạng càng cao câu càng khó. Bỏ dở giữa chừng tính là sai.")}</p>
-          <button type="button" className="pp-btn pp-btn-lime of-cut" style={{ justifySelf: "start" }} disabled={busy} onClick={() => start("rank")}>{t("Bắt đầu")} →</button>
-        </div>
-      )}
-
+      {mode !== "practice" && !error && <div className="pp-spin" />}
       {mode === "practice" && (
         <div className="qz-card of-cut" style={{ display: "grid", gap: 12 }}>
+          <h1 className="pp-disp" style={{ fontSize: "clamp(28px, 6vw, 40px)", margin: 0 }}>{t("Luyện theo chủ đề")}</h1>
           {groups.map((g) => (
             <div key={g} style={{ display: "grid", gap: 6 }}>
               <span className="pp-hud pp-mute">{t(GROUP_LABELS[g])}</span>
@@ -435,12 +429,6 @@ export default function QuizPlayPage() {
         </div>
       )}
 
-      {mode === "mock" && (
-        <div className="qz-card of-cut" style={{ display: "grid", gap: 12 }}>
-          <p style={{ margin: 0, lineHeight: 1.5 }}>{t("{n} câu trong {m} phút, trộn đủ kiến thức, tư duy và tình huống như phần thi ở vòng tuyển trạch. Nộp bài để xem điểm và đáp án từng câu.", { n: me.mockSize, m: me.mockMinutes })}</p>
-          <button type="button" className="pp-btn pp-btn-lime of-cut" style={{ justifySelf: "start" }} disabled={busy} onClick={startMock}>{t("Làm đề")} →</button>
-        </div>
-      )}
       {error && <p className="err">{error}</p>}
     </div>
   );
