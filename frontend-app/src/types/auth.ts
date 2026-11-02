@@ -33,6 +33,7 @@ export interface RegisterData {
   selectedRegion?: 'HANOI_NORTH' | 'DANANG_CENTRAL' | 'HCMC_SOUTH';
   playerProfile?: {
     positions?: string[];
+    secondaryPosition?: string;
     height?: string;
     weight?: string;
     preferredFoot?: string;

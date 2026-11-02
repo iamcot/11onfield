@@ -171,6 +171,7 @@ const account: Messages = {
   'Khu vực tuyển trạch': ['Trial region', 'Región de prueba', '선발 지역'],
   'Xác nhận & gửi': ['Confirm & submit', 'Confirmar y enviar', '확인 & 제출'],
   Chính: ['Main', 'Principal', '주'],
+  Phụ: ['Secondary', 'Secundaria', '보조'],
   'Tên của bạn': ['Your name', 'Tu nombre', '이름'],
   'Vị trí': ['Position', 'Posición', '포지션'],
   Chân: ['Foot', 'Pierna', '주발'],
@@ -216,7 +217,9 @@ const account: Messages = {
   'Nhận xác nhận hồ sơ và lịch tuyển trạch': ['Get your application confirmation and trial schedule', 'Recibe la confirmación y el calendario de pruebas', '지원 확인 및 선발 일정 수신'],
   'Vị trí sở trường (chạm vào sân)': ['Preferred positions (tap the field)', 'Posiciones preferidas (toca el campo)', '선호 포지션 (그라운드를 누르세요)'],
   'Đã chọn: {positions}': ['Selected: {positions}', 'Seleccionado: {positions}', '선택: {positions}'],
-  'Chọn nhiều vị trí được, vị trí đầu tiên là vị trí chính': ['You can pick several; the first one is your main position', 'Puedes elegir varias; la primera es tu posición principal', '여러 개 선택 가능하며, 첫 번째가 주 포지션입니다'],
+  'Chạm lần đầu chọn vị trí chính, chạm thêm một vị trí phụ nếu có': ['First tap picks your main position, a second tap adds a secondary one', 'El primer toque elige tu posición principal, un segundo añade una secundaria', '처음 누른 곳이 주 포지션, 한 번 더 누르면 보조 포지션입니다'],
+  'Chính: {position}': ['Main: {position}', 'Principal: {position}', '주: {position}'],
+  'Phụ: {position}': ['Secondary: {position}', 'Secundaria: {position}', '보조: {position}'],
   'Chân thuận': ['Preferred foot', 'Pierna hábil', '주발'],
   'Ảnh chân dung, video highlight và CLB đã thi đấu bạn bổ sung trong hồ sơ ngay sau khi đăng ký.': [
     'You can add a portrait photo, highlight video and past clubs to your profile right after signing up.',
