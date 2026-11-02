@@ -1,14 +1,11 @@
 "use client";
 
-import { useAuth } from "@/contexts/AuthContext";
-import { useNotifications } from "@/contexts/NotificationContext";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import NotificationDropdown from "./NotificationDropdown";
+import { AvatarButton, BellButton } from "./HeaderUser";
 import RightNavigator from "./RightNavigator";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
-import { useT } from "@/i18n/I18nProvider";
 
 interface TopBarProps {
   onMenuToggle?: () => void;
@@ -16,10 +13,6 @@ interface TopBarProps {
 
 export default function TopBar({ onMenuToggle }: TopBarProps) {
   const [showRightNav, setShowRightNav] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const { user } = useAuth();
-  const { unreadCount } = useNotifications();
-  const t = useT();
 
   const handleAvatarClick = () => {
     setShowRightNav(!showRightNav);
@@ -46,73 +39,11 @@ export default function TopBar({ onMenuToggle }: TopBarProps) {
               </Link>
             </div>
 
-            {/* Right: language, then bell and avatar */}
-            <LanguageSwitcher round className="mr-2" />
-            <div className="relative flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
-              {/* Bell Icon */}
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-1 text-white hover:bg-white/20 rounded-full transition"
-                aria-label={t("Thông báo")}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-                {/* Notification badge */}
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Notification Dropdown */}
-              {showNotifications && (
-                <NotificationDropdown
-                  onClose={() => setShowNotifications(false)}
-                />
-              )}
-
-              {/* User Avatar */}
-              <button
-                onClick={handleAvatarClick}
-                className="relative p-0.5 hover:bg-white/20 rounded-full transition"
-                aria-label={t("Menu người dùng")}
-              >
-                {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.fullName || "User"}
-                    className="w-8 h-8 rounded-full object-cover border-2 border-white"
-                  />
-                ) : user?.fullName ? (
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border-2 border-white">
-                    <span className="text-gold-600 font-semibold text-sm">
-                      {user.fullName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border-2 border-white">
-                    <svg
-                      className="w-5 h-5 text-gold-600"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  </div>
-                )}
-              </button>
+            {/* Right: flag, bell and avatar, chamfered like the landing header */}
+            <div className="flex items-center gap-1.5">
+              <LanguageSwitcher />
+              <BellButton />
+              <AvatarButton onClick={handleAvatarClick} expanded={showRightNav} />
             </div>
           </div>
         </div>
