@@ -4,7 +4,6 @@ export const registerConfig = {
   positionOptions: [
     { value: 'striker', label: 'Tiền đạo' },
     { value: 'midfielder', label: 'Tiền vệ' },
-    { value: 'centerback', label: 'Trung vệ' },
     { value: 'defender', label: 'Hậu vệ' },
     { value: 'goalkeeper', label: 'Thủ môn' },
   ],

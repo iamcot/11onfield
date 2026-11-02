@@ -329,7 +329,7 @@ public class EventFormFields {
         if (blank(p.getPositions()) && v.containsKey("player.positions")) {
             List<String> keys = Arrays.stream(v.get("player.positions").split(",")).map(String::trim)
                     .map(x -> POSITION.containsKey(x) ? Optional.of(x) : keyOf(POSITION, x)).flatMap(Optional::stream).distinct().toList();
-            if (!keys.isEmpty()) p.setPositions(String.join(",", keys));
+            if (!keys.isEmpty()) PlayerPositions.apply(p, keys, blank(p.getSecondaryPosition()) ? null : p.getSecondaryPosition());
         }
         if (blank(p.getSchool()) && v.containsKey("player.school")) p.setSchool(v.get("player.school"));
         if (blank(p.getClub()) && v.containsKey("player.club")) p.setClub(v.get("player.club"));

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PlayerAttributes } from '@/components/admin/PlayerAttributes';
 import { api, useApi } from '@/lib/admin/client';
-import { LEVELS, POSITIONS } from '@/lib/admin/labels';
+import { LEVELS, POSITIONS, positionLabel } from '@/lib/admin/labels';
 import { useIsManager } from '@/components/admin/me';
 import { Badge, Button, ChevronCell, ClickRow, Drawer, Hexagon, Input, LinkButton, Loading, PageTitle, Pagination, Select, Table, Td, Toggle, useUi } from '@/components/admin/ui';
 
@@ -147,7 +147,7 @@ export default function PlayersPage() {
                     </div>
                   </div>
                 </Td>
-                <Td className="text-[#46564D]">{p.positions ? POSITIONS[p.positions] || p.positions : '—'}</Td>
+                <Td className="text-[#46564D]">{positionLabel(p.positions)}</Td>
                 <Td className="text-[#46564D]">{p.level ? LEVELS[p.level] || p.level : '—'}</Td>
                 <Td className="text-[#46564D]">{p.provinceName || '—'}</Td>
                 <Td>

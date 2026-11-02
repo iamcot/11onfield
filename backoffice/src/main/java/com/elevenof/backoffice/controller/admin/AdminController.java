@@ -1093,11 +1093,8 @@ public class AdminController {
             existingPlayer.setYearsOfExperience(yearsOfExperience);
 
             // Convert List<String> positions to comma-separated string
-            if (positions != null && positions.length > 0) {
-                existingPlayer.setPositions(String.join(",", positions));
-            } else {
-                existingPlayer.setPositions(null);
-            }
+            com.elevenof.backoffice.service.PlayerPositions.apply(existingPlayer,
+                    positions != null ? java.util.Arrays.asList(positions) : java.util.List.of(), secondaryPosition);
 
             if (level != null && !level.isEmpty()) {
                 existingPlayer.setLevel(Player.PlayerLevel.valueOf(level));

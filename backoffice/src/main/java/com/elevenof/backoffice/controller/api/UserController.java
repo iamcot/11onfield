@@ -447,12 +447,7 @@ public class UserController {
                     .build();
             }
 
-            if (request.getPositions() != null) {
-                player.setPositions(String.join(",", request.getPositions()));
-            }
-            if (request.getSecondaryPosition() != null) {
-                player.setSecondaryPosition(request.getSecondaryPosition());
-            }
+            com.elevenof.backoffice.service.PlayerPositions.apply(player, request.getPositions(), request.getSecondaryPosition());
             if (request.getYearsOfExperience() != null) {
                 player.setYearsOfExperience(request.getYearsOfExperience());
             }

@@ -102,7 +102,6 @@ public class UserAuthService {
                 PlayerProfileRequest profile = request.getPlayerProfile();
                 player = Player.builder()
                         .user(savedUser)
-                        .positions(profile.getPositions() != null ? String.join(",", profile.getPositions()) : null)
                         .height(profile.getHeight())
                         .weight(profile.getWeight())
                         .preferredFoot(profile.getPreferredFoot())
@@ -110,6 +109,7 @@ public class UserAuthService {
                         .highlights(new ArrayList<>())
                         .socials(new ArrayList<>())
                         .build();
+                PlayerPositions.apply(player, profile.getPositions(), profile.getSecondaryPosition());
             } else {
                 // Create minimal Player profile if no data provided
                 player = Player.builder()

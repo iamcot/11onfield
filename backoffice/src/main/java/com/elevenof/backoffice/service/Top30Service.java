@@ -23,7 +23,7 @@ import java.util.*;
 public class Top30Service {
 
     private static final List<ParticipantStatus> SELECTED = List.of(ParticipantStatus.SELECTED_TOP30, ParticipantStatus.SELECTED_TOP11);
-    private static final List<String> POSITION_ORDER = List.of("goalkeeper", "defender", "centerback", "midfielder", "striker");
+    private static final List<String> POSITION_ORDER = List.of("goalkeeper", "defender", "midfielder", "striker");
 
     private final CompetitionParticipantRepository participantRepository;
     private final com.elevenof.backoffice.repository.SelectionDecisionRepository decisionRepository;

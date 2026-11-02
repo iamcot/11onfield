@@ -14,6 +14,7 @@ import StadiumBackdrop from '../home/StadiumBackdrop';
 import { ArrowRight, cssVars } from '../home/ui';
 import '../home/home.css';
 import { useT } from '@/i18n/I18nProvider';
+import type { TFunction } from '@/i18n/translate';
 
 type Region = NonNullable<RegisterData['selectedRegion']>;
 
@@ -115,6 +116,15 @@ function Check({ checked, onChange, children }: { checked: boolean; onChange: (v
 
 /* ------------------------------------------------------- pitch picker */
 
+const positionLabelOf = (id: string | undefined, t: TFunction) =>
+  t(POSITIONS.find((p) => p.id === id)?.label ?? '');
+
+/** "Chính: Tiền đạo · Phụ: Tiền vệ" (the secondary part only when one is chosen). */
+function positionSummary(ids: string[], t: TFunction) {
+  const main = t('Chính: {position}', { position: positionLabelOf(ids[0], t) });
+  return ids[1] ? `${main} · ${t('Phụ: {position}', { position: positionLabelOf(ids[1], t) })}` : main;
+}
+
 function PitchPicker({ value, onToggle }: { value: string[]; onToggle: (id: string) => void }) {
   const t = useT();
   return (
@@ -147,6 +157,7 @@ function PitchPicker({ value, onToggle }: { value: string[]; onToggle: (id: stri
           >
             {t(p.label)}
             {idx === 0 && <span className="of-pos-tag">{t('Chính')}</span>}
+            {idx === 1 && <span className="of-pos-tag">{t('Phụ')}</span>}
           </button>
         );
       })}
@@ -306,7 +317,8 @@ export default function RegisterFlow() {
         ? {
             selectedRegion: form.region || undefined,
             playerProfile: {
-              positions: form.positions,
+              positions: form.positions.slice(0, 1),
+              ...(form.positions[1] ? { secondaryPosition: form.positions[1] } : {}),
               ...(form.height ? { height: form.height } : {}),
               ...(form.weight ? { weight: form.weight } : {}),
               ...(form.preferredFoot ? { preferredFoot: form.preferredFoot } : {}),
@@ -338,8 +350,14 @@ export default function RegisterFlow() {
     }
   };
 
+  // One main position (first tap) and at most one secondary (second tap); a third tap replaces the secondary.
   const togglePosition = (id: string) =>
-    set('positions', form.positions.includes(id) ? form.positions.filter((p) => p !== id) : [...form.positions, id]);
+    set(
+      'positions',
+      form.positions.includes(id)
+        ? form.positions.filter((p) => p !== id)
+        : [form.positions[0] ?? id, ...(form.positions[0] ? [id] : [])],
+    );
 
   return (
     <div ref={rootRef} className={`of-root ${barlowCondensed.variable} ${chakraPetch.variable}`}>
@@ -516,8 +534,8 @@ export default function RegisterFlow() {
                           <div className={`mt-2 text-[12.5px] ${errors.positions ? 'text-[#FF8A80]' : 'text-[#9FB0A6]'}`}>
                             {errors.positions ||
                               (form.positions.length
-                                ? t('Đã chọn: {positions}', { positions: form.positions.map((id) => t(POSITIONS.find((p) => p.id === id)?.label ?? '')).join(', ') })
-                                : t('Chọn nhiều vị trí được, vị trí đầu tiên là vị trí chính'))}
+                                ? positionSummary(form.positions, t)
+                                : t('Chạm lần đầu chọn vị trí chính, chạm thêm một vị trí phụ nếu có'))}
                           </div>
                         </div>
                         <div className="grid gap-4">
@@ -582,7 +600,7 @@ export default function RegisterFlow() {
                           [t('Ngày sinh'), form.dob ? `${formatDate(form.dob)}${age !== null ? t(' · {age} tuổi', { age }) : ''}` : '—'],
                           ...(form.isPlayer
                             ? [
-                                [t('Vị trí'), form.positions.map((id) => t(POSITIONS.find((p) => p.id === id)?.label ?? '')).join(', ')],
+                                [t('Vị trí'), positionSummary(form.positions, t)],
                                 [t('Chân thuận'), t(FEET.find((f) => f.id === form.preferredFoot)?.label ?? '—')],
                                 [t('Khu vực'), t(REGIONS.find((r) => r.id === form.region)?.label ?? '—')],
                               ]
