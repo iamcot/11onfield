@@ -70,7 +70,7 @@
 .qz-link { font-size: 13px; color: var(--pp-mute); text-decoration: underline; }
 
 /* mock exam */
-.qz-mock-bar { position: sticky; top: 64px; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(6, 22, 14, 0.94); --c: 10px; }
+.qz-mock-bar, .qz-mock-bar.of-cut:not(.absolute):not(.fixed) { position: sticky; top: 64px; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; background: #0A1F14; --c: 10px; }
 .qz-dots { display: flex; flex-wrap: wrap; gap: 4px; }
 .qz-dots button { width: 26px; height: 26px; font: 700 11px/1 var(--f-hud); border-radius: 4px; background: rgba(255, 255, 255, 0.07); color: var(--pp-mute); }
 .qz-dots button.done { background: rgba(166, 227, 90, 0.25); color: #fff; }
