@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import TopBar from "@/components/layout/TopBar";
+import TopUserCard from "@/components/layout/TopUserCard";
 import MobileNav from "@/components/layout/MobileNav";
 import BoardList from "@/components/quiz/BoardList";
 import "@/components/pp/pp.css";
@@ -40,6 +41,7 @@ export default function QuizBoardPage() {
   return (
     <div className="pp min-h-screen pt-16 pb-24 md:pb-8">
       <TopBar />
+      <TopUserCard />
       <section className="pp-wrap" style={{ maxWidth: 820 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, paddingTop: 16 }}>
           <Link href={`/competitions/${competitionId}/luyen-tap`} className="qz-link">← {t("Luyện tập")}</Link>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import TopBar from "@/components/layout/TopBar";
+import TopUserCard from "@/components/layout/TopUserCard";
 import MobileNav from "@/components/layout/MobileNav";
 import PitchDiagram from "@/components/quiz/PitchDiagram";
 import RankCard from "@/components/quiz/RankCard";
@@ -175,6 +176,7 @@ export default function QuizPlayPage() {
   const shell = (children: React.ReactNode) => (
     <div className="pp min-h-screen pt-16 pb-24 md:pb-8">
       <TopBar />
+      <TopUserCard />
       <section className="pp-wrap" style={{ maxWidth: 820 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, paddingTop: 16 }}>
           <Link href={`/competitions/${competitionId}?tab=quiz`} className="qz-link">← {t("Về trang giải")}</Link>
