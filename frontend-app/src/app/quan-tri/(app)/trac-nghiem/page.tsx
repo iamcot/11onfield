@@ -472,7 +472,20 @@ function TopicsTab({ topics, reload }: { topics: QuizTopic[]; reload: () => void
 function SettingsTab({ onChanged }: { onChanged: () => void }) {
   const me = useMe();
   const { toast, confirm } = useUi();
-  const s = useApi<{ values: Record<string, number>; fields: SettingsField[] }>('quiz/settings');
+  const s = useApi<{ values: Record<string, number>; fields: SettingsField[]; rankMix: number[][]; defaultRankMix: number[][]; ranks: string[]; levels: Record<string, string> }>('quiz/settings');
+  const [mix, setMix] = useState<number[][]>([]);
+  useEffect(() => { if (s.data) setMix(s.data.rankMix.map((r) => [...r])); }, [s.data]);
+  const mixSums = mix.map((r) => r.reduce((a, b) => a + b, 0));
+  const mixOk = mix.length > 0 && mixSums.every((x) => x === 100);
+  async function saveMix(next: number[][]) {
+    try {
+      await api('quiz/settings', { method: 'PUT', body: { rankMix: next } });
+      toast('Đã lưu tỉ lệ độ khó');
+      s.reload();
+    } catch (e) {
+      toast((e as Error).message, 'error');
+    }
+  }
   const stats = useApi<Record<string, any>>('quiz/stats');
   const [vals, setVals] = useState<Record<string, number>>({});
   useEffect(() => { if (s.data) setVals(s.data.values); }, [s.data]);
@@ -481,7 +494,7 @@ function SettingsTab({ onChanged }: { onChanged: () => void }) {
 
   async function toggle() {
     const next = enabled ? 0 : 1;
-    if (!(await confirm(next ? 'Bật luyện tập trắc nghiệm cho mọi cầu thủ? Tab "Luyện tập" sẽ hiện trong trang giải đấu.' : 'Tắt luyện tập trắc nghiệm? Cầu thủ không thấy tab nữa, chỉ ADMIN/EDITOR còn vào thử được.'))) return;
+    if (!(await confirm(next ? 'Bật luyện tập trắc nghiệm cho mọi cầu thủ? Mục "Luyện tập" sẽ hiện trên menu chính.' : 'Tắt luyện tập trắc nghiệm? Cầu thủ không thấy mục Luyện tập nữa, chỉ ADMIN/EDITOR còn vào thử được.'))) return;
     try {
       await api('quiz/settings', { method: 'PUT', body: { enabled: next } });
       toast(next ? 'Đã bật cho cầu thủ' : 'Đã tắt');
@@ -513,7 +526,7 @@ function SettingsTab({ onChanged }: { onChanged: () => void }) {
                 <h2 className="text-[16px] font-semibold">Tính năng luyện tập cho cầu thủ</h2>
                 <p className="mt-1 text-[14px] text-[#46564D]">
                   {enabled
-                    ? 'Đang bật: mọi cầu thủ thấy tab "Luyện tập" trong trang giải đấu và bảng xếp hạng.'
+                    ? 'Đang bật: mọi cầu thủ thấy mục "Luyện tập" trên menu chính và bảng xếp hạng.'
                     : 'Đang tắt: cầu thủ không thấy gì. ADMIN và EDITOR vẫn vào chơi thử được (có nhãn "Đang thử").'}
                 </p>
                 {!isAdmin && <p className="mt-1 text-[13px] text-[#8A5A00]">Chỉ ADMIN được bật hoặc tắt.</p>}
@@ -539,6 +552,44 @@ function SettingsTab({ onChanged }: { onChanged: () => void }) {
               ))}
             </div>
             <div className="mt-4 flex justify-end"><Button variant="primary" onClick={saveNumbers}>Lưu cài đặt</Button></div>
+          </Card>
+          <Card title="Leo hạng: tỉ lệ độ khó theo hạng (%)">
+            <p className="mb-3 text-[13px] text-[#66766D]">
+              Mỗi câu leo hạng rút mức độ khó theo dòng của hạng người chơi đang ở. Mỗi dòng cộng lại phải đúng 100%.
+              Mức nào hết câu thì lấy mức gần nhất. Chủ đề được xoay vòng đều, và cứ mỗi {vals.diagram_every || 5} câu có ít nhất 1 câu sơ đồ (đổi số này ở ô bên trên, 0 = tắt).
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[620px] text-[13px]">
+                <thead>
+                  <tr className="text-[11px] uppercase tracking-wider text-[#56665D]">
+                    <th className="px-2 py-2 text-left font-medium">Hạng</th>
+                    {[1, 2, 3, 4, 5].map((d) => <th key={d} className="px-2 py-2 font-medium">{d}. {s.data!.levels[d]}</th>)}
+                    <th className="px-2 py-2 text-right font-medium">Tổng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mix.map((row, r) => (
+                    <tr key={r} className="border-t border-[#EDF2EE]">
+                      <td className="px-2 py-1.5 font-medium">{r + 1}. {s.data!.ranks[r]}</td>
+                      {row.map((v, c) => (
+                        <td key={c} className="px-1 py-1.5">
+                          <Input
+                            type="number" min={0} max={100} step={5} value={v} aria-label={`${s.data!.ranks[r]} mức ${c + 1}`}
+                            className="text-center"
+                            onChange={(e) => setMix(mix.map((rw, i) => (i === r ? rw.map((x, j) => (j === c ? Math.max(0, Math.min(100, Number(e.target.value) || 0)) : x)) : rw)))}
+                          />
+                        </td>
+                      ))}
+                      <td className={`px-2 py-1.5 text-right font-semibold ${mixSums[r] === 100 ? 'text-[#1F6B32]' : 'text-[#B42318]'}`}>{mixSums[r]}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <Button onClick={() => saveMix(s.data!.defaultRankMix)}>Về mặc định</Button>
+              <Button variant="primary" disabled={!mixOk} onClick={() => saveMix(mix)}>{mixOk ? 'Lưu tỉ lệ' : 'Mỗi dòng phải đủ 100%'}</Button>
+            </div>
           </Card>
         </>
       )}

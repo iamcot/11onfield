@@ -2,6 +2,7 @@ package com.elevenof.backoffice.controller.admin;
 
 import com.elevenof.backoffice.service.quiz.QuizBankRules;
 import com.elevenof.backoffice.service.quiz.QuizBankService;
+import com.elevenof.backoffice.service.quiz.QuizGameRules;
 import com.elevenof.backoffice.service.quiz.QuizGameService;
 import com.elevenof.backoffice.service.quiz.QuizSettings;
 import lombok.RequiredArgsConstructor;
@@ -156,6 +157,10 @@ public class AdminQuizBankController {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("values", settings.all());
         out.put("fields", QuizSettings.FIELDS);
+        out.put("rankMix", settings.rankMix());
+        out.put("defaultRankMix", QuizGameRules.MIX);
+        out.put("ranks", QuizGameRules.RANKS.stream().map(QuizGameRules.Rank::label).toList());
+        out.put("levels", QuizBankRules.LEVEL_LABELS);
         return out;
     }
 
@@ -165,11 +170,28 @@ public class AdminQuizBankController {
         boolean admin = auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         if (body.containsKey("enabled") && !admin) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "Chỉ ADMIN được bật hoặc tắt tính năng"));
         try {
-            settings.save(body);
+            Map<String, Object> numbers = new LinkedHashMap<>(body);
+            Object mix = numbers.remove("rankMix");
+            if (mix != null) settings.saveRankMix(toMix(mix));
+            settings.save(numbers);
             return ResponseEntity.ok(settings());
         } catch (IllegalArgumentException e) {
             return error(e.getMessage());
         }
+    }
+
+    private static int[][] toMix(Object raw) {
+        if (!(raw instanceof List<?> rows)) throw new IllegalArgumentException("Bảng tỉ lệ không hợp lệ");
+        int[][] out = new int[rows.size()][];
+        for (int r = 0; r < rows.size(); r++) {
+            if (!(rows.get(r) instanceof List<?> cells)) throw new IllegalArgumentException("Bảng tỉ lệ không hợp lệ");
+            out[r] = new int[cells.size()];
+            for (int c = 0; c < cells.size(); c++) {
+                if (!(cells.get(c) instanceof Number n)) throw new IllegalArgumentException("Bảng tỉ lệ phải là số");
+                out[r][c] = n.intValue();
+            }
+        }
+        return out;
     }
 
     @GetMapping("/stats")
