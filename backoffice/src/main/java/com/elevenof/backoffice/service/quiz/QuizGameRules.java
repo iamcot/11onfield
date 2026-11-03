@@ -72,15 +72,61 @@ public final class QuizGameRules {
         return new Result(before, false, 0, false, false, false);
     }
 
-    /** Difficulty 1..5 for one question of `rank`; `roll` is a random number in [0, 1). */
+    /** Difficulty 1..5 for one question of `rank` with the default mix; `roll` is a random number in [0, 1). */
     public static int pickDifficulty(int rank, double roll) {
-        int[] mix = MIX[Math.max(0, Math.min(rank, MIX.length - 1))];
+        return pickDifficulty(MIX[Math.max(0, Math.min(rank, MIX.length - 1))], roll);
+    }
+
+    /** Difficulty 1..5 drawn from one row of percentages. */
+    public static int pickDifficulty(int[] mix, double roll) {
         double point = roll * 100, sum = 0;
         for (int i = 0; i < mix.length; i++) {
             sum += mix[i];
             if (point < sum) return i + 1;
         }
         return 1;
+    }
+
+    /** Why a mix table (one row per rank, 5 percentages) cannot be used, or null when it is fine. */
+    public static String mixProblem(int[][] mix) {
+        if (mix == null || mix.length != RANKS.size()) return "Cần đủ " + RANKS.size() + " hạng";
+        for (int r = 0; r < mix.length; r++) {
+            if (mix[r] == null || mix[r].length != 5) return RANKS.get(r).label() + ": cần đủ 5 mức";
+            int sum = 0;
+            for (int v : mix[r]) {
+                if (v < 0 || v > 100) return RANKS.get(r).label() + ": mỗi ô từ 0 đến 100";
+                sum += v;
+            }
+            if (sum != 100) return RANKS.get(r).label() + ": tổng phải là 100% (đang là " + sum + "%)";
+        }
+        return null;
+    }
+
+    /**
+     * Whether the next rank question must have a pitch diagram: the last `every - 1` rank questions (newest first in
+     * `recentHadDiagram`) had none. 0 or 1 = no rule; a player with fewer questions than that is not forced yet.
+     */
+    public static boolean needsDiagram(List<Boolean> recentHadDiagram, int every) {
+        if (every <= 1) return false;
+        int window = every - 1;
+        if (recentHadDiagram.size() < window) return false;
+        for (int i = 0; i < window; i++) if (recentHadDiagram.get(i)) return false;
+        return true;
+    }
+
+    /**
+     * Topics in the order to try for the next rank question, so topics take turns: those not among the recent
+     * questions first (shuffled), then the one seen longest ago. `recent` = topics of the last rank questions, newest first.
+     */
+    public static List<String> topicOrder(List<String> active, List<String> recent, java.util.Random random) {
+        List<String> unseen = new ArrayList<>();
+        for (String t : active) if (!recent.contains(t)) unseen.add(t);
+        java.util.Collections.shuffle(unseen, random);
+        List<String> seen = new ArrayList<>();
+        for (String t : active) if (recent.contains(t)) seen.add(t);
+        seen.sort((a, b) -> Integer.compare(recent.indexOf(b), recent.indexOf(a)));
+        unseen.addAll(seen);
+        return unseen;
     }
 
     /** Other difficulties to try when a level is empty: nearest first, easier before harder. */

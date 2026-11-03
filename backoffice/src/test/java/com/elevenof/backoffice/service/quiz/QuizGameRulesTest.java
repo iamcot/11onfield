@@ -106,4 +106,31 @@ class QuizGameRulesTest {
         assertEquals(0, QuizGameRules.percent(0, 0));
         assertEquals(List.of(1, -1, 3), QuizGameRules.parseInts("1,x,3"));
     }
+
+    @Test
+    void mixTableIsChecked() {
+        assertNull(QuizGameRules.mixProblem(QuizGameRules.MIX));
+        int[][] bad = java.util.Arrays.stream(QuizGameRules.MIX).map(int[]::clone).toArray(int[][]::new);
+        bad[2][0] += 5;
+        assertTrue(QuizGameRules.mixProblem(bad).contains("105"));
+        assertNotNull(QuizGameRules.mixProblem(new int[3][5]));
+        assertEquals(3, QuizGameRules.pickDifficulty(new int[]{0, 0, 100, 0, 0}, 0.5));
+    }
+
+    @Test
+    void diagramAtLeastOnceInEveryFive() {
+        assertFalse(QuizGameRules.needsDiagram(List.of(false, false, false), 5));
+        assertTrue(QuizGameRules.needsDiagram(List.of(false, false, false, false), 5));
+        assertTrue(QuizGameRules.needsDiagram(List.of(false, false, false, false, true), 5));
+        assertFalse(QuizGameRules.needsDiagram(List.of(false, false, true, false, false), 5));
+        assertFalse(QuizGameRules.needsDiagram(List.of(false, false, false, false), 0));
+    }
+
+    @Test
+    void topicsTakeTurns() {
+        List<String> active = List.of("a", "b", "c", "d");
+        List<String> order = QuizGameRules.topicOrder(active, List.of("b", "c", "a"), new Random(1));
+        assertEquals(List.of("d", "a", "c", "b"), order);
+        assertEquals(4, QuizGameRules.topicOrder(active, List.of(), new Random(1)).size());
+    }
 }

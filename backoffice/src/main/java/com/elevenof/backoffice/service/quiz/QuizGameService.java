@@ -132,9 +132,14 @@ public class QuizGameService {
             if (topic == null || bank.topic(topic).filter(QuizBankService.Topic::active).isEmpty()) throw new IllegalArgumentException("Chọn một chủ đề");
             if (difficulty != null && !QuizBankRules.DIFFICULTIES.contains(difficulty)) throw new IllegalArgumentException("Độ khó phải từ 1 đến 5");
         }
-        int level = "rank".equals(mode) ? QuizGameRules.pickDifficulty(i(p.get("rank_idx")), RANDOM.nextDouble())
-                : difficulty != null ? difficulty : 0;
-        Long qid = pickQuestion(userId, "rank".equals(mode) ? null : topic, level, difficulty == null && "practice".equals(mode));
+        Long qid;
+        if ("rank".equals(mode)) {
+            int[][] mix = settings.rankMix();
+            int level = QuizGameRules.pickDifficulty(mix[Math.max(0, Math.min(i(p.get("rank_idx")), mix.length - 1))], RANDOM.nextDouble());
+            qid = pickRankQuestion(userId, level);
+        } else {
+            qid = pickQuestion(userId, topic, difficulty != null ? difficulty : 0, difficulty == null, null, false);
+        }
         if (qid == null) throw new IllegalStateException("Chưa có câu hỏi nào cho lựa chọn này.");
         long issued = now();
         long expires = issued + settings.get("seconds") * 1000L;
@@ -147,8 +152,35 @@ public class QuizGameService {
         return questionView(id);
     }
 
-    /** Not seen in `no_repeat_days`, then any level nearby, then a repeat. `anyLevel` = practice without a chosen level. */
-    private Long pickQuestion(long userId, String topic, int level, boolean anyLevel) {
+    /**
+     * Rank mode: topics take turns (the one not seen for longest first) and at least one question in every
+     * `diagram_every` has a pitch diagram; the level comes from the rank's mix.
+     */
+    private Long pickRankQuestion(long userId, int level) {
+        List<String> active = jdbc.queryForList("SELECT topic_key FROM quiz_topics WHERE active = 1 ORDER BY sort_order, topic_key", String.class);
+        int every = settings.get("diagram_every");
+        int window = Math.max(active.size(), every);
+        List<String> recentTopics = new ArrayList<>();
+        List<Boolean> recentDiagram = new ArrayList<>();
+        jdbc.query("SELECT q.topic, q.diagram IS NOT NULL AS has_diagram FROM quiz_attempts a JOIN quiz_questions q ON q.id = a.question_id "
+                        + "WHERE a.user_id = ? AND a.mode = 'rank' ORDER BY a.id DESC LIMIT ?",
+                rs -> {
+                    recentTopics.add(rs.getString("topic"));
+                    recentDiagram.add(rs.getBoolean("has_diagram"));
+                }, userId, window);
+        List<String> order = QuizGameRules.topicOrder(active, recentTopics.subList(0, Math.min(recentTopics.size(), Math.max(active.size() - 1, 0))), RANDOM);
+        if (QuizGameRules.needsDiagram(recentDiagram, every)) {
+            Long withDiagram = pickQuestion(userId, null, level, false, order, true);
+            if (withDiagram != null) return withDiagram;
+        }
+        return pickQuestion(userId, null, level, false, order, false);
+    }
+
+    /**
+     * Not seen in `no_repeat_days`, then any level nearby, then a repeat. `anyLevel` = practice without a chosen level;
+     * `topicOrder` = preferred topics first (rank mode); `diagramOnly` = only questions with a pitch diagram.
+     */
+    private Long pickQuestion(long userId, String topic, int level, boolean anyLevel, List<String> topicOrder, boolean diagramOnly) {
         int days = settings.get("no_repeat_days");
         Timestamp since = Timestamp.valueOf(LocalDateTime.now(clock.withZone(ZONE)).minusDays(days));
         List<Integer> levels = new ArrayList<>();
@@ -164,12 +196,21 @@ public class QuizGameService {
                 List<Object> args = new ArrayList<>();
                 if (topic != null) { sql.append(" AND q.topic = ?"); args.add(topic); }
                 if (lv > 0) { sql.append(" AND q.difficulty = ?"); args.add(lv); }
+                if (diagramOnly) sql.append(" AND q.diagram IS NOT NULL");
                 if (fresh) {
                     sql.append(" AND NOT EXISTS (SELECT 1 FROM quiz_attempts a WHERE a.user_id = ? AND a.question_id = q.id AND a.issued_at >= ?)");
                     args.add(userId);
                     args.add(since);
                 }
-                sql.append(" ORDER BY RAND() LIMIT 1");
+                if (topicOrder != null && !topicOrder.isEmpty()) {
+                    // preferred topic first; FIELD() is 0 for a topic outside the list, which then goes last
+                    sql.append(" ORDER BY FIELD(q.topic, ").append(String.join(",", java.util.Collections.nCopies(topicOrder.size(), "?")))
+                            .append(") = 0, FIELD(q.topic, ").append(String.join(",", java.util.Collections.nCopies(topicOrder.size(), "?"))).append("), RAND() LIMIT 1");
+                    args.addAll(topicOrder);
+                    args.addAll(topicOrder);
+                } else {
+                    sql.append(" ORDER BY RAND() LIMIT 1");
+                }
                 List<Long> ids = jdbc.queryForList(sql.toString(), Long.class, args.toArray());
                 if (!ids.isEmpty()) return ids.get(0);
             }
