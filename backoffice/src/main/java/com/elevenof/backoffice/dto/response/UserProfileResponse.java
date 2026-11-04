@@ -90,6 +90,7 @@ public class UserProfileResponse {
         private String kind;  // LINK or VIDEO (uploaded to Bunny)
         private String posterUrl;
         private String embedUrl;  // iframe player of an uploaded video
+        private String hlsUrl;    // HLS playlist of an uploaded video, played in the site's own video element
         private Boolean hidden;  // only sent to the owner
     }
 
