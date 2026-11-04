@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { IconClose, IconNext, IconPlay, IconPrev, IconSoundOff } from '@/components/pp/icons';
 import { useT } from '@/i18n/I18nProvider';
@@ -51,15 +51,93 @@ export function sourceOf(h: Highlight): Source {
   return { kind: 'link', href: h.url };
 }
 
-type Command = 'play' | 'pause' | 'unmute';
-const YT: Record<Command, string> = { play: 'playVideo', pause: 'pauseVideo', unmute: 'unMute' };
+type Command = 'play' | 'pause' | 'mute' | 'unmute';
+const YT: Record<Command, string> = { play: 'playVideo', pause: 'pauseVideo', mute: 'mute', unmute: 'unMute' };
+
+function post(frame: HTMLIFrameElement | null, msg: object) {
+  frame?.contentWindow?.postMessage(JSON.stringify(msg), '*');
+}
 
 function command(frame: HTMLIFrameElement | null, control: 'youtube' | 'playerjs', cmd: Command) {
-  const msg =
+  post(
+    frame,
     control === 'youtube'
       ? { event: 'command', func: YT[cmd], args: [] }
-      : { context: 'player.js', version: '0.0.11', method: cmd };
-  frame?.contentWindow?.postMessage(JSON.stringify(msg), '*');
+      : { context: 'player.js', version: '0.0.11', method: cmd },
+  );
+}
+
+/** True when a message from the player says the clip is playing. */
+export function isPlayingMessage(control: 'youtube' | 'playerjs', data: unknown): boolean {
+  let m: Record<string, unknown> | null = null;
+  try {
+    m = typeof data === 'string' ? JSON.parse(data) : (data as Record<string, unknown>);
+  } catch {
+    return false;
+  }
+  if (!m || typeof m !== 'object') return false;
+  if (control === 'youtube') {
+    const info = m.info as Record<string, unknown> | number | undefined;
+    if (m.event === 'onStateChange') return info === 1;
+    return m.event === 'infoDelivery' && typeof info === 'object' && info !== null && info.playerState === 1;
+  }
+  return m.context === 'player.js' && (m.event === 'play' || m.event === 'timeupdate');
+}
+
+const KICK_EVERY_MS = 500;
+const KICK_FOR_MS = 8000;
+
+/**
+ * The autoplay flag in the address is not enough: the player may ignore it (it loads after the swipe, it was
+ * not muted yet, the browser blocked it). Once the frame has loaded we ask it, muted, to play, every half
+ * second until it says it is playing (or 8 s pass, or the person taps).
+ */
+function useKickPlay(frame: RefObject<HTMLIFrameElement | null>, control: 'youtube' | 'playerjs' | null) {
+  const stop = useRef<() => void>(() => undefined);
+
+  const start = () => {
+    stop.current();
+    const el = frame.current;
+    if (!el || !control) return;
+    let done = false;
+    const onMessage = (e: MessageEvent) => {
+      if (e.source !== el.contentWindow) return;
+      if (control === 'playerjs') {
+        // player.js says "ready" when its methods work: ask it to tell us when it plays
+        try {
+          const m = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+          if (m?.context === 'player.js' && m.event === 'ready') {
+            post(el, { context: 'player.js', version: '0.0.11', method: 'addEventListener', value: 'play', listener: 'hv-play' });
+            post(el, { context: 'player.js', version: '0.0.11', method: 'addEventListener', value: 'timeupdate', listener: 'hv-time' });
+          }
+        } catch {
+          /* not ours */
+        }
+      }
+      if (isPlayingMessage(control, e.data)) finish();
+    };
+    const kick = () => {
+      // YouTube only reports its state after "listening"
+      if (control === 'youtube') post(el, { event: 'listening', id: 'hv', channel: 'widget' });
+      command(el, control, 'mute');
+      command(el, control, 'play');
+    };
+    const timer = window.setInterval(kick, KICK_EVERY_MS);
+    const limit = window.setTimeout(() => finish(), KICK_FOR_MS);
+    function finish() {
+      if (done) return;
+      done = true;
+      window.clearInterval(timer);
+      window.clearTimeout(limit);
+      window.removeEventListener('message', onMessage);
+    }
+    window.addEventListener('message', onMessage);
+    kick();
+    stop.current = finish;
+  };
+
+  useEffect(() => () => stop.current(), []);
+  return { start, stop: () => stop.current() };
 }
 
 function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: string | null }) {
@@ -69,6 +147,7 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
   const [muted, setMuted] = useState(true);
   const src = sourceOf(h);
   const caption = h.title || platformName(h) || t('Video highlight');
+  const kick = useKickPlay(frame, src.kind === 'frame' ? src.control : null);
 
   useEffect(() => {
     setPaused(false);
@@ -77,6 +156,7 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
 
   const toggle = () => {
     if (src.kind !== 'frame' || !src.control) return;
+    kick.stop();
     if (muted) {
       // first tap: sound on, keep playing
       command(frame.current, src.control, 'unmute');
@@ -93,7 +173,14 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
     <section className="pp-hv-slide">
       {active && src.kind === 'frame' ? (
         <>
-          <iframe ref={frame} src={src.src} title={caption} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen />
+          <iframe
+            ref={frame}
+            src={src.src}
+            title={caption}
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            allowFullScreen
+            onLoad={kick.start}
+          />
           {/* a tap pauses / plays; a swipe on it scrolls the list, since it lives in our page and not in the player */}
           {src.control && (
             <button type="button" className="pp-hv-catch" onClick={toggle} aria-label={muted ? t('Bật tiếng') : paused ? t('Phát') : t('Tạm dừng')}>
@@ -145,6 +232,8 @@ export default function HighlightViewer({
   const t = useT();
   const list = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(start);
+  const activeRef = useRef(start);
+  activeRef.current = active;
 
   useEffect(() => {
     const el = list.current;
@@ -160,8 +249,15 @@ export default function HighlightViewer({
       { root: el, threshold: 0.6 },
     );
     Array.from(el.children).forEach((c) => io.observe(c));
+    // going full screen (or turning the phone) changes the height of a clip: stay on the same clip, not between two
+    const realign = () => {
+      el.scrollTop = activeRef.current * el.clientHeight;
+    };
+    const ro = new ResizeObserver(realign);
+    ro.observe(el);
     return () => {
       io.disconnect();
+      ro.disconnect();
       document.body.style.overflow = '';
       if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
     };
