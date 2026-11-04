@@ -55,6 +55,11 @@ public class BunnyStreamService {
         return BunnyRules.thumbnailUrl(cdnHost, videoId);
     }
 
+    /** The HLS playlist of a video, or null while the CDN host is not set. */
+    public String playlistUrl(String videoId) {
+        return cdnHost.isEmpty() ? null : BunnyRules.playlistUrl(cdnHost, videoId);
+    }
+
     /** Creates the video on Bunny and returns what the browser needs for the TUS upload. */
     public Map<String, Object> createUpload(String title) {
         if (!isEnabled()) throw new IllegalArgumentException("Chưa bật tải video lên");

@@ -313,6 +313,8 @@ public class UserController {
                             ? bunnyStreamService.thumbnailUrl(h.getVideoId()) : h.getPosterUrl())
                         .embedUrl(h.getKind() == PlayerHighlight.Kind.VIDEO && h.getVideoId() != null
                             ? com.elevenof.backoffice.util.BunnyRules.embedUrl(bunnyStreamService.getLibraryId(), h.getVideoId()) : null)
+                        .hlsUrl(h.getKind() == PlayerHighlight.Kind.VIDEO && h.getVideoId() != null
+                            ? bunnyStreamService.playlistUrl(h.getVideoId()) : null)
                         .hidden(finalIsOwner ? Boolean.TRUE.equals(h.getHidden()) : null)
                         .build())
                     .toList();

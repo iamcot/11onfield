@@ -43,6 +43,8 @@ export interface Highlight {
   kind?: 'LINK' | 'VIDEO';
   posterUrl?: string | null;
   embedUrl?: string | null;
+  /** HLS playlist of an uploaded video: played in our own video element. */
+  hlsUrl?: string | null;
   /** Only sent to the owner. */
   hidden?: boolean | null;
 }

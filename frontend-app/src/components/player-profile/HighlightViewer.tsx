@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import { IconClose, IconNext, IconPrev, IconSoundOff } from '@/components/pp/icons';
+import { IconClose, IconNext, IconPlay, IconPrev, IconSoundOff } from '@/components/pp/icons';
 import { useT } from '@/i18n/I18nProvider';
 import type { Highlight } from '@/services/user.service';
 
@@ -168,6 +168,145 @@ function usePlayer(frame: RefObject<HTMLIFrameElement | null>, control: 'youtube
   return { playing, start, stopKick: () => stopKick.current() };
 }
 
+type HlsInstance = import('hls.js').default;
+
+/**
+ * An uploaded clip played in our own video element, like the Khám phá viewer of anylearn: the HLS playlist plays
+ * natively on Safari and with hls.js elsewhere (loaded only here). Being our own element, it starts by itself
+ * (muted) wherever the browser allows it, and a tap on it is a real tap: sound on, then pause / play.
+ * `onFail` hands the clip back to Bunny's iframe player when the stream cannot be read.
+ */
+function ClipVideo({ src, poster, active, caption, onFail }: { src: string; poster: string | null; active: boolean; caption: string; onFail: () => void }) {
+  const t = useT();
+  const ref = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<HlsInstance | null>(null);
+  const activeRef = useRef(active);
+  const userPaused = useRef(false);
+  const [muted, setMuted] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+
+  const tryPlay = useCallback(() => {
+    const video = ref.current;
+    if (!video || !activeRef.current || userPaused.current) return;
+    video.play().then(
+      () => setPaused(false),
+      () => setPaused(true), // refused (iPhone in Low Power Mode): the play button asks for a tap
+    );
+  }, []);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = src;
+      return () => {
+        video.removeAttribute('src');
+        video.load();
+      };
+    }
+    let cancelled = false;
+    import('hls.js').then(({ default: Hls }) => {
+      if (cancelled) return;
+      if (!Hls.isSupported()) {
+        onFail();
+        return;
+      }
+      const instance = new Hls({ maxBufferLength: 30, startLevel: 0 });
+      instance.on(Hls.Events.ERROR, (_e, data) => {
+        if (data.fatal) onFail();
+      });
+      instance.loadSource(src);
+      instance.attachMedia(video);
+      hlsRef.current = instance;
+      tryPlay();
+    });
+    return () => {
+      cancelled = true;
+      hlsRef.current?.destroy();
+      hlsRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src]);
+
+  // on screen: play; off screen (the clips next to it stay loaded): pause and go back to the start
+  useEffect(() => {
+    activeRef.current = active;
+    const video = ref.current;
+    if (!video) return;
+    if (active) {
+      userPaused.current = false;
+      tryPlay();
+    } else {
+      video.pause();
+      try {
+        video.currentTime = 0;
+      } catch {
+        /* not loaded yet */
+      }
+      video.muted = true;
+      setMuted(true);
+    }
+  }, [active, tryPlay]);
+
+  const tap = () => {
+    const video = ref.current;
+    if (!video) return;
+    if (video.paused) {
+      userPaused.current = false;
+      video.play().then(() => setPaused(false), () => setPaused(true));
+      return;
+    }
+    if (video.muted) {
+      video.muted = false;
+      setMuted(false);
+      return;
+    }
+    userPaused.current = true;
+    video.pause();
+    setPaused(true);
+  };
+
+  return (
+    <>
+      <video
+        ref={ref}
+        className="pp-hv-video"
+        poster={poster ?? undefined}
+        playsInline
+        loop
+        muted={muted}
+        autoPlay={active}
+        preload={active ? 'auto' : 'metadata'}
+        aria-label={caption}
+        onCanPlay={tryPlay}
+        onWaiting={() => setWaiting(true)}
+        onPlaying={() => {
+          setWaiting(false);
+          setPaused(false);
+        }}
+        onError={onFail}
+      />
+      {active && (
+        <button type="button" className="pp-hv-catch" onClick={tap} aria-label={paused ? t('Phát') : muted ? t('Bật tiếng') : t('Tạm dừng')}>
+          {muted && !paused && (
+            <span className="unmute">
+              <IconSoundOff />
+              {t('Chạm để bật tiếng')}
+            </span>
+          )}
+          {paused && (
+            <span className="play">
+              <IconPlay />
+            </span>
+          )}
+          {waiting && !paused && <span className="spin" aria-hidden />}
+        </button>
+      )}
+    </>
+  );
+}
+
 function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: string | null }) {
   const t = useT();
   const frame = useRef<HTMLIFrameElement>(null);
@@ -193,6 +332,18 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
     // the player then says it stopped: this layer goes away and its own play button shows
     command(frame.current, src.control, 'pause');
   };
+
+  const [hlsFailed, setHlsFailed] = useState(false);
+  const failHls = useCallback(() => setHlsFailed(true), []);
+
+  if (h.hlsUrl && !hlsFailed) {
+    return (
+      <section className="pp-hv-slide">
+        <ClipVideo src={h.hlsUrl} poster={poster} active={active} caption={caption} onFail={failHls} />
+        <div className="pp-hv-cap">{caption}</div>
+      </section>
+    );
+  }
 
   return (
     <section className="pp-hv-slide">
