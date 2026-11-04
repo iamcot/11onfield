@@ -90,6 +90,12 @@ export function playStateOf(control: 'youtube' | 'playerjs', data: unknown): 'pl
   return null;
 }
 
+function isIOS(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  // iPadOS says "Macintosh" but has a touch screen
+  return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1);
+}
+
 const KICK_EVERY_MS = 500;
 const KICK_FOR_MS = 8000;
 
@@ -109,7 +115,9 @@ function usePlayer(frame: RefObject<HTMLIFrameElement | null>, control: 'youtube
     setPlaying(false);
     const el = frame.current;
     if (!el || !control) return;
-    let kicking = true;
+    // iPhone / iPad: a play asked by message is refused there (no tap inside the frame), and the refused start
+    // can leave the player stuck so its own play button does nothing; leave it to the autoplay flag and the tap
+    let kicking = !isIOS();
     const kick = () => {
       // YouTube only reports its state after "listening"
       if (control === 'youtube') post(el, { event: 'listening', id: 'hv', channel: 'widget' });
