@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import { IconClose, IconNext, IconPlay, IconPrev, IconSoundOff } from '@/components/pp/icons';
+import { IconClose, IconNext, IconPrev, IconSoundOff } from '@/components/pp/icons';
 import { useT } from '@/i18n/I18nProvider';
 import type { Highlight } from '@/services/user.service';
 
@@ -67,106 +67,123 @@ function command(frame: HTMLIFrameElement | null, control: 'youtube' | 'playerjs
   );
 }
 
-/** True when a message from the player says the clip is playing. */
-export function isPlayingMessage(control: 'youtube' | 'playerjs', data: unknown): boolean {
+/** What a message from the player says: it plays, it stopped, or nothing about that. */
+export function playStateOf(control: 'youtube' | 'playerjs', data: unknown): 'playing' | 'stopped' | null {
   let m: Record<string, unknown> | null = null;
   try {
     m = typeof data === 'string' ? JSON.parse(data) : (data as Record<string, unknown>);
   } catch {
-    return false;
+    return null;
   }
-  if (!m || typeof m !== 'object') return false;
+  if (!m || typeof m !== 'object') return null;
   if (control === 'youtube') {
     const info = m.info as Record<string, unknown> | number | undefined;
-    if (m.event === 'onStateChange') return info === 1;
-    return m.event === 'infoDelivery' && typeof info === 'object' && info !== null && info.playerState === 1;
+    const state =
+      m.event === 'onStateChange' ? info : m.event === 'infoDelivery' && typeof info === 'object' && info !== null ? info.playerState : undefined;
+    if (state === 1) return 'playing';
+    if (state === 0 || state === 2) return 'stopped';
+    return null;
   }
-  return m.context === 'player.js' && (m.event === 'play' || m.event === 'timeupdate');
+  if (m.context !== 'player.js') return null;
+  if (m.event === 'play' || m.event === 'timeupdate') return 'playing';
+  if (m.event === 'pause' || m.event === 'ended') return 'stopped';
+  return null;
 }
 
 const KICK_EVERY_MS = 500;
 const KICK_FOR_MS = 8000;
 
 /**
- * The autoplay flag in the address is not enough: the player may ignore it (it loads after the swipe, it was
- * not muted yet, the browser blocked it). Once the frame has loaded we ask it, muted, to play, every half
- * second until it says it is playing (or 8 s pass, or the person taps).
+ * Follows the player inside the frame. Once it has loaded we ask it, muted, to play, every half second until
+ * it says it plays (or 8 s pass): the autoplay flag in the address alone is not always taken. `playing` comes
+ * from the player's own messages, never from what we asked, so it is false when the browser refused to start
+ * the clip (iPhone in Low Power Mode, for one); the player's own play button is then left free to tap.
  */
-function useKickPlay(frame: RefObject<HTMLIFrameElement | null>, control: 'youtube' | 'playerjs' | null) {
-  const stop = useRef<() => void>(() => undefined);
+function usePlayer(frame: RefObject<HTMLIFrameElement | null>, control: 'youtube' | 'playerjs' | null) {
+  const [playing, setPlaying] = useState(false);
+  const cleanup = useRef<() => void>(() => undefined);
+  const stopKick = useRef<() => void>(() => undefined);
 
   const start = () => {
-    stop.current();
+    cleanup.current();
+    setPlaying(false);
     const el = frame.current;
     if (!el || !control) return;
-    let done = false;
+    let kicking = true;
+    const kick = () => {
+      // YouTube only reports its state after "listening"
+      if (control === 'youtube') post(el, { event: 'listening', id: 'hv', channel: 'widget' });
+      if (!kicking) return;
+      command(el, control, 'mute');
+      command(el, control, 'play');
+    };
+    const timer = window.setInterval(kick, KICK_EVERY_MS);
+    const limit = window.setTimeout(() => endKick(), KICK_FOR_MS);
+    function endKick() {
+      kicking = false;
+      window.clearInterval(timer);
+      window.clearTimeout(limit);
+    }
     const onMessage = (e: MessageEvent) => {
       if (e.source !== el.contentWindow) return;
       if (control === 'playerjs') {
-        // player.js says "ready" when its methods work: ask it to tell us when it plays
+        // player.js says "ready" when its methods work: ask it to tell us when it plays and stops
         try {
           const m = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
           if (m?.context === 'player.js' && m.event === 'ready') {
-            post(el, { context: 'player.js', version: '0.0.11', method: 'addEventListener', value: 'play', listener: 'hv-play' });
-            post(el, { context: 'player.js', version: '0.0.11', method: 'addEventListener', value: 'timeupdate', listener: 'hv-time' });
+            for (const ev of ['play', 'pause', 'ended', 'timeupdate']) {
+              post(el, { context: 'player.js', version: '0.0.11', method: 'addEventListener', value: ev, listener: `hv-${ev}` });
+            }
           }
         } catch {
           /* not ours */
         }
       }
-      if (isPlayingMessage(control, e.data)) finish();
+      const state = playStateOf(control, e.data);
+      if (state === 'playing') {
+        endKick();
+        setPlaying(true);
+      } else if (state === 'stopped') {
+        setPlaying(false);
+      }
     };
-    const kick = () => {
-      // YouTube only reports its state after "listening"
-      if (control === 'youtube') post(el, { event: 'listening', id: 'hv', channel: 'widget' });
-      command(el, control, 'mute');
-      command(el, control, 'play');
-    };
-    const timer = window.setInterval(kick, KICK_EVERY_MS);
-    const limit = window.setTimeout(() => finish(), KICK_FOR_MS);
-    function finish() {
-      if (done) return;
-      done = true;
-      window.clearInterval(timer);
-      window.clearTimeout(limit);
-      window.removeEventListener('message', onMessage);
-    }
     window.addEventListener('message', onMessage);
     kick();
-    stop.current = finish;
+    stopKick.current = endKick;
+    cleanup.current = () => {
+      endKick();
+      window.removeEventListener('message', onMessage);
+    };
   };
 
-  useEffect(() => () => stop.current(), []);
-  return { start, stop: () => stop.current() };
+  useEffect(() => () => cleanup.current(), []);
+  return { playing, start, stopKick: () => stopKick.current() };
 }
 
 function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: string | null }) {
   const t = useT();
   const frame = useRef<HTMLIFrameElement>(null);
-  const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
   const src = sourceOf(h);
   const caption = h.title || platformName(h) || t('Video highlight');
-  const kick = useKickPlay(frame, src.kind === 'frame' ? src.control : null);
+  const player = usePlayer(frame, src.kind === 'frame' ? src.control : null);
 
   useEffect(() => {
-    setPaused(false);
     setMuted(true);
   }, [active]);
 
   const toggle = () => {
     if (src.kind !== 'frame' || !src.control) return;
-    kick.stop();
+    player.stopKick();
     if (muted) {
       // first tap: sound on, keep playing
       command(frame.current, src.control, 'unmute');
       command(frame.current, src.control, 'play');
       setMuted(false);
-      setPaused(false);
       return;
     }
-    command(frame.current, src.control, paused ? 'play' : 'pause');
-    setPaused(!paused);
+    // the player then says it stopped: this layer goes away and its own play button shows
+    command(frame.current, src.control, 'pause');
   };
 
   return (
@@ -179,20 +196,17 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
             title={caption}
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
             allowFullScreen
-            onLoad={kick.start}
+            onLoad={player.start}
           />
-          {/* a tap pauses / plays; a swipe on it scrolls the list, since it lives in our page and not in the player */}
-          {src.control && (
-            <button type="button" className="pp-hv-catch" onClick={toggle} aria-label={muted ? t('Bật tiếng') : paused ? t('Phát') : t('Tạm dừng')}>
+          {/* only while the clip plays: a tap turns the sound on / pauses, a swipe on it scrolls the list.
+              A clip that is not playing gets the tap itself, so the player's own play button works (a play
+              asked by message is not a tap, and iPhone may refuse it) */}
+          {src.control && player.playing && (
+            <button type="button" className="pp-hv-catch" onClick={toggle} aria-label={muted ? t('Bật tiếng') : t('Tạm dừng')}>
               {muted && (
                 <span className="unmute">
                   <IconSoundOff />
                   {t('Chạm để bật tiếng')}
-                </span>
-              )}
-              {paused && (
-                <span className="play">
-                  <IconPlay />
                 </span>
               )}
             </button>
