@@ -198,18 +198,21 @@ function ClipVideo({ src, poster, active, caption, onFail }: { src: string; post
   useEffect(() => {
     const video = ref.current;
     if (!video) return;
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = src;
-      return () => {
-        video.removeAttribute('src');
-        video.load();
-      };
-    }
+    // hls.js first, also on iPhone (iOS 17.1+ has ManagedMediaSource): its requests carry our site as Referer,
+    // which the Bunny CDN asks for. Safari's own HLS player fetches without it, so the CDN refused it on iPhone
+    // while desktop played. Native HLS only where hls.js cannot run (older iOS).
     let cancelled = false;
+    let native = false;
     import('hls.js').then(({ default: Hls }) => {
       if (cancelled) return;
       if (!Hls.isSupported()) {
-        onFail();
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          native = true;
+          video.src = src;
+          tryPlay();
+        } else {
+          onFail();
+        }
         return;
       }
       const instance = new Hls({ maxBufferLength: 30, startLevel: 0 });
@@ -220,11 +223,15 @@ function ClipVideo({ src, poster, active, caption, onFail }: { src: string; post
       instance.attachMedia(video);
       hlsRef.current = instance;
       tryPlay();
-    });
+    }, onFail);
     return () => {
       cancelled = true;
       hlsRef.current?.destroy();
       hlsRef.current = null;
+      if (native) {
+        video.removeAttribute('src');
+        video.load();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
