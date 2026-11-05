@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { IconClose, IconNext, IconPlay, IconPrev, IconSoundOff } from '@/components/pp/icons';
+import { IconClose, IconNext, IconPlay, IconPrev } from '@/components/pp/icons';
 import { useT } from '@/i18n/I18nProvider';
 import type { Highlight } from '@/services/user.service';
 
@@ -25,23 +25,20 @@ export function youtubeId(url: string): string | null {
 /** How a highlight plays inside the viewer: our Bunny clip, YouTube, TikTok, Facebook, else a link out. */
 export function sourceOf(h: Highlight): Source {
   if (h.kind === 'VIDEO' && h.embedUrl) {
-    // browsers only start a video by itself when it is muted (always on iPhone, and after a swipe everywhere);
-    // the first tap turns the sound on
-    const src = h.embedUrl.replace('autoplay=false', 'autoplay=true').replace('preload=false', 'preload=true');
-    return { kind: 'frame', src: src + '&muted=true&loop=true', control: 'playerjs' };
+    return { kind: 'frame', src: h.embedUrl.replace('autoplay=false', 'autoplay=true') + '&loop=true', control: 'playerjs' };
   }
   // a Bunny clip saved as a plain link (its player page) still plays here
   const bunny = h.url.match(/(?:iframe|player)\.mediadelivery\.net\/(?:play|embed)\/(\d+)\/([0-9a-fA-F-]{16,64})/);
   if (bunny) {
     return {
       kind: 'frame',
-      src: `https://iframe.mediadelivery.net/embed/${bunny[1]}/${bunny[2]}?autoplay=true&preload=true&responsive=true&muted=true&loop=true`,
+      src: `https://iframe.mediadelivery.net/embed/${bunny[1]}/${bunny[2]}?autoplay=true&preload=false&responsive=true&loop=true`,
       control: 'playerjs',
     };
   }
   const yt = youtubeId(h.url);
   if (yt) {
-    return { kind: 'frame', src: `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&mute=1&playsinline=1&rel=0&loop=1&playlist=${yt}&enablejsapi=1`, control: 'youtube' };
+    return { kind: 'frame', src: `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&playsinline=1&rel=0&loop=1&playlist=${yt}&enablejsapi=1`, control: 'youtube' };
   }
   const tt = h.url.match(/tiktok\.com\/.*\/video\/(\d+)/);
   if (tt) return { kind: 'frame', src: `https://www.tiktok.com/player/v1/${tt[1]}?autoplay=1&loop=1&rel=0`, control: null };
@@ -51,14 +48,11 @@ export function sourceOf(h: Highlight): Source {
   return { kind: 'link', href: h.url };
 }
 
-type Command = 'play' | 'pause' | 'unmute';
-const YT: Record<Command, string> = { play: 'playVideo', pause: 'pauseVideo', unmute: 'unMute' };
-
-function command(frame: HTMLIFrameElement | null, control: 'youtube' | 'playerjs', cmd: Command) {
+function command(frame: HTMLIFrameElement | null, control: 'youtube' | 'playerjs', play: boolean) {
   const msg =
     control === 'youtube'
-      ? { event: 'command', func: YT[cmd], args: [] }
-      : { context: 'player.js', version: '0.0.11', method: cmd };
+      ? { event: 'command', func: play ? 'playVideo' : 'pauseVideo', args: [] }
+      : { context: 'player.js', version: '0.0.11', method: play ? 'play' : 'pause' };
   frame?.contentWindow?.postMessage(JSON.stringify(msg), '*');
 }
 
@@ -66,26 +60,14 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
   const t = useT();
   const frame = useRef<HTMLIFrameElement>(null);
   const [paused, setPaused] = useState(false);
-  const [muted, setMuted] = useState(true);
   const src = sourceOf(h);
   const caption = h.title || platformName(h) || t('Video highlight');
 
-  useEffect(() => {
-    setPaused(false);
-    setMuted(true);
-  }, [active]);
+  useEffect(() => setPaused(false), [active]);
 
   const toggle = () => {
     if (src.kind !== 'frame' || !src.control) return;
-    if (muted) {
-      // first tap: sound on, keep playing
-      command(frame.current, src.control, 'unmute');
-      command(frame.current, src.control, 'play');
-      setMuted(false);
-      setPaused(false);
-      return;
-    }
-    command(frame.current, src.control, paused ? 'play' : 'pause');
+    command(frame.current, src.control, paused);
     setPaused(!paused);
   };
 
@@ -96,13 +78,7 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
           <iframe ref={frame} src={src.src} title={caption} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen />
           {/* a tap pauses / plays; a swipe on it scrolls the list, since it lives in our page and not in the player */}
           {src.control && (
-            <button type="button" className="pp-hv-catch" onClick={toggle} aria-label={muted ? t('Bật tiếng') : paused ? t('Phát') : t('Tạm dừng')}>
-              {muted && (
-                <span className="unmute">
-                  <IconSoundOff />
-                  {t('Chạm để bật tiếng')}
-                </span>
-              )}
+            <button type="button" className="pp-hv-catch" onClick={toggle} aria-label={paused ? t('Phát') : t('Tạm dừng')}>
               {paused && (
                 <span className="play">
                   <IconPlay />
