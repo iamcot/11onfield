@@ -41,11 +41,6 @@ public final class BunnyRules {
         return "https://" + cleanHost(cdnHost) + "/" + videoId + "/thumbnail.jpg";
     }
 
-    /** The streaming playlist the site plays in its own video element (native on Safari, hls.js elsewhere). */
-    public static String playlistUrl(String cdnHost, String videoId) {
-        return "https://" + cleanHost(cdnHost) + "/" + videoId + "/playlist.m3u8";
-    }
-
     /** Bunny's own player page: what the admin opens to review, and the saved `url` of a video highlight. */
     public static String playUrl(String libraryId, String videoId) {
         return "https://iframe.mediadelivery.net/play/" + libraryId + "/" + videoId;
