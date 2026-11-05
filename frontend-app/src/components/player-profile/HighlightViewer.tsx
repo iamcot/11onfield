@@ -77,7 +77,14 @@ function Slide({ h, active, poster }: { h: Highlight; active: boolean; poster: s
         <>
           <iframe ref={frame} src={src.src} title={caption} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen />
           {/* a tap pauses / plays; a swipe on it scrolls the list, since it lives in our page and not in the player */}
-          {src.control && (
+          {/* Bunny: its own orange button must get the tap, so only side strips stay ours for swiping */}
+          {src.control === 'playerjs' && (
+            <>
+              <div className="pp-hv-edge left" aria-hidden />
+              <div className="pp-hv-edge right" aria-hidden />
+            </>
+          )}
+          {src.control === 'youtube' && (
             <button type="button" className="pp-hv-catch" onClick={toggle} aria-label={paused ? t('Phát') : t('Tạm dừng')}>
               {paused && (
                 <span className="play">
