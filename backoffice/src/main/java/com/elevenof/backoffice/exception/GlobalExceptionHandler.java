@@ -106,6 +106,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidOtp(InvalidOtpException ex) {
+        return simple(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimit(RateLimitExceededException ex) {
+        return simple(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+    }
+
+    @ExceptionHandler(OtpSendFailedException.class)
+    public ResponseEntity<ErrorResponse> handleOtpSendFailed(OtpSendFailedException ex) {
+        return simple(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
+
+    private ResponseEntity<ErrorResponse> simple(HttpStatus status, String message) {
+        ErrorResponse error = ErrorResponse.builder()
+            .status(status.value())
+            .message(message)
+            .timestamp(LocalDateTime.now())
+            .build();
+        return ResponseEntity.status(status).body(error);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         log.warn("Illegal argument: {}", ex.getMessage());

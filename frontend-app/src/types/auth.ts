@@ -38,6 +38,8 @@ export interface RegisterData {
     weight?: string;
     preferredFoot?: string;
   };
+  /** 6-digit code sent to `phone` by authService.sendRegisterOtp */
+  otpCode?: string;
 }
 
 export interface AuthResponse {

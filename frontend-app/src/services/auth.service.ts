@@ -55,6 +55,15 @@ export const authService = {
     return response;
   },
 
+  /** Sends the sign-up code to the phone over Zalo. Refused when the phone already has an account. */
+  async sendRegisterOtp(phone: string): Promise<{ expiresInSeconds: number; resendAfterSeconds: number }> {
+    if (appConfig.isMockEnabled) {
+      console.log('[MOCK MODE] Pretending to send sign-up OTP, any 6 digits work');
+      return { expiresInSeconds: 300, resendAfterSeconds: 60 };
+    }
+    return apiClient.post('/auth/register/send-otp', { phone });
+  },
+
   async logout(): Promise<void> {
     // Use mock data if enabled in development
     if (appConfig.isMockEnabled) {
