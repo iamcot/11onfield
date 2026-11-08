@@ -71,6 +71,7 @@ const quiz: Messages = {
   'Xem tất cả': ['See all', 'Ver todo', '전체 보기'],
   // rank card and board
   'Hạng hiện tại': ['Current rank', 'Rango actual', '현재 등급'],
+  '{n} sao': ['{n} stars', '{n} estrellas', '별 {n}개'],
   '{n} trên {m} sao': ['{n} of {m} stars', '{n} de {m} estrellas', '별 {m}개 중 {n}개'],
   'Còn 1 lượt giữ hạng': ['1 rank save left', 'Te queda 1 salvavidas', '등급 보호 1회 남음'],
   'Các hạng': ['Ranks', 'Rangos', '등급'],
