@@ -17,15 +17,19 @@ export default function RankCard({
       <div className={`qz-crest of-cut ${rank >= 5 ? 'gold' : ''}`} aria-hidden="true">{rank + 1}</div>
       <div style={{ minWidth: 0 }}>
         <span className="pp-hud pp-mute">{t('Hạng hiện tại')}</span>
-        <h2 className={rank >= 5 ? 'pp-gold' : ''}>{t(rankLabel)}</h2>
+        {!last && <h2 className={rank >= 5 ? 'pp-gold' : ''}>{t(rankLabel)}</h2>}
         {last ? (
-          // The top rank has no star cap: a count and one star instead of a bar.
-          <div className="qz-stars qz-stars-count" aria-label={t('{n} sao', { n: stars })}>
-            <b>{stars}</b>
-            <span aria-hidden="true">×</span>
-            <i key={popStar ? `pop-${stars}` : 'star'} className={`on ${popStar ? 'pop' : ''}`} />
-            {guard && stars === 0 && <span className="qz-guard">🛡 {t('Còn 1 lượt giữ hạng')}</span>}
-          </div>
+          // The top rank has no star cap: the title reads "Huyền thoại 27 × ★" on one line.
+          <>
+            <h2 className="pp-gold qz-title-count">
+              {t(rankLabel)}{' '}
+              <span className="qz-stars-count" aria-label={t('{n} sao', { n: stars })}>
+                {stars}<small aria-hidden="true">×</small>
+                <i key={popStar ? `pop-${stars}` : 'star'} className={`on ${popStar ? 'pop' : ''}`} />
+              </span>
+            </h2>
+            {guard && stars === 0 && <div className="qz-stars"><span className="qz-guard">🛡 {t('Còn 1 lượt giữ hạng')}</span></div>}
+          </>
         ) : (
           <div className="qz-stars" aria-label={t('{n} trên {m} sao', { n: stars, m: starsPerRank })}>
             {Array.from({ length: starsPerRank }, (_, i) => (
