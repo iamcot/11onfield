@@ -6,6 +6,7 @@ export type AnalyticsEvent =
   // Authentication Events
   | 'user_login'
   | 'user_register'
+  | 'register_otp_sent'
   | 'user_logout'
   | 'otp_requested'
   | 'otp_verified'
@@ -64,6 +65,9 @@ export interface EventProperties {
     role: string;
     province_id?: number;
     has_player_profile?: boolean;
+  };
+  register_otp_sent?: {
+    role: string;
   };
   user_logout?: {
     session_duration?: number;

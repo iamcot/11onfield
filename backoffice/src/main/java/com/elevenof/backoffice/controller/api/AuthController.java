@@ -1,9 +1,11 @@
 package com.elevenof.backoffice.controller.api;
 
 import com.elevenof.backoffice.dto.request.ChangePasswordRequest;
+import com.elevenof.backoffice.dto.request.SendRegisterOtpRequest;
 import com.elevenof.backoffice.dto.request.LoginRequest;
 import com.elevenof.backoffice.dto.request.RegisterRequest;
 import com.elevenof.backoffice.dto.response.AuthResponse;
+import com.elevenof.backoffice.service.OtpService;
 import com.elevenof.backoffice.service.UserAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -29,6 +33,16 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = userAuthService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /** Sends the sign-up code to the phone; the code then goes into /register as otpCode. */
+    @PostMapping("/register/send-otp")
+    public ResponseEntity<Map<String, Object>> sendRegisterOtp(@Valid @RequestBody SendRegisterOtpRequest request) {
+        userAuthService.sendRegistrationOtp(request.getPhone());
+        return ResponseEntity.ok(Map.of(
+                "message", "Đã gửi mã OTP qua Zalo",
+                "expiresInSeconds", OtpService.OTP_EXPIRY_SECONDS,
+                "resendAfterSeconds", OtpService.RESEND_COOLDOWN_SECONDS));
     }
 
     @PostMapping("/login")

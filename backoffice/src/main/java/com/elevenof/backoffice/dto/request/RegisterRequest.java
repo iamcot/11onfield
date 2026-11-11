@@ -37,4 +37,9 @@ public class RegisterRequest {
 
     // Only for PLAYER role: HANOI_NORTH, DANANG_CENTRAL, HCMC_SOUTH
     private String selectedRegion;
+
+    // Code sent by POST /api/auth/register/send-otp to the phone above
+    @NotBlank(message = "Vui lòng nhập mã OTP đã gửi tới số điện thoại")
+    @Pattern(regexp = "^\\d{6}$", message = "Mã OTP phải gồm 6 chữ số")
+    private String otpCode;
 }
